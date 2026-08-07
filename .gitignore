@@ -1,0 +1,14 @@
+build/
+build-*/
+cmake-build-*/
+.qt/
+.cache/
+*.user
+*.user.*
+CMakeLists.txt.user*
+.vscode/
+.idea/
+dist/
+*.exe
+*.dmg
+*.AppImage
