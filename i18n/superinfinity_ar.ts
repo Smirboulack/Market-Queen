@@ -82,6 +82,10 @@
         <translation>النبرة</translation>
     </message>
     <message>
+        <source>Describe the tone in your own words</source>
+        <translation>صِف النبرة بكلماتك</translation>
+    </message>
+    <message>
         <source>excited and casual</source>
         <translation>متحمّسة وعفوية</translation>
     </message>
@@ -104,6 +108,10 @@
     <message>
         <source>Language</source>
         <translation>اللغة</translation>
+    </message>
+    <message>
+        <source>Any other language</source>
+        <translation>أي لغة أخرى</translation>
     </message>
     <message>
         <source>Length</source>
@@ -169,6 +177,18 @@
     <message>
         <source>Voice</source>
         <translation>الصوت</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>معرّف صوت آخر...</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>الصق معرّف صوت</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>حمّل أصوات حسابك لاختيار أحدها.</translation>
     </message>
     <message>
         <source>Load voices</source>
@@ -257,6 +277,17 @@
     <message>
         <source>No opening frame to animate.</source>
         <translation>لا توجد لقطة أولى لتحريكها.</translation>
+    </message>
+</context>
+<context>
+    <name>FalVoiceTask</name>
+    <message>
+        <source>Recording the voice-over...</source>
+        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
+    </message>
+    <message>
+        <source>fal.ai returned no audio.</source>
+        <translation>لم يُرجع fal.ai أي صوت.</translation>
     </message>
 </context>
 <context>
@@ -461,6 +492,14 @@
         <source>no API key</source>
         <translation>لا يوجد مفتاح API</translation>
     </message>
+    <message>
+        <source>Other model id...</source>
+        <translation>معرّف نموذج آخر...</translation>
+    </message>
+    <message>
+        <source>e.g. fal-ai/some-new-model</source>
+        <translation>مثال: fal-ai/some-new-model</translation>
+    </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
@@ -493,6 +532,17 @@
     <message>
         <source>OpenAI returned no audio.</source>
         <translation>لم تُرجع OpenAI أي صوت.</translation>
+    </message>
+</context>
+<context>
+    <name>PickerWithCustom</name>
+    <message>
+        <source>Other...</source>
+        <translation>أخرى...</translation>
+    </message>
+    <message>
+        <source>Type your own</source>
+        <translation>اكتب ما تريد</translation>
     </message>
 </context>
 <context>
@@ -544,6 +594,10 @@
     <message>
         <source>That provider is not available.</source>
         <translation>هذا المزوّد غير متاح.</translation>
+    </message>
+    <message>
+        <source>Auto picked %1.</source>
+        <translation>اختار الوضع التلقائي %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
@@ -688,6 +742,10 @@
 <context>
     <name>Registry</name>
     <message>
+        <source>Auto - best model for this shot</source>
+        <translation>تلقائي - أفضل نموذج لهذه اللقطة</translation>
+    </message>
+    <message>
         <source>Reads the product photo when the model supports vision.</source>
         <translation>يقرأ صورة المنتج عندما يدعم النموذج الرؤية.</translation>
     </message>
@@ -700,24 +758,36 @@
         <translation>توجد باقة مجانية في معظم المناطق.</translation>
     </message>
     <message>
+        <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
+        <translation>أوسع كتالوج. يعمل أيضًا أي معرّف نموذج من fal.ai/models.</translation>
+    </message>
+    <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
         <translation>يستطيع gpt-image-1 تعديل صورة منتجك مباشرة.</translation>
     </message>
     <message>
-        <source>Any fal model id works, paste one from fal.ai/models.</source>
-        <translation>أي معرّف نموذج من fal يعمل، انسخه من fal.ai/models.</translation>
+        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
+        <translation>‏Kling وVeo وSeedance وHailuo وRunway وLuma وWan وPika - مفتاح واحد للجميع.</translation>
+    </message>
+    <message>
+        <source>Scripts, images, Sora video, voice-over and subtitles.</source>
+        <translation>النصوص والصور وفيديو Sora والتعليق الصوتي والترجمة.</translation>
+    </message>
+    <message>
+        <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
+        <translation>الصور والفيديو والأصوات (Kling، Veo، Seedance، FLUX، MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>استخدم owner/name، أو owner/name:version لتثبيت إصدار معيّن.</translation>
     </message>
     <message>
-        <source>Kling, Hailuo, Wan, Luma - all behind one key.</source>
-        <translation>‏Kling وHailuo وWan وLuma - جميعها بمفتاح واحد.</translation>
-    </message>
-    <message>
         <source>Pay per second, no subscription.</source>
         <translation>الدفع بالثانية، بلا اشتراك.</translation>
+    </message>
+    <message>
+        <source>The opening frame is resized to Sora's format automatically.</source>
+        <translation>يتم تغيير حجم اللقطة الأولى تلقائيًا لتناسب صيغة Sora.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -728,20 +798,16 @@
         <translation>رخيص وسريع، مع مجموعة أصوات ثابتة.</translation>
     </message>
     <message>
+        <source>Several voice engines behind the fal key you already have.</source>
+        <translation>عدة محرّكات صوت بمفتاح fal الذي تملكه بالفعل.</translation>
+    </message>
+    <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
         <translation>يحوّل التعليق الصوتي المولَّد إلى ترجمة موقوتة.</translation>
     </message>
     <message>
-        <source>Scripts, images, voice-over and subtitles.</source>
-        <translation>النصوص والصور والتعليق الصوتي والترجمة.</translation>
-    </message>
-    <message>
         <source>Scripts.</source>
         <translation>النصوص.</translation>
-    </message>
-    <message>
-        <source>Images and video (Kling, Wan, Hailuo, Flux).</source>
-        <translation>الصور والفيديو (Kling، Wan، Hailuo، Flux).</translation>
     </message>
     <message>
         <source>Images and video.</source>
@@ -911,6 +977,45 @@
 Nothing is uploaded to us.</source>
         <translation>مفاتيحك وملفاتك.
 لا شيء يُرسل إلينا.</translation>
+    </message>
+</context>
+<context>
+    <name>SoraVideoTask</name>
+    <message>
+        <source>No opening frame to animate.</source>
+        <translation>لا توجد لقطة أولى لتحريكها.</translation>
+    </message>
+    <message>
+        <source>Could not prepare the opening frame for Sora.</source>
+        <translation>تعذّر تجهيز اللقطة الأولى لـ Sora.</translation>
+    </message>
+    <message>
+        <source>Sending the shot to Sora (%1)...</source>
+        <translation>جارٍ إرسال اللقطة إلى Sora (%1)...</translation>
+    </message>
+    <message>
+        <source>Sora did not return a job id.</source>
+        <translation>لم يُرجع Sora معرّف مهمة.</translation>
+    </message>
+    <message>
+        <source>Sora is rendering... %1%</source>
+        <translation>‏Sora يعالج... %1%</translation>
+    </message>
+    <message>
+        <source>Sora is rendering...</source>
+        <translation>‏Sora يعالج...</translation>
+    </message>
+    <message>
+        <source>Sora reported status "%1".</source>
+        <translation>أبلغ Sora عن الحالة «%1».</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation>جارٍ تنزيل المقطع...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation>كان المقطع الذي جرى تنزيله فارغًا.</translation>
     </message>
 </context>
 <context>

@@ -14,8 +14,8 @@ Item {
             "productName": productName.text.trim(),
             "productDescription": productDescription.text.trim(),
             "audience": audience.text.trim(),
-            "tone": tone.editText,
-            "language": language.editText,
+            "tone": tone.value,
+            "language": language.value,
             "avatarBrief": avatarBrief.text.trim(),
             "extraInstructions": extraInstructions.text.trim(),
             "script": ownScript.text.trim(),
@@ -31,7 +31,7 @@ Item {
             "videoModel": videoPicker.modelId,
             "voiceProvider": voicePicker.providerId,
             "voiceModel": voicePicker.modelId,
-            "voiceId": voiceBox.editText,
+            "voiceId": voiceBox.value,
             "captionsEnabled": captions.checked,
             "captionsProvider": "openai-whisper",
             "captionsModel": "whisper-1"
@@ -151,63 +151,72 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignTop
                         spacing: Theme.gap
 
-                        ColumnLayout {
-                            Layout.fillWidth: true
-                            spacing: 5
+                        // The values stay English: they go into the prompt, not
+                        // on screen. Only the labels are translated.
+                        PickerWithCustom {
+                            id: tone
 
-                            Text {
-                                text: qsTr("Tone")
-                                color: Theme.textDim
-                                font.pixelSize: Theme.fontSmall
-                                font.weight: Font.DemiBold
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            label: qsTr("Tone")
+                            customPlaceholder: qsTr("Describe the tone in your own words")
+                            options: [
+                                { label: qsTr("excited and casual"), value: "excited and casual" },
+                                { label: qsTr("calm and honest"), value: "calm and honest" },
+                                { label: qsTr("funny"), value: "funny" },
+                                { label: qsTr("straight to the point"), value: "straight to the point" },
+                                { label: qsTr("storytelling"), value: "storytelling" }
+                            ]
+
+                            property bool ready: false
+
+                            Component.onCompleted: {
+                                setValue(App.settings.pref("tone", "excited and casual"));
+                                ready = true;
                             }
 
-                            StyledCombo {
-                                id: tone
-                                Layout.fillWidth: true
-                                editable: true
-                                model: [qsTr("excited and casual"), qsTr("calm and honest"),
-                                        qsTr("funny"), qsTr("straight to the point"),
-                                        qsTr("storytelling")]
-                                Component.onCompleted: editText = model[0]
+                            onValueEdited: function (v) {
+                                if (ready) App.settings.setPref("tone", v);
                             }
                         }
 
-                        ColumnLayout {
-                            Layout.preferredWidth: 150
-                            spacing: 5
+                        PickerWithCustom {
+                            id: language
 
-                            Text {
-                                text: qsTr("Language")
-                                color: Theme.textDim
-                                font.pixelSize: Theme.fontSmall
-                                font.weight: Font.DemiBold
+                            Layout.preferredWidth: 190
+                            Layout.alignment: Qt.AlignTop
+                            label: qsTr("Language")
+                            customPlaceholder: qsTr("Any other language")
+                            options: [
+                                { label: "English", value: "English" },
+                                { label: "Français", value: "Français" },
+                                { label: "Español", value: "Español" },
+                                { label: "Deutsch", value: "Deutsch" },
+                                { label: "Italiano", value: "Italiano" },
+                                { label: "Português", value: "Português" },
+                                { label: "Nederlands", value: "Nederlands" },
+                                { label: "Polski", value: "Polski" },
+                                { label: "Русский", value: "Русский" },
+                                { label: "中文", value: "中文" },
+                                { label: "العربية", value: "العربية" },
+                                { label: "日本語", value: "日本語" }
+                            ]
+
+                            property bool ready: false
+
+                            // Defaults to the interface language: someone running
+                            // the app in French usually wants a French ad.
+                            Component.onCompleted: {
+                                const saved = App.settings.pref("language", "");
+                                setValue(saved !== "" ? saved : App.translator.currentLabel);
+                                ready = true;
                             }
 
-                            StyledCombo {
-                                id: language
-                                Layout.fillWidth: true
-                                editable: true
-                                model: ["English", "Français", "Español", "Deutsch", "Italiano",
-                                        "Português", "Nederlands"]
-                                // Defaults to the interface language: someone
-                                // running the app in French usually wants a
-                                // French ad. callLater, because assigning the
-                                // model resets editText to the first entry.
-                                property bool ready: false
-
-                                Component.onCompleted: {
-                                    const saved = App.settings.pref("language", "");
-                                    Qt.callLater(function () {
-                                        language.editText = saved !== "" ? saved
-                                                                         : App.translator.currentLabel;
-                                        language.ready = true;
-                                    });
-                                }
-
-                                onEditTextChanged: if (ready) App.settings.setPref("language", editText)
+                            onValueEdited: function (v) {
+                                if (ready) App.settings.setPref("language", v);
                             }
                         }
                     }
@@ -339,19 +348,34 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignTop
                         spacing: 8
 
-                        StyledCombo {
+                        PickerWithCustom {
                             id: voiceBox
-                            Layout.fillWidth: true
-                            editable: true
-                            model: []
 
-                            Component.onCompleted: editText = App.settings.pref("voiceId", "")
-                            onEditTextChanged: App.settings.setPref("voiceId", editText)
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            options: []
+                            customLabel: qsTr("Other voice id...")
+                            customPlaceholder: qsTr("Paste a voice id")
+                            hint: options.length === 0
+                                  ? qsTr("Load the voices on your account to pick one.") : ""
+
+                            property bool ready: false
+
+                            Component.onCompleted: {
+                                setValue(App.settings.pref("voiceId", ""));
+                                ready = true;
+                            }
+
+                            onValueEdited: function (v) {
+                                if (ready) App.settings.setPref("voiceId", v);
+                            }
                         }
 
                         GhostButton {
+                            Layout.alignment: Qt.AlignTop
                             text: qsTr("Load voices")
                             onClicked: App.loadVoices(voicePicker.providerId)
                         }
@@ -552,12 +576,14 @@ Item {
         target: App
 
         function onVoicesLoaded(providerId, voices) {
-            const ids = voices.map(function (v) {
-                return v.description ? v.id + "  ·  " + v.label + " (" + v.description + ")"
-                                     : v.id + "  ·  " + v.label;
+            const current = voiceBox.value;
+            voiceBox.options = voices.map(function (v) {
+                return {
+                    label: v.description ? v.label + " - " + v.description : v.label,
+                    value: v.id
+                };
             });
-            voiceList.entries = voices;
-            voiceBox.model = ids;
+            voiceBox.setValue(current);
             App.log.append(0, qsTr("%1 voices loaded.").arg(voices.length));
         }
 
@@ -566,19 +592,4 @@ Item {
         }
     }
 
-    // Keeps the raw voice objects so the combo can map a label back to an id.
-    QtObject {
-        id: voiceList
-        property var entries: []
-    }
-
-    // The combo shows "id · Name (traits)"; the pipeline needs the id alone.
-    Connections {
-        target: voiceBox
-
-        function onActivated(index) {
-            if (index >= 0 && index < voiceList.entries.length)
-                voiceBox.editText = voiceList.entries[index].id;
-        }
-    }
 }

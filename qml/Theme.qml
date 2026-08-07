@@ -40,6 +40,10 @@ QtObject {
     readonly property int pagePadding: 28
     readonly property int fieldHeight: 38
 
+    // One duration for every hover/press transition. Mixing durations, or
+    // animating a fill but not its border, reads as two separate animations.
+    readonly property int hoverDuration: 120
+
     readonly property int fontSmall: 11
     readonly property int fontBody: 13
     readonly property int fontTitle: 15

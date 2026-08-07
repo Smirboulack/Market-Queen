@@ -82,6 +82,10 @@
         <translation>语气</translation>
     </message>
     <message>
+        <source>Describe the tone in your own words</source>
+        <translation>用你自己的话描述语气</translation>
+    </message>
+    <message>
         <source>excited and casual</source>
         <translation>热情随意</translation>
     </message>
@@ -104,6 +108,10 @@
     <message>
         <source>Language</source>
         <translation>语言</translation>
+    </message>
+    <message>
+        <source>Any other language</source>
+        <translation>任何其他语言</translation>
     </message>
     <message>
         <source>Length</source>
@@ -169,6 +177,18 @@
     <message>
         <source>Voice</source>
         <translation>配音</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>其他语音 ID…</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>粘贴语音 ID</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>加载账号下的语音后即可选择。</translation>
     </message>
     <message>
         <source>Load voices</source>
@@ -257,6 +277,17 @@
     <message>
         <source>No opening frame to animate.</source>
         <translation>没有可用于生成动画的首帧。</translation>
+    </message>
+</context>
+<context>
+    <name>FalVoiceTask</name>
+    <message>
+        <source>Recording the voice-over...</source>
+        <translation>正在生成配音…</translation>
+    </message>
+    <message>
+        <source>fal.ai returned no audio.</source>
+        <translation>fal.ai 未返回音频。</translation>
     </message>
 </context>
 <context>
@@ -461,6 +492,14 @@
         <source>no API key</source>
         <translation>缺少 API 密钥</translation>
     </message>
+    <message>
+        <source>Other model id...</source>
+        <translation>其他模型 ID…</translation>
+    </message>
+    <message>
+        <source>e.g. fal-ai/some-new-model</source>
+        <translation>例如：fal-ai/some-new-model</translation>
+    </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
@@ -493,6 +532,17 @@
     <message>
         <source>OpenAI returned no audio.</source>
         <translation>OpenAI 未返回音频。</translation>
+    </message>
+</context>
+<context>
+    <name>PickerWithCustom</name>
+    <message>
+        <source>Other...</source>
+        <translation>其他…</translation>
+    </message>
+    <message>
+        <source>Type your own</source>
+        <translation>自行输入</translation>
     </message>
 </context>
 <context>
@@ -544,6 +594,10 @@
     <message>
         <source>That provider is not available.</source>
         <translation>该服务商不可用。</translation>
+    </message>
+    <message>
+        <source>Auto picked %1.</source>
+        <translation>自动选择了 %1。</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
@@ -688,6 +742,10 @@
 <context>
     <name>Registry</name>
     <message>
+        <source>Auto - best model for this shot</source>
+        <translation>自动 — 为该镜头挑选最佳模型</translation>
+    </message>
+    <message>
         <source>Reads the product photo when the model supports vision.</source>
         <translation>当模型支持视觉时会读取产品照片。</translation>
     </message>
@@ -700,24 +758,36 @@
         <translation>多数地区提供免费额度。</translation>
     </message>
     <message>
+        <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
+        <translation>最全的模型库。fal.ai/models 上的任何模型 ID 也都可用。</translation>
+    </message>
+    <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
         <translation>gpt-image-1 可以直接编辑你的产品照片。</translation>
     </message>
     <message>
-        <source>Any fal model id works, paste one from fal.ai/models.</source>
-        <translation>任何 fal 模型 ID 均可，从 fal.ai/models 复制即可。</translation>
+        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
+        <translation>Kling、Veo、Seedance、Hailuo、Runway、Luma、Wan、Pika，一个密钥全都能用。</translation>
+    </message>
+    <message>
+        <source>Scripts, images, Sora video, voice-over and subtitles.</source>
+        <translation>脚本、图像、Sora 视频、配音和字幕。</translation>
+    </message>
+    <message>
+        <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
+        <translation>图像、视频和语音（Kling、Veo、Seedance、FLUX、MiniMax…）。</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>使用 owner/name，或用 owner/name:version 锁定版本。</translation>
     </message>
     <message>
-        <source>Kling, Hailuo, Wan, Luma - all behind one key.</source>
-        <translation>Kling、Hailuo、Wan、Luma，一个密钥全都能用。</translation>
-    </message>
-    <message>
         <source>Pay per second, no subscription.</source>
         <translation>按秒计费，无需订阅。</translation>
+    </message>
+    <message>
+        <source>The opening frame is resized to Sora's format automatically.</source>
+        <translation>首帧会自动缩放为 Sora 所需的尺寸。</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -728,20 +798,16 @@
         <translation>便宜快速，语音种类固定。</translation>
     </message>
     <message>
+        <source>Several voice engines behind the fal key you already have.</source>
+        <translation>用你已有的 fal 密钥即可调用多种语音引擎。</translation>
+    </message>
+    <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
         <translation>把生成的配音转成带时间轴的字幕。</translation>
     </message>
     <message>
-        <source>Scripts, images, voice-over and subtitles.</source>
-        <translation>脚本、图像、配音和字幕。</translation>
-    </message>
-    <message>
         <source>Scripts.</source>
         <translation>脚本。</translation>
-    </message>
-    <message>
-        <source>Images and video (Kling, Wan, Hailuo, Flux).</source>
-        <translation>图像和视频（Kling、Wan、Hailuo、Flux）。</translation>
     </message>
     <message>
         <source>Images and video.</source>
@@ -911,6 +977,45 @@
 Nothing is uploaded to us.</source>
         <translation>你的密钥，你的文件。
 不会上传给我们。</translation>
+    </message>
+</context>
+<context>
+    <name>SoraVideoTask</name>
+    <message>
+        <source>No opening frame to animate.</source>
+        <translation>没有可用于生成动画的首帧。</translation>
+    </message>
+    <message>
+        <source>Could not prepare the opening frame for Sora.</source>
+        <translation>无法为 Sora 准备首帧。</translation>
+    </message>
+    <message>
+        <source>Sending the shot to Sora (%1)...</source>
+        <translation>正在把镜头发送给 Sora（%1）…</translation>
+    </message>
+    <message>
+        <source>Sora did not return a job id.</source>
+        <translation>Sora 未返回任务 ID。</translation>
+    </message>
+    <message>
+        <source>Sora is rendering... %1%</source>
+        <translation>Sora 正在渲染… %1%</translation>
+    </message>
+    <message>
+        <source>Sora is rendering...</source>
+        <translation>Sora 正在渲染…</translation>
+    </message>
+    <message>
+        <source>Sora reported status "%1".</source>
+        <translation>Sora 返回状态“%1”。</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation>正在下载片段…</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation>下载到的片段是空的。</translation>
     </message>
 </context>
 <context>

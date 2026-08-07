@@ -35,6 +35,18 @@ protected:
     void start() override;
 };
 
+// MiniMax, ElevenLabs, Kokoro and friends behind the fal key. Each engine names
+// its inputs differently, so the request is shaped per family.
+class FalVoiceTask : public VoiceTask
+{
+    Q_OBJECT
+public:
+    using VoiceTask::VoiceTask;
+
+protected:
+    void start() override;
+};
+
 // Subtitles. Result: { srt: QString }.
 class WhisperCaptionTask : public HttpTask
 {
@@ -71,6 +83,17 @@ class OpenAiVoiceListTask : public ProviderTask
 
 public:
     explicit OpenAiVoiceListTask(QObject *parent = nullptr);
+
+protected:
+    void start() override;
+};
+
+class FalVoiceListTask : public ProviderTask
+{
+    Q_OBJECT
+
+public:
+    explicit FalVoiceListTask(QObject *parent = nullptr);
 
 protected:
     void start() override;

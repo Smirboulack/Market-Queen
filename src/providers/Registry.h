@@ -36,17 +36,30 @@ public:
 
     void retranslate();
 
+    // A model the user can pick: technical id + something readable.
+    struct Model {
+        QString id;
+        QString label;
+    };
+
     struct Entry {
         QString id;
         QString category;
         QString label;
         QString credential;
-        QStringList models;
+        QList<Model> models;
         QString defaultModel;
         QString note;
     };
 
     const QList<Entry> &entries() const { return m_entries; }
+
+    // "auto" is a placeholder, not a model id. This turns it into a real one,
+    // picked from what the shot needs. Returns the id unchanged otherwise.
+    Q_INVOKABLE QString resolveModel(const QString &providerId, const QString &modelId,
+                                     int durationSeconds = 0) const;
+
+    static bool isAuto(const QString &modelId) { return modelId == QLatin1String("auto"); }
 
 signals:
     void retranslated();

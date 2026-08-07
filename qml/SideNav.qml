@@ -86,7 +86,7 @@ Rectangle {
                          : "transparent"
 
                     Behavior on color {
-                        ColorAnimation { duration: 110 }
+                        ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
                     }
 
                     RowLayout {

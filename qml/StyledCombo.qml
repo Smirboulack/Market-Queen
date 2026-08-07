@@ -3,6 +3,10 @@ import QtQuick.Controls.Basic
 import QtQuick.Layouts
 import SuperInfinity
 
+// Fixed-choice picker. There is deliberately no inline editing: an editable
+// ComboBox puts a live TextField over the control, which swallows the click and
+// keeps the text cursor over the arrow. Free text lives in its own field, next
+// to the combo (see PickerWithCustom).
 ComboBox {
     id: control
 
@@ -13,28 +17,16 @@ ComboBox {
     // changing a model on scroll is worse than not scrolling at all.
     wheelEnabled: false
 
-    // Editable combos double as free-text fields for model ids the catalogue
-    // does not know about yet. ComboBox needs a real TextField here to drive
-    // editing, but a live TextField also eats the click that should open the
-    // popup -- so it is disabled (not hidden) when we are only displaying.
-    contentItem: TextField {
-        enabled: control.editable
-        readOnly: !control.editable
+    contentItem: Text {
+        leftPadding: control.mirrored ? control.indicator.width + 20 : 12
+        rightPadding: control.mirrored ? 12 : control.indicator.width + 20
 
-        leftPadding: control.mirrored ? control.indicator.width + 8 : 10
-        rightPadding: control.mirrored ? 10 : control.indicator.width + 8
-
-        text: control.editable ? control.editText : control.displayText
-        color: Theme.text
-        placeholderTextColor: Theme.textFaint
+        text: control.displayText
+        color: control.enabled ? Theme.text : Theme.textFaint
         font: control.font
         verticalAlignment: Text.AlignVCenter
-        selectByMouse: true
-        selectionColor: Theme.accent
-        selectedTextColor: "white"
-        background: null
-
-        onTextChanged: if (control.editable) control.editText = text
+        horizontalAlignment: control.mirrored ? Text.AlignRight : Text.AlignLeft
+        elide: Text.ElideRight
     }
 
     indicator: Canvas {
@@ -71,21 +63,23 @@ ComboBox {
 
     background: Rectangle {
         radius: Theme.radiusSmall
-        color: Theme.surfaceAlt
+        color: control.pressed || control.popup.visible ? Theme.surfaceHover : Theme.surfaceAlt
         border.width: 1
         border.color: control.activeFocus || control.popup.visible ? Theme.accent
                     : control.hovered ? Theme.borderStrong
                     : Theme.border
 
+        Behavior on color {
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
+        }
         Behavior on border.color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
         }
     }
 
-    // The whole control is clickable, including the text area.
+    // Covers the whole control, arrow included: nothing on top intercepts it.
     HoverHandler {
-        cursorShape: Qt.PointingHandCursor
-        enabled: !control.editable
+        cursorShape: control.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
     }
 
     delegate: ItemDelegate {
@@ -101,24 +95,25 @@ ComboBox {
         highlighted: control.highlightedIndex === index
 
         contentItem: Text {
-            text: control.textRole
-                  ? (Array.isArray(control.model) ? option.modelData[control.textRole]
-                                                  : option.modelData[control.textRole])
-                  : option.modelData
+            text: control.textRole ? option.modelData[control.textRole] : option.modelData
             color: option.current ? Theme.accent : Theme.text
             font.pixelSize: Theme.fontBody
             font.weight: option.current ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
             horizontalAlignment: control.mirrored ? Text.AlignRight : Text.AlignLeft
-            leftPadding: 10
-            rightPadding: 10
+            leftPadding: 12
+            rightPadding: 12
         }
 
         background: Rectangle {
             color: option.highlighted ? Theme.surfaceHover
                  : option.current ? Theme.accentSoft
                  : "transparent"
+
+            Behavior on color {
+                ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
+            }
         }
 
         HoverHandler {
@@ -127,10 +122,13 @@ ComboBox {
     }
 
     popup: Popup {
+        // Rendered in the scene, not as a native window: identical styling
+        // everywhere, and Qt still flips it above the field when there is no
+        // room below.
         popupType: Popup.Item
         y: control.height + 4
         width: control.width
-        implicitHeight: Math.min(contentItem.implicitHeight + 8, 280)
+        implicitHeight: Math.min(contentItem.implicitHeight + 8, 300)
         padding: 4
 
         contentItem: ListView {

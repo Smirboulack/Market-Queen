@@ -30,9 +30,6 @@ enum StepIndex {
     StepCount,
 };
 
-constexpr const char *kFrameFile = "frame.png";
-constexpr const char *kVoiceFile = "voice.mp3";
-constexpr const char *kClipFile = "clip.mp4";
 constexpr const char *kCaptionsFile = "captions.srt";
 constexpr const char *kFinalFile = "final.mp4";
 
@@ -259,6 +256,15 @@ void Pipeline::attach(ProviderTask *task, const std::function<void(const QVarian
     });
 }
 
+QString Pipeline::pickModel(const QString &providerId, const QString &requestedModel,
+                            int durationSeconds)
+{
+    const QString resolved = m_registry->resolveModel(providerId, requestedModel, durationSeconds);
+    if (Registry::isAuto(requestedModel) && !resolved.isEmpty())
+        m_log->append(LogModel::Info, tr("Auto picked %1.").arg(resolved));
+    return resolved;
+}
+
 QString Pipeline::writeArtifact(const QString &fileName, const QByteArray &data)
 {
     const QString path = QDir(m_run.dir).filePath(fileName);
@@ -359,7 +365,7 @@ void Pipeline::stepFrame()
 
     prov::ImageRequest request;
     request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
-    request.model = m_request.value(QStringLiteral("imageModel")).toString();
+    request.model = pickModel(providerId, m_request.value(QStringLiteral("imageModel")).toString());
     request.aspectRatio = m_request.value(QStringLiteral("aspectRatio"), QStringLiteral("9:16")).toString();
     request.referenceImageDataUri = m_run.productImageDataUri;
     request.prompt = m_run.imagePrompt.isEmpty()
@@ -395,13 +401,17 @@ void Pipeline::stepVoice()
 
     prov::VoiceRequest request;
     request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
-    request.model = m_request.value(QStringLiteral("voiceModel")).toString();
+    request.model = pickModel(providerId, m_request.value(QStringLiteral("voiceModel")).toString());
     request.voiceId = m_request.value(QStringLiteral("voiceId")).toString();
     request.text = m_run.script;
 
     attach(providers::voice(providerId, request, this), [this](const QVariantMap &result) {
         const QByteArray data = result.value(QStringLiteral("data")).toByteArray();
-        m_run.voicePath = writeArtifact(QString::fromLatin1(kVoiceFile), data);
+        // Not every engine returns mp3; keep the real extension so ffmpeg and
+        // Whisper can tell what they are looking at.
+        const QString extension =
+            result.value(QStringLiteral("extension"), QStringLiteral("mp3")).toString();
+        m_run.voicePath = writeArtifact(QStringLiteral("voice.%1").arg(extension), data);
         if (m_run.voicePath.isEmpty())
             return;
 
@@ -446,17 +456,21 @@ void Pipeline::stepVideo()
     setStepState(StepVideo, Running);
     setStatus(tr("Animating the frame..."));
 
+    // Clips are billed per second: ask for the shortest one we can loop, and
+    // let "auto" see that length so it can prefer a model that reaches it.
+    const int clipSeconds = m_run.voiceDuration > 7.0 ? 10 : 5;
+
     prov::VideoRequest request;
     request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
-    request.model = m_request.value(QStringLiteral("videoModel")).toString();
+    request.model = pickModel(providerId, m_request.value(QStringLiteral("videoModel")).toString(),
+                              clipSeconds);
     request.aspectRatio = m_request.value(QStringLiteral("aspectRatio"), QStringLiteral("9:16")).toString();
     request.imageDataUri = m_run.frameDataUri;
     request.prompt = m_run.videoPrompt.isEmpty()
         ? tr("The person talks straight to the camera, subtle handheld movement, natural blinking "
              "and small hand gestures.")
         : m_run.videoPrompt;
-    // Clips are billed per second: ask for the shortest one that we can loop.
-    request.durationSeconds = m_run.voiceDuration > 7.0 ? 10 : 5;
+    request.durationSeconds = clipSeconds;
 
     m_log->append(LogModel::Info, tr("Requesting a %1s clip.").arg(request.durationSeconds));
 

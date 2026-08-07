@@ -100,6 +100,60 @@ void OpenAiVoiceTask::start()
 }
 
 // ---------------------------------------------------------------------------
+// fal.ai voices
+// ---------------------------------------------------------------------------
+void FalVoiceTask::start()
+{
+    if (!requireKey(m_request.apiKey, QStringLiteral("fal.ai")))
+        return;
+
+    report(tr("Recording the voice-over..."));
+
+    const QString model = m_request.model;
+    QJsonObject input;
+
+    if (model.contains(QLatin1String("minimax"))) {
+        input.insert(QStringLiteral("text"), m_request.text);
+        if (!m_request.voiceId.isEmpty()) {
+            input.insert(QStringLiteral("voice_setting"),
+                         QJsonObject{{QStringLiteral("voice_id"), m_request.voiceId}});
+        }
+    } else if (model.contains(QLatin1String("elevenlabs"))) {
+        input.insert(QStringLiteral("text"), m_request.text);
+        if (!m_request.voiceId.isEmpty())
+            input.insert(QStringLiteral("voice"), m_request.voiceId);
+    } else if (model.contains(QLatin1String("kokoro"))) {
+        input.insert(QStringLiteral("prompt"), m_request.text);
+        if (!m_request.voiceId.isEmpty())
+            input.insert(QStringLiteral("voice"), m_request.voiceId);
+    } else {
+        input.insert(QStringLiteral("text"), m_request.text);
+    }
+
+    submitFal(m_request.apiKey, model, input, [this](const QJsonObject &result) {
+        QString url = jsonPath(result, QStringLiteral("audio.url"));
+        if (url.isEmpty())
+            url = jsonPath(result, QStringLiteral("audio_url"));
+        if (url.isEmpty())
+            url = jsonPath(result, QStringLiteral("url"));
+        if (url.isEmpty()) {
+            fail(tr("fal.ai returned no audio."));
+            return;
+        }
+
+        download(QUrl(url), [this, url](const QByteArray &data, const QString &contentType) {
+            if (data.isEmpty()) {
+                fail(tr("fal.ai returned no audio."));
+                return;
+            }
+            succeed({{QStringLiteral("data"), data},
+                     {QStringLiteral("extension"),
+                      http::guessExtension(url, contentType, QStringLiteral("mp3"))}});
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
 // Whisper subtitles
 // ---------------------------------------------------------------------------
 WhisperCaptionTask::WhisperCaptionTask(const prov::TranscribeRequest &request, QObject *parent)
@@ -230,6 +284,41 @@ void OpenAiVoiceListTask::start()
         {QStringLiteral("sage"), QStringLiteral("measured")},
         {QStringLiteral("shimmer"), QStringLiteral("light, upbeat")},
         {QStringLiteral("verse"), QStringLiteral("conversational")},
+    };
+
+    QVariantList voices;
+    for (const auto &[id, description] : kVoices) {
+        voices.append(QVariantMap{
+            {QStringLiteral("id"), id},
+            {QStringLiteral("label"), id},
+            {QStringLiteral("description"), description},
+        });
+    }
+    succeed({{QStringLiteral("voices"), voices}});
+}
+
+FalVoiceListTask::FalVoiceListTask(QObject *parent)
+    : ProviderTask(parent)
+{
+}
+
+void FalVoiceListTask::start()
+{
+    // fal has no voices endpoint: each engine ships its own named set. These
+    // are the MiniMax and ElevenLabs presets; any other id can be typed in.
+    static const QList<QPair<QString, QString>> kVoices = {
+        {QStringLiteral("Wise_Woman"), QStringLiteral("MiniMax - warm, mature")},
+        {QStringLiteral("Friendly_Person"), QStringLiteral("MiniMax - upbeat, casual")},
+        {QStringLiteral("Inspirational_girl"), QStringLiteral("MiniMax - young, energetic")},
+        {QStringLiteral("Deep_Voice_Man"), QStringLiteral("MiniMax - deep, male")},
+        {QStringLiteral("Calm_Woman"), QStringLiteral("MiniMax - calm, female")},
+        {QStringLiteral("Casual_Guy"), QStringLiteral("MiniMax - relaxed, male")},
+        {QStringLiteral("Lively_Girl"), QStringLiteral("MiniMax - lively, female")},
+        {QStringLiteral("Rachel"), QStringLiteral("ElevenLabs - natural, female")},
+        {QStringLiteral("Aria"), QStringLiteral("ElevenLabs - expressive, female")},
+        {QStringLiteral("Josh"), QStringLiteral("ElevenLabs - young, male")},
+        {QStringLiteral("af_heart"), QStringLiteral("Kokoro - American female")},
+        {QStringLiteral("am_adam"), QStringLiteral("Kokoro - American male")},
     };
 
     QVariantList voices;

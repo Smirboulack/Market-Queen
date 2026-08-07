@@ -20,8 +20,12 @@ Button {
              : control.accentColor
 
         Behavior on color {
-            ColorAnimation { duration: 120 }
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
         }
+    }
+
+    HoverHandler {
+        cursorShape: control.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
     }
 
     contentItem: Item {

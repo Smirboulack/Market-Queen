@@ -82,6 +82,10 @@
         <translation>Tom</translation>
     </message>
     <message>
+        <source>Describe the tone in your own words</source>
+        <translation>Descreva o tom por palavras suas</translation>
+    </message>
+    <message>
         <source>excited and casual</source>
         <translation>entusiasmado e descontraído</translation>
     </message>
@@ -104,6 +108,10 @@
     <message>
         <source>Language</source>
         <translation>Idioma</translation>
+    </message>
+    <message>
+        <source>Any other language</source>
+        <translation>Qualquer outro idioma</translation>
     </message>
     <message>
         <source>Length</source>
@@ -169,6 +177,18 @@
     <message>
         <source>Voice</source>
         <translation>Voz</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>Outro id de voz...</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>Cole um id de voz</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>Carregue as vozes da sua conta para escolher uma.</translation>
     </message>
     <message>
         <source>Load voices</source>
@@ -257,6 +277,17 @@
     <message>
         <source>No opening frame to animate.</source>
         <translation>Não há primeiro fotograma para animar.</translation>
+    </message>
+</context>
+<context>
+    <name>FalVoiceTask</name>
+    <message>
+        <source>Recording the voice-over...</source>
+        <translation>A gravar a narração...</translation>
+    </message>
+    <message>
+        <source>fal.ai returned no audio.</source>
+        <translation>A fal.ai não devolveu áudio.</translation>
     </message>
 </context>
 <context>
@@ -461,6 +492,14 @@
         <source>no API key</source>
         <translation>sem chave de API</translation>
     </message>
+    <message>
+        <source>Other model id...</source>
+        <translation>Outro id de modelo...</translation>
+    </message>
+    <message>
+        <source>e.g. fal-ai/some-new-model</source>
+        <translation>ex. fal-ai/novo-modelo</translation>
+    </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
@@ -493,6 +532,17 @@
     <message>
         <source>OpenAI returned no audio.</source>
         <translation>A OpenAI não devolveu áudio.</translation>
+    </message>
+</context>
+<context>
+    <name>PickerWithCustom</name>
+    <message>
+        <source>Other...</source>
+        <translation>Outro...</translation>
+    </message>
+    <message>
+        <source>Type your own</source>
+        <translation>Escreva o seu</translation>
     </message>
 </context>
 <context>
@@ -544,6 +594,10 @@
     <message>
         <source>That provider is not available.</source>
         <translation>Esse fornecedor não está disponível.</translation>
+    </message>
+    <message>
+        <source>Auto picked %1.</source>
+        <translation>O modo automático escolheu %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
@@ -688,6 +742,10 @@
 <context>
     <name>Registry</name>
     <message>
+        <source>Auto - best model for this shot</source>
+        <translation>Auto - o melhor modelo para este plano</translation>
+    </message>
+    <message>
         <source>Reads the product photo when the model supports vision.</source>
         <translation>Lê a foto do produto quando o modelo suporta visão.</translation>
     </message>
@@ -700,24 +758,36 @@
         <translation>Plano gratuito disponível na maioria das regiões.</translation>
     </message>
     <message>
+        <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
+        <translation>O catálogo mais amplo. Também funciona qualquer id de fal.ai/models.</translation>
+    </message>
+    <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
         <translation>O gpt-image-1 pode editar a sua foto do produto diretamente.</translation>
     </message>
     <message>
-        <source>Any fal model id works, paste one from fal.ai/models.</source>
-        <translation>Funciona qualquer id de modelo da fal, copie um de fal.ai/models.</translation>
+        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - uma única chave.</translation>
+    </message>
+    <message>
+        <source>Scripts, images, Sora video, voice-over and subtitles.</source>
+        <translation>Guiões, imagens, vídeo Sora, narração e legendas.</translation>
+    </message>
+    <message>
+        <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
+        <translation>Imagens, vídeo e vozes (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>Use owner/name, ou owner/name:version para fixar uma versão.</translation>
     </message>
     <message>
-        <source>Kling, Hailuo, Wan, Luma - all behind one key.</source>
-        <translation>Kling, Hailuo, Wan, Luma - todos com uma única chave.</translation>
-    </message>
-    <message>
         <source>Pay per second, no subscription.</source>
         <translation>Pagamento ao segundo, sem subscrição.</translation>
+    </message>
+    <message>
+        <source>The opening frame is resized to Sora's format automatically.</source>
+        <translation>O primeiro fotograma é redimensionado para o formato do Sora automaticamente.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -728,20 +798,16 @@
         <translation>Rápido e barato, com um conjunto fixo de vozes.</translation>
     </message>
     <message>
+        <source>Several voice engines behind the fal key you already have.</source>
+        <translation>Vários motores de voz com a chave fal que já tem.</translation>
+    </message>
+    <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
         <translation>Transcreve a narração gerada em legendas sincronizadas.</translation>
     </message>
     <message>
-        <source>Scripts, images, voice-over and subtitles.</source>
-        <translation>Guiões, imagens, narração e legendas.</translation>
-    </message>
-    <message>
         <source>Scripts.</source>
         <translation>Guiões.</translation>
-    </message>
-    <message>
-        <source>Images and video (Kling, Wan, Hailuo, Flux).</source>
-        <translation>Imagens e vídeo (Kling, Wan, Hailuo, Flux).</translation>
     </message>
     <message>
         <source>Images and video.</source>
@@ -911,6 +977,45 @@
 Nothing is uploaded to us.</source>
         <translation>As suas chaves, os seus ficheiros.
 Nada nos é enviado.</translation>
+    </message>
+</context>
+<context>
+    <name>SoraVideoTask</name>
+    <message>
+        <source>No opening frame to animate.</source>
+        <translation>Não há primeiro fotograma para animar.</translation>
+    </message>
+    <message>
+        <source>Could not prepare the opening frame for Sora.</source>
+        <translation>Não foi possível preparar o primeiro fotograma para o Sora.</translation>
+    </message>
+    <message>
+        <source>Sending the shot to Sora (%1)...</source>
+        <translation>A enviar o plano para o Sora (%1)...</translation>
+    </message>
+    <message>
+        <source>Sora did not return a job id.</source>
+        <translation>O Sora não devolveu um id de tarefa.</translation>
+    </message>
+    <message>
+        <source>Sora is rendering... %1%</source>
+        <translation>O Sora está a renderizar... %1 %</translation>
+    </message>
+    <message>
+        <source>Sora is rendering...</source>
+        <translation>O Sora está a renderizar...</translation>
+    </message>
+    <message>
+        <source>Sora reported status "%1".</source>
+        <translation>O Sora indicou o estado «%1».</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation>A transferir o clipe...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation>O clipe transferido estava vazio.</translation>
     </message>
 </context>
 <context>

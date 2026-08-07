@@ -103,6 +103,10 @@ private:
 
     void probeVoiceDuration();
     void probeClipDuration();
+    // Turns an "auto" pick into a concrete model id and says so in the log.
+    QString pickModel(const QString &providerId, const QString &requestedModel,
+                      int durationSeconds = 0);
+
     QString writeArtifact(const QString &fileName, const QByteArray &data);
     void writeProjectManifest(bool success);
     QString ffmpegExecutable() const;

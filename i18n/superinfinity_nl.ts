@@ -82,6 +82,10 @@
         <translation>Toon</translation>
     </message>
     <message>
+        <source>Describe the tone in your own words</source>
+        <translation>Beschrijf de toon in je eigen woorden</translation>
+    </message>
+    <message>
         <source>excited and casual</source>
         <translation>enthousiast en informeel</translation>
     </message>
@@ -104,6 +108,10 @@
     <message>
         <source>Language</source>
         <translation>Taal</translation>
+    </message>
+    <message>
+        <source>Any other language</source>
+        <translation>Een andere taal</translation>
     </message>
     <message>
         <source>Length</source>
@@ -169,6 +177,18 @@
     <message>
         <source>Voice</source>
         <translation>Stem</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>Andere stem-id...</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>Plak een stem-id</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>Laad de stemmen van je account om er een te kiezen.</translation>
     </message>
     <message>
         <source>Load voices</source>
@@ -257,6 +277,17 @@
     <message>
         <source>No opening frame to animate.</source>
         <translation>Geen eerste beeld om te animeren.</translation>
+    </message>
+</context>
+<context>
+    <name>FalVoiceTask</name>
+    <message>
+        <source>Recording the voice-over...</source>
+        <translation>Voice-over opnemen...</translation>
+    </message>
+    <message>
+        <source>fal.ai returned no audio.</source>
+        <translation>fal.ai gaf geen audio terug.</translation>
     </message>
 </context>
 <context>
@@ -461,6 +492,14 @@
         <source>no API key</source>
         <translation>geen API-sleutel</translation>
     </message>
+    <message>
+        <source>Other model id...</source>
+        <translation>Andere model-id...</translation>
+    </message>
+    <message>
+        <source>e.g. fal-ai/some-new-model</source>
+        <translation>bv. fal-ai/nieuw-model</translation>
+    </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
@@ -493,6 +532,17 @@
     <message>
         <source>OpenAI returned no audio.</source>
         <translation>OpenAI gaf geen audio terug.</translation>
+    </message>
+</context>
+<context>
+    <name>PickerWithCustom</name>
+    <message>
+        <source>Other...</source>
+        <translation>Andere...</translation>
+    </message>
+    <message>
+        <source>Type your own</source>
+        <translation>Typ je eigen tekst</translation>
     </message>
 </context>
 <context>
@@ -544,6 +594,10 @@
     <message>
         <source>That provider is not available.</source>
         <translation>Die aanbieder is niet beschikbaar.</translation>
+    </message>
+    <message>
+        <source>Auto picked %1.</source>
+        <translation>Auto koos %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
@@ -688,6 +742,10 @@
 <context>
     <name>Registry</name>
     <message>
+        <source>Auto - best model for this shot</source>
+        <translation>Auto - beste model voor deze shot</translation>
+    </message>
+    <message>
         <source>Reads the product photo when the model supports vision.</source>
         <translation>Leest de productfoto als het model beeld ondersteunt.</translation>
     </message>
@@ -700,24 +758,36 @@
         <translation>Gratis niveau beschikbaar in de meeste regio's.</translation>
     </message>
     <message>
+        <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
+        <translation>De breedste catalogus. Elke model-id van fal.ai/models werkt ook.</translation>
+    </message>
+    <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
         <translation>gpt-image-1 kan je productfoto rechtstreeks bewerken.</translation>
     </message>
     <message>
-        <source>Any fal model id works, paste one from fal.ai/models.</source>
-        <translation>Elke fal-model-id werkt, plak er een van fal.ai/models.</translation>
+        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - één sleutel.</translation>
+    </message>
+    <message>
+        <source>Scripts, images, Sora video, voice-over and subtitles.</source>
+        <translation>Scripts, beelden, Sora-video, voice-over en ondertitels.</translation>
+    </message>
+    <message>
+        <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
+        <translation>Beeld, video en stemmen (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>Gebruik owner/name, of owner/name:version om een versie vast te zetten.</translation>
     </message>
     <message>
-        <source>Kling, Hailuo, Wan, Luma - all behind one key.</source>
-        <translation>Kling, Hailuo, Wan, Luma - allemaal met één sleutel.</translation>
-    </message>
-    <message>
         <source>Pay per second, no subscription.</source>
         <translation>Betalen per seconde, geen abonnement.</translation>
+    </message>
+    <message>
+        <source>The opening frame is resized to Sora's format automatically.</source>
+        <translation>Het eerste beeld wordt automatisch naar Sora's formaat geschaald.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -728,20 +798,16 @@
         <translation>Goedkoop en snel, vaste set stemmen.</translation>
     </message>
     <message>
+        <source>Several voice engines behind the fal key you already have.</source>
+        <translation>Meerdere stemengines achter de fal-sleutel die je al hebt.</translation>
+    </message>
+    <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
         <translation>Zet de gegenereerde voice-over om in getimede ondertitels.</translation>
     </message>
     <message>
-        <source>Scripts, images, voice-over and subtitles.</source>
-        <translation>Scripts, beelden, voice-over en ondertitels.</translation>
-    </message>
-    <message>
         <source>Scripts.</source>
         <translation>Scripts.</translation>
-    </message>
-    <message>
-        <source>Images and video (Kling, Wan, Hailuo, Flux).</source>
-        <translation>Beeld en video (Kling, Wan, Hailuo, Flux).</translation>
     </message>
     <message>
         <source>Images and video.</source>
@@ -911,6 +977,45 @@
 Nothing is uploaded to us.</source>
         <translation>Jouw sleutels, jouw bestanden.
 Er wordt niets naar ons gestuurd.</translation>
+    </message>
+</context>
+<context>
+    <name>SoraVideoTask</name>
+    <message>
+        <source>No opening frame to animate.</source>
+        <translation>Geen eerste beeld om te animeren.</translation>
+    </message>
+    <message>
+        <source>Could not prepare the opening frame for Sora.</source>
+        <translation>Het eerste beeld kon niet voor Sora worden voorbereid.</translation>
+    </message>
+    <message>
+        <source>Sending the shot to Sora (%1)...</source>
+        <translation>Shot wordt naar Sora gestuurd (%1)...</translation>
+    </message>
+    <message>
+        <source>Sora did not return a job id.</source>
+        <translation>Sora gaf geen taak-id terug.</translation>
+    </message>
+    <message>
+        <source>Sora is rendering... %1%</source>
+        <translation>Sora rendert... %1 %</translation>
+    </message>
+    <message>
+        <source>Sora is rendering...</source>
+        <translation>Sora rendert...</translation>
+    </message>
+    <message>
+        <source>Sora reported status "%1".</source>
+        <translation>Sora meldde status „%1”.</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation>De clip downloaden...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation>De gedownloade clip was leeg.</translation>
     </message>
 </context>
 <context>

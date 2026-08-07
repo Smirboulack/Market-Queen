@@ -59,6 +59,7 @@ set(APP_QML_FILES
     qml/GhostButton.qml
     qml/StyledCombo.qml
     qml/SegmentedControl.qml
+    qml/PickerWithCustom.qml
     qml/ModelPicker.qml
     qml/ImageDropField.qml
     qml/StepList.qml

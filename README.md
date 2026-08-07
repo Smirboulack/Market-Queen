@@ -55,17 +55,26 @@ Switching applies immediately, with no restart.
 
 You only need keys for the providers you actually pick.
 
-| Step      | Providers                                                       | Key                     |
-| --------- | --------------------------------------------------------------- | ----------------------- |
-| Script    | OpenAI, Anthropic, Google Gemini                                  | one of them             |
-| Frame     | OpenAI Images (`gpt-image-1`), fal.ai, Replicate                  | one of them             |
-| Video     | fal.ai *(Kling, Hailuo, Wan, Luma)*, Replicate                    | one of them             |
-| Voice     | ElevenLabs, OpenAI TTS                                            | one of them             |
-| Subtitles | OpenAI Whisper                                                    | OpenAI (optional)       |
+| Step      | Providers | Models |
+| --------- | --------- | ------ |
+| Script    | OpenAI, Anthropic, Google Gemini | GPT-5, Claude 5, Gemini 2.5 |
+| Frame     | fal.ai, OpenAI Images, Replicate | Nano Banana, FLUX (Ultra / Kontext / dev / schnell), Seedream 4, Imagen 4, Ideogram 3, Recraft V3, Qwen Image, GPT Image 1, DALL·E 3, SD 3.5 |
+| Video     | fal.ai, Replicate, OpenAI (Sora) | Kling 2.1, Veo 3, Seedance 1 Pro/Lite, Hailuo 02, Runway Gen-3, Luma Ray 2, Wan 2.2, Pika 2.2, PixVerse 4.5, Sora 2 |
+| Voice     | ElevenLabs, OpenAI TTS, fal.ai voices | Eleven v3, GPT-4o mini TTS, MiniMax Speech 02, Kokoro, Chatterbox |
+| Subtitles | OpenAI Whisper | Whisper |
 
-Model ids are editable: if a provider ships a new model tomorrow, type its id in the box,
-no update needed. The `owner/name` and `owner/name:version` forms both work on Replicate,
-and any model id from [fal.ai/models](https://fal.ai/models) works on fal.
+Every list is a fixed set of choices plus a final **Other…** entry: pick that and a text
+field appears for a model id the catalogue does not know yet. The `owner/name` and
+`owner/name:version` forms both work on Replicate, and any id from
+[fal.ai/models](https://fal.ai/models) works on fal — so a model released tomorrow is
+usable today, without an update.
+
+Image and video default to **Auto**, which resolves to the first model in the list (they
+are ordered best-first) and switches to a family that can render 10 seconds in one take
+when the voice-over is long. Whatever it settles on is written to the activity log, so you
+always know what you were billed for.
+
+Midjourney is not in the list: it has no public API.
 
 Keys can also come from the environment (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `GEMINI_API_KEY`, `FAL_KEY`, `REPLICATE_API_TOKEN`, `ELEVENLABS_API_KEY`), which is handy

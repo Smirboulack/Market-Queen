@@ -75,6 +75,9 @@ protected:
                           BytesHandler onSuccess);
     void postMultipartForText(const QNetworkRequest &request, QHttpMultiPart *parts,
                               BytesHandler onSuccess);
+    // GET returning raw bytes, keeping the request's headers -- needed when the
+    // asset lives behind the provider's own auth.
+    void getBytes(const QNetworkRequest &request, BytesHandler onSuccess);
     void download(const QUrl &url, BytesHandler onSuccess);
 
     // Polls `url` until `check` reports Done or Failed, or the deadline passes.

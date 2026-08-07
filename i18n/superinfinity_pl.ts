@@ -82,6 +82,10 @@
         <translation>Ton</translation>
     </message>
     <message>
+        <source>Describe the tone in your own words</source>
+        <translation>Opisz ton własnymi słowami</translation>
+    </message>
+    <message>
         <source>excited and casual</source>
         <translation>entuzjastyczny i swobodny</translation>
     </message>
@@ -104,6 +108,10 @@
     <message>
         <source>Language</source>
         <translation>Język</translation>
+    </message>
+    <message>
+        <source>Any other language</source>
+        <translation>Dowolny inny język</translation>
     </message>
     <message>
         <source>Length</source>
@@ -169,6 +177,18 @@
     <message>
         <source>Voice</source>
         <translation>Głos</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>Inny identyfikator głosu...</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>Wklej identyfikator głosu</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>Wczytaj głosy ze swojego konta, aby wybrać jeden.</translation>
     </message>
     <message>
         <source>Load voices</source>
@@ -257,6 +277,17 @@
     <message>
         <source>No opening frame to animate.</source>
         <translation>Brak pierwszej klatki do animacji.</translation>
+    </message>
+</context>
+<context>
+    <name>FalVoiceTask</name>
+    <message>
+        <source>Recording the voice-over...</source>
+        <translation>Nagrywanie lektora...</translation>
+    </message>
+    <message>
+        <source>fal.ai returned no audio.</source>
+        <translation>fal.ai nie zwrócił dźwięku.</translation>
     </message>
 </context>
 <context>
@@ -461,6 +492,14 @@
         <source>no API key</source>
         <translation>brak klucza API</translation>
     </message>
+    <message>
+        <source>Other model id...</source>
+        <translation>Inny identyfikator modelu...</translation>
+    </message>
+    <message>
+        <source>e.g. fal-ai/some-new-model</source>
+        <translation>np. fal-ai/nowy-model</translation>
+    </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
@@ -493,6 +532,17 @@
     <message>
         <source>OpenAI returned no audio.</source>
         <translation>OpenAI nie zwróciło dźwięku.</translation>
+    </message>
+</context>
+<context>
+    <name>PickerWithCustom</name>
+    <message>
+        <source>Other...</source>
+        <translation>Inne...</translation>
+    </message>
+    <message>
+        <source>Type your own</source>
+        <translation>Wpisz własne</translation>
     </message>
 </context>
 <context>
@@ -544,6 +594,10 @@
     <message>
         <source>That provider is not available.</source>
         <translation>Ten dostawca jest niedostępny.</translation>
+    </message>
+    <message>
+        <source>Auto picked %1.</source>
+        <translation>Tryb auto wybrał %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
@@ -688,6 +742,10 @@
 <context>
     <name>Registry</name>
     <message>
+        <source>Auto - best model for this shot</source>
+        <translation>Auto - najlepszy model do tego ujęcia</translation>
+    </message>
+    <message>
         <source>Reads the product photo when the model supports vision.</source>
         <translation>Czyta zdjęcie produktu, jeśli model obsługuje obraz.</translation>
     </message>
@@ -700,24 +758,36 @@
         <translation>Darmowy pakiet dostępny w większości regionów.</translation>
     </message>
     <message>
+        <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
+        <translation>Najszerszy katalog. Zadziała też dowolny identyfikator z fal.ai/models.</translation>
+    </message>
+    <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
         <translation>gpt-image-1 może bezpośrednio edytować zdjęcie produktu.</translation>
     </message>
     <message>
-        <source>Any fal model id works, paste one from fal.ai/models.</source>
-        <translation>Zadziała każdy identyfikator modelu fal, wklej go z fal.ai/models.</translation>
+        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - jeden klucz.</translation>
+    </message>
+    <message>
+        <source>Scripts, images, Sora video, voice-over and subtitles.</source>
+        <translation>Scenariusze, obrazy, wideo Sora, lektor i napisy.</translation>
+    </message>
+    <message>
+        <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
+        <translation>Obrazy, wideo i głosy (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>Użyj owner/name lub owner/name:version, aby przypiąć wersję.</translation>
     </message>
     <message>
-        <source>Kling, Hailuo, Wan, Luma - all behind one key.</source>
-        <translation>Kling, Hailuo, Wan, Luma - wszystkie na jednym kluczu.</translation>
-    </message>
-    <message>
         <source>Pay per second, no subscription.</source>
         <translation>Płatność za sekundę, bez abonamentu.</translation>
+    </message>
+    <message>
+        <source>The opening frame is resized to Sora's format automatically.</source>
+        <translation>Pierwsza klatka jest automatycznie dopasowywana do formatu Sory.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -728,20 +798,16 @@
         <translation>Tanio i szybko, stały zestaw głosów.</translation>
     </message>
     <message>
+        <source>Several voice engines behind the fal key you already have.</source>
+        <translation>Kilka silników głosowych na kluczu fal, który już masz.</translation>
+    </message>
+    <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
         <translation>Zamienia wygenerowanego lektora w napisy z czasami.</translation>
     </message>
     <message>
-        <source>Scripts, images, voice-over and subtitles.</source>
-        <translation>Scenariusze, obrazy, lektor i napisy.</translation>
-    </message>
-    <message>
         <source>Scripts.</source>
         <translation>Scenariusze.</translation>
-    </message>
-    <message>
-        <source>Images and video (Kling, Wan, Hailuo, Flux).</source>
-        <translation>Obrazy i wideo (Kling, Wan, Hailuo, Flux).</translation>
     </message>
     <message>
         <source>Images and video.</source>
@@ -911,6 +977,45 @@
 Nothing is uploaded to us.</source>
         <translation>Twoje klucze, twoje pliki.
 Nic nie trafia do nas.</translation>
+    </message>
+</context>
+<context>
+    <name>SoraVideoTask</name>
+    <message>
+        <source>No opening frame to animate.</source>
+        <translation>Brak pierwszej klatki do animacji.</translation>
+    </message>
+    <message>
+        <source>Could not prepare the opening frame for Sora.</source>
+        <translation>Nie udało się przygotować pierwszej klatki dla Sory.</translation>
+    </message>
+    <message>
+        <source>Sending the shot to Sora (%1)...</source>
+        <translation>Wysyłanie ujęcia do Sory (%1)...</translation>
+    </message>
+    <message>
+        <source>Sora did not return a job id.</source>
+        <translation>Sora nie zwróciła identyfikatora zadania.</translation>
+    </message>
+    <message>
+        <source>Sora is rendering... %1%</source>
+        <translation>Sora renderuje... %1 %</translation>
+    </message>
+    <message>
+        <source>Sora is rendering...</source>
+        <translation>Sora renderuje...</translation>
+    </message>
+    <message>
+        <source>Sora reported status "%1".</source>
+        <translation>Sora zgłosiła status „%1”.</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation>Pobieranie klipu...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation>Pobrany klip był pusty.</translation>
     </message>
 </context>
 <context>

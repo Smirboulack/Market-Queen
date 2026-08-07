@@ -150,6 +150,20 @@ void HttpTask::postMultipartForText(const QNetworkRequest &request, QHttpMultiPa
     handleReply(reply, false, nullptr, std::move(onSuccess));
 }
 
+void HttpTask::getBytes(const QNetworkRequest &request, BytesHandler onSuccess)
+{
+    QNetworkRequest copy = request;
+    copy.setTransferTimeout(300'000);
+
+    QNetworkReply *reply = http::manager()->get(copy);
+    connect(reply, &QNetworkReply::downloadProgress, this,
+            [this](qint64 received, qint64 total) {
+                if (total > 0)
+                    report(tr("Downloading... %1%").arg(received * 100 / total));
+            });
+    handleReply(reply, false, nullptr, std::move(onSuccess));
+}
+
 void HttpTask::download(const QUrl &url, BytesHandler onSuccess)
 {
     QNetworkRequest request(url);

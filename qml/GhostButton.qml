@@ -18,8 +18,12 @@ Button {
         border.width: 1
         border.color: control.hovered ? Theme.borderStrong : Theme.border
 
+        // Fill and border move together, or it looks like two animations.
         Behavior on color {
-            ColorAnimation { duration: 100 }
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
+        }
+        Behavior on border.color {
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
         }
     }
 
