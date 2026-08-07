@@ -11,7 +11,8 @@ ApplicationWindow {
     minimumWidth: 1040
     minimumHeight: 680
     visible: true
-    title: qsTr("Super Infinity - UGC studio")
+    // Product and company name: neither is translated.
+    title: "Super Infinity - SegfaultLabs"
     color: Theme.background
 
     // Arabic mirrors the whole interface.

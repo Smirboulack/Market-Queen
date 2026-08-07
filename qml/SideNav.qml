@@ -28,21 +28,19 @@ Rectangle {
             spacing: 10
 
             Rectangle {
-                Layout.preferredWidth: 30
-                Layout.preferredHeight: 30
-                radius: 8
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: Theme.accent }
-                    GradientStop { position: 1.0; color: Theme.pink }
-                }
+                Layout.preferredWidth: 34
+                Layout.preferredHeight: 34
+                radius: 9
+                color: Theme.surfaceAlt
+                clip: true
 
-                Text {
-                    anchors.centerIn: parent
-                    text: "∞"
-                    color: "white"
-                    font.pixelSize: 18
-                    font.weight: Font.Bold
+                Image {
+                    anchors.fill: parent
+                    source: "assets/icon-full.png"
+                    fillMode: Image.PreserveAspectCrop
+                    smooth: true
+                    mipmap: true
+                    asynchronous: true
                 }
             }
 
@@ -57,7 +55,8 @@ Rectangle {
                 }
 
                 Text {
-                    text: qsTr("UGC studio")
+                    // Company name: never translated.
+                    text: "SegfaultLabs"
                     color: Theme.textFaint
                     font.pixelSize: Theme.fontSmall
                 }

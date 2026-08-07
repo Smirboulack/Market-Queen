@@ -456,13 +456,6 @@
     </message>
 </context>
 <context>
-    <name>Main</name>
-    <message>
-        <source>Super Infinity - UGC studio</source>
-        <translation>Super Infinity - UGC-Studio</translation>
-    </message>
-</context>
-<context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
@@ -893,10 +886,6 @@
 </context>
 <context>
     <name>SideNav</name>
-    <message>
-        <source>UGC studio</source>
-        <translation>UGC-Studio</translation>
-    </message>
     <message>
         <source>Create</source>
         <translation>Erstellen</translation>

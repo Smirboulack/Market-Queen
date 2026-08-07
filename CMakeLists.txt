@@ -39,6 +39,10 @@ set(APP_SOURCES
     src/app/App.h                src/app/App.cpp
 )
 
+if(WIN32)
+    list(APPEND APP_SOURCES assets/app.rc)
+endif()
+
 qt_add_executable(SuperInfinity WIN32 MACOSX_BUNDLE ${APP_SOURCES})
 
 set(APP_QML_FILES
@@ -75,6 +79,9 @@ qt_add_qml_module(SuperInfinity
     URI SuperInfinity
     VERSION 1.0
     QML_FILES ${APP_QML_FILES}
+    RESOURCES
+        assets/icon-full.png
+        assets/icon-head.png
 )
 
 # The per-directory entries are what the generated QML type registration file

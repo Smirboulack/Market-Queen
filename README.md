@@ -116,6 +116,15 @@ src/
 └── app/         the object QML talks to
 qml/             the interface
 i18n/            translations: <lang>.json + generated .ts
+assets/          icons + the Windows resource script
+```
+
+**Icons.** Windows draws two different icons for one window: `ICON_SMALL` in the title bar
+and `ICON_BIG` in the taskbar. They get different artwork on purpose — at 16px the full
+character is a smudge, a face still reads. Regenerate both from the source images with:
+
+```bash
+python tools/make_icons.py path/to/head.png path/to/full.png
 ```
 
 Every provider call returns a `ProviderTask` that emits `succeeded`/`failed` once and then
@@ -147,4 +156,4 @@ applies). `python tools/fill_translations.py --list` prints every string that ne
 
 ## License
 
-MIT. The models you call have their own terms and their own pricing.
+MIT, by **SegfaultLabs**. The models you call have their own terms and their own pricing.

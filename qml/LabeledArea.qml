@@ -24,32 +24,46 @@ ColumnLayout {
 
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: root.areaHeight
+
+        // The field grows with its content instead of scrolling inside itself:
+        // an inner Flickable would swallow the wheel and freeze the page scroll
+        // whenever the pointer happened to be over a text box.
+        implicitHeight: Math.max(root.areaHeight, area.implicitHeight + 16)
+
         radius: Theme.radiusSmall
         color: Theme.surfaceAlt
         border.width: 1
-        border.color: area.activeFocus ? Theme.accent : Theme.border
+        border.color: area.activeFocus ? Theme.accent
+                    : hover.hovered ? Theme.borderStrong
+                    : Theme.border
 
         Behavior on border.color {
             ColorAnimation { duration: 120 }
         }
 
-        ScrollView {
-            anchors.fill: parent
-            anchors.margins: 4
-            clip: true
+        Behavior on implicitHeight {
+            NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
+        }
 
-            TextArea {
-                id: area
-                placeholderText: root.placeholder
-                color: Theme.text
-                placeholderTextColor: Theme.textFaint
-                font.pixelSize: Theme.fontBody
-                wrapMode: TextArea.Wrap
-                selectByMouse: true
-                selectionColor: Theme.accent
-                background: null
-            }
+        HoverHandler {
+            id: hover
+        }
+
+        TextArea {
+            id: area
+
+            anchors.fill: parent
+            anchors.margins: 8
+            placeholderText: root.placeholder
+            color: Theme.text
+            placeholderTextColor: Theme.textFaint
+            font.pixelSize: Theme.fontBody
+            wrapMode: TextArea.Wrap
+            selectByMouse: true
+            selectionColor: Theme.accent
+            selectedTextColor: "white"
+            background: null
+            padding: 0
         }
     }
 }

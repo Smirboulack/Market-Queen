@@ -39,14 +39,21 @@ ColumnLayout {
         rightPadding: 10
         selectByMouse: true
         selectionColor: Theme.accent
+        selectedTextColor: "white"
 
         onEditingFinished: root.editingFinished()
+
+        HoverHandler {
+            id: fieldHover
+        }
 
         background: Rectangle {
             radius: Theme.radiusSmall
             color: field.readOnly ? Theme.background : Theme.surfaceAlt
             border.width: 1
-            border.color: field.activeFocus ? Theme.accent : Theme.border
+            border.color: field.activeFocus ? Theme.accent
+                        : fieldHover.hovered && !field.readOnly ? Theme.borderStrong
+                        : Theme.border
 
             Behavior on border.color {
                 ColorAnimation { duration: 120 }

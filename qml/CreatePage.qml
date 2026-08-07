@@ -360,9 +360,18 @@ Item {
                     CheckBox {
                         id: captions
                         text: qsTr("Burn in subtitles (uses OpenAI Whisper)")
-                        checked: App.settings.pref("captions", true)
                         font.pixelSize: Theme.fontSmall + 1
-                        onCheckedChanged: App.settings.setPref("captions", checked)
+
+                        // Restore first, then persist: a plain binding would be
+                        // overwritten by the initial unchecked state.
+                        property bool ready: false
+
+                        Component.onCompleted: {
+                            checked = App.settings.pref("captions", true);
+                            ready = true;
+                        }
+
+                        onCheckedChanged: if (ready) App.settings.setPref("captions", checked)
 
                         indicator: Rectangle {
                             width: 16
