@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // Drop target + file picker for the product photo.
 Rectangle {

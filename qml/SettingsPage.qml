@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Dialogs
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 ScrollView {
     id: root
@@ -241,7 +241,7 @@ ScrollView {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.")
+                text: qsTr("Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.")
                           .arg(App.version)
                 color: Theme.textDim
                 font.pixelSize: Theme.fontSmall + 1

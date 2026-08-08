@@ -16,7 +16,7 @@ QString defaultProjectsDir()
     const QString base = movies.isEmpty()
         ? QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)
         : movies;
-    return QDir(base).filePath(QStringLiteral("Super Infinity"));
+    return QDir(base).filePath(QStringLiteral("Market Queen"));
 }
 
 QString ensureDir(const QString &path)

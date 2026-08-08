@@ -1,909 +1,909 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="pl_PL">
+<TS version="2.1" language="ru_RU">
 <context>
     <name>AnthropicScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Pisanie scenariusza za pomocą %1...</translation>
+        <translation>Пишем сценарий с помощью %1...</translation>
     </message>
 </context>
 <context>
     <name>App</name>
     <message>
-        <source>Super Infinity %1. Add your API keys in Settings to get started.</source>
-        <translation>Super Infinity %1. Dodaj klucze API w Ustawieniach, aby zacząć.</translation>
+        <source>Market Queen %1. Add your API keys in Settings to get started.</source>
+        <translation>Market Queen %1. Добавьте свои API-ключи в настройках, чтобы начать.</translation>
     </message>
     <message>
         <source>FFmpeg was not found. It is needed for the final render; set its path in Settings.</source>
-        <translation>Nie znaleziono FFmpeg. Jest potrzebny do finalnego renderu; podaj ścieżkę w Ustawieniach.</translation>
+        <translation>FFmpeg не найден. Он нужен для финального рендера; укажите путь к нему в настройках.</translation>
     </message>
     <message>
         <source>This provider has no voice list.</source>
-        <translation>Ten dostawca nie ma listy głosów.</translation>
+        <translation>У этого провайдера нет списка голосов.</translation>
     </message>
 </context>
 <context>
     <name>CreatePage</name>
     <message>
         <source>Create a UGC ad</source>
-        <translation>Utwórz reklamę UGC</translation>
+        <translation>Создать UGC-рекламу</translation>
     </message>
     <message>
         <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>Scenariusz, obraz, lektor, wideo i napisy. Twoje klucze API, twoje pliki.</translation>
+        <translation>Сценарий, изображение, озвучка, видео и субтитры. Ваши ключи, ваши файлы.</translation>
     </message>
     <message>
         <source>Your product</source>
-        <translation>Twój produkt</translation>
+        <translation>Ваш продукт</translation>
     </message>
     <message>
         <source>What are we selling, and to whom?</source>
-        <translation>Co sprzedajemy i komu?</translation>
+        <translation>Что продаём и кому?</translation>
     </message>
     <message>
         <source>Product name</source>
-        <translation>Nazwa produktu</translation>
+        <translation>Название продукта</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation>np. serum rozświetlające Lumen</translation>
+        <translation>напр. сыворотка Lumen glow</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation>Czym to jest</translation>
+        <translation>Что это</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>Serum z witaminą C, które rozświetla matową skórę w dwa tygodnie. Bez zapachu, 30 ml.</translation>
+        <translation>Сыворотка с витамином C, которая освежает тусклую кожу за две недели. Без отдушек, 30 мл.</translation>
     </message>
     <message>
         <source>Target audience</source>
-        <translation>Grupa docelowa</translation>
+        <translation>Целевая аудитория</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>np. kobiety 25-35 lat zainteresowane clean beauty</translation>
+        <translation>напр. женщины 25-35 лет, которым важна чистая косметика</translation>
     </message>
     <message>
         <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>Użyj mojego zdjęcia jako pierwszej klatki (bez generowania obrazu)</translation>
+        <translation>Использовать моё фото как первый кадр (без генерации изображения)</translation>
     </message>
     <message>
         <source>The ad</source>
-        <translation>Reklama</translation>
+        <translation>Реклама</translation>
     </message>
     <message>
         <source>How it should sound and how long it runs.</source>
-        <translation>Jak ma brzmieć i jak długo trwa.</translation>
+        <translation>Как это должно звучать и сколько длиться.</translation>
     </message>
     <message>
         <source>Tone</source>
-        <translation>Ton</translation>
+        <translation>Тон</translation>
     </message>
     <message>
         <source>Describe the tone in your own words</source>
-        <translation>Opisz ton własnymi słowami</translation>
+        <translation>Опишите тон своими словами</translation>
     </message>
     <message>
         <source>excited and casual</source>
-        <translation>entuzjastyczny i swobodny</translation>
+        <translation>воодушевлённый и непринуждённый</translation>
     </message>
     <message>
         <source>calm and honest</source>
-        <translation>spokojny i szczery</translation>
+        <translation>спокойный и честный</translation>
     </message>
     <message>
         <source>funny</source>
-        <translation>zabawny</translation>
+        <translation>смешной</translation>
     </message>
     <message>
         <source>straight to the point</source>
-        <translation>prosto do rzeczy</translation>
+        <translation>прямо к делу</translation>
     </message>
     <message>
         <source>storytelling</source>
-        <translation>opowieść</translation>
+        <translation>история</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Język</translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <source>Any other language</source>
-        <translation>Dowolny inny język</translation>
+        <translation>Любой другой язык</translation>
     </message>
     <message>
         <source>Length</source>
-        <translation>Długość</translation>
+        <translation>Длительность</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 s</translation>
+        <translation>%1 с</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation>Format</translation>
+        <translation>Формат</translation>
     </message>
     <message>
         <source>Person on camera</source>
-        <translation>Osoba przed kamerą</translation>
+        <translation>Человек в кадре</translation>
     </message>
     <message>
         <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>np. kobieta pod trzydziestkę, łazienka, poranne światło</translation>
+        <translation>напр. женщина под тридцать, ванная, утренний свет</translation>
     </message>
     <message>
         <source>Anything else</source>
-        <translation>Coś jeszcze</translation>
+        <translation>Что-то ещё</translation>
     </message>
     <message>
         <source>Mention the 20% launch discount. Do not say "revolutionary".</source>
-        <translation>Wspomnij o 20% rabacie na start. Nie mów „rewolucyjny”.</translation>
+        <translation>Упомянуть скидку 20% на старте. Не говорить «революционный».</translation>
     </message>
     <message>
         <source>Your own script (optional)</source>
-        <translation>Własny scenariusz (opcjonalnie)</translation>
+        <translation>Свой сценарий (необязательно)</translation>
     </message>
     <message>
         <source>skips the writer</source>
-        <translation>pomija copywritera</translation>
+        <translation>сценарист пропускается</translation>
     </message>
     <message>
         <source>Leave empty to let the model write it.</source>
-        <translation>Zostaw puste, aby napisał go model.</translation>
+        <translation>Оставьте пустым, чтобы его написала модель.</translation>
     </message>
     <message>
         <source>Models</source>
-        <translation>Modele</translation>
+        <translation>Модели</translation>
     </message>
     <message>
         <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>Łącz dowolnie. Każdy dostawca rozlicza się z tobą bezpośrednio.</translation>
+        <translation>Сочетайте как угодно. Каждый провайдер выставляет счёт напрямую вам.</translation>
     </message>
     <message>
         <source>Script writer</source>
-        <translation>Autor scenariusza</translation>
+        <translation>Сценарист</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Pierwsza klatka</translation>
+        <translation>Первый кадр</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Wideo</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation>Głos</translation>
+        <translation>Голос</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation>Inny identyfikator głosu...</translation>
+        <translation>Другой id голоса...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation>Wklej identyfikator głosu</translation>
+        <translation>Вставьте id голоса</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation>Wczytaj głosy ze swojego konta, aby wybrać jeden.</translation>
+        <translation>Загрузите голоса своего аккаунта, чтобы выбрать один.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation>Wczytaj głosy</translation>
+        <translation>Загрузить голоса</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>Wypal napisy w obrazie (używa OpenAI Whisper)</translation>
+        <translation>Вшить субтитры (через OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Generowanie...</translation>
+        <translation>Генерация...</translation>
     </message>
     <message>
         <source>Generate UGC ad</source>
-        <translation>Wygeneruj reklamę UGC</translation>
+        <translation>Создать UGC-рекламу</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>Anuluj</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>Add a product name to start.</source>
-        <translation>Podaj nazwę produktu, aby zacząć.</translation>
+        <translation>Укажите название продукта, чтобы начать.</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation>Twoja reklama jest gotowa</translation>
+        <translation>Ваша реклама готова</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation>Odtwórz</translation>
+        <translation>Воспроизвести</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Pokaż plik</translation>
+        <translation>Показать файл</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation>Aktywność</translation>
+        <translation>Журнал</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>Wyczyść</translation>
+        <translation>Очистить</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation>Wczytano %1 głosów.</translation>
+        <translation>Загружено голосов: %1.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation>Nie udało się wczytać głosów: %1</translation>
+        <translation>Не удалось загрузить голоса: %1</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
-        <translation>Brak głosów na tym koncie ElevenLabs.</translation>
+        <translation>В этом аккаунте ElevenLabs нет голосов.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceTask</name>
     <message>
         <source>Pick an ElevenLabs voice first.</source>
-        <translation>Najpierw wybierz głos ElevenLabs.</translation>
+        <translation>Сначала выберите голос ElevenLabs.</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Nagrywanie lektora...</translation>
+        <translation>Записываем озвучку...</translation>
     </message>
     <message>
         <source>ElevenLabs returned no audio.</source>
-        <translation>ElevenLabs nie zwrócił dźwięku.</translation>
+        <translation>ElevenLabs не вернул аудио.</translation>
     </message>
 </context>
 <context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
-        <translation>fal.ai nie zwrócił obrazu.</translation>
+        <translation>fal.ai не вернул изображение.</translation>
     </message>
 </context>
 <context>
     <name>FalVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Brak pierwszej klatki do animacji.</translation>
+        <translation>Нет первого кадра для анимации.</translation>
     </message>
 </context>
 <context>
     <name>FalVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Nagrywanie lektora...</translation>
+        <translation>Записываем озвучку...</translation>
     </message>
     <message>
         <source>fal.ai returned no audio.</source>
-        <translation>fal.ai nie zwrócił dźwięku.</translation>
+        <translation>fal.ai не вернул аудио.</translation>
     </message>
 </context>
 <context>
     <name>FfmpegTask</name>
     <message>
         <source>FFmpeg was not found. Install it, or set its path in Settings.</source>
-        <translation>Nie znaleziono FFmpeg. Zainstaluj go lub podaj ścieżkę w Ustawieniach.</translation>
+        <translation>FFmpeg не найден. Установите его или укажите путь в настройках.</translation>
     </message>
     <message>
         <source>Could not run FFmpeg (%1).</source>
-        <translation>Nie udało się uruchomić FFmpeg (%1).</translation>
+        <translation>Не удалось запустить FFmpeg (%1).</translation>
     </message>
     <message>
         <source>FFmpeg stopped unexpectedly.</source>
-        <translation>FFmpeg zatrzymał się nieoczekiwanie.</translation>
+        <translation>FFmpeg неожиданно завершился.</translation>
     </message>
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
-        <translation>FFmpeg zakończył się błędem (kod %1). %2</translation>
+        <translation>Ошибка FFmpeg (код %1). %2</translation>
     </message>
 </context>
 <context>
     <name>GeminiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Pisanie scenariusza za pomocą %1...</translation>
+        <translation>Пишем сценарий с помощью %1...</translation>
     </message>
 </context>
 <context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
-        <translation>Nieoczekiwana odpowiedź API: %1</translation>
+        <translation>Неожиданный ответ API: %1</translation>
     </message>
     <message>
         <source>Downloading... %1%</source>
-        <translation>Pobieranie... %1 %</translation>
+        <translation>Загрузка... %1 %</translation>
     </message>
     <message>
         <source>The provider did not return a result in time.</source>
-        <translation>Dostawca nie zwrócił wyniku na czas.</translation>
+        <translation>Провайдер не вернул результат вовремя.</translation>
     </message>
     <message>
         <source>The generation failed.</source>
-        <translation>Generowanie nie powiodło się.</translation>
+        <translation>Генерация не удалась.</translation>
     </message>
     <message>
         <source>Queued on fal.ai (%1)...</source>
-        <translation>W kolejce na fal.ai (%1)...</translation>
+        <translation>В очереди на fal.ai (%1)...</translation>
     </message>
     <message>
         <source>fal.ai did not return a job handle.</source>
-        <translation>fal.ai nie zwrócił identyfikatora zadania.</translation>
+        <translation>fal.ai не вернул идентификатор задачи.</translation>
     </message>
     <message>
         <source>Waiting in queue (position %1)...</source>
-        <translation>Oczekiwanie w kolejce (pozycja %1)...</translation>
+        <translation>Ожидание в очереди (позиция %1)...</translation>
     </message>
     <message>
         <source>Waiting in queue...</source>
-        <translation>Oczekiwanie w kolejce...</translation>
+        <translation>Ожидание в очереди...</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Generowanie...</translation>
+        <translation>Генерация...</translation>
     </message>
     <message>
         <source>fal.ai reported status "%1".</source>
-        <translation>fal.ai zgłosił status „%1”.</translation>
+        <translation>fal.ai сообщил статус «%1».</translation>
     </message>
     <message>
         <source>Submitting to Replicate (%1)...</source>
-        <translation>Wysyłanie do Replicate (%1)...</translation>
+        <translation>Отправка в Replicate (%1)...</translation>
     </message>
     <message>
         <source>Replicate did not return a prediction url.</source>
-        <translation>Replicate nie zwrócił adresu predykcji.</translation>
+        <translation>Replicate не вернул ссылку на предсказание.</translation>
     </message>
     <message>
         <source>Starting up...</source>
-        <translation>Uruchamianie...</translation>
+        <translation>Запуск...</translation>
     </message>
     <message>
         <source>Replicate reported status "%1".</source>
-        <translation>Replicate zgłosił status „%1”.</translation>
+        <translation>Replicate сообщил статус «%1».</translation>
     </message>
 </context>
 <context>
     <name>ImageDropField</name>
     <message>
         <source>Product photo</source>
-        <translation>Zdjęcie produktu</translation>
+        <translation>Фото продукта</translation>
     </message>
     <message>
         <source>Photo added</source>
-        <translation>Dodano zdjęcie</translation>
+        <translation>Фото добавлено</translation>
     </message>
     <message>
         <source>Drop a picture here, or browse. Optional, but it keeps the real product in frame.</source>
-        <translation>Upuść tu obraz lub wybierz plik. Opcjonalne, ale dzięki temu w kadrze jest prawdziwy produkt.</translation>
+        <translation>Перетащите сюда изображение или выберите файл. Необязательно, но так в кадре будет настоящий продукт.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation>Przeglądaj</translation>
+        <translation>Обзор</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation>Usuń</translation>
+        <translation>Убрать</translation>
     </message>
     <message>
         <source>Choose a product photo</source>
-        <translation>Wybierz zdjęcie produktu</translation>
+        <translation>Выберите фото продукта</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation>Obrazy (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Изображения (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
     <name>ImageTask</name>
     <message>
         <source>The provider returned an empty image.</source>
-        <translation>Dostawca zwrócił pusty obraz.</translation>
+        <translation>Провайдер вернул пустое изображение.</translation>
     </message>
 </context>
 <context>
     <name>KeyField</name>
     <message>
         <source>Get a key</source>
-        <translation>Zdobądź klucz</translation>
+        <translation>Получить ключ</translation>
     </message>
     <message>
         <source>Using %1 from your environment</source>
-        <translation>Używa %1 ze środowiska</translation>
+        <translation>Используется %1 из окружения</translation>
     </message>
     <message>
         <source>Paste your key</source>
-        <translation>Wklej swój klucz</translation>
+        <translation>Вставьте свой ключ</translation>
     </message>
     <message>
         <source>Hide</source>
-        <translation>Ukryj</translation>
+        <translation>Скрыть</translation>
     </message>
     <message>
         <source>Show</source>
-        <translation>Pokaż</translation>
+        <translation>Показать</translation>
     </message>
     <message>
         <source>Saved.</source>
-        <translation>Zapisano.</translation>
+        <translation>Сохранено.</translation>
     </message>
 </context>
 <context>
     <name>LibraryPage</name>
     <message>
         <source>Library</source>
-        <translation>Biblioteka</translation>
+        <translation>Библиотека</translation>
     </message>
     <message>
         <source>Everything you generate lands here.</source>
-        <translation>Wszystko, co wygenerujesz, trafia tutaj.</translation>
+        <translation>Всё, что вы создаёте, попадает сюда.</translation>
     </message>
     <message>
         <source>%1 project(s) in %2</source>
-        <translation>Projekty: %1 w %2</translation>
+        <translation>Проектов: %1 в %2</translation>
     </message>
     <message>
         <source>Open folder</source>
-        <translation>Otwórz folder</translation>
+        <translation>Открыть папку</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>Odśwież</translation>
+        <translation>Обновить</translation>
     </message>
     <message>
         <source>done</source>
-        <translation>gotowe</translation>
+        <translation>готово</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>błąd</translation>
+        <translation>ошибка</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Pokaż plik</translation>
+        <translation>Показать файл</translation>
     </message>
     <message>
         <source>No projects yet</source>
-        <translation>Brak projektów</translation>
+        <translation>Пока нет проектов</translation>
     </message>
 </context>
 <context>
     <name>LogPanel</name>
     <message>
         <source>Nothing yet.</source>
-        <translation>Jeszcze nic.</translation>
+        <translation>Пока пусто.</translation>
     </message>
 </context>
 <context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
-        <translation>brak klucza API</translation>
+        <translation>нет ключа API</translation>
     </message>
     <message>
         <source>Other model id...</source>
-        <translation>Inny identyfikator modelu...</translation>
+        <translation>Другой id модели...</translation>
     </message>
     <message>
         <source>e.g. fal-ai/some-new-model</source>
-        <translation>np. fal-ai/nowy-model</translation>
+        <translation>напр. fal-ai/new-model</translation>
     </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
     <message>
         <source>Generating the opening frame with %1...</source>
-        <translation>Generowanie pierwszej klatki za pomocą %1...</translation>
+        <translation>Генерация первого кадра с помощью %1...</translation>
     </message>
     <message>
         <source>OpenAI returned no image.</source>
-        <translation>OpenAI nie zwróciło obrazu.</translation>
+        <translation>OpenAI не вернул изображение.</translation>
     </message>
     <message>
         <source>Building the opening frame from your product photo...</source>
-        <translation>Tworzenie pierwszej klatki na podstawie twojego zdjęcia...</translation>
+        <translation>Собираем первый кадр из вашего фото...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Pisanie scenariusza za pomocą %1...</translation>
+        <translation>Пишем сценарий с помощью %1...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Nagrywanie lektora...</translation>
+        <translation>Записываем озвучку...</translation>
     </message>
     <message>
         <source>OpenAI returned no audio.</source>
-        <translation>OpenAI nie zwróciło dźwięku.</translation>
+        <translation>OpenAI не вернул аудио.</translation>
     </message>
 </context>
 <context>
     <name>PickerWithCustom</name>
     <message>
         <source>Other...</source>
-        <translation>Inne...</translation>
+        <translation>Другое...</translation>
     </message>
     <message>
         <source>Type your own</source>
-        <translation>Wpisz własne</translation>
+        <translation>Введите своё</translation>
     </message>
 </context>
 <context>
     <name>Pipeline</name>
     <message>
         <source>Script</source>
-        <translation>Scenariusz</translation>
+        <translation>Сценарий</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Pierwsza klatka</translation>
+        <translation>Первый кадр</translation>
     </message>
     <message>
         <source>Voice-over</source>
-        <translation>Lektor</translation>
+        <translation>Озвучка</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Wideo</translation>
+        <translation>Видео</translation>
     </message>
     <message>
         <source>Subtitles</source>
-        <translation>Napisy</translation>
+        <translation>Субтитры</translation>
     </message>
     <message>
         <source>Final cut</source>
-        <translation>Montaż końcowy</translation>
+        <translation>Финальный монтаж</translation>
     </message>
     <message>
         <source>Could not create the project folder in %1.</source>
-        <translation>Nie udało się utworzyć folderu projektu w %1.</translation>
+        <translation>Не удалось создать папку проекта в %1.</translation>
     </message>
     <message>
         <source>Project folder: %1</source>
-        <translation>Folder projektu: %1</translation>
+        <translation>Папка проекта: %1</translation>
     </message>
     <message>
         <source>Could not read the product photo.</source>
-        <translation>Nie udało się odczytać zdjęcia produktu.</translation>
+        <translation>Не удалось прочитать фото продукта.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation>Anulowanie...</translation>
+        <translation>Отмена...</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Anulowano.</translation>
+        <translation>Отменено.</translation>
     </message>
     <message>
         <source>That provider is not available.</source>
-        <translation>Ten dostawca jest niedostępny.</translation>
+        <translation>Этот провайдер недоступен.</translation>
     </message>
     <message>
         <source>Auto picked %1.</source>
-        <translation>Tryb auto wybrał %1.</translation>
+        <translation>Авто выбрал %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation>Nie udało się zapisać %1.</translation>
+        <translation>Не удалось записать %1.</translation>
     </message>
     <message>
         <source>Using the script you wrote.</source>
-        <translation>Używany jest scenariusz, który napisałeś.</translation>
+        <translation>Используется написанный вами сценарий.</translation>
     </message>
     <message>
         <source>your own script</source>
-        <translation>twój scenariusz</translation>
+        <translation>ваш сценарий</translation>
     </message>
     <message>
         <source>Writing the script...</source>
-        <translation>Pisanie scenariusza...</translation>
+        <translation>Пишем сценарий...</translation>
     </message>
     <message>
         <source>Script ready: "%1"</source>
-        <translation>Scenariusz gotowy: „%1”</translation>
+        <translation>Сценарий готов: «%1»</translation>
     </message>
     <message>
         <source>Using your photo as the opening frame.</source>
-        <translation>Twoje zdjęcie posłuży za pierwszą klatkę.</translation>
+        <translation>Ваше фото станет первым кадром.</translation>
     </message>
     <message>
         <source>your photo</source>
-        <translation>twoje zdjęcie</translation>
+        <translation>ваше фото</translation>
     </message>
     <message>
         <source>Generating the opening frame...</source>
-        <translation>Generowanie pierwszej klatki...</translation>
+        <translation>Генерация первого кадра...</translation>
     </message>
     <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
-        <translation>Pionowe zdjęcie w stylu selfie przedstawiające prawdziwą osobę trzymającą %1, naturalne światło z okna, zrobione telefonem, autentyczny wygląd treści tworzonych przez użytkowników.</translation>
+        <translation>Вертикальное фото в стиле селфи: живой человек держит %1, естественный свет из окна, снято на телефон, достоверный вид пользовательского контента.</translation>
     </message>
     <message>
         <source>Opening frame saved (%1 KB).</source>
-        <translation>Zapisano pierwszą klatkę (%1 KB).</translation>
+        <translation>Первый кадр сохранён (%1 КБ).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Nagrywanie lektora...</translation>
+        <translation>Записываем озвучку...</translation>
     </message>
     <message>
         <source>Voice-over saved (%1 KB).</source>
-        <translation>Zapisano lektora (%1 KB).</translation>
+        <translation>Озвучка сохранена (%1 КБ).</translation>
     </message>
     <message>
         <source>%1s (estimated)</source>
-        <translation>%1 s (szacowane)</translation>
+        <translation>%1 с (примерно)</translation>
     </message>
     <message>
         <source>%1s</source>
-        <translation>%1 s</translation>
+        <translation>%1 с</translation>
     </message>
     <message>
         <source>Animating the frame...</source>
-        <translation>Animowanie klatki...</translation>
+        <translation>Анимируем кадр...</translation>
     </message>
     <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>Osoba mówi prosto do kamery, delikatny ruch kamery z ręki, naturalne mruganie i drobne gesty dłoni.</translation>
+        <translation>Человек говорит прямо в камеру, лёгкое движение камеры с рук, естественное моргание и небольшие жесты руками.</translation>
     </message>
     <message>
         <source>Requesting a %1s clip.</source>
-        <translation>Zamawianie klipu %1 s.</translation>
+        <translation>Запрашиваем клип на %1 с.</translation>
     </message>
     <message>
         <source>Clip saved (%1 MB).</source>
-        <translation>Zapisano klip (%1 MB).</translation>
+        <translation>Клип сохранён (%1 МБ).</translation>
     </message>
     <message>
         <source>off</source>
-        <translation>wyłączone</translation>
+        <translation>выкл.</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Synchronizacja napisów...</translation>
+        <translation>Синхронизируем субтитры...</translation>
     </message>
     <message>
         <source>No subtitle provider selected, skipping.</source>
-        <translation>Nie wybrano dostawcy napisów, krok pominięty.</translation>
+        <translation>Провайдер субтитров не выбран, шаг пропущен.</translation>
     </message>
     <message>
         <source>Subtitles unavailable (%1). Continuing without them.</source>
-        <translation>Napisy niedostępne (%1). Kontynuacja bez nich.</translation>
+        <translation>Субтитры недоступны (%1). Продолжаем без них.</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>błąd</translation>
+        <translation>ошибка</translation>
     </message>
     <message>
         <source>Subtitles ready.</source>
-        <translation>Napisy gotowe.</translation>
+        <translation>Субтитры готовы.</translation>
     </message>
     <message>
         <source>Assembling the final video...</source>
-        <translation>Składanie finalnego wideo...</translation>
+        <translation>Собираем финальное видео...</translation>
     </message>
     <message>
         <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>FFmpeg jest potrzebny do połączenia klipu, lektora i napisów. Zainstaluj go lub podaj ścieżkę w Ustawieniach. Wygenerowane pliki znajdują się w %1.</translation>
+        <translation>FFmpeg нужен, чтобы соединить клип, озвучку и субтитры. Установите его или укажите путь в настройках. Созданные файлы лежат в %1.</translation>
     </message>
     <message>
         <source>FFmpeg not found.</source>
-        <translation>Nie znaleziono FFmpeg.</translation>
+        <translation>FFmpeg не найден.</translation>
     </message>
     <message>
         <source>Looping the clip to cover the voice-over.</source>
-        <translation>Klip zostanie zapętlony, aby pokryć lektora.</translation>
+        <translation>Клип зациклен, чтобы перекрыть озвучку.</translation>
     </message>
     <message>
         <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>Klip zostanie spowolniony o %1 %, aby pasował do lektora.</translation>
+        <translation>Клип замедлен на %1 %, чтобы совпасть с озвучкой.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
-        <translation>FFmpeg zakończył pracę, ale nie utworzył pliku.</translation>
+        <translation>FFmpeg завершился, но файл не создан.</translation>
     </message>
     <message>
         <source>Done: %1</source>
-        <translation>Gotowe: %1</translation>
+        <translation>Готово: %1</translation>
     </message>
     <message>
         <source>Your ad is ready.</source>
-        <translation>Twoja reklama jest gotowa.</translation>
+        <translation>Ваша реклама готова.</translation>
     </message>
 </context>
 <context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
-        <translation>Brak klucza API dla %1. Dodaj go w Ustawieniach.</translation>
+        <translation>Нет ключа API для %1. Добавьте его в настройках.</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Anulowano.</translation>
+        <translation>Отменено.</translation>
     </message>
 </context>
 <context>
     <name>Registry</name>
     <message>
         <source>Auto - best model for this shot</source>
-        <translation>Auto - najlepszy model do tego ujęcia</translation>
+        <translation>Авто - лучшая модель для этого кадра</translation>
     </message>
     <message>
         <source>Reads the product photo when the model supports vision.</source>
-        <translation>Czyta zdjęcie produktu, jeśli model obsługuje obraz.</translation>
+        <translation>Читает фото продукта, если модель понимает изображения.</translation>
     </message>
     <message>
         <source>Strong at short, natural-sounding ad copy.</source>
-        <translation>Świetny w krótkich, naturalnie brzmiących tekstach reklamowych.</translation>
+        <translation>Хорош в коротких и естественных рекламных текстах.</translation>
     </message>
     <message>
         <source>Free tier available in most regions.</source>
-        <translation>Darmowy pakiet dostępny w większości regionów.</translation>
+        <translation>В большинстве регионов есть бесплатный уровень.</translation>
     </message>
     <message>
         <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
-        <translation>Najszerszy katalog. Zadziała też dowolny identyfikator z fal.ai/models.</translation>
+        <translation>Самый широкий каталог. Подойдёт и любой id с fal.ai/models.</translation>
     </message>
     <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>gpt-image-1 może bezpośrednio edytować zdjęcie produktu.</translation>
+        <translation>gpt-image-1 может редактировать ваше фото продукта напрямую.</translation>
     </message>
     <message>
         <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - jeden klucz.</translation>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - один ключ.</translation>
     </message>
     <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
-        <translation>Scenariusze, obrazy, wideo Sora, lektor i napisy.</translation>
+        <translation>Сценарии, изображения, видео Sora, озвучка и субтитры.</translation>
     </message>
     <message>
         <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
-        <translation>Obrazy, wideo i głosy (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
+        <translation>Изображения, видео и голоса (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
-        <translation>Użyj owner/name lub owner/name:version, aby przypiąć wersję.</translation>
+        <translation>Используйте owner/name или owner/name:version, чтобы закрепить версию.</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>
-        <translation>Płatność za sekundę, bez abonamentu.</translation>
+        <translation>Оплата посекундно, без подписки.</translation>
     </message>
     <message>
         <source>The opening frame is resized to Sora's format automatically.</source>
-        <translation>Pierwsza klatka jest automatycznie dopasowywana do formatu Sory.</translation>
+        <translation>Первый кадр автоматически подгоняется под формат Sora.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
-        <translation>Najbardziej wiarygodne głosy do UGC. Wczytaj listę poniżej.</translation>
+        <translation>Самые убедительные голоса для UGC. Загрузите свой список ниже.</translation>
     </message>
     <message>
         <source>Cheap and fast, fixed set of voices.</source>
-        <translation>Tanio i szybko, stały zestaw głosów.</translation>
+        <translation>Дёшево и быстро, фиксированный набор голосов.</translation>
     </message>
     <message>
         <source>Several voice engines behind the fal key you already have.</source>
-        <translation>Kilka silników głosowych na kluczu fal, który już masz.</translation>
+        <translation>Несколько голосовых движков по тому же ключу fal.</translation>
     </message>
     <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
-        <translation>Zamienia wygenerowanego lektora w napisy z czasami.</translation>
+        <translation>Превращает созданную озвучку в субтитры с таймкодами.</translation>
     </message>
     <message>
         <source>Scripts.</source>
-        <translation>Scenariusze.</translation>
+        <translation>Сценарии.</translation>
     </message>
     <message>
         <source>Images and video.</source>
-        <translation>Obrazy i wideo.</translation>
+        <translation>Изображения и видео.</translation>
     </message>
     <message>
         <source>Voice-over.</source>
-        <translation>Lektor.</translation>
+        <translation>Озвучка.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateImageTask</name>
     <message>
         <source>Replicate returned no image.</source>
-        <translation>Replicate nie zwrócił obrazu.</translation>
+        <translation>Replicate не вернул изображение.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Brak pierwszej klatki do animacji.</translation>
+        <translation>Нет первого кадра для анимации.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>The model returned an empty answer.</source>
-        <translation>Model zwrócił pustą odpowiedź.</translation>
+        <translation>Модель вернула пустой ответ.</translation>
     </message>
     <message>
         <source>The model answer did not contain a script.</source>
-        <translation>Odpowiedź modelu nie zawierała scenariusza.</translation>
+        <translation>В ответе модели не было сценария.</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Settings</source>
-        <translation>Ustawienia</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <source>Keys are encrypted on this machine and sent only to the provider they belong to.</source>
-        <translation>Klucze są szyfrowane na tym komputerze i wysyłane wyłącznie do właściwego dostawcy.</translation>
+        <translation>Ключи шифруются на этом компьютере и отправляются только своему провайдеру.</translation>
     </message>
     <message>
         <source>Appearance</source>
-        <translation>Wygląd</translation>
+        <translation>Оформление</translation>
     </message>
     <message>
         <source>The interface language applies immediately, no restart.</source>
-        <translation>Język interfejsu działa od razu, bez restartu.</translation>
+        <translation>Язык интерфейса применяется сразу, без перезапуска.</translation>
     </message>
     <message>
         <source>Theme</source>
-        <translation>Motyw</translation>
+        <translation>Тема</translation>
     </message>
     <message>
         <source>Light</source>
-        <translation>Jasny</translation>
+        <translation>Светлая</translation>
     </message>
     <message>
         <source>Dark</source>
-        <translation>Ciemny</translation>
+        <translation>Тёмная</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Język</translation>
+        <translation>Язык</translation>
     </message>
     <message>
         <source>Use system language</source>
-        <translation>Język systemu</translation>
+        <translation>Язык системы</translation>
     </message>
     <message>
         <source>API keys</source>
-        <translation>Klucze API</translation>
+        <translation>Ключи API</translation>
     </message>
     <message>
         <source>You only need the ones you actually use. An empty field means the provider is off.</source>
-        <translation>Potrzebne są tylko te, których faktycznie używasz. Puste pole wyłącza dostawcę.</translation>
+        <translation>Нужны только те, которыми вы реально пользуетесь. Пустое поле отключает провайдера.</translation>
     </message>
     <message>
         <source>Files</source>
-        <translation>Pliki</translation>
+        <translation>Файлы</translation>
     </message>
     <message>
         <source>Projects folder</source>
-        <translation>Folder projektów</translation>
+        <translation>Папка проектов</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>Zmień</translation>
+        <translation>Изменить</translation>
     </message>
     <message>
         <source>Open</source>
-        <translation>Otwórz</translation>
+        <translation>Открыть</translation>
     </message>
     <message>
         <source>FFmpeg</source>
@@ -911,141 +911,141 @@
     </message>
     <message>
         <source>not found</source>
-        <translation>nie znaleziono</translation>
+        <translation>не найден</translation>
     </message>
     <message>
         <source>Leave empty to use the one on your PATH</source>
-        <translation>Zostaw puste, aby użyć tego z PATH</translation>
+        <translation>Оставьте пустым, чтобы взять из PATH</translation>
     </message>
     <message>
         <source>Locate</source>
-        <translation>Wskaż</translation>
+        <translation>Указать</translation>
     </message>
     <message>
         <source>Download</source>
-        <translation>Pobierz</translation>
+        <translation>Скачать</translation>
     </message>
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
-        <translation>FFmpeg łączy klip, lektora i napisy w finalny plik MP4. Bez niego aplikacja nadal wygeneruje każdy element, ale ich nie połączy.</translation>
+        <translation>FFmpeg соединяет клип, озвучку и субтитры в итоговый MP4. Без него приложение всё равно создаст каждую часть, но не сможет их собрать.</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>O programie</translation>
+        <translation>О программе</translation>
     </message>
     <message>
-        <source>Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
-        <translation>Super Infinity %1 - darmowy i otwartoźródłowy. Bez konta i bez serwera: każde zapytanie idzie prosto z twojego komputera do wybranego dostawcy, z twoim kluczem.</translation>
+        <source>Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
+        <translation>Market Queen %1 - бесплатно и с открытым кодом. Ни аккаунта, ни сервера: каждый запрос идёт прямо с вашего компьютера выбранному провайдеру, с вашим ключом.</translation>
     </message>
     <message>
         <source>Config folder</source>
-        <translation>Folder konfiguracji</translation>
+        <translation>Папка настроек</translation>
     </message>
     <message>
         <source>Choose where projects are saved</source>
-        <translation>Wybierz miejsce zapisu projektów</translation>
+        <translation>Выберите, где сохранять проекты</translation>
     </message>
     <message>
         <source>Locate the ffmpeg executable</source>
-        <translation>Wskaż plik wykonywalny ffmpeg</translation>
+        <translation>Укажите исполняемый файл ffmpeg</translation>
     </message>
 </context>
 <context>
     <name>SideNav</name>
     <message>
         <source>Create</source>
-        <translation>Twórz</translation>
+        <translation>Создать</translation>
     </message>
     <message>
         <source>Library</source>
-        <translation>Biblioteka</translation>
+        <translation>Библиотека</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Ustawienia</translation>
+        <translation>Настройки</translation>
     </message>
     <message>
         <source>FFmpeg ready</source>
-        <translation>FFmpeg gotowy</translation>
+        <translation>FFmpeg готов</translation>
     </message>
     <message>
         <source>FFmpeg missing</source>
-        <translation>Brak FFmpeg</translation>
+        <translation>FFmpeg отсутствует</translation>
     </message>
     <message>
         <source>Your keys, your files.
 Nothing is uploaded to us.</source>
-        <translation>Twoje klucze, twoje pliki.
-Nic nie trafia do nas.</translation>
+        <translation>Ваши ключи, ваши файлы.
+Нам ничего не отправляется.</translation>
     </message>
 </context>
 <context>
     <name>SoraVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Brak pierwszej klatki do animacji.</translation>
+        <translation>Нет первого кадра для анимации.</translation>
     </message>
     <message>
         <source>Could not prepare the opening frame for Sora.</source>
-        <translation>Nie udało się przygotować pierwszej klatki dla Sory.</translation>
+        <translation>Не удалось подготовить первый кадр для Sora.</translation>
     </message>
     <message>
         <source>Sending the shot to Sora (%1)...</source>
-        <translation>Wysyłanie ujęcia do Sory (%1)...</translation>
+        <translation>Отправляем кадр в Sora (%1)...</translation>
     </message>
     <message>
         <source>Sora did not return a job id.</source>
-        <translation>Sora nie zwróciła identyfikatora zadania.</translation>
+        <translation>Sora не вернула идентификатор задачи.</translation>
     </message>
     <message>
         <source>Sora is rendering... %1%</source>
-        <translation>Sora renderuje... %1 %</translation>
+        <translation>Sora рендерит... %1 %</translation>
     </message>
     <message>
         <source>Sora is rendering...</source>
-        <translation>Sora renderuje...</translation>
+        <translation>Sora рендерит...</translation>
     </message>
     <message>
         <source>Sora reported status "%1".</source>
-        <translation>Sora zgłosiła status „%1”.</translation>
+        <translation>Sora сообщила статус «%1».</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>Pobieranie klipu...</translation>
+        <translation>Загружаем клип...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>Pobrany klip był pusty.</translation>
+        <translation>Загруженный клип оказался пустым.</translation>
     </message>
 </context>
 <context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation>Dostawca nie zwrócił wideo.</translation>
+        <translation>Провайдер не вернул видео.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>Pobieranie klipu...</translation>
+        <translation>Загружаем клип...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>Pobrany klip był pusty.</translation>
+        <translation>Загруженный клип оказался пустым.</translation>
     </message>
 </context>
 <context>
     <name>WhisperCaptionTask</name>
     <message>
         <source>Could not read the voice-over file.</source>
-        <translation>Nie udało się odczytać pliku lektora.</translation>
+        <translation>Не удалось прочитать файл озвучки.</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Synchronizacja napisów...</translation>
+        <translation>Синхронизируем субтитры...</translation>
     </message>
     <message>
         <source>Whisper returned an empty transcript.</source>
-        <translation>Whisper zwrócił pustą transkrypcję.</translation>
+        <translation>Whisper вернул пустую расшифровку.</translation>
     </message>
 </context>
 </TS>

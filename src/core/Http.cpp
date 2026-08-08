@@ -27,7 +27,7 @@ QNetworkRequest jsonRequest(const QUrl &url, const QVariantMap &headers)
     QNetworkRequest req(url);
     req.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     req.setRawHeader("Accept", "application/json");
-    req.setRawHeader("User-Agent", "SuperInfinity/" APP_VERSION);
+    req.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
     req.setTransferTimeout(120'000);
     for (auto it = headers.constBegin(); it != headers.constEnd(); ++it)
         req.setRawHeader(it.key().toUtf8(), it.value().toString().toUtf8());

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // Fixed-choice picker. There is deliberately no inline editing: an editable
 // ComboBox puts a live TextField over the control, which swallows the click and

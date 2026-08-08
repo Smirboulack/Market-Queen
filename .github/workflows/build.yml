@@ -59,12 +59,12 @@ jobs:
       - name: Make a dmg
         if: matrix.label == 'macos'
         run: |
-          hdiutil create -volname "Super Infinity" -srcfolder dist/SuperInfinity.app \
-            -ov -format UDZO SuperInfinity-macos.dmg
+          hdiutil create -volname "Market Queen" -srcfolder dist/MarketQueen.app \
+            -ov -format UDZO MarketQueen-macos.dmg
 
       - name: Zip the Windows build
         if: matrix.label == 'windows'
-        run: Compress-Archive -Path dist/* -DestinationPath SuperInfinity-windows.zip
+        run: Compress-Archive -Path dist/* -DestinationPath MarketQueen-windows.zip
         shell: pwsh
 
       - name: Build an AppImage
@@ -74,8 +74,8 @@ jobs:
           cat > AppDir/usr/share/applications/super-infinity.desktop <<'EOF'
           [Desktop Entry]
           Type=Application
-          Name=Super Infinity
-          Exec=SuperInfinity
+          Name=Market Queen
+          Exec=MarketQueen
           Icon=super-infinity
           Categories=AudioVideo;
           EOF
@@ -89,19 +89,19 @@ jobs:
           chmod +x linuxdeploy*.AppImage
           export QML_SOURCES_PATHS=$PWD/qml
           ./linuxdeploy-x86_64.AppImage --appdir AppDir --plugin qt --output appimage
-          mv Super_Infinity*.AppImage SuperInfinity-linux.AppImage 2>/dev/null || \
-            mv ./*.AppImage SuperInfinity-linux.AppImage
+          mv Super_Infinity*.AppImage MarketQueen-linux.AppImage 2>/dev/null || \
+            mv ./*.AppImage MarketQueen-linux.AppImage
         env:
-          OUTPUT: SuperInfinity-linux.AppImage
+          OUTPUT: MarketQueen-linux.AppImage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SuperInfinity-${{ matrix.label }}
+          name: MarketQueen-${{ matrix.label }}
           path: |
-            SuperInfinity-windows.zip
-            SuperInfinity-macos.dmg
-            SuperInfinity-linux.AppImage
+            MarketQueen-windows.zip
+            MarketQueen-macos.dmg
+            MarketQueen-linux.AppImage
           if-no-files-found: warn
 
   release:

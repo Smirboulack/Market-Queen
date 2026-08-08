@@ -24,11 +24,11 @@ I18N = ROOT / "i18n"
 
 
 def ts_path(lang):
-    return I18N / f"superinfinity_{lang}.ts"
+    return I18N / f"marketqueen_{lang}.ts"
 
 
 def languages():
-    return sorted(p.stem.split("_", 1)[1] for p in I18N.glob("superinfinity_*.ts"))
+    return sorted(p.stem.split("_", 1)[1] for p in I18N.glob("marketqueen_*.ts"))
 
 
 def sources(lang):

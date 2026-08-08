@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 ApplicationWindow {
     id: window
@@ -12,7 +12,7 @@ ApplicationWindow {
     minimumHeight: 680
     visible: true
     // Product and company name: neither is translated.
-    title: "Super Infinity - SegfaultLabs"
+    title: "Market Queen - SegfaultLabs"
     // No fade here: a theme switch snaps everywhere at once, and a window
     // that fades under content that snaps reads as two competing animations.
     color: Theme.background

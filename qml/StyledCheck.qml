@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import SuperInfinity
+import MarketQueen
 
 // Checkbox in the app's look: hover ring on the box, pointing-hand cursor,
 // mirroring-aware so Arabic flips it like everything else. The control's own

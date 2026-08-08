@@ -1,121 +1,121 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="nl_NL">
+<TS version="2.1" language="de_DE">
 <context>
     <name>AnthropicScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Script schrijven met %1...</translation>
+        <translation>Skript wird mit %1 geschrieben...</translation>
     </message>
 </context>
 <context>
     <name>App</name>
     <message>
-        <source>Super Infinity %1. Add your API keys in Settings to get started.</source>
-        <translation>Super Infinity %1. Voeg je API-sleutels toe bij Instellingen om te beginnen.</translation>
+        <source>Market Queen %1. Add your API keys in Settings to get started.</source>
+        <translation>Market Queen %1. Trage deine API-Schlüssel in den Einstellungen ein, um loszulegen.</translation>
     </message>
     <message>
         <source>FFmpeg was not found. It is needed for the final render; set its path in Settings.</source>
-        <translation>FFmpeg is niet gevonden. Het is nodig voor de eindrender; stel het pad in bij Instellingen.</translation>
+        <translation>FFmpeg wurde nicht gefunden. Es wird für den finalen Export gebraucht; Pfad in den Einstellungen angeben.</translation>
     </message>
     <message>
         <source>This provider has no voice list.</source>
-        <translation>Deze aanbieder heeft geen stemmenlijst.</translation>
+        <translation>Dieser Anbieter hat keine Stimmenliste.</translation>
     </message>
 </context>
 <context>
     <name>CreatePage</name>
     <message>
         <source>Create a UGC ad</source>
-        <translation>Een UGC-advertentie maken</translation>
+        <translation>UGC-Werbung erstellen</translation>
     </message>
     <message>
         <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>Script, beeld, voice-over, video en ondertitels. Jouw API-sleutels, jouw bestanden.</translation>
+        <translation>Skript, Bild, Voice-over, Video und Untertitel. Deine API-Schlüssel, deine Dateien.</translation>
     </message>
     <message>
         <source>Your product</source>
-        <translation>Je product</translation>
+        <translation>Dein Produkt</translation>
     </message>
     <message>
         <source>What are we selling, and to whom?</source>
-        <translation>Wat verkopen we, en aan wie?</translation>
+        <translation>Was verkaufen wir, und an wen?</translation>
     </message>
     <message>
         <source>Product name</source>
-        <translation>Productnaam</translation>
+        <translation>Produktname</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation>bv. Lumen glow serum</translation>
+        <translation>z. B. Lumen Glow Serum</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation>Wat het is</translation>
+        <translation>Worum es geht</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>Een vitamine C-serum dat een doffe huid in twee weken opfleurt. Parfumvrij, 30 ml.</translation>
+        <translation>Ein Vitamin-C-Serum, das fahle Haut in zwei Wochen aufhellt. Ohne Duftstoffe, 30 ml.</translation>
     </message>
     <message>
         <source>Target audience</source>
-        <translation>Doelgroep</translation>
+        <translation>Zielgruppe</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>bv. vrouwen van 25 tot 35 die om clean beauty geven</translation>
+        <translation>z. B. Frauen zwischen 25 und 35 mit Interesse an Clean Beauty</translation>
     </message>
     <message>
         <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>Mijn foto als eerste beeld gebruiken (geen beeldgeneratie)</translation>
+        <translation>Mein Foto als erstes Bild verwenden (ohne Bildgenerierung)</translation>
     </message>
     <message>
         <source>The ad</source>
-        <translation>De advertentie</translation>
+        <translation>Die Werbung</translation>
     </message>
     <message>
         <source>How it should sound and how long it runs.</source>
-        <translation>Hoe het moet klinken en hoe lang het duurt.</translation>
+        <translation>Wie sie klingen soll und wie lang sie läuft.</translation>
     </message>
     <message>
         <source>Tone</source>
-        <translation>Toon</translation>
+        <translation>Tonfall</translation>
     </message>
     <message>
         <source>Describe the tone in your own words</source>
-        <translation>Beschrijf de toon in je eigen woorden</translation>
+        <translation>Beschreibe den Tonfall mit eigenen Worten</translation>
     </message>
     <message>
         <source>excited and casual</source>
-        <translation>enthousiast en informeel</translation>
+        <translation>begeistert und locker</translation>
     </message>
     <message>
         <source>calm and honest</source>
-        <translation>rustig en eerlijk</translation>
+        <translation>ruhig und ehrlich</translation>
     </message>
     <message>
         <source>funny</source>
-        <translation>grappig</translation>
+        <translation>witzig</translation>
     </message>
     <message>
         <source>straight to the point</source>
-        <translation>recht voor z'n raap</translation>
+        <translation>direkt auf den Punkt</translation>
     </message>
     <message>
         <source>storytelling</source>
-        <translation>verhalend</translation>
+        <translation>erzählend</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Taal</translation>
+        <translation>Sprache</translation>
     </message>
     <message>
         <source>Any other language</source>
-        <translation>Een andere taal</translation>
+        <translation>Eine andere Sprache</translation>
     </message>
     <message>
         <source>Length</source>
-        <translation>Lengte</translation>
+        <translation>Länge</translation>
     </message>
     <message>
         <source>%1 s</source>
@@ -124,51 +124,51 @@
     </message>
     <message>
         <source>Format</source>
-        <translation>Formaat</translation>
+        <translation>Format</translation>
     </message>
     <message>
         <source>Person on camera</source>
-        <translation>Persoon in beeld</translation>
+        <translation>Person vor der Kamera</translation>
     </message>
     <message>
         <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>bv. vrouw van eind twintig, badkamer, ochtendlicht</translation>
+        <translation>z. B. Frau Ende zwanzig, Badezimmer, Morgenlicht</translation>
     </message>
     <message>
         <source>Anything else</source>
-        <translation>Nog iets</translation>
+        <translation>Sonstiges</translation>
     </message>
     <message>
         <source>Mention the 20% launch discount. Do not say "revolutionary".</source>
-        <translation>Noem de lanceerkorting van 20%. Zeg niet „revolutionair”.</translation>
+        <translation>Den Einführungsrabatt von 20 % erwähnen. Nicht „revolutionär“ sagen.</translation>
     </message>
     <message>
         <source>Your own script (optional)</source>
-        <translation>Je eigen script (optioneel)</translation>
+        <translation>Dein eigenes Skript (optional)</translation>
     </message>
     <message>
         <source>skips the writer</source>
-        <translation>slaat de schrijver over</translation>
+        <translation>überspringt den Texter</translation>
     </message>
     <message>
         <source>Leave empty to let the model write it.</source>
-        <translation>Laat leeg om het model het te laten schrijven.</translation>
+        <translation>Leer lassen, damit das Modell es schreibt.</translation>
     </message>
     <message>
         <source>Models</source>
-        <translation>Modellen</translation>
+        <translation>Modelle</translation>
     </message>
     <message>
         <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>Vrij te combineren. Elke aanbieder factureert je rechtstreeks.</translation>
+        <translation>Beliebig kombinierbar. Jeder Anbieter rechnet direkt mit dir ab.</translation>
     </message>
     <message>
         <source>Script writer</source>
-        <translation>Scriptschrijver</translation>
+        <translation>Skriptautor</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Eerste beeld</translation>
+        <translation>Erstes Bild</translation>
     </message>
     <message>
         <source>Video</source>
@@ -176,256 +176,256 @@
     </message>
     <message>
         <source>Voice</source>
-        <translation>Stem</translation>
+        <translation>Stimme</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation>Andere stem-id...</translation>
+        <translation>Andere Stimmen-ID...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation>Plak een stem-id</translation>
+        <translation>Stimmen-ID einfügen</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation>Laad de stemmen van je account om er een te kiezen.</translation>
+        <translation>Lade die Stimmen deines Kontos, um eine auszuwählen.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation>Stemmen laden</translation>
+        <translation>Stimmen laden</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>Ondertitels inbranden (gebruikt OpenAI Whisper)</translation>
+        <translation>Untertitel einbrennen (nutzt OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Bezig met genereren...</translation>
+        <translation>Wird generiert...</translation>
     </message>
     <message>
         <source>Generate UGC ad</source>
-        <translation>UGC-advertentie genereren</translation>
+        <translation>UGC-Werbung generieren</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>Annuleren</translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <source>Add a product name to start.</source>
-        <translation>Vul een productnaam in om te starten.</translation>
+        <translation>Gib einen Produktnamen ein, um zu starten.</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation>Je advertentie is klaar</translation>
+        <translation>Deine Werbung ist fertig</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation>Afspelen</translation>
+        <translation>Abspielen</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Bestand tonen</translation>
+        <translation>Datei anzeigen</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation>Activiteit</translation>
+        <translation>Aktivität</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>Wissen</translation>
+        <translation>Leeren</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation>%1 stemmen geladen.</translation>
+        <translation>%1 Stimmen geladen.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation>Stemmen konden niet worden geladen: %1</translation>
+        <translation>Stimmen konnten nicht geladen werden: %1</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
-        <translation>Geen stemmen in dit ElevenLabs-account.</translation>
+        <translation>Keine Stimmen in diesem ElevenLabs-Konto.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceTask</name>
     <message>
         <source>Pick an ElevenLabs voice first.</source>
-        <translation>Kies eerst een ElevenLabs-stem.</translation>
+        <translation>Wähle zuerst eine ElevenLabs-Stimme.</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Voice-over opnemen...</translation>
+        <translation>Voice-over wird aufgenommen...</translation>
     </message>
     <message>
         <source>ElevenLabs returned no audio.</source>
-        <translation>ElevenLabs gaf geen audio terug.</translation>
+        <translation>ElevenLabs hat kein Audio geliefert.</translation>
     </message>
 </context>
 <context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
-        <translation>fal.ai gaf geen afbeelding terug.</translation>
+        <translation>fal.ai hat kein Bild geliefert.</translation>
     </message>
 </context>
 <context>
     <name>FalVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Geen eerste beeld om te animeren.</translation>
+        <translation>Kein erstes Bild zum Animieren vorhanden.</translation>
     </message>
 </context>
 <context>
     <name>FalVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Voice-over opnemen...</translation>
+        <translation>Voice-over wird aufgenommen...</translation>
     </message>
     <message>
         <source>fal.ai returned no audio.</source>
-        <translation>fal.ai gaf geen audio terug.</translation>
+        <translation>fal.ai hat kein Audio geliefert.</translation>
     </message>
 </context>
 <context>
     <name>FfmpegTask</name>
     <message>
         <source>FFmpeg was not found. Install it, or set its path in Settings.</source>
-        <translation>FFmpeg is niet gevonden. Installeer het of stel het pad in bij Instellingen.</translation>
+        <translation>FFmpeg wurde nicht gefunden. Installiere es oder gib den Pfad in den Einstellungen an.</translation>
     </message>
     <message>
         <source>Could not run FFmpeg (%1).</source>
-        <translation>FFmpeg kon niet worden gestart (%1).</translation>
+        <translation>FFmpeg konnte nicht gestartet werden (%1).</translation>
     </message>
     <message>
         <source>FFmpeg stopped unexpectedly.</source>
-        <translation>FFmpeg is onverwacht gestopt.</translation>
+        <translation>FFmpeg wurde unerwartet beendet.</translation>
     </message>
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
-        <translation>FFmpeg is mislukt (code %1). %2</translation>
+        <translation>FFmpeg fehlgeschlagen (Code %1). %2</translation>
     </message>
 </context>
 <context>
     <name>GeminiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Script schrijven met %1...</translation>
+        <translation>Skript wird mit %1 geschrieben...</translation>
     </message>
 </context>
 <context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
-        <translation>Onverwacht antwoord van de API: %1</translation>
+        <translation>Unerwartete Antwort der API: %1</translation>
     </message>
     <message>
         <source>Downloading... %1%</source>
-        <translation>Bezig met downloaden... %1 %</translation>
+        <translation>Wird heruntergeladen... %1 %</translation>
     </message>
     <message>
         <source>The provider did not return a result in time.</source>
-        <translation>De aanbieder gaf niet op tijd een resultaat terug.</translation>
+        <translation>Der Anbieter hat nicht rechtzeitig ein Ergebnis geliefert.</translation>
     </message>
     <message>
         <source>The generation failed.</source>
-        <translation>De generatie is mislukt.</translation>
+        <translation>Die Generierung ist fehlgeschlagen.</translation>
     </message>
     <message>
         <source>Queued on fal.ai (%1)...</source>
-        <translation>In de wachtrij bij fal.ai (%1)...</translation>
+        <translation>In der Warteschlange bei fal.ai (%1)...</translation>
     </message>
     <message>
         <source>fal.ai did not return a job handle.</source>
-        <translation>fal.ai gaf geen taak-id terug.</translation>
+        <translation>fal.ai hat keine Auftragskennung geliefert.</translation>
     </message>
     <message>
         <source>Waiting in queue (position %1)...</source>
-        <translation>Wachten in de wachtrij (positie %1)...</translation>
+        <translation>Warten in der Warteschlange (Position %1)...</translation>
     </message>
     <message>
         <source>Waiting in queue...</source>
-        <translation>Wachten in de wachtrij...</translation>
+        <translation>Warten in der Warteschlange...</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Bezig met genereren...</translation>
+        <translation>Wird generiert...</translation>
     </message>
     <message>
         <source>fal.ai reported status "%1".</source>
-        <translation>fal.ai meldde status „%1”.</translation>
+        <translation>fal.ai meldet Status „%1“.</translation>
     </message>
     <message>
         <source>Submitting to Replicate (%1)...</source>
-        <translation>Versturen naar Replicate (%1)...</translation>
+        <translation>Wird an Replicate gesendet (%1)...</translation>
     </message>
     <message>
         <source>Replicate did not return a prediction url.</source>
-        <translation>Replicate gaf geen prediction-URL terug.</translation>
+        <translation>Replicate hat keine Prediction-URL geliefert.</translation>
     </message>
     <message>
         <source>Starting up...</source>
-        <translation>Opstarten...</translation>
+        <translation>Startet...</translation>
     </message>
     <message>
         <source>Replicate reported status "%1".</source>
-        <translation>Replicate meldde status „%1”.</translation>
+        <translation>Replicate meldet Status „%1“.</translation>
     </message>
 </context>
 <context>
     <name>ImageDropField</name>
     <message>
         <source>Product photo</source>
-        <translation>Productfoto</translation>
+        <translation>Produktfoto</translation>
     </message>
     <message>
         <source>Photo added</source>
-        <translation>Foto toegevoegd</translation>
+        <translation>Foto hinzugefügt</translation>
     </message>
     <message>
         <source>Drop a picture here, or browse. Optional, but it keeps the real product in frame.</source>
-        <translation>Sleep hier een afbeelding naartoe, of blader. Optioneel, maar zo blijft het echte product in beeld.</translation>
+        <translation>Zieh ein Bild hierher oder wähle eins aus. Optional, hält aber das echte Produkt im Bild.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation>Bladeren</translation>
+        <translation>Durchsuchen</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation>Verwijderen</translation>
+        <translation>Entfernen</translation>
     </message>
     <message>
         <source>Choose a product photo</source>
-        <translation>Kies een productfoto</translation>
+        <translation>Produktfoto auswählen</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation>Afbeeldingen (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Bilder (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
     <name>ImageTask</name>
     <message>
         <source>The provider returned an empty image.</source>
-        <translation>De aanbieder gaf een lege afbeelding terug.</translation>
+        <translation>Der Anbieter hat ein leeres Bild geliefert.</translation>
     </message>
 </context>
 <context>
     <name>KeyField</name>
     <message>
         <source>Get a key</source>
-        <translation>Sleutel ophalen</translation>
+        <translation>Schlüssel holen</translation>
     </message>
     <message>
         <source>Using %1 from your environment</source>
-        <translation>Gebruikt %1 uit je omgeving</translation>
+        <translation>Verwendet %1 aus deiner Umgebung</translation>
     </message>
     <message>
         <source>Paste your key</source>
-        <translation>Plak je sleutel</translation>
+        <translation>Schlüssel einfügen</translation>
     </message>
     <message>
         <source>Hide</source>
@@ -433,105 +433,105 @@
     </message>
     <message>
         <source>Show</source>
-        <translation>Tonen</translation>
+        <translation>Anzeigen</translation>
     </message>
     <message>
         <source>Saved.</source>
-        <translation>Opgeslagen.</translation>
+        <translation>Gespeichert.</translation>
     </message>
 </context>
 <context>
     <name>LibraryPage</name>
     <message>
         <source>Library</source>
-        <translation>Bibliotheek</translation>
+        <translation>Bibliothek</translation>
     </message>
     <message>
         <source>Everything you generate lands here.</source>
-        <translation>Alles wat je genereert komt hier terecht.</translation>
+        <translation>Alles, was du generierst, landet hier.</translation>
     </message>
     <message>
         <source>%1 project(s) in %2</source>
-        <translation>%1 project(en) in %2</translation>
+        <translation>%1 Projekt(e) in %2</translation>
     </message>
     <message>
         <source>Open folder</source>
-        <translation>Map openen</translation>
+        <translation>Ordner öffnen</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>Vernieuwen</translation>
+        <translation>Aktualisieren</translation>
     </message>
     <message>
         <source>done</source>
-        <translation>klaar</translation>
+        <translation>fertig</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>mislukt</translation>
+        <translation>fehlgeschlagen</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Bestand tonen</translation>
+        <translation>Datei anzeigen</translation>
     </message>
     <message>
         <source>No projects yet</source>
-        <translation>Nog geen projecten</translation>
+        <translation>Noch keine Projekte</translation>
     </message>
 </context>
 <context>
     <name>LogPanel</name>
     <message>
         <source>Nothing yet.</source>
-        <translation>Nog niets.</translation>
+        <translation>Noch nichts.</translation>
     </message>
 </context>
 <context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
-        <translation>geen API-sleutel</translation>
+        <translation>kein API-Schlüssel</translation>
     </message>
     <message>
         <source>Other model id...</source>
-        <translation>Andere model-id...</translation>
+        <translation>Andere Modell-ID...</translation>
     </message>
     <message>
         <source>e.g. fal-ai/some-new-model</source>
-        <translation>bv. fal-ai/nieuw-model</translation>
+        <translation>z. B. fal-ai/neues-modell</translation>
     </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
     <message>
         <source>Generating the opening frame with %1...</source>
-        <translation>Eerste beeld genereren met %1...</translation>
+        <translation>Erstes Bild wird mit %1 generiert...</translation>
     </message>
     <message>
         <source>OpenAI returned no image.</source>
-        <translation>OpenAI gaf geen afbeelding terug.</translation>
+        <translation>OpenAI hat kein Bild geliefert.</translation>
     </message>
     <message>
         <source>Building the opening frame from your product photo...</source>
-        <translation>Eerste beeld opbouwen uit je productfoto...</translation>
+        <translation>Erstes Bild wird aus deinem Produktfoto erstellt...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Script schrijven met %1...</translation>
+        <translation>Skript wird mit %1 geschrieben...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Voice-over opnemen...</translation>
+        <translation>Voice-over wird aufgenommen...</translation>
     </message>
     <message>
         <source>OpenAI returned no audio.</source>
-        <translation>OpenAI gaf geen audio terug.</translation>
+        <translation>OpenAI hat kein Audio geliefert.</translation>
     </message>
 </context>
 <context>
@@ -542,18 +542,18 @@
     </message>
     <message>
         <source>Type your own</source>
-        <translation>Typ je eigen tekst</translation>
+        <translation>Eigene Angabe</translation>
     </message>
 </context>
 <context>
     <name>Pipeline</name>
     <message>
         <source>Script</source>
-        <translation>Script</translation>
+        <translation>Skript</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Eerste beeld</translation>
+        <translation>Erstes Bild</translation>
     </message>
     <message>
         <source>Voice-over</source>
@@ -565,91 +565,91 @@
     </message>
     <message>
         <source>Subtitles</source>
-        <translation>Ondertitels</translation>
+        <translation>Untertitel</translation>
     </message>
     <message>
         <source>Final cut</source>
-        <translation>Eindmontage</translation>
+        <translation>Endmontage</translation>
     </message>
     <message>
         <source>Could not create the project folder in %1.</source>
-        <translation>De projectmap kon niet worden aangemaakt in %1.</translation>
+        <translation>Projektordner konnte in %1 nicht angelegt werden.</translation>
     </message>
     <message>
         <source>Project folder: %1</source>
-        <translation>Projectmap: %1</translation>
+        <translation>Projektordner: %1</translation>
     </message>
     <message>
         <source>Could not read the product photo.</source>
-        <translation>De productfoto kon niet worden gelezen.</translation>
+        <translation>Produktfoto konnte nicht gelesen werden.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation>Bezig met annuleren...</translation>
+        <translation>Wird abgebrochen...</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Geannuleerd.</translation>
+        <translation>Abgebrochen.</translation>
     </message>
     <message>
         <source>That provider is not available.</source>
-        <translation>Die aanbieder is niet beschikbaar.</translation>
+        <translation>Dieser Anbieter ist nicht verfügbar.</translation>
     </message>
     <message>
         <source>Auto picked %1.</source>
-        <translation>Auto koos %1.</translation>
+        <translation>Auto hat %1 gewählt.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation>%1 kon niet worden weggeschreven.</translation>
+        <translation>%1 konnte nicht geschrieben werden.</translation>
     </message>
     <message>
         <source>Using the script you wrote.</source>
-        <translation>Je eigen script wordt gebruikt.</translation>
+        <translation>Dein eigenes Skript wird verwendet.</translation>
     </message>
     <message>
         <source>your own script</source>
-        <translation>je eigen script</translation>
+        <translation>dein Skript</translation>
     </message>
     <message>
         <source>Writing the script...</source>
-        <translation>Script schrijven...</translation>
+        <translation>Skript wird geschrieben...</translation>
     </message>
     <message>
         <source>Script ready: "%1"</source>
-        <translation>Script klaar: „%1”</translation>
+        <translation>Skript fertig: „%1“</translation>
     </message>
     <message>
         <source>Using your photo as the opening frame.</source>
-        <translation>Je foto wordt het eerste beeld.</translation>
+        <translation>Dein Foto dient als erstes Bild.</translation>
     </message>
     <message>
         <source>your photo</source>
-        <translation>je foto</translation>
+        <translation>dein Foto</translation>
     </message>
     <message>
         <source>Generating the opening frame...</source>
-        <translation>Eerste beeld genereren...</translation>
+        <translation>Erstes Bild wird generiert...</translation>
     </message>
     <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
-        <translation>Verticale selfie-achtige foto van een echt persoon met %1 in de hand, natuurlijk raamlicht, gemaakt met een telefooncamera, authentieke user-generated-content-look.</translation>
+        <translation>Hochformatiges Selfie-Foto einer echten Person, die %1 hält, natürliches Fensterlicht, mit dem Handy aufgenommen, authentischer User-Generated-Content-Look.</translation>
     </message>
     <message>
         <source>Opening frame saved (%1 KB).</source>
-        <translation>Eerste beeld opgeslagen (%1 KB).</translation>
+        <translation>Erstes Bild gespeichert (%1 KB).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Voice-over opnemen...</translation>
+        <translation>Voice-over wird aufgenommen...</translation>
     </message>
     <message>
         <source>Voice-over saved (%1 KB).</source>
-        <translation>Voice-over opgeslagen (%1 KB).</translation>
+        <translation>Voice-over gespeichert (%1 KB).</translation>
     </message>
     <message>
         <source>%1s (estimated)</source>
-        <translation>%1 s (geschat)</translation>
+        <translation>%1 s (geschätzt)</translation>
     </message>
     <message>
         <source>%1s</source>
@@ -657,161 +657,161 @@
     </message>
     <message>
         <source>Animating the frame...</source>
-        <translation>Het beeld animeren...</translation>
+        <translation>Das Bild wird animiert...</translation>
     </message>
     <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>De persoon praat recht in de camera, met subtiele handheld-beweging, natuurlijk knipperen en kleine handgebaren.</translation>
+        <translation>Die Person spricht direkt in die Kamera, leichte Handkamerabewegung, natürliches Blinzeln und kleine Handgesten.</translation>
     </message>
     <message>
         <source>Requesting a %1s clip.</source>
-        <translation>Een clip van %1 s aanvragen.</translation>
+        <translation>Ein Clip von %1 s wird angefordert.</translation>
     </message>
     <message>
         <source>Clip saved (%1 MB).</source>
-        <translation>Clip opgeslagen (%1 MB).</translation>
+        <translation>Clip gespeichert (%1 MB).</translation>
     </message>
     <message>
         <source>off</source>
-        <translation>uit</translation>
+        <translation>aus</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Ondertitels timen...</translation>
+        <translation>Untertitel werden getimt...</translation>
     </message>
     <message>
         <source>No subtitle provider selected, skipping.</source>
-        <translation>Geen ondertitelaanbieder gekozen, wordt overgeslagen.</translation>
+        <translation>Kein Untertitel-Anbieter gewählt, wird übersprungen.</translation>
     </message>
     <message>
         <source>Subtitles unavailable (%1). Continuing without them.</source>
-        <translation>Ondertitels niet beschikbaar (%1). Er wordt zonder verdergegaan.</translation>
+        <translation>Untertitel nicht verfügbar (%1). Es geht ohne sie weiter.</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>mislukt</translation>
+        <translation>fehlgeschlagen</translation>
     </message>
     <message>
         <source>Subtitles ready.</source>
-        <translation>Ondertitels klaar.</translation>
+        <translation>Untertitel fertig.</translation>
     </message>
     <message>
         <source>Assembling the final video...</source>
-        <translation>De eindvideo samenstellen...</translation>
+        <translation>Das finale Video wird zusammengesetzt...</translation>
     </message>
     <message>
         <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>FFmpeg is nodig om de clip, de voice-over en de ondertitels samen te voegen. Installeer het of stel het pad in bij Instellingen. Je gegenereerde bestanden staan in %1.</translation>
+        <translation>FFmpeg wird gebraucht, um Clip, Voice-over und Untertitel zusammenzuführen. Installiere es oder gib den Pfad in den Einstellungen an. Deine generierten Dateien liegen in %1.</translation>
     </message>
     <message>
         <source>FFmpeg not found.</source>
-        <translation>FFmpeg niet gevonden.</translation>
+        <translation>FFmpeg nicht gefunden.</translation>
     </message>
     <message>
         <source>Looping the clip to cover the voice-over.</source>
-        <translation>De clip wordt herhaald om de voice-over te dekken.</translation>
+        <translation>Der Clip wird geloopt, um das Voice-over abzudecken.</translation>
     </message>
     <message>
         <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>De clip wordt %1 % vertraagd om bij de voice-over te passen.</translation>
+        <translation>Der Clip wird um %1 % verlangsamt, damit er zum Voice-over passt.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
-        <translation>FFmpeg is klaar maar heeft geen bestand gemaakt.</translation>
+        <translation>FFmpeg ist fertig, hat aber keine Datei erzeugt.</translation>
     </message>
     <message>
         <source>Done: %1</source>
-        <translation>Klaar: %1</translation>
+        <translation>Fertig: %1</translation>
     </message>
     <message>
         <source>Your ad is ready.</source>
-        <translation>Je advertentie is klaar.</translation>
+        <translation>Deine Werbung ist fertig.</translation>
     </message>
 </context>
 <context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
-        <translation>Geen API-sleutel voor %1. Voeg die toe bij Instellingen.</translation>
+        <translation>Kein API-Schlüssel für %1. Trage ihn in den Einstellungen ein.</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Geannuleerd.</translation>
+        <translation>Abgebrochen.</translation>
     </message>
 </context>
 <context>
     <name>Registry</name>
     <message>
         <source>Auto - best model for this shot</source>
-        <translation>Auto - beste model voor deze shot</translation>
+        <translation>Auto - bestes Modell für diese Einstellung</translation>
     </message>
     <message>
         <source>Reads the product photo when the model supports vision.</source>
-        <translation>Leest de productfoto als het model beeld ondersteunt.</translation>
+        <translation>Liest das Produktfoto, wenn das Modell Bilder versteht.</translation>
     </message>
     <message>
         <source>Strong at short, natural-sounding ad copy.</source>
-        <translation>Sterk in korte, natuurlijk klinkende reclameteksten.</translation>
+        <translation>Stark bei kurzen, natürlich klingenden Werbetexten.</translation>
     </message>
     <message>
         <source>Free tier available in most regions.</source>
-        <translation>Gratis niveau beschikbaar in de meeste regio's.</translation>
+        <translation>Kostenloses Kontingent in den meisten Regionen verfügbar.</translation>
     </message>
     <message>
         <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
-        <translation>De breedste catalogus. Elke model-id van fal.ai/models werkt ook.</translation>
+        <translation>Der größte Katalog. Jede Modell-ID von fal.ai/models funktioniert ebenfalls.</translation>
     </message>
     <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>gpt-image-1 kan je productfoto rechtstreeks bewerken.</translation>
+        <translation>gpt-image-1 kann dein Produktfoto direkt bearbeiten.</translation>
     </message>
     <message>
         <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - één sleutel.</translation>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - ein Schlüssel für alle.</translation>
     </message>
     <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
-        <translation>Scripts, beelden, Sora-video, voice-over en ondertitels.</translation>
+        <translation>Skripte, Bilder, Sora-Video, Voice-over und Untertitel.</translation>
     </message>
     <message>
         <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
-        <translation>Beeld, video en stemmen (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
+        <translation>Bilder, Video und Stimmen (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
-        <translation>Gebruik owner/name, of owner/name:version om een versie vast te zetten.</translation>
+        <translation>Nutze owner/name oder owner/name:version, um eine Version festzulegen.</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>
-        <translation>Betalen per seconde, geen abonnement.</translation>
+        <translation>Abrechnung pro Sekunde, kein Abo.</translation>
     </message>
     <message>
         <source>The opening frame is resized to Sora's format automatically.</source>
-        <translation>Het eerste beeld wordt automatisch naar Sora's formaat geschaald.</translation>
+        <translation>Das erste Bild wird automatisch auf Soras Format gebracht.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
-        <translation>De meest geloofwaardige stemmen voor UGC. Laad hieronder je lijst.</translation>
+        <translation>Die überzeugendsten Stimmen für UGC. Lade unten deine Liste.</translation>
     </message>
     <message>
         <source>Cheap and fast, fixed set of voices.</source>
-        <translation>Goedkoop en snel, vaste set stemmen.</translation>
+        <translation>Günstig und schnell, feste Auswahl an Stimmen.</translation>
     </message>
     <message>
         <source>Several voice engines behind the fal key you already have.</source>
-        <translation>Meerdere stemengines achter de fal-sleutel die je al hebt.</translation>
+        <translation>Mehrere Sprach-Engines hinter dem fal-Schlüssel, den du schon hast.</translation>
     </message>
     <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
-        <translation>Zet de gegenereerde voice-over om in getimede ondertitels.</translation>
+        <translation>Wandelt das erzeugte Voice-over in getimte Untertitel um.</translation>
     </message>
     <message>
         <source>Scripts.</source>
-        <translation>Scripts.</translation>
+        <translation>Skripte.</translation>
     </message>
     <message>
         <source>Images and video.</source>
-        <translation>Beeld en video.</translation>
+        <translation>Bilder und Video.</translation>
     </message>
     <message>
         <source>Voice-over.</source>
@@ -822,88 +822,88 @@
     <name>ReplicateImageTask</name>
     <message>
         <source>Replicate returned no image.</source>
-        <translation>Replicate gaf geen afbeelding terug.</translation>
+        <translation>Replicate hat kein Bild geliefert.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Geen eerste beeld om te animeren.</translation>
+        <translation>Kein erstes Bild zum Animieren vorhanden.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>The model returned an empty answer.</source>
-        <translation>Het model gaf een leeg antwoord terug.</translation>
+        <translation>Das Modell hat eine leere Antwort geliefert.</translation>
     </message>
     <message>
         <source>The model answer did not contain a script.</source>
-        <translation>Het antwoord van het model bevatte geen script.</translation>
+        <translation>Die Antwort des Modells enthielt kein Skript.</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Settings</source>
-        <translation>Instellingen</translation>
+        <translation>Einstellungen</translation>
     </message>
     <message>
         <source>Keys are encrypted on this machine and sent only to the provider they belong to.</source>
-        <translation>Sleutels worden op deze computer versleuteld en alleen naar de bijbehorende aanbieder gestuurd.</translation>
+        <translation>Die Schlüssel werden auf diesem Rechner verschlüsselt und nur an den jeweiligen Anbieter gesendet.</translation>
     </message>
     <message>
         <source>Appearance</source>
-        <translation>Weergave</translation>
+        <translation>Darstellung</translation>
     </message>
     <message>
         <source>The interface language applies immediately, no restart.</source>
-        <translation>De interfacetaal geldt meteen, zonder herstart.</translation>
+        <translation>Die Oberflächensprache wirkt sofort, ohne Neustart.</translation>
     </message>
     <message>
         <source>Theme</source>
-        <translation>Thema</translation>
+        <translation>Design</translation>
     </message>
     <message>
         <source>Light</source>
-        <translation>Licht</translation>
+        <translation>Hell</translation>
     </message>
     <message>
         <source>Dark</source>
-        <translation>Donker</translation>
+        <translation>Dunkel</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Taal</translation>
+        <translation>Sprache</translation>
     </message>
     <message>
         <source>Use system language</source>
-        <translation>Systeemtaal gebruiken</translation>
+        <translation>Systemsprache verwenden</translation>
     </message>
     <message>
         <source>API keys</source>
-        <translation>API-sleutels</translation>
+        <translation>API-Schlüssel</translation>
     </message>
     <message>
         <source>You only need the ones you actually use. An empty field means the provider is off.</source>
-        <translation>Je hebt alleen de sleutels nodig die je echt gebruikt. Een leeg veld schakelt de aanbieder uit.</translation>
+        <translation>Du brauchst nur die, die du wirklich nutzt. Ein leeres Feld deaktiviert den Anbieter.</translation>
     </message>
     <message>
         <source>Files</source>
-        <translation>Bestanden</translation>
+        <translation>Dateien</translation>
     </message>
     <message>
         <source>Projects folder</source>
-        <translation>Projectmap</translation>
+        <translation>Projektordner</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>Wijzigen</translation>
+        <translation>Ändern</translation>
     </message>
     <message>
         <source>Open</source>
-        <translation>Openen</translation>
+        <translation>Öffnen</translation>
     </message>
     <message>
         <source>FFmpeg</source>
@@ -911,91 +911,91 @@
     </message>
     <message>
         <source>not found</source>
-        <translation>niet gevonden</translation>
+        <translation>nicht gefunden</translation>
     </message>
     <message>
         <source>Leave empty to use the one on your PATH</source>
-        <translation>Laat leeg om die uit je PATH te gebruiken</translation>
+        <translation>Leer lassen, um das aus dem PATH zu nutzen</translation>
     </message>
     <message>
         <source>Locate</source>
-        <translation>Zoeken</translation>
+        <translation>Suchen</translation>
     </message>
     <message>
         <source>Download</source>
-        <translation>Downloaden</translation>
+        <translation>Herunterladen</translation>
     </message>
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
-        <translation>FFmpeg voegt de clip, de voice-over en de ondertitels samen tot de uiteindelijke MP4. Zonder FFmpeg genereert de app nog steeds elk onderdeel, maar kan ze niet samenvoegen.</translation>
+        <translation>FFmpeg fügt Clip, Voice-over und Untertitel zur finalen MP4 zusammen. Ohne FFmpeg erzeugt die App zwar alle Teile, kann sie aber nicht zusammensetzen.</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>Over</translation>
+        <translation>Über</translation>
     </message>
     <message>
-        <source>Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
-        <translation>Super Infinity %1 - gratis en open source. Geen account en geen server: elk verzoek gaat rechtstreeks van jouw computer naar de aanbieder die je kiest, met jouw sleutel.</translation>
+        <source>Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
+        <translation>Market Queen %1 - kostenlos und quelloffen. Kein Konto, kein Server: Jede Anfrage geht direkt von deinem Rechner an den gewählten Anbieter, mit deinem Schlüssel.</translation>
     </message>
     <message>
         <source>Config folder</source>
-        <translation>Configuratiemap</translation>
+        <translation>Konfigurationsordner</translation>
     </message>
     <message>
         <source>Choose where projects are saved</source>
-        <translation>Kies waar projecten worden opgeslagen</translation>
+        <translation>Speicherort für Projekte wählen</translation>
     </message>
     <message>
         <source>Locate the ffmpeg executable</source>
-        <translation>Zoek het ffmpeg-programma</translation>
+        <translation>ffmpeg-Programmdatei suchen</translation>
     </message>
 </context>
 <context>
     <name>SideNav</name>
     <message>
         <source>Create</source>
-        <translation>Maken</translation>
+        <translation>Erstellen</translation>
     </message>
     <message>
         <source>Library</source>
-        <translation>Bibliotheek</translation>
+        <translation>Bibliothek</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Instellingen</translation>
+        <translation>Einstellungen</translation>
     </message>
     <message>
         <source>FFmpeg ready</source>
-        <translation>FFmpeg gereed</translation>
+        <translation>FFmpeg bereit</translation>
     </message>
     <message>
         <source>FFmpeg missing</source>
-        <translation>FFmpeg ontbreekt</translation>
+        <translation>FFmpeg fehlt</translation>
     </message>
     <message>
         <source>Your keys, your files.
 Nothing is uploaded to us.</source>
-        <translation>Jouw sleutels, jouw bestanden.
-Er wordt niets naar ons gestuurd.</translation>
+        <translation>Deine Schlüssel, deine Dateien.
+An uns wird nichts gesendet.</translation>
     </message>
 </context>
 <context>
     <name>SoraVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Geen eerste beeld om te animeren.</translation>
+        <translation>Kein erstes Bild zum Animieren vorhanden.</translation>
     </message>
     <message>
         <source>Could not prepare the opening frame for Sora.</source>
-        <translation>Het eerste beeld kon niet voor Sora worden voorbereid.</translation>
+        <translation>Das erste Bild konnte nicht für Sora vorbereitet werden.</translation>
     </message>
     <message>
         <source>Sending the shot to Sora (%1)...</source>
-        <translation>Shot wordt naar Sora gestuurd (%1)...</translation>
+        <translation>Einstellung wird an Sora gesendet (%1)...</translation>
     </message>
     <message>
         <source>Sora did not return a job id.</source>
-        <translation>Sora gaf geen taak-id terug.</translation>
+        <translation>Sora hat keine Auftragskennung geliefert.</translation>
     </message>
     <message>
         <source>Sora is rendering... %1%</source>
@@ -1007,45 +1007,45 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
     <message>
         <source>Sora reported status "%1".</source>
-        <translation>Sora meldde status „%1”.</translation>
+        <translation>Sora meldet Status „%1“.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>De clip downloaden...</translation>
+        <translation>Clip wird heruntergeladen...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>De gedownloade clip was leeg.</translation>
+        <translation>Der heruntergeladene Clip war leer.</translation>
     </message>
 </context>
 <context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation>De aanbieder gaf geen video terug.</translation>
+        <translation>Der Anbieter hat kein Video geliefert.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>De clip downloaden...</translation>
+        <translation>Clip wird heruntergeladen...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>De gedownloade clip was leeg.</translation>
+        <translation>Der heruntergeladene Clip war leer.</translation>
     </message>
 </context>
 <context>
     <name>WhisperCaptionTask</name>
     <message>
         <source>Could not read the voice-over file.</source>
-        <translation>Het voice-overbestand kon niet worden gelezen.</translation>
+        <translation>Die Voice-over-Datei konnte nicht gelesen werden.</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Ondertitels timen...</translation>
+        <translation>Untertitel werden getimt...</translation>
     </message>
     <message>
         <source>Whisper returned an empty transcript.</source>
-        <translation>Whisper gaf een lege transcriptie terug.</translation>
+        <translation>Whisper hat ein leeres Transkript geliefert.</translation>
     </message>
 </context>
 </TS>

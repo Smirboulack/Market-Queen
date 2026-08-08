@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // A fixed list of choices, plus a last "Other…" entry that reveals a free-text
 // field. Everything the user picks is a real option; typing is opt-in, so the

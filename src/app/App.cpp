@@ -50,7 +50,7 @@ App::App(QObject *parent)
         this,
         [this]() {
             m_log->append(LogModel::Info,
-                          tr("Super Infinity %1. Add your API keys in Settings to get started.")
+                          tr("Market Queen %1. Add your API keys in Settings to get started.")
                               .arg(version()));
             if (ffmpegPath().isEmpty()) {
                 m_log->append(LogModel::Warning,

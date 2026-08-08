@@ -77,9 +77,9 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-    QCoreApplication::setOrganizationName(QStringLiteral("SuperInfinity"));
+    QCoreApplication::setOrganizationName(QStringLiteral("MarketQueen"));
     QCoreApplication::setOrganizationDomain(QStringLiteral("github.io"));
-    QCoreApplication::setApplicationName(QStringLiteral("Super Infinity"));
+    QCoreApplication::setApplicationName(QStringLiteral("Market Queen"));
     QCoreApplication::setApplicationVersion(QStringLiteral(APP_VERSION));
 
     // Basic is the only style that lets us fully control the look on every OS.
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
     // Taskbar, dock and alt-tab. Windows refines this per-window below.
     QGuiApplication::setWindowIcon(
-        QIcon(QStringLiteral(":/qt/qml/SuperInfinity/assets/icon-full.png")));
+        QIcon(QStringLiteral(":/qt/qml/MarketQueen/assets/icon-full.png")));
 
     QQmlApplicationEngine engine;
     QObject::connect(
@@ -96,14 +96,14 @@ int main(int argc, char *argv[])
 
     // The singleton has to exist before the first window is built: it owns the
     // settings the UI binds to, and the language the UI is built in.
-    auto *appObject = engine.singletonInstance<App *>("SuperInfinity", "App");
+    auto *appObject = engine.singletonInstance<App *>("MarketQueen", "App");
     if (!appObject)
         return -1;
 
     appObject->translator()->attach(&engine);
     appObject->translator()->applyLanguage(appObject->settings()->uiLanguage());
 
-    engine.loadFromModule("SuperInfinity", "Main");
+    engine.loadFromModule("MarketQueen", "Main");
     if (engine.rootObjects().isEmpty())
         return -1;
 

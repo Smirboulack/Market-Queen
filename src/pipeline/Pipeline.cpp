@@ -658,7 +658,7 @@ void Pipeline::writeProjectManifest(bool success)
     };
 
     const QJsonObject manifest{
-        {QStringLiteral("app"), QStringLiteral("Super Infinity")},
+        {QStringLiteral("app"), QStringLiteral("Market Queen")},
         {QStringLiteral("version"), QStringLiteral(APP_VERSION)},
         {QStringLiteral("createdAt"), QDateTime::currentDateTime().toString(Qt::ISODate)},
         {QStringLiteral("success"), success},

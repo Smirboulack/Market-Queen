@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 Rectangle {
     id: root

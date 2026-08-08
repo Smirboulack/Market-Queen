@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // Provider + model. Both are fixed lists; the model list ends with an "Other…"
 // entry so a brand-new model id can still be pasted in without waiting for a

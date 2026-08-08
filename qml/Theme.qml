@@ -1,7 +1,7 @@
 pragma Singleton
 
 import QtQuick
-import SuperInfinity
+import MarketQueen
 
 // One palette, two skins. Light is the default; the choice lives in settings so
 // every window picks it up and it survives a restart.

@@ -1,10 +1,10 @@
-# Super Infinity
+# Market Queen
 
 **A free, open-source desktop app that generates UGC video ads. Bring your own API keys.**
 
 Tools like Arcads, HeyGen or Speel are mostly orchestrators: they chain an LLM, an image
 model, a video model and a text-to-speech API behind a nice interface, then charge a
-monthly subscription on top of the model costs. Super Infinity is that orchestrator, as a
+monthly subscription on top of the model costs. Market Queen is that orchestrator, as a
 native desktop app, with no account, no server and no markup. You paste your own API keys,
 and you pay the providers directly for what you use.
 
@@ -33,9 +33,9 @@ Grab the build for your OS from the [releases page](../../releases):
 
 | OS      | File                              |
 | ------- | --------------------------------- |
-| Windows | `SuperInfinity-windows.zip`       |
-| macOS   | `SuperInfinity-macos.dmg`         |
-| Linux   | `SuperInfinity-linux.AppImage`    |
+| Windows | `MarketQueen-windows.zip`       |
+| macOS   | `MarketQueen-macos.dmg`         |
+| Linux   | `MarketQueen-linux.AppImage`    |
 
 You also need **[FFmpeg](https://ffmpeg.org/download.html)** on your machine: it merges the
 clip, the voice-over and the subtitles into the final MP4. The app finds it automatically

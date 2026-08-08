@@ -204,7 +204,7 @@ void WhisperCaptionTask::start()
 
     QNetworkRequest request(QUrl(QStringLiteral("https://api.openai.com/v1/audio/transcriptions")));
     request.setRawHeader("Authorization", ("Bearer " + m_request.apiKey).toUtf8());
-    request.setRawHeader("User-Agent", "SuperInfinity/" APP_VERSION);
+    request.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
     request.setTransferTimeout(300'000);
 
     postMultipartForText(request, multiPart, [this](const QByteArray &body, const QString &) {

@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // One API key: hidden by default, saved on edit, never leaves the machine.
 Rectangle {

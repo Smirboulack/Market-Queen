@@ -1,909 +1,909 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ar_EG">
+<TS version="2.1" language="es_ES">
 <context>
     <name>AnthropicScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>جارٍ كتابة النص باستخدام %1...</translation>
+        <translation>Escribiendo el guion con %1...</translation>
     </message>
 </context>
 <context>
     <name>App</name>
     <message>
-        <source>Super Infinity %1. Add your API keys in Settings to get started.</source>
-        <translation>‏Super Infinity %1. أضف مفاتيح API في الإعدادات للبدء.</translation>
+        <source>Market Queen %1. Add your API keys in Settings to get started.</source>
+        <translation>Market Queen %1. Añade tus claves API en Ajustes para empezar.</translation>
     </message>
     <message>
         <source>FFmpeg was not found. It is needed for the final render; set its path in Settings.</source>
-        <translation>لم يتم العثور على FFmpeg. وهو مطلوب للإخراج النهائي؛ حدّد مساره في الإعدادات.</translation>
+        <translation>No se encontró FFmpeg. Hace falta para el render final; indica su ruta en Ajustes.</translation>
     </message>
     <message>
         <source>This provider has no voice list.</source>
-        <translation>لا توجد قائمة أصوات لدى هذا المزوّد.</translation>
+        <translation>Este proveedor no tiene lista de voces.</translation>
     </message>
 </context>
 <context>
     <name>CreatePage</name>
     <message>
         <source>Create a UGC ad</source>
-        <translation>إنشاء إعلان UGC</translation>
+        <translation>Crear un anuncio UGC</translation>
     </message>
     <message>
         <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>النص والصورة والتعليق الصوتي والفيديو والترجمة. مفاتيحك وملفاتك.</translation>
+        <translation>Guion, imagen, voz en off, vídeo y subtítulos. Tus claves API, tus archivos.</translation>
     </message>
     <message>
         <source>Your product</source>
-        <translation>منتجك</translation>
+        <translation>Tu producto</translation>
     </message>
     <message>
         <source>What are we selling, and to whom?</source>
-        <translation>ماذا نبيع، ولمن؟</translation>
+        <translation>¿Qué vendemos y a quién?</translation>
     </message>
     <message>
         <source>Product name</source>
-        <translation>اسم المنتج</translation>
+        <translation>Nombre del producto</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation>مثال: سيروم لومن للإشراق</translation>
+        <translation>p. ej. sérum iluminador Lumen</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation>ما هو</translation>
+        <translation>Qué es</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>سيروم بفيتامين C ينعش البشرة الباهتة خلال أسبوعين. خالٍ من العطور، 30 مل.</translation>
+        <translation>Un sérum con vitamina C que ilumina la piel apagada en dos semanas. Sin perfume, 30 ml.</translation>
     </message>
     <message>
         <source>Target audience</source>
-        <translation>الجمهور المستهدف</translation>
+        <translation>Público objetivo</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>مثال: نساء بين 25 و35 عامًا يهتممن بمستحضرات التجميل النظيفة</translation>
+        <translation>p. ej. mujeres de 25 a 35 años interesadas en la clean beauty</translation>
     </message>
     <message>
         <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>استخدام صورتي كأول لقطة (تخطّي توليد الصورة)</translation>
+        <translation>Usar mi foto como primer fotograma (sin generar imagen)</translation>
     </message>
     <message>
         <source>The ad</source>
-        <translation>الإعلان</translation>
+        <translation>El anuncio</translation>
     </message>
     <message>
         <source>How it should sound and how long it runs.</source>
-        <translation>كيف يبدو وكم يستغرق.</translation>
+        <translation>Cómo debe sonar y cuánto dura.</translation>
     </message>
     <message>
         <source>Tone</source>
-        <translation>النبرة</translation>
+        <translation>Tono</translation>
     </message>
     <message>
         <source>Describe the tone in your own words</source>
-        <translation>صِف النبرة بكلماتك</translation>
+        <translation>Describe el tono con tus palabras</translation>
     </message>
     <message>
         <source>excited and casual</source>
-        <translation>متحمّسة وعفوية</translation>
+        <translation>entusiasta y cercano</translation>
     </message>
     <message>
         <source>calm and honest</source>
-        <translation>هادئة وصادقة</translation>
+        <translation>tranquilo y sincero</translation>
     </message>
     <message>
         <source>funny</source>
-        <translation>طريفة</translation>
+        <translation>divertido</translation>
     </message>
     <message>
         <source>straight to the point</source>
-        <translation>مباشرة إلى الهدف</translation>
+        <translation>directo al grano</translation>
     </message>
     <message>
         <source>storytelling</source>
-        <translation>سرد قصصي</translation>
+        <translation>narrativo</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>اللغة</translation>
+        <translation>Idioma</translation>
     </message>
     <message>
         <source>Any other language</source>
-        <translation>أي لغة أخرى</translation>
+        <translation>Cualquier otro idioma</translation>
     </message>
     <message>
         <source>Length</source>
-        <translation>المدة</translation>
+        <translation>Duración</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 ث</translation>
+        <translation>%1 s</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation>الأبعاد</translation>
+        <translation>Formato</translation>
     </message>
     <message>
         <source>Person on camera</source>
-        <translation>الشخص أمام الكاميرا</translation>
+        <translation>Persona en cámara</translation>
     </message>
     <message>
         <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>مثال: امرأة في أواخر العشرينات، حمّام، ضوء الصباح</translation>
+        <translation>p. ej. mujer de casi treinta años, baño, luz de la mañana</translation>
     </message>
     <message>
         <source>Anything else</source>
-        <translation>أي ملاحظات أخرى</translation>
+        <translation>Algo más</translation>
     </message>
     <message>
         <source>Mention the 20% launch discount. Do not say "revolutionary".</source>
-        <translation>اذكر خصم الإطلاق بنسبة 20%. لا تقل «ثوري».</translation>
+        <translation>Mencionar el 20 % de descuento de lanzamiento. No decir «revolucionario».</translation>
     </message>
     <message>
         <source>Your own script (optional)</source>
-        <translation>نصّك الخاص (اختياري)</translation>
+        <translation>Tu propio guion (opcional)</translation>
     </message>
     <message>
         <source>skips the writer</source>
-        <translation>يتخطّى كاتب النص</translation>
+        <translation>se omite el redactor</translation>
     </message>
     <message>
         <source>Leave empty to let the model write it.</source>
-        <translation>اتركه فارغًا ليكتبه النموذج.</translation>
+        <translation>Déjalo vacío para que lo escriba el modelo.</translation>
     </message>
     <message>
         <source>Models</source>
-        <translation>النماذج</translation>
+        <translation>Modelos</translation>
     </message>
     <message>
         <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>امزج بينها كما تشاء. كل مزوّد يحاسبك مباشرة.</translation>
+        <translation>Combínalos a tu gusto. Cada proveedor te cobra directamente.</translation>
     </message>
     <message>
         <source>Script writer</source>
-        <translation>كاتب النص</translation>
+        <translation>Redactor del guion</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>اللقطة الأولى</translation>
+        <translation>Primer fotograma</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>الفيديو</translation>
+        <translation>Vídeo</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation>الصوت</translation>
+        <translation>Voz</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation>معرّف صوت آخر...</translation>
+        <translation>Otro id de voz...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation>الصق معرّف صوت</translation>
+        <translation>Pega un id de voz</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation>حمّل أصوات حسابك لاختيار أحدها.</translation>
+        <translation>Carga las voces de tu cuenta para elegir una.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation>تحميل الأصوات</translation>
+        <translation>Cargar voces</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>دمج الترجمة في الصورة (عبر OpenAI Whisper)</translation>
+        <translation>Incrustar subtítulos (usa OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>جارٍ التوليد...</translation>
+        <translation>Generando...</translation>
     </message>
     <message>
         <source>Generate UGC ad</source>
-        <translation>توليد إعلان UGC</translation>
+        <translation>Generar anuncio UGC</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>إلغاء</translation>
+        <translation>Cancelar</translation>
     </message>
     <message>
         <source>Add a product name to start.</source>
-        <translation>أدخل اسم المنتج للبدء.</translation>
+        <translation>Escribe un nombre de producto para empezar.</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation>إعلانك جاهز</translation>
+        <translation>Tu anuncio está listo</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation>تشغيل</translation>
+        <translation>Reproducir</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>إظهار الملف</translation>
+        <translation>Mostrar archivo</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation>السجل</translation>
+        <translation>Actividad</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>مسح</translation>
+        <translation>Limpiar</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation>تم تحميل %1 صوتًا.</translation>
+        <translation>%1 voces cargadas.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation>تعذّر تحميل الأصوات: %1</translation>
+        <translation>No se pudieron cargar las voces: %1</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
-        <translation>لا توجد أصوات في حساب ElevenLabs هذا.</translation>
+        <translation>No hay voces en esta cuenta de ElevenLabs.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceTask</name>
     <message>
         <source>Pick an ElevenLabs voice first.</source>
-        <translation>اختر صوت ElevenLabs أولًا.</translation>
+        <translation>Elige primero una voz de ElevenLabs.</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
+        <translation>Grabando la voz en off...</translation>
     </message>
     <message>
         <source>ElevenLabs returned no audio.</source>
-        <translation>لم يُرجع ElevenLabs أي صوت.</translation>
+        <translation>ElevenLabs no devolvió audio.</translation>
     </message>
 </context>
 <context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
-        <translation>لم يُرجع fal.ai أي صورة.</translation>
+        <translation>fal.ai no devolvió ninguna imagen.</translation>
     </message>
 </context>
 <context>
     <name>FalVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>لا توجد لقطة أولى لتحريكها.</translation>
+        <translation>No hay primer fotograma que animar.</translation>
     </message>
 </context>
 <context>
     <name>FalVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
+        <translation>Grabando la voz en off...</translation>
     </message>
     <message>
         <source>fal.ai returned no audio.</source>
-        <translation>لم يُرجع fal.ai أي صوت.</translation>
+        <translation>fal.ai no devolvió audio.</translation>
     </message>
 </context>
 <context>
     <name>FfmpegTask</name>
     <message>
         <source>FFmpeg was not found. Install it, or set its path in Settings.</source>
-        <translation>لم يتم العثور على FFmpeg. ثبّته أو حدّد مساره في الإعدادات.</translation>
+        <translation>No se encontró FFmpeg. Instálalo o indica su ruta en Ajustes.</translation>
     </message>
     <message>
         <source>Could not run FFmpeg (%1).</source>
-        <translation>تعذّر تشغيل FFmpeg (%1).</translation>
+        <translation>No se pudo ejecutar FFmpeg (%1).</translation>
     </message>
     <message>
         <source>FFmpeg stopped unexpectedly.</source>
-        <translation>توقّف FFmpeg بشكل غير متوقع.</translation>
+        <translation>FFmpeg se detuvo inesperadamente.</translation>
     </message>
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
-        <translation>أخفق FFmpeg (رمز الخروج %1). %2</translation>
+        <translation>FFmpeg falló (código %1). %2</translation>
     </message>
 </context>
 <context>
     <name>GeminiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>جارٍ كتابة النص باستخدام %1...</translation>
+        <translation>Escribiendo el guion con %1...</translation>
     </message>
 </context>
 <context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
-        <translation>استجابة غير متوقعة من الواجهة البرمجية: %1</translation>
+        <translation>Respuesta inesperada de la API: %1</translation>
     </message>
     <message>
         <source>Downloading... %1%</source>
-        <translation>جارٍ التنزيل... %1%</translation>
+        <translation>Descargando... %1 %</translation>
     </message>
     <message>
         <source>The provider did not return a result in time.</source>
-        <translation>لم يُرجع المزوّد نتيجة في الوقت المحدد.</translation>
+        <translation>El proveedor no devolvió un resultado a tiempo.</translation>
     </message>
     <message>
         <source>The generation failed.</source>
-        <translation>أخفق التوليد.</translation>
+        <translation>La generación falló.</translation>
     </message>
     <message>
         <source>Queued on fal.ai (%1)...</source>
-        <translation>في قائمة الانتظار على fal.ai (%1)...</translation>
+        <translation>En cola en fal.ai (%1)...</translation>
     </message>
     <message>
         <source>fal.ai did not return a job handle.</source>
-        <translation>لم يُرجع fal.ai معرّف مهمة.</translation>
+        <translation>fal.ai no devolvió un identificador de trabajo.</translation>
     </message>
     <message>
         <source>Waiting in queue (position %1)...</source>
-        <translation>في الانتظار (الترتيب %1)...</translation>
+        <translation>Esperando en la cola (posición %1)...</translation>
     </message>
     <message>
         <source>Waiting in queue...</source>
-        <translation>في قائمة الانتظار...</translation>
+        <translation>Esperando en la cola...</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>جارٍ التوليد...</translation>
+        <translation>Generando...</translation>
     </message>
     <message>
         <source>fal.ai reported status "%1".</source>
-        <translation>أبلغ fal.ai عن الحالة «%1».</translation>
+        <translation>fal.ai informó del estado «%1».</translation>
     </message>
     <message>
         <source>Submitting to Replicate (%1)...</source>
-        <translation>جارٍ الإرسال إلى Replicate (%1)...</translation>
+        <translation>Enviando a Replicate (%1)...</translation>
     </message>
     <message>
         <source>Replicate did not return a prediction url.</source>
-        <translation>لم يُرجع Replicate رابط التنبؤ.</translation>
+        <translation>Replicate no devolvió una URL de predicción.</translation>
     </message>
     <message>
         <source>Starting up...</source>
-        <translation>جارٍ البدء...</translation>
+        <translation>Arrancando...</translation>
     </message>
     <message>
         <source>Replicate reported status "%1".</source>
-        <translation>أبلغ Replicate عن الحالة «%1».</translation>
+        <translation>Replicate informó del estado «%1».</translation>
     </message>
 </context>
 <context>
     <name>ImageDropField</name>
     <message>
         <source>Product photo</source>
-        <translation>صورة المنتج</translation>
+        <translation>Foto del producto</translation>
     </message>
     <message>
         <source>Photo added</source>
-        <translation>تمت إضافة الصورة</translation>
+        <translation>Foto añadida</translation>
     </message>
     <message>
         <source>Drop a picture here, or browse. Optional, but it keeps the real product in frame.</source>
-        <translation>أفلت صورة هنا، أو تصفّح. اختياري، لكنه يُبقي المنتج الحقيقي في الكادر.</translation>
+        <translation>Suelta una imagen aquí o explora. Opcional, pero mantiene el producto real en pantalla.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation>تصفّح</translation>
+        <translation>Explorar</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation>إزالة</translation>
+        <translation>Quitar</translation>
     </message>
     <message>
         <source>Choose a product photo</source>
-        <translation>اختر صورة للمنتج</translation>
+        <translation>Elegir una foto del producto</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation>الصور (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Imágenes (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
     <name>ImageTask</name>
     <message>
         <source>The provider returned an empty image.</source>
-        <translation>أرجع المزوّد صورة فارغة.</translation>
+        <translation>El proveedor devolvió una imagen vacía.</translation>
     </message>
 </context>
 <context>
     <name>KeyField</name>
     <message>
         <source>Get a key</source>
-        <translation>احصل على مفتاح</translation>
+        <translation>Conseguir una clave</translation>
     </message>
     <message>
         <source>Using %1 from your environment</source>
-        <translation>يستخدم %1 من بيئة النظام</translation>
+        <translation>Usando %1 de tu entorno</translation>
     </message>
     <message>
         <source>Paste your key</source>
-        <translation>الصق مفتاحك</translation>
+        <translation>Pega tu clave</translation>
     </message>
     <message>
         <source>Hide</source>
-        <translation>إخفاء</translation>
+        <translation>Ocultar</translation>
     </message>
     <message>
         <source>Show</source>
-        <translation>إظهار</translation>
+        <translation>Mostrar</translation>
     </message>
     <message>
         <source>Saved.</source>
-        <translation>تم الحفظ.</translation>
+        <translation>Guardado.</translation>
     </message>
 </context>
 <context>
     <name>LibraryPage</name>
     <message>
         <source>Library</source>
-        <translation>المكتبة</translation>
+        <translation>Biblioteca</translation>
     </message>
     <message>
         <source>Everything you generate lands here.</source>
-        <translation>كل ما تنشئه يظهر هنا.</translation>
+        <translation>Todo lo que generes aparece aquí.</translation>
     </message>
     <message>
         <source>%1 project(s) in %2</source>
-        <translation>‏%1 مشروع في %2</translation>
+        <translation>%1 proyecto(s) en %2</translation>
     </message>
     <message>
         <source>Open folder</source>
-        <translation>فتح المجلد</translation>
+        <translation>Abrir carpeta</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>تحديث</translation>
+        <translation>Actualizar</translation>
     </message>
     <message>
         <source>done</source>
-        <translation>تم</translation>
+        <translation>hecho</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>أخفق</translation>
+        <translation>fallido</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>إظهار الملف</translation>
+        <translation>Mostrar archivo</translation>
     </message>
     <message>
         <source>No projects yet</source>
-        <translation>لا توجد مشاريع بعد</translation>
+        <translation>Aún no hay proyectos</translation>
     </message>
 </context>
 <context>
     <name>LogPanel</name>
     <message>
         <source>Nothing yet.</source>
-        <translation>لا شيء بعد.</translation>
+        <translation>Nada todavía.</translation>
     </message>
 </context>
 <context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
-        <translation>لا يوجد مفتاح API</translation>
+        <translation>sin clave API</translation>
     </message>
     <message>
         <source>Other model id...</source>
-        <translation>معرّف نموذج آخر...</translation>
+        <translation>Otro id de modelo...</translation>
     </message>
     <message>
         <source>e.g. fal-ai/some-new-model</source>
-        <translation>مثال: fal-ai/some-new-model</translation>
+        <translation>p. ej. fal-ai/nuevo-modelo</translation>
     </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
     <message>
         <source>Generating the opening frame with %1...</source>
-        <translation>جارٍ توليد اللقطة الأولى باستخدام %1...</translation>
+        <translation>Generando el primer fotograma con %1...</translation>
     </message>
     <message>
         <source>OpenAI returned no image.</source>
-        <translation>لم تُرجع OpenAI أي صورة.</translation>
+        <translation>OpenAI no devolvió ninguna imagen.</translation>
     </message>
     <message>
         <source>Building the opening frame from your product photo...</source>
-        <translation>جارٍ بناء اللقطة الأولى من صورة منتجك...</translation>
+        <translation>Construyendo el primer fotograma a partir de tu foto...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>جارٍ كتابة النص باستخدام %1...</translation>
+        <translation>Escribiendo el guion con %1...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
+        <translation>Grabando la voz en off...</translation>
     </message>
     <message>
         <source>OpenAI returned no audio.</source>
-        <translation>لم تُرجع OpenAI أي صوت.</translation>
+        <translation>OpenAI no devolvió audio.</translation>
     </message>
 </context>
 <context>
     <name>PickerWithCustom</name>
     <message>
         <source>Other...</source>
-        <translation>أخرى...</translation>
+        <translation>Otro...</translation>
     </message>
     <message>
         <source>Type your own</source>
-        <translation>اكتب ما تريد</translation>
+        <translation>Escribe la tuya</translation>
     </message>
 </context>
 <context>
     <name>Pipeline</name>
     <message>
         <source>Script</source>
-        <translation>النص</translation>
+        <translation>Guion</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>اللقطة الأولى</translation>
+        <translation>Primer fotograma</translation>
     </message>
     <message>
         <source>Voice-over</source>
-        <translation>التعليق الصوتي</translation>
+        <translation>Voz en off</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>الفيديو</translation>
+        <translation>Vídeo</translation>
     </message>
     <message>
         <source>Subtitles</source>
-        <translation>الترجمة</translation>
+        <translation>Subtítulos</translation>
     </message>
     <message>
         <source>Final cut</source>
-        <translation>المونتاج النهائي</translation>
+        <translation>Montaje final</translation>
     </message>
     <message>
         <source>Could not create the project folder in %1.</source>
-        <translation>تعذّر إنشاء مجلد المشروع في %1.</translation>
+        <translation>No se pudo crear la carpeta del proyecto en %1.</translation>
     </message>
     <message>
         <source>Project folder: %1</source>
-        <translation>مجلد المشروع: %1</translation>
+        <translation>Carpeta del proyecto: %1</translation>
     </message>
     <message>
         <source>Could not read the product photo.</source>
-        <translation>تعذّرت قراءة صورة المنتج.</translation>
+        <translation>No se pudo leer la foto del producto.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation>جارٍ الإلغاء...</translation>
+        <translation>Cancelando...</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>تم الإلغاء.</translation>
+        <translation>Cancelado.</translation>
     </message>
     <message>
         <source>That provider is not available.</source>
-        <translation>هذا المزوّد غير متاح.</translation>
+        <translation>Ese proveedor no está disponible.</translation>
     </message>
     <message>
         <source>Auto picked %1.</source>
-        <translation>اختار الوضع التلقائي %1.</translation>
+        <translation>Auto eligió %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation>تعذّرت كتابة %1.</translation>
+        <translation>No se pudo escribir %1.</translation>
     </message>
     <message>
         <source>Using the script you wrote.</source>
-        <translation>سيُستخدم النص الذي كتبته.</translation>
+        <translation>Usando el guion que escribiste.</translation>
     </message>
     <message>
         <source>your own script</source>
-        <translation>نصّك الخاص</translation>
+        <translation>tu guion</translation>
     </message>
     <message>
         <source>Writing the script...</source>
-        <translation>جارٍ كتابة النص...</translation>
+        <translation>Escribiendo el guion...</translation>
     </message>
     <message>
         <source>Script ready: "%1"</source>
-        <translation>النص جاهز: «%1»</translation>
+        <translation>Guion listo: «%1»</translation>
     </message>
     <message>
         <source>Using your photo as the opening frame.</source>
-        <translation>ستكون صورتك هي اللقطة الأولى.</translation>
+        <translation>Tu foto será el primer fotograma.</translation>
     </message>
     <message>
         <source>your photo</source>
-        <translation>صورتك</translation>
+        <translation>tu foto</translation>
     </message>
     <message>
         <source>Generating the opening frame...</source>
-        <translation>جارٍ توليد اللقطة الأولى...</translation>
+        <translation>Generando el primer fotograma...</translation>
     </message>
     <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
-        <translation>صورة عمودية بأسلوب السيلفي لشخص حقيقي يحمل %1، بإضاءة نافذة طبيعية، ملتقطة بكاميرا هاتف، بمظهر أصيل لمحتوى صنعه المستخدمون.</translation>
+        <translation>Foto vertical tipo selfi de una persona real sosteniendo %1, luz natural de ventana, tomada con un móvil, con aspecto auténtico de contenido creado por usuarios.</translation>
     </message>
     <message>
         <source>Opening frame saved (%1 KB).</source>
-        <translation>تم حفظ اللقطة الأولى (%1 كيلوبايت).</translation>
+        <translation>Primer fotograma guardado (%1 KB).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
+        <translation>Grabando la voz en off...</translation>
     </message>
     <message>
         <source>Voice-over saved (%1 KB).</source>
-        <translation>تم حفظ التعليق الصوتي (%1 كيلوبايت).</translation>
+        <translation>Voz en off guardada (%1 KB).</translation>
     </message>
     <message>
         <source>%1s (estimated)</source>
-        <translation>‏%1 ث (تقديري)</translation>
+        <translation>%1 s (estimado)</translation>
     </message>
     <message>
         <source>%1s</source>
-        <translation>‏%1 ث</translation>
+        <translation>%1 s</translation>
     </message>
     <message>
         <source>Animating the frame...</source>
-        <translation>جارٍ تحريك اللقطة...</translation>
+        <translation>Animando el fotograma...</translation>
     </message>
     <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>يتحدث الشخص مباشرة إلى الكاميرا، مع اهتزاز خفيف لكاميرا محمولة باليد، ورمش طبيعي وإيماءات يد صغيرة.</translation>
+        <translation>La persona habla directamente a cámara, con un ligero movimiento de cámara en mano, parpadeo natural y pequeños gestos con las manos.</translation>
     </message>
     <message>
         <source>Requesting a %1s clip.</source>
-        <translation>طلب مقطع مدته %1 ث.</translation>
+        <translation>Pidiendo un clip de %1 s.</translation>
     </message>
     <message>
         <source>Clip saved (%1 MB).</source>
-        <translation>تم حفظ المقطع (%1 ميجابايت).</translation>
+        <translation>Clip guardado (%1 MB).</translation>
     </message>
     <message>
         <source>off</source>
-        <translation>معطّلة</translation>
+        <translation>desactivado</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>جارٍ ضبط توقيت الترجمة...</translation>
+        <translation>Sincronizando los subtítulos...</translation>
     </message>
     <message>
         <source>No subtitle provider selected, skipping.</source>
-        <translation>لم يُحدَّد مزوّد للترجمة، سيتم تخطّي الخطوة.</translation>
+        <translation>No hay proveedor de subtítulos seleccionado, se omite.</translation>
     </message>
     <message>
         <source>Subtitles unavailable (%1). Continuing without them.</source>
-        <translation>الترجمة غير متاحة (%1). سنتابع بدونها.</translation>
+        <translation>Subtítulos no disponibles (%1). Se continúa sin ellos.</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>أخفق</translation>
+        <translation>fallido</translation>
     </message>
     <message>
         <source>Subtitles ready.</source>
-        <translation>الترجمة جاهزة.</translation>
+        <translation>Subtítulos listos.</translation>
     </message>
     <message>
         <source>Assembling the final video...</source>
-        <translation>جارٍ تركيب الفيديو النهائي...</translation>
+        <translation>Montando el vídeo final...</translation>
     </message>
     <message>
         <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>‏FFmpeg مطلوب لدمج المقطع والتعليق الصوتي والترجمة. ثبّته أو حدّد مساره في الإعدادات. ملفاتك المولَّدة موجودة في %1.</translation>
+        <translation>FFmpeg es necesario para unir el clip, la voz en off y los subtítulos. Instálalo o indica su ruta en Ajustes. Tus archivos generados están en %1.</translation>
     </message>
     <message>
         <source>FFmpeg not found.</source>
-        <translation>لم يتم العثور على FFmpeg.</translation>
+        <translation>FFmpeg no encontrado.</translation>
     </message>
     <message>
         <source>Looping the clip to cover the voice-over.</source>
-        <translation>سيُكرَّر المقطع ليغطي التعليق الصوتي.</translation>
+        <translation>El clip se repite para cubrir la voz en off.</translation>
     </message>
     <message>
         <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>سيُبطَّأ المقطع بنسبة %1% ليتوافق مع التعليق الصوتي.</translation>
+        <translation>El clip se ralentiza un %1 % para ajustarse a la voz en off.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
-        <translation>انتهى FFmpeg دون إنتاج أي ملف.</translation>
+        <translation>FFmpeg terminó sin generar ningún archivo.</translation>
     </message>
     <message>
         <source>Done: %1</source>
-        <translation>تم: %1</translation>
+        <translation>Listo: %1</translation>
     </message>
     <message>
         <source>Your ad is ready.</source>
-        <translation>إعلانك جاهز.</translation>
+        <translation>Tu anuncio está listo.</translation>
     </message>
 </context>
 <context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
-        <translation>لا يوجد مفتاح API لـ %1. أضفه في الإعدادات.</translation>
+        <translation>No hay clave API para %1. Añádela en Ajustes.</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>تم الإلغاء.</translation>
+        <translation>Cancelado.</translation>
     </message>
 </context>
 <context>
     <name>Registry</name>
     <message>
         <source>Auto - best model for this shot</source>
-        <translation>تلقائي - أفضل نموذج لهذه اللقطة</translation>
+        <translation>Auto: el mejor modelo para esta toma</translation>
     </message>
     <message>
         <source>Reads the product photo when the model supports vision.</source>
-        <translation>يقرأ صورة المنتج عندما يدعم النموذج الرؤية.</translation>
+        <translation>Lee la foto del producto si el modelo admite visión.</translation>
     </message>
     <message>
         <source>Strong at short, natural-sounding ad copy.</source>
-        <translation>بارع في النصوص الإعلانية القصيرة والطبيعية.</translation>
+        <translation>Muy bueno con textos publicitarios cortos y naturales.</translation>
     </message>
     <message>
         <source>Free tier available in most regions.</source>
-        <translation>توجد باقة مجانية في معظم المناطق.</translation>
+        <translation>Nivel gratuito disponible en la mayoría de regiones.</translation>
     </message>
     <message>
         <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
-        <translation>أوسع كتالوج. يعمل أيضًا أي معرّف نموذج من fal.ai/models.</translation>
+        <translation>El catálogo más amplio. También sirve cualquier id de fal.ai/models.</translation>
     </message>
     <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>يستطيع gpt-image-1 تعديل صورة منتجك مباشرة.</translation>
+        <translation>gpt-image-1 puede editar tu foto de producto directamente.</translation>
     </message>
     <message>
         <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>‏Kling وVeo وSeedance وHailuo وRunway وLuma وWan وPika - مفتاح واحد للجميع.</translation>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika: una sola clave.</translation>
     </message>
     <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
-        <translation>النصوص والصور وفيديو Sora والتعليق الصوتي والترجمة.</translation>
+        <translation>Guiones, imágenes, vídeo con Sora, voz en off y subtítulos.</translation>
     </message>
     <message>
         <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
-        <translation>الصور والفيديو والأصوات (Kling، Veo، Seedance، FLUX، MiniMax...).</translation>
+        <translation>Imágenes, vídeo y voces (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
-        <translation>استخدم owner/name، أو owner/name:version لتثبيت إصدار معيّن.</translation>
+        <translation>Usa owner/name, o owner/name:version para fijar una versión.</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>
-        <translation>الدفع بالثانية، بلا اشتراك.</translation>
+        <translation>Pago por segundo, sin suscripción.</translation>
     </message>
     <message>
         <source>The opening frame is resized to Sora's format automatically.</source>
-        <translation>يتم تغيير حجم اللقطة الأولى تلقائيًا لتناسب صيغة Sora.</translation>
+        <translation>El primer fotograma se redimensiona al formato de Sora automáticamente.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
-        <translation>أفضل الأصوات لمحتوى UGC. حمّل قائمة أصواتك أدناه.</translation>
+        <translation>Las voces más creíbles para UGC. Carga tu lista abajo.</translation>
     </message>
     <message>
         <source>Cheap and fast, fixed set of voices.</source>
-        <translation>رخيص وسريع، مع مجموعة أصوات ثابتة.</translation>
+        <translation>Rápido y barato, con un conjunto fijo de voces.</translation>
     </message>
     <message>
         <source>Several voice engines behind the fal key you already have.</source>
-        <translation>عدة محرّكات صوت بمفتاح fal الذي تملكه بالفعل.</translation>
+        <translation>Varios motores de voz con la clave de fal que ya tienes.</translation>
     </message>
     <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
-        <translation>يحوّل التعليق الصوتي المولَّد إلى ترجمة موقوتة.</translation>
+        <translation>Transcribe la voz en off generada en subtítulos sincronizados.</translation>
     </message>
     <message>
         <source>Scripts.</source>
-        <translation>النصوص.</translation>
+        <translation>Guiones.</translation>
     </message>
     <message>
         <source>Images and video.</source>
-        <translation>الصور والفيديو.</translation>
+        <translation>Imágenes y vídeo.</translation>
     </message>
     <message>
         <source>Voice-over.</source>
-        <translation>التعليق الصوتي.</translation>
+        <translation>Voz en off.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateImageTask</name>
     <message>
         <source>Replicate returned no image.</source>
-        <translation>لم يُرجع Replicate أي صورة.</translation>
+        <translation>Replicate no devolvió ninguna imagen.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>لا توجد لقطة أولى لتحريكها.</translation>
+        <translation>No hay primer fotograma que animar.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>The model returned an empty answer.</source>
-        <translation>أرجع النموذج ردًا فارغًا.</translation>
+        <translation>El modelo devolvió una respuesta vacía.</translation>
     </message>
     <message>
         <source>The model answer did not contain a script.</source>
-        <translation>لم يتضمّن رد النموذج أي نص.</translation>
+        <translation>La respuesta del modelo no contenía un guion.</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Settings</source>
-        <translation>الإعدادات</translation>
+        <translation>Ajustes</translation>
     </message>
     <message>
         <source>Keys are encrypted on this machine and sent only to the provider they belong to.</source>
-        <translation>تُشفَّر المفاتيح على هذا الجهاز ولا تُرسل إلا إلى المزوّد الذي تخصّه.</translation>
+        <translation>Las claves se cifran en este equipo y solo se envían al proveedor al que pertenecen.</translation>
     </message>
     <message>
         <source>Appearance</source>
-        <translation>المظهر</translation>
+        <translation>Apariencia</translation>
     </message>
     <message>
         <source>The interface language applies immediately, no restart.</source>
-        <translation>تُطبَّق لغة الواجهة فورًا، دون إعادة تشغيل.</translation>
+        <translation>El idioma de la interfaz se aplica al momento, sin reiniciar.</translation>
     </message>
     <message>
         <source>Theme</source>
-        <translation>السمة</translation>
+        <translation>Tema</translation>
     </message>
     <message>
         <source>Light</source>
-        <translation>فاتح</translation>
+        <translation>Claro</translation>
     </message>
     <message>
         <source>Dark</source>
-        <translation>داكن</translation>
+        <translation>Oscuro</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>اللغة</translation>
+        <translation>Idioma</translation>
     </message>
     <message>
         <source>Use system language</source>
-        <translation>لغة النظام</translation>
+        <translation>Idioma del sistema</translation>
     </message>
     <message>
         <source>API keys</source>
-        <translation>مفاتيح API</translation>
+        <translation>Claves API</translation>
     </message>
     <message>
         <source>You only need the ones you actually use. An empty field means the provider is off.</source>
-        <translation>تحتاج فقط إلى المفاتيح التي تستخدمها فعلًا. الحقل الفارغ يعني تعطيل المزوّد.</translation>
+        <translation>Solo necesitas las que uses. Un campo vacío desactiva el proveedor.</translation>
     </message>
     <message>
         <source>Files</source>
-        <translation>الملفات</translation>
+        <translation>Archivos</translation>
     </message>
     <message>
         <source>Projects folder</source>
-        <translation>مجلد المشاريع</translation>
+        <translation>Carpeta de proyectos</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>تغيير</translation>
+        <translation>Cambiar</translation>
     </message>
     <message>
         <source>Open</source>
-        <translation>فتح</translation>
+        <translation>Abrir</translation>
     </message>
     <message>
         <source>FFmpeg</source>
@@ -911,141 +911,141 @@
     </message>
     <message>
         <source>not found</source>
-        <translation>غير موجود</translation>
+        <translation>no encontrado</translation>
     </message>
     <message>
         <source>Leave empty to use the one on your PATH</source>
-        <translation>اتركه فارغًا لاستخدام النسخة الموجودة في PATH</translation>
+        <translation>Déjalo vacío para usar el del PATH</translation>
     </message>
     <message>
         <source>Locate</source>
-        <translation>تحديد</translation>
+        <translation>Localizar</translation>
     </message>
     <message>
         <source>Download</source>
-        <translation>تنزيل</translation>
+        <translation>Descargar</translation>
     </message>
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
-        <translation>يدمج FFmpeg المقطع والتعليق الصوتي والترجمة في ملف MP4 النهائي. بدونه يواصل التطبيق توليد كل عنصر، لكنه لا يستطيع تجميعها.</translation>
+        <translation>FFmpeg une el clip, la voz en off y los subtítulos en el MP4 final. Sin él la aplicación genera cada pieza, pero no puede montarlas.</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>حول</translation>
+        <translation>Acerca de</translation>
     </message>
     <message>
-        <source>Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
-        <translation>‏Super Infinity %1 - مجاني ومفتوح المصدر. لا حساب ولا خادم: كل طلب ينتقل مباشرة من جهازك إلى المزوّد الذي اخترته، بمفتاحك أنت.</translation>
+        <source>Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
+        <translation>Market Queen %1: gratuito y de código abierto. Sin cuenta ni servidor: cada petición va directa de tu equipo al proveedor que elijas, con tu clave.</translation>
     </message>
     <message>
         <source>Config folder</source>
-        <translation>مجلد الإعدادات</translation>
+        <translation>Carpeta de configuración</translation>
     </message>
     <message>
         <source>Choose where projects are saved</source>
-        <translation>اختر مكان حفظ المشاريع</translation>
+        <translation>Elegir dónde se guardan los proyectos</translation>
     </message>
     <message>
         <source>Locate the ffmpeg executable</source>
-        <translation>حدّد ملف ffmpeg التنفيذي</translation>
+        <translation>Localizar el ejecutable de ffmpeg</translation>
     </message>
 </context>
 <context>
     <name>SideNav</name>
     <message>
         <source>Create</source>
-        <translation>إنشاء</translation>
+        <translation>Crear</translation>
     </message>
     <message>
         <source>Library</source>
-        <translation>المكتبة</translation>
+        <translation>Biblioteca</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>الإعدادات</translation>
+        <translation>Ajustes</translation>
     </message>
     <message>
         <source>FFmpeg ready</source>
-        <translation>‏FFmpeg جاهز</translation>
+        <translation>FFmpeg listo</translation>
     </message>
     <message>
         <source>FFmpeg missing</source>
-        <translation>‏FFmpeg غير موجود</translation>
+        <translation>Falta FFmpeg</translation>
     </message>
     <message>
         <source>Your keys, your files.
 Nothing is uploaded to us.</source>
-        <translation>مفاتيحك وملفاتك.
-لا شيء يُرسل إلينا.</translation>
+        <translation>Tus claves, tus archivos.
+No se nos envía nada.</translation>
     </message>
 </context>
 <context>
     <name>SoraVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>لا توجد لقطة أولى لتحريكها.</translation>
+        <translation>No hay primer fotograma que animar.</translation>
     </message>
     <message>
         <source>Could not prepare the opening frame for Sora.</source>
-        <translation>تعذّر تجهيز اللقطة الأولى لـ Sora.</translation>
+        <translation>No se pudo preparar el primer fotograma para Sora.</translation>
     </message>
     <message>
         <source>Sending the shot to Sora (%1)...</source>
-        <translation>جارٍ إرسال اللقطة إلى Sora (%1)...</translation>
+        <translation>Enviando la toma a Sora (%1)...</translation>
     </message>
     <message>
         <source>Sora did not return a job id.</source>
-        <translation>لم يُرجع Sora معرّف مهمة.</translation>
+        <translation>Sora no devolvió un id de trabajo.</translation>
     </message>
     <message>
         <source>Sora is rendering... %1%</source>
-        <translation>‏Sora يعالج... %1%</translation>
+        <translation>Sora está renderizando... %1 %</translation>
     </message>
     <message>
         <source>Sora is rendering...</source>
-        <translation>‏Sora يعالج...</translation>
+        <translation>Sora está renderizando...</translation>
     </message>
     <message>
         <source>Sora reported status "%1".</source>
-        <translation>أبلغ Sora عن الحالة «%1».</translation>
+        <translation>Sora informó del estado «%1».</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>جارٍ تنزيل المقطع...</translation>
+        <translation>Descargando el clip...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>كان المقطع الذي جرى تنزيله فارغًا.</translation>
+        <translation>El clip descargado estaba vacío.</translation>
     </message>
 </context>
 <context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation>لم يُرجع المزوّد أي فيديو.</translation>
+        <translation>El proveedor no devolvió ningún vídeo.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>جارٍ تنزيل المقطع...</translation>
+        <translation>Descargando el clip...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>كان المقطع الذي جرى تنزيله فارغًا.</translation>
+        <translation>El clip descargado estaba vacío.</translation>
     </message>
 </context>
 <context>
     <name>WhisperCaptionTask</name>
     <message>
         <source>Could not read the voice-over file.</source>
-        <translation>تعذّرت قراءة ملف التعليق الصوتي.</translation>
+        <translation>No se pudo leer el archivo de voz en off.</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>جارٍ ضبط توقيت الترجمة...</translation>
+        <translation>Sincronizando los subtítulos...</translation>
     </message>
     <message>
         <source>Whisper returned an empty transcript.</source>
-        <translation>أرجع Whisper نصًا فارغًا.</translation>
+        <translation>Whisper devolvió una transcripción vacía.</translation>
     </message>
 </context>
 </TS>

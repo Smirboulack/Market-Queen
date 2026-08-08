@@ -1,909 +1,909 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="it_IT">
+<TS version="2.1" language="zh_CN">
 <context>
     <name>AnthropicScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Scrittura dello script con %1...</translation>
+        <translation>正在用 %1 撰写脚本…</translation>
     </message>
 </context>
 <context>
     <name>App</name>
     <message>
-        <source>Super Infinity %1. Add your API keys in Settings to get started.</source>
-        <translation>Super Infinity %1. Aggiungi le tue chiavi API nelle Impostazioni per iniziare.</translation>
+        <source>Market Queen %1. Add your API keys in Settings to get started.</source>
+        <translation>Market Queen %1。请在设置中添加你的 API 密钥即可开始。</translation>
     </message>
     <message>
         <source>FFmpeg was not found. It is needed for the final render; set its path in Settings.</source>
-        <translation>FFmpeg non è stato trovato. Serve per il render finale; indica il suo percorso nelle Impostazioni.</translation>
+        <translation>未找到 FFmpeg。最终合成需要它，请在设置中指定其路径。</translation>
     </message>
     <message>
         <source>This provider has no voice list.</source>
-        <translation>Questo fornitore non ha un elenco di voci.</translation>
+        <translation>该服务商没有语音列表。</translation>
     </message>
 </context>
 <context>
     <name>CreatePage</name>
     <message>
         <source>Create a UGC ad</source>
-        <translation>Crea una pubblicità UGC</translation>
+        <translation>创建 UGC 广告</translation>
     </message>
     <message>
         <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>Script, immagine, voce fuori campo, video e sottotitoli. Le tue chiavi API, i tuoi file.</translation>
+        <translation>脚本、画面、配音、视频和字幕。你的密钥，你的文件。</translation>
     </message>
     <message>
         <source>Your product</source>
-        <translation>Il tuo prodotto</translation>
+        <translation>你的产品</translation>
     </message>
     <message>
         <source>What are we selling, and to whom?</source>
-        <translation>Cosa vendiamo, e a chi?</translation>
+        <translation>我们卖什么，卖给谁？</translation>
     </message>
     <message>
         <source>Product name</source>
-        <translation>Nome del prodotto</translation>
+        <translation>产品名称</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation>es. siero illuminante Lumen</translation>
+        <translation>例如：Lumen 亮采精华</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation>Di cosa si tratta</translation>
+        <translation>产品简介</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>Un siero alla vitamina C che illumina la pelle spenta in due settimane. Senza profumo, 30 ml.</translation>
+        <translation>一款维生素 C 精华，两周改善暗沉肌肤。无香精，30 毫升。</translation>
     </message>
     <message>
         <source>Target audience</source>
-        <translation>Pubblico di riferimento</translation>
+        <translation>目标人群</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>es. donne tra i 25 e i 35 anni attente alla clean beauty</translation>
+        <translation>例如：注重纯净美妆的 25 至 35 岁女性</translation>
     </message>
     <message>
         <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>Usa la mia foto come primo fotogramma (salta la generazione)</translation>
+        <translation>用我的照片作为首帧（跳过图像生成）</translation>
     </message>
     <message>
         <source>The ad</source>
-        <translation>La pubblicità</translation>
+        <translation>广告</translation>
     </message>
     <message>
         <source>How it should sound and how long it runs.</source>
-        <translation>Come deve suonare e quanto dura.</translation>
+        <translation>语气如何，时长多久。</translation>
     </message>
     <message>
         <source>Tone</source>
-        <translation>Tono</translation>
+        <translation>语气</translation>
     </message>
     <message>
         <source>Describe the tone in your own words</source>
-        <translation>Descrivi il tono con parole tue</translation>
+        <translation>用你自己的话描述语气</translation>
     </message>
     <message>
         <source>excited and casual</source>
-        <translation>entusiasta e informale</translation>
+        <translation>热情随意</translation>
     </message>
     <message>
         <source>calm and honest</source>
-        <translation>calmo e sincero</translation>
+        <translation>平和真诚</translation>
     </message>
     <message>
         <source>funny</source>
-        <translation>divertente</translation>
+        <translation>幽默</translation>
     </message>
     <message>
         <source>straight to the point</source>
-        <translation>dritto al punto</translation>
+        <translation>开门见山</translation>
     </message>
     <message>
         <source>storytelling</source>
-        <translation>narrativo</translation>
+        <translation>讲故事</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Lingua</translation>
+        <translation>语言</translation>
     </message>
     <message>
         <source>Any other language</source>
-        <translation>Qualsiasi altra lingua</translation>
+        <translation>任何其他语言</translation>
     </message>
     <message>
         <source>Length</source>
-        <translation>Durata</translation>
+        <translation>时长</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 s</translation>
+        <translation>%1 秒</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation>Formato</translation>
+        <translation>画幅</translation>
     </message>
     <message>
         <source>Person on camera</source>
-        <translation>Persona in video</translation>
+        <translation>出镜人物</translation>
     </message>
     <message>
         <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>es. donna sui trent'anni, bagno, luce del mattino</translation>
+        <translation>例如：快三十岁的女性，浴室，晨光</translation>
     </message>
     <message>
         <source>Anything else</source>
-        <translation>Altre indicazioni</translation>
+        <translation>其他要求</translation>
     </message>
     <message>
         <source>Mention the 20% launch discount. Do not say "revolutionary".</source>
-        <translation>Citare lo sconto lancio del 20%. Non dire «rivoluzionario».</translation>
+        <translation>提到八折上市优惠。不要说“革命性”。</translation>
     </message>
     <message>
         <source>Your own script (optional)</source>
-        <translation>Il tuo script (facoltativo)</translation>
+        <translation>你自己的脚本（可选）</translation>
     </message>
     <message>
         <source>skips the writer</source>
-        <translation>salta il copywriter</translation>
+        <translation>将跳过脚本撰写</translation>
     </message>
     <message>
         <source>Leave empty to let the model write it.</source>
-        <translation>Lascia vuoto per farlo scrivere al modello.</translation>
+        <translation>留空则由模型来写。</translation>
     </message>
     <message>
         <source>Models</source>
-        <translation>Modelli</translation>
+        <translation>模型</translation>
     </message>
     <message>
         <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>Combinali come vuoi. Ogni fornitore ti fattura direttamente.</translation>
+        <translation>自由搭配。各服务商直接向你计费。</translation>
     </message>
     <message>
         <source>Script writer</source>
-        <translation>Autore dello script</translation>
+        <translation>脚本模型</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Primo fotogramma</translation>
+        <translation>首帧画面</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>视频</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation>Voce</translation>
+        <translation>配音</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation>Altro id di voce...</translation>
+        <translation>其他语音 ID…</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation>Incolla un id di voce</translation>
+        <translation>粘贴语音 ID</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation>Carica le voci del tuo account per sceglierne una.</translation>
+        <translation>加载账号下的语音后即可选择。</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation>Carica le voci</translation>
+        <translation>加载语音</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>Sottotitoli impressi (usa OpenAI Whisper)</translation>
+        <translation>烧录字幕（使用 OpenAI Whisper）</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Generazione...</translation>
+        <translation>生成中…</translation>
     </message>
     <message>
         <source>Generate UGC ad</source>
-        <translation>Genera la pubblicità UGC</translation>
+        <translation>生成 UGC 广告</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>Annulla</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <source>Add a product name to start.</source>
-        <translation>Inserisci il nome del prodotto per iniziare.</translation>
+        <translation>填写产品名称即可开始。</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation>La tua pubblicità è pronta</translation>
+        <translation>你的广告已就绪</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation>Riproduci</translation>
+        <translation>播放</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Mostra il file</translation>
+        <translation>显示文件</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation>Attività</translation>
+        <translation>运行日志</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>Svuota</translation>
+        <translation>清空</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation>%1 voci caricate.</translation>
+        <translation>已加载 %1 个语音。</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation>Impossibile caricare le voci: %1</translation>
+        <translation>无法加载语音：%1</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
-        <translation>Nessuna voce su questo account ElevenLabs.</translation>
+        <translation>该 ElevenLabs 账号下没有语音。</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceTask</name>
     <message>
         <source>Pick an ElevenLabs voice first.</source>
-        <translation>Scegli prima una voce ElevenLabs.</translation>
+        <translation>请先选择一个 ElevenLabs 语音。</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Registrazione della voce fuori campo...</translation>
+        <translation>正在生成配音…</translation>
     </message>
     <message>
         <source>ElevenLabs returned no audio.</source>
-        <translation>ElevenLabs non ha restituito audio.</translation>
+        <translation>ElevenLabs 未返回音频。</translation>
     </message>
 </context>
 <context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
-        <translation>fal.ai non ha restituito immagini.</translation>
+        <translation>fal.ai 未返回图像。</translation>
     </message>
 </context>
 <context>
     <name>FalVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Nessun primo fotogramma da animare.</translation>
+        <translation>没有可用于生成动画的首帧。</translation>
     </message>
 </context>
 <context>
     <name>FalVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Registrazione della voce fuori campo...</translation>
+        <translation>正在生成配音…</translation>
     </message>
     <message>
         <source>fal.ai returned no audio.</source>
-        <translation>fal.ai non ha restituito audio.</translation>
+        <translation>fal.ai 未返回音频。</translation>
     </message>
 </context>
 <context>
     <name>FfmpegTask</name>
     <message>
         <source>FFmpeg was not found. Install it, or set its path in Settings.</source>
-        <translation>FFmpeg non è stato trovato. Installalo, o indica il suo percorso nelle Impostazioni.</translation>
+        <translation>未找到 FFmpeg。请安装它，或在设置中指定其路径。</translation>
     </message>
     <message>
         <source>Could not run FFmpeg (%1).</source>
-        <translation>Impossibile avviare FFmpeg (%1).</translation>
+        <translation>无法运行 FFmpeg（%1）。</translation>
     </message>
     <message>
         <source>FFmpeg stopped unexpectedly.</source>
-        <translation>FFmpeg si è interrotto in modo imprevisto.</translation>
+        <translation>FFmpeg 意外退出。</translation>
     </message>
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
-        <translation>FFmpeg non è riuscito (codice %1). %2</translation>
+        <translation>FFmpeg 执行失败（退出码 %1）。%2</translation>
     </message>
 </context>
 <context>
     <name>GeminiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Scrittura dello script con %1...</translation>
+        <translation>正在用 %1 撰写脚本…</translation>
     </message>
 </context>
 <context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
-        <translation>Risposta inattesa dall'API: %1</translation>
+        <translation>API 返回了意外的响应：%1</translation>
     </message>
     <message>
         <source>Downloading... %1%</source>
-        <translation>Download... %1 %</translation>
+        <translation>下载中… %1%</translation>
     </message>
     <message>
         <source>The provider did not return a result in time.</source>
-        <translation>Il fornitore non ha restituito un risultato in tempo.</translation>
+        <translation>服务商未在规定时间内返回结果。</translation>
     </message>
     <message>
         <source>The generation failed.</source>
-        <translation>La generazione non è riuscita.</translation>
+        <translation>生成失败。</translation>
     </message>
     <message>
         <source>Queued on fal.ai (%1)...</source>
-        <translation>In coda su fal.ai (%1)...</translation>
+        <translation>已在 fal.ai 排队（%1）…</translation>
     </message>
     <message>
         <source>fal.ai did not return a job handle.</source>
-        <translation>fal.ai non ha restituito un identificativo di lavoro.</translation>
+        <translation>fal.ai 未返回任务标识。</translation>
     </message>
     <message>
         <source>Waiting in queue (position %1)...</source>
-        <translation>In attesa in coda (posizione %1)...</translation>
+        <translation>排队中（第 %1 位）…</translation>
     </message>
     <message>
         <source>Waiting in queue...</source>
-        <translation>In attesa in coda...</translation>
+        <translation>排队中…</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>Generazione...</translation>
+        <translation>生成中…</translation>
     </message>
     <message>
         <source>fal.ai reported status "%1".</source>
-        <translation>fal.ai ha riportato lo stato «%1».</translation>
+        <translation>fal.ai 返回状态“%1”。</translation>
     </message>
     <message>
         <source>Submitting to Replicate (%1)...</source>
-        <translation>Invio a Replicate (%1)...</translation>
+        <translation>正在提交到 Replicate（%1）…</translation>
     </message>
     <message>
         <source>Replicate did not return a prediction url.</source>
-        <translation>Replicate non ha restituito un URL di predizione.</translation>
+        <translation>Replicate 未返回预测地址。</translation>
     </message>
     <message>
         <source>Starting up...</source>
-        <translation>Avvio...</translation>
+        <translation>正在启动…</translation>
     </message>
     <message>
         <source>Replicate reported status "%1".</source>
-        <translation>Replicate ha riportato lo stato «%1».</translation>
+        <translation>Replicate 返回状态“%1”。</translation>
     </message>
 </context>
 <context>
     <name>ImageDropField</name>
     <message>
         <source>Product photo</source>
-        <translation>Foto del prodotto</translation>
+        <translation>产品照片</translation>
     </message>
     <message>
         <source>Photo added</source>
-        <translation>Foto aggiunta</translation>
+        <translation>已添加照片</translation>
     </message>
     <message>
         <source>Drop a picture here, or browse. Optional, but it keeps the real product in frame.</source>
-        <translation>Trascina qui un'immagine, o sfoglia. Facoltativo, ma mantiene il prodotto reale in scena.</translation>
+        <translation>把图片拖到这里，或浏览选择。可选，但这样画面里就是真实的产品。</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation>Sfoglia</translation>
+        <translation>浏览</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation>Rimuovi</translation>
+        <translation>移除</translation>
     </message>
     <message>
         <source>Choose a product photo</source>
-        <translation>Scegli una foto del prodotto</translation>
+        <translation>选择产品照片</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation>Immagini (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>图像 (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
     <name>ImageTask</name>
     <message>
         <source>The provider returned an empty image.</source>
-        <translation>Il fornitore ha restituito un'immagine vuota.</translation>
+        <translation>服务商返回了空图像。</translation>
     </message>
 </context>
 <context>
     <name>KeyField</name>
     <message>
         <source>Get a key</source>
-        <translation>Ottieni una chiave</translation>
+        <translation>获取密钥</translation>
     </message>
     <message>
         <source>Using %1 from your environment</source>
-        <translation>Usa %1 dal tuo ambiente</translation>
+        <translation>正在使用环境变量中的 %1</translation>
     </message>
     <message>
         <source>Paste your key</source>
-        <translation>Incolla la tua chiave</translation>
+        <translation>粘贴你的密钥</translation>
     </message>
     <message>
         <source>Hide</source>
-        <translation>Nascondi</translation>
+        <translation>隐藏</translation>
     </message>
     <message>
         <source>Show</source>
-        <translation>Mostra</translation>
+        <translation>显示</translation>
     </message>
     <message>
         <source>Saved.</source>
-        <translation>Salvato.</translation>
+        <translation>已保存。</translation>
     </message>
 </context>
 <context>
     <name>LibraryPage</name>
     <message>
         <source>Library</source>
-        <translation>Libreria</translation>
+        <translation>作品库</translation>
     </message>
     <message>
         <source>Everything you generate lands here.</source>
-        <translation>Tutto ciò che generi finisce qui.</translation>
+        <translation>你生成的一切都会出现在这里。</translation>
     </message>
     <message>
         <source>%1 project(s) in %2</source>
-        <translation>%1 progetto/i in %2</translation>
+        <translation>%2 中有 %1 个项目</translation>
     </message>
     <message>
         <source>Open folder</source>
-        <translation>Apri la cartella</translation>
+        <translation>打开文件夹</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>Aggiorna</translation>
+        <translation>刷新</translation>
     </message>
     <message>
         <source>done</source>
-        <translation>fatto</translation>
+        <translation>已完成</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>fallito</translation>
+        <translation>失败</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Mostra il file</translation>
+        <translation>显示文件</translation>
     </message>
     <message>
         <source>No projects yet</source>
-        <translation>Ancora nessun progetto</translation>
+        <translation>还没有项目</translation>
     </message>
 </context>
 <context>
     <name>LogPanel</name>
     <message>
         <source>Nothing yet.</source>
-        <translation>Ancora niente.</translation>
+        <translation>暂无内容。</translation>
     </message>
 </context>
 <context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
-        <translation>nessuna chiave API</translation>
+        <translation>缺少 API 密钥</translation>
     </message>
     <message>
         <source>Other model id...</source>
-        <translation>Altro id di modello...</translation>
+        <translation>其他模型 ID…</translation>
     </message>
     <message>
         <source>e.g. fal-ai/some-new-model</source>
-        <translation>es. fal-ai/nuovo-modello</translation>
+        <translation>例如：fal-ai/some-new-model</translation>
     </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
     <message>
         <source>Generating the opening frame with %1...</source>
-        <translation>Generazione del primo fotogramma con %1...</translation>
+        <translation>正在用 %1 生成首帧…</translation>
     </message>
     <message>
         <source>OpenAI returned no image.</source>
-        <translation>OpenAI non ha restituito immagini.</translation>
+        <translation>OpenAI 未返回图像。</translation>
     </message>
     <message>
         <source>Building the opening frame from your product photo...</source>
-        <translation>Costruzione del primo fotogramma dalla tua foto...</translation>
+        <translation>正在用你的产品照片生成首帧…</translation>
     </message>
 </context>
 <context>
     <name>OpenAiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>Scrittura dello script con %1...</translation>
+        <translation>正在用 %1 撰写脚本…</translation>
     </message>
 </context>
 <context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Registrazione della voce fuori campo...</translation>
+        <translation>正在生成配音…</translation>
     </message>
     <message>
         <source>OpenAI returned no audio.</source>
-        <translation>OpenAI non ha restituito audio.</translation>
+        <translation>OpenAI 未返回音频。</translation>
     </message>
 </context>
 <context>
     <name>PickerWithCustom</name>
     <message>
         <source>Other...</source>
-        <translation>Altro...</translation>
+        <translation>其他…</translation>
     </message>
     <message>
         <source>Type your own</source>
-        <translation>Scrivi il tuo</translation>
+        <translation>自行输入</translation>
     </message>
 </context>
 <context>
     <name>Pipeline</name>
     <message>
         <source>Script</source>
-        <translation>Script</translation>
+        <translation>脚本</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Primo fotogramma</translation>
+        <translation>首帧画面</translation>
     </message>
     <message>
         <source>Voice-over</source>
-        <translation>Voce fuori campo</translation>
+        <translation>配音</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Video</translation>
+        <translation>视频</translation>
     </message>
     <message>
         <source>Subtitles</source>
-        <translation>Sottotitoli</translation>
+        <translation>字幕</translation>
     </message>
     <message>
         <source>Final cut</source>
-        <translation>Montaggio finale</translation>
+        <translation>最终合成</translation>
     </message>
     <message>
         <source>Could not create the project folder in %1.</source>
-        <translation>Impossibile creare la cartella del progetto in %1.</translation>
+        <translation>无法在 %1 中创建项目文件夹。</translation>
     </message>
     <message>
         <source>Project folder: %1</source>
-        <translation>Cartella del progetto: %1</translation>
+        <translation>项目文件夹：%1</translation>
     </message>
     <message>
         <source>Could not read the product photo.</source>
-        <translation>Impossibile leggere la foto del prodotto.</translation>
+        <translation>无法读取产品照片。</translation>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation>Annullamento...</translation>
+        <translation>正在取消…</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Annullato.</translation>
+        <translation>已取消。</translation>
     </message>
     <message>
         <source>That provider is not available.</source>
-        <translation>Questo fornitore non è disponibile.</translation>
+        <translation>该服务商不可用。</translation>
     </message>
     <message>
         <source>Auto picked %1.</source>
-        <translation>Auto ha scelto %1.</translation>
+        <translation>自动选择了 %1。</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation>Impossibile scrivere %1.</translation>
+        <translation>无法写入 %1。</translation>
     </message>
     <message>
         <source>Using the script you wrote.</source>
-        <translation>Verrà usato lo script che hai scritto.</translation>
+        <translation>将使用你自己写的脚本。</translation>
     </message>
     <message>
         <source>your own script</source>
-        <translation>il tuo script</translation>
+        <translation>你的脚本</translation>
     </message>
     <message>
         <source>Writing the script...</source>
-        <translation>Scrittura dello script...</translation>
+        <translation>正在撰写脚本…</translation>
     </message>
     <message>
         <source>Script ready: "%1"</source>
-        <translation>Script pronto: «%1»</translation>
+        <translation>脚本已就绪：“%1”</translation>
     </message>
     <message>
         <source>Using your photo as the opening frame.</source>
-        <translation>La tua foto sarà il primo fotogramma.</translation>
+        <translation>将用你的照片作为首帧。</translation>
     </message>
     <message>
         <source>your photo</source>
-        <translation>la tua foto</translation>
+        <translation>你的照片</translation>
     </message>
     <message>
         <source>Generating the opening frame...</source>
-        <translation>Generazione del primo fotogramma...</translation>
+        <translation>正在生成首帧…</translation>
     </message>
     <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
-        <translation>Foto verticale in stile selfie di una persona reale che tiene in mano %1, luce naturale dalla finestra, scattata con un telefono, con l'aspetto autentico dei contenuti creati dagli utenti.</translation>
+        <translation>竖构图自拍风格照片：一位真实人物手持 %1，自然窗光，手机拍摄，具有真实的用户原创内容质感。</translation>
     </message>
     <message>
         <source>Opening frame saved (%1 KB).</source>
-        <translation>Primo fotogramma salvato (%1 KB).</translation>
+        <translation>首帧已保存（%1 KB）。</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>Registrazione della voce fuori campo...</translation>
+        <translation>正在生成配音…</translation>
     </message>
     <message>
         <source>Voice-over saved (%1 KB).</source>
-        <translation>Voce fuori campo salvata (%1 KB).</translation>
+        <translation>配音已保存（%1 KB）。</translation>
     </message>
     <message>
         <source>%1s (estimated)</source>
-        <translation>%1 s (stimato)</translation>
+        <translation>约 %1 秒</translation>
     </message>
     <message>
         <source>%1s</source>
-        <translation>%1 s</translation>
+        <translation>%1 秒</translation>
     </message>
     <message>
         <source>Animating the frame...</source>
-        <translation>Animazione del fotogramma...</translation>
+        <translation>正在让画面动起来…</translation>
     </message>
     <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>La persona parla dritta in camera, con un lieve movimento a mano libera, battito di ciglia naturale e piccoli gesti delle mani.</translation>
+        <translation>人物直视镜头说话，轻微的手持晃动，自然眨眼和细小的手势。</translation>
     </message>
     <message>
         <source>Requesting a %1s clip.</source>
-        <translation>Richiesta di una clip da %1 s.</translation>
+        <translation>正在请求 %1 秒的片段。</translation>
     </message>
     <message>
         <source>Clip saved (%1 MB).</source>
-        <translation>Clip salvata (%1 MB).</translation>
+        <translation>片段已保存（%1 MB）。</translation>
     </message>
     <message>
         <source>off</source>
-        <translation>disattivati</translation>
+        <translation>已关闭</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Sincronizzazione dei sottotitoli...</translation>
+        <translation>正在对齐字幕…</translation>
     </message>
     <message>
         <source>No subtitle provider selected, skipping.</source>
-        <translation>Nessun fornitore di sottotitoli selezionato, passaggio saltato.</translation>
+        <translation>未选择字幕服务商，跳过该步骤。</translation>
     </message>
     <message>
         <source>Subtitles unavailable (%1). Continuing without them.</source>
-        <translation>Sottotitoli non disponibili (%1). Si prosegue senza.</translation>
+        <translation>字幕不可用（%1）。将继续，不含字幕。</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>fallito</translation>
+        <translation>失败</translation>
     </message>
     <message>
         <source>Subtitles ready.</source>
-        <translation>Sottotitoli pronti.</translation>
+        <translation>字幕已就绪。</translation>
     </message>
     <message>
         <source>Assembling the final video...</source>
-        <translation>Montaggio del video finale...</translation>
+        <translation>正在合成最终视频…</translation>
     </message>
     <message>
         <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>FFmpeg serve per unire clip, voce fuori campo e sottotitoli. Installalo o indica il suo percorso nelle Impostazioni. I file generati si trovano in %1.</translation>
+        <translation>合并片段、配音和字幕需要 FFmpeg。请安装它，或在设置中指定其路径。已生成的文件位于 %1。</translation>
     </message>
     <message>
         <source>FFmpeg not found.</source>
-        <translation>FFmpeg non trovato.</translation>
+        <translation>未找到 FFmpeg。</translation>
     </message>
     <message>
         <source>Looping the clip to cover the voice-over.</source>
-        <translation>La clip viene ripetuta per coprire la voce fuori campo.</translation>
+        <translation>循环播放片段以覆盖整段配音。</translation>
     </message>
     <message>
         <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>La clip viene rallentata del %1 % per adattarsi alla voce fuori campo.</translation>
+        <translation>将片段放慢 %1% 以匹配配音。</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
-        <translation>FFmpeg ha terminato senza produrre alcun file.</translation>
+        <translation>FFmpeg 已结束，但未生成文件。</translation>
     </message>
     <message>
         <source>Done: %1</source>
-        <translation>Fatto: %1</translation>
+        <translation>完成：%1</translation>
     </message>
     <message>
         <source>Your ad is ready.</source>
-        <translation>La tua pubblicità è pronta.</translation>
+        <translation>你的广告已就绪。</translation>
     </message>
 </context>
 <context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
-        <translation>Nessuna chiave API per %1. Aggiungila nelle Impostazioni.</translation>
+        <translation>没有 %1 的 API 密钥。请在设置中添加。</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Annullato.</translation>
+        <translation>已取消。</translation>
     </message>
 </context>
 <context>
     <name>Registry</name>
     <message>
         <source>Auto - best model for this shot</source>
-        <translation>Auto - il modello migliore per questa inquadratura</translation>
+        <translation>自动 — 为该镜头挑选最佳模型</translation>
     </message>
     <message>
         <source>Reads the product photo when the model supports vision.</source>
-        <translation>Legge la foto del prodotto se il modello supporta la visione.</translation>
+        <translation>当模型支持视觉时会读取产品照片。</translation>
     </message>
     <message>
         <source>Strong at short, natural-sounding ad copy.</source>
-        <translation>Ottimo per testi pubblicitari brevi e naturali.</translation>
+        <translation>擅长简短自然的广告文案。</translation>
     </message>
     <message>
         <source>Free tier available in most regions.</source>
-        <translation>Piano gratuito disponibile nella maggior parte delle regioni.</translation>
+        <translation>多数地区提供免费额度。</translation>
     </message>
     <message>
         <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
-        <translation>Il catalogo più ampio. Funziona anche qualsiasi id da fal.ai/models.</translation>
+        <translation>最全的模型库。fal.ai/models 上的任何模型 ID 也都可用。</translation>
     </message>
     <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>gpt-image-1 può modificare direttamente la foto del prodotto.</translation>
+        <translation>gpt-image-1 可以直接编辑你的产品照片。</translation>
     </message>
     <message>
         <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika: una sola chiave.</translation>
+        <translation>Kling、Veo、Seedance、Hailuo、Runway、Luma、Wan、Pika，一个密钥全都能用。</translation>
     </message>
     <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
-        <translation>Script, immagini, video Sora, voce fuori campo e sottotitoli.</translation>
+        <translation>脚本、图像、Sora 视频、配音和字幕。</translation>
     </message>
     <message>
         <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
-        <translation>Immagini, video e voci (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
+        <translation>图像、视频和语音（Kling、Veo、Seedance、FLUX、MiniMax…）。</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
-        <translation>Usa owner/name, oppure owner/name:version per fissare una versione.</translation>
+        <translation>使用 owner/name，或用 owner/name:version 锁定版本。</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>
-        <translation>Pagamento al secondo, senza abbonamento.</translation>
+        <translation>按秒计费，无需订阅。</translation>
     </message>
     <message>
         <source>The opening frame is resized to Sora's format automatically.</source>
-        <translation>Il primo fotogramma viene ridimensionato al formato di Sora automaticamente.</translation>
+        <translation>首帧会自动缩放为 Sora 所需的尺寸。</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
-        <translation>Le voci più credibili per l'UGC. Carica il tuo elenco qui sotto.</translation>
+        <translation>最贴近 UGC 的语音。请在下方加载你的语音列表。</translation>
     </message>
     <message>
         <source>Cheap and fast, fixed set of voices.</source>
-        <translation>Economico e veloce, con un set fisso di voci.</translation>
+        <translation>便宜快速，语音种类固定。</translation>
     </message>
     <message>
         <source>Several voice engines behind the fal key you already have.</source>
-        <translation>Diversi motori vocali dietro la chiave fal che hai già.</translation>
+        <translation>用你已有的 fal 密钥即可调用多种语音引擎。</translation>
     </message>
     <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
-        <translation>Trascrive la voce fuori campo generata in sottotitoli sincronizzati.</translation>
+        <translation>把生成的配音转成带时间轴的字幕。</translation>
     </message>
     <message>
         <source>Scripts.</source>
-        <translation>Script.</translation>
+        <translation>脚本。</translation>
     </message>
     <message>
         <source>Images and video.</source>
-        <translation>Immagini e video.</translation>
+        <translation>图像和视频。</translation>
     </message>
     <message>
         <source>Voice-over.</source>
-        <translation>Voce fuori campo.</translation>
+        <translation>配音。</translation>
     </message>
 </context>
 <context>
     <name>ReplicateImageTask</name>
     <message>
         <source>Replicate returned no image.</source>
-        <translation>Replicate non ha restituito immagini.</translation>
+        <translation>Replicate 未返回图像。</translation>
     </message>
 </context>
 <context>
     <name>ReplicateVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Nessun primo fotogramma da animare.</translation>
+        <translation>没有可用于生成动画的首帧。</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>The model returned an empty answer.</source>
-        <translation>Il modello ha restituito una risposta vuota.</translation>
+        <translation>模型返回了空回复。</translation>
     </message>
     <message>
         <source>The model answer did not contain a script.</source>
-        <translation>La risposta del modello non conteneva uno script.</translation>
+        <translation>模型的回复中没有脚本。</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Settings</source>
-        <translation>Impostazioni</translation>
+        <translation>设置</translation>
     </message>
     <message>
         <source>Keys are encrypted on this machine and sent only to the provider they belong to.</source>
-        <translation>Le chiavi sono cifrate su questo computer e inviate solo al fornitore a cui appartengono.</translation>
+        <translation>密钥在本机加密保存，只会发送给对应的服务商。</translation>
     </message>
     <message>
         <source>Appearance</source>
-        <translation>Aspetto</translation>
+        <translation>外观</translation>
     </message>
     <message>
         <source>The interface language applies immediately, no restart.</source>
-        <translation>La lingua dell'interfaccia si applica subito, senza riavviare.</translation>
+        <translation>界面语言立即生效，无需重启。</translation>
     </message>
     <message>
         <source>Theme</source>
-        <translation>Tema</translation>
+        <translation>主题</translation>
     </message>
     <message>
         <source>Light</source>
-        <translation>Chiaro</translation>
+        <translation>浅色</translation>
     </message>
     <message>
         <source>Dark</source>
-        <translation>Scuro</translation>
+        <translation>深色</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Lingua</translation>
+        <translation>语言</translation>
     </message>
     <message>
         <source>Use system language</source>
-        <translation>Lingua di sistema</translation>
+        <translation>跟随系统语言</translation>
     </message>
     <message>
         <source>API keys</source>
-        <translation>Chiavi API</translation>
+        <translation>API 密钥</translation>
     </message>
     <message>
         <source>You only need the ones you actually use. An empty field means the provider is off.</source>
-        <translation>Servono solo quelle che usi davvero. Un campo vuoto disattiva il fornitore.</translation>
+        <translation>只需填写你实际使用的密钥。留空即表示停用该服务商。</translation>
     </message>
     <message>
         <source>Files</source>
-        <translation>File</translation>
+        <translation>文件</translation>
     </message>
     <message>
         <source>Projects folder</source>
-        <translation>Cartella dei progetti</translation>
+        <translation>项目文件夹</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>Cambia</translation>
+        <translation>更改</translation>
     </message>
     <message>
         <source>Open</source>
-        <translation>Apri</translation>
+        <translation>打开</translation>
     </message>
     <message>
         <source>FFmpeg</source>
@@ -911,141 +911,141 @@
     </message>
     <message>
         <source>not found</source>
-        <translation>non trovato</translation>
+        <translation>未找到</translation>
     </message>
     <message>
         <source>Leave empty to use the one on your PATH</source>
-        <translation>Lascia vuoto per usare quello nel PATH</translation>
+        <translation>留空则使用 PATH 中的版本</translation>
     </message>
     <message>
         <source>Locate</source>
-        <translation>Individua</translation>
+        <translation>定位</translation>
     </message>
     <message>
         <source>Download</source>
-        <translation>Scarica</translation>
+        <translation>下载</translation>
     </message>
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
-        <translation>FFmpeg unisce clip, voce fuori campo e sottotitoli nell'MP4 finale. Senza di esso l'app genera comunque ogni elemento, ma non può assemblarli.</translation>
+        <translation>FFmpeg 会把片段、配音和字幕合成为最终的 MP4。没有它，应用仍会生成各个部分，但无法合成。</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>Informazioni</translation>
+        <translation>关于</translation>
     </message>
     <message>
-        <source>Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
-        <translation>Super Infinity %1 - gratuito e open source. Nessun account e nessun server: ogni richiesta va direttamente dal tuo computer al fornitore che scegli, con la tua chiave.</translation>
+        <source>Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
+        <translation>Market Queen %1 - 免费开源。没有账号，也没有服务器：每个请求都用你的密钥，从你的电脑直接发往你选择的服务商。</translation>
     </message>
     <message>
         <source>Config folder</source>
-        <translation>Cartella di configurazione</translation>
+        <translation>配置文件夹</translation>
     </message>
     <message>
         <source>Choose where projects are saved</source>
-        <translation>Scegli dove salvare i progetti</translation>
+        <translation>选择项目保存位置</translation>
     </message>
     <message>
         <source>Locate the ffmpeg executable</source>
-        <translation>Individua l'eseguibile ffmpeg</translation>
+        <translation>定位 ffmpeg 可执行文件</translation>
     </message>
 </context>
 <context>
     <name>SideNav</name>
     <message>
         <source>Create</source>
-        <translation>Crea</translation>
+        <translation>创建</translation>
     </message>
     <message>
         <source>Library</source>
-        <translation>Libreria</translation>
+        <translation>作品库</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Impostazioni</translation>
+        <translation>设置</translation>
     </message>
     <message>
         <source>FFmpeg ready</source>
-        <translation>FFmpeg pronto</translation>
+        <translation>FFmpeg 就绪</translation>
     </message>
     <message>
         <source>FFmpeg missing</source>
-        <translation>FFmpeg mancante</translation>
+        <translation>缺少 FFmpeg</translation>
     </message>
     <message>
         <source>Your keys, your files.
 Nothing is uploaded to us.</source>
-        <translation>Le tue chiavi, i tuoi file.
-A noi non viene inviato nulla.</translation>
+        <translation>你的密钥，你的文件。
+不会上传给我们。</translation>
     </message>
 </context>
 <context>
     <name>SoraVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Nessun primo fotogramma da animare.</translation>
+        <translation>没有可用于生成动画的首帧。</translation>
     </message>
     <message>
         <source>Could not prepare the opening frame for Sora.</source>
-        <translation>Impossibile preparare il primo fotogramma per Sora.</translation>
+        <translation>无法为 Sora 准备首帧。</translation>
     </message>
     <message>
         <source>Sending the shot to Sora (%1)...</source>
-        <translation>Invio dell'inquadratura a Sora (%1)...</translation>
+        <translation>正在把镜头发送给 Sora（%1）…</translation>
     </message>
     <message>
         <source>Sora did not return a job id.</source>
-        <translation>Sora non ha restituito un id di lavoro.</translation>
+        <translation>Sora 未返回任务 ID。</translation>
     </message>
     <message>
         <source>Sora is rendering... %1%</source>
-        <translation>Sora sta elaborando... %1 %</translation>
+        <translation>Sora 正在渲染… %1%</translation>
     </message>
     <message>
         <source>Sora is rendering...</source>
-        <translation>Sora sta elaborando...</translation>
+        <translation>Sora 正在渲染…</translation>
     </message>
     <message>
         <source>Sora reported status "%1".</source>
-        <translation>Sora ha riportato lo stato «%1».</translation>
+        <translation>Sora 返回状态“%1”。</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>Download della clip...</translation>
+        <translation>正在下载片段…</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>La clip scaricata era vuota.</translation>
+        <translation>下载到的片段是空的。</translation>
     </message>
 </context>
 <context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation>Il fornitore non ha restituito alcun video.</translation>
+        <translation>服务商未返回视频。</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>Download della clip...</translation>
+        <translation>正在下载片段…</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>La clip scaricata era vuota.</translation>
+        <translation>下载到的片段是空的。</translation>
     </message>
 </context>
 <context>
     <name>WhisperCaptionTask</name>
     <message>
         <source>Could not read the voice-over file.</source>
-        <translation>Impossibile leggere il file della voce fuori campo.</translation>
+        <translation>无法读取配音文件。</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>Sincronizzazione dei sottotitoli...</translation>
+        <translation>正在对齐字幕…</translation>
     </message>
     <message>
         <source>Whisper returned an empty transcript.</source>
-        <translation>Whisper ha restituito una trascrizione vuota.</translation>
+        <translation>Whisper 返回了空的转写结果。</translation>
     </message>
 </context>
 </TS>

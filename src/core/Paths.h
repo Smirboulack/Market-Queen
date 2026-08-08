@@ -4,7 +4,7 @@
 
 namespace paths {
 
-// %APPDATA%/SuperInfinity, ~/.local/share/SuperInfinity, ~/Library/Application Support/...
+// %APPDATA%/MarketQueen, ~/.local/share/MarketQueen, ~/Library/Application Support/...
 QString configDir();
 
 // Where generated projects live. User-overridable from the settings page.

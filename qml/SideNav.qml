@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 Rectangle {
     id: root
@@ -48,7 +48,7 @@ Rectangle {
                 spacing: 0
 
                 Text {
-                    text: "Super Infinity"
+                    text: "Market Queen"
                     color: Theme.text
                     font.pixelSize: Theme.fontBody + 1
                     font.weight: Font.DemiBold

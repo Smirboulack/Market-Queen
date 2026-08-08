@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic
-import SuperInfinity
+import MarketQueen
 
 Button {
     id: control

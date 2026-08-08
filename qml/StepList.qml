@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // Pipeline steps. State values match Pipeline::StepState.
 ColumnLayout {

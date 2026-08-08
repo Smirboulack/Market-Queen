@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import SuperInfinity
+import MarketQueen
 
 // Two or three mutually exclusive options in one pill.
 Rectangle {

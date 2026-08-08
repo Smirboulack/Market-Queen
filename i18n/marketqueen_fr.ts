@@ -1,121 +1,121 @@
 <?xml version='1.0' encoding='utf-8'?>
 <!DOCTYPE TS>
-<TS version="2.1" language="pt_BR">
+<TS version="2.1" language="fr_FR">
 <context>
     <name>AnthropicScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>A escrever o guião com %1...</translation>
+        <translation>Rédaction du script avec %1...</translation>
     </message>
 </context>
 <context>
     <name>App</name>
     <message>
-        <source>Super Infinity %1. Add your API keys in Settings to get started.</source>
-        <translation>Super Infinity %1. Adicione as suas chaves de API nas Definições para começar.</translation>
+        <source>Market Queen %1. Add your API keys in Settings to get started.</source>
+        <translation>Market Queen %1. Ajoutez vos clés API dans les Réglages pour commencer.</translation>
     </message>
     <message>
         <source>FFmpeg was not found. It is needed for the final render; set its path in Settings.</source>
-        <translation>O FFmpeg não foi encontrado. É necessário para o render final; indique o caminho nas Definições.</translation>
+        <translation>FFmpeg est introuvable. Il est nécessaire au rendu final ; indiquez son chemin dans les Réglages.</translation>
     </message>
     <message>
         <source>This provider has no voice list.</source>
-        <translation>Este fornecedor não tem lista de vozes.</translation>
+        <translation>Ce fournisseur n'a pas de liste de voix.</translation>
     </message>
 </context>
 <context>
     <name>CreatePage</name>
     <message>
         <source>Create a UGC ad</source>
-        <translation>Criar um anúncio UGC</translation>
+        <translation>Créer une pub UGC</translation>
     </message>
     <message>
         <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>Guião, imagem, narração, vídeo e legendas. As suas chaves de API, os seus ficheiros.</translation>
+        <translation>Script, visuel, voix off, vidéo et sous-titres. Vos clés API, vos fichiers.</translation>
     </message>
     <message>
         <source>Your product</source>
-        <translation>O seu produto</translation>
+        <translation>Votre produit</translation>
     </message>
     <message>
         <source>What are we selling, and to whom?</source>
-        <translation>O que estamos a vender, e a quem?</translation>
+        <translation>Qu'est-ce qu'on vend, et à qui ?</translation>
     </message>
     <message>
         <source>Product name</source>
-        <translation>Nome do produto</translation>
+        <translation>Nom du produit</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation>ex. sérum iluminador Lumen</translation>
+        <translation>ex. sérum éclat Lumen</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation>O que é</translation>
+        <translation>De quoi il s'agit</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>Um sérum de vitamina C que ilumina a pele baça em duas semanas. Sem perfume, 30 ml.</translation>
+        <translation>Un sérum à la vitamine C qui ravive le teint terne en deux semaines. Sans parfum, 30 ml.</translation>
     </message>
     <message>
         <source>Target audience</source>
-        <translation>Público-alvo</translation>
+        <translation>Public visé</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>ex. mulheres dos 25 aos 35 anos interessadas em clean beauty</translation>
+        <translation>ex. femmes de 25 à 35 ans sensibles à la clean beauty</translation>
     </message>
     <message>
         <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>Usar a minha foto como primeiro fotograma (sem gerar imagem)</translation>
+        <translation>Utiliser ma photo comme première image (sans génération)</translation>
     </message>
     <message>
         <source>The ad</source>
-        <translation>O anúncio</translation>
+        <translation>La pub</translation>
     </message>
     <message>
         <source>How it should sound and how long it runs.</source>
-        <translation>Como deve soar e quanto tempo dura.</translation>
+        <translation>Le ton à adopter et la durée.</translation>
     </message>
     <message>
         <source>Tone</source>
-        <translation>Tom</translation>
+        <translation>Ton</translation>
     </message>
     <message>
         <source>Describe the tone in your own words</source>
-        <translation>Descreva o tom por palavras suas</translation>
+        <translation>Décrivez le ton avec vos mots</translation>
     </message>
     <message>
         <source>excited and casual</source>
-        <translation>entusiasmado e descontraído</translation>
+        <translation>enthousiaste et décontracté</translation>
     </message>
     <message>
         <source>calm and honest</source>
-        <translation>calmo e honesto</translation>
+        <translation>posé et sincère</translation>
     </message>
     <message>
         <source>funny</source>
-        <translation>divertido</translation>
+        <translation>drôle</translation>
     </message>
     <message>
         <source>straight to the point</source>
-        <translation>direto ao assunto</translation>
+        <translation>droit au but</translation>
     </message>
     <message>
         <source>storytelling</source>
-        <translation>narrativo</translation>
+        <translation>narratif</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Idioma</translation>
+        <translation>Langue</translation>
     </message>
     <message>
         <source>Any other language</source>
-        <translation>Qualquer outro idioma</translation>
+        <translation>Toute autre langue</translation>
     </message>
     <message>
         <source>Length</source>
-        <translation>Duração</translation>
+        <translation>Durée</translation>
     </message>
     <message>
         <source>%1 s</source>
@@ -124,532 +124,532 @@
     </message>
     <message>
         <source>Format</source>
-        <translation>Formato</translation>
+        <translation>Format</translation>
     </message>
     <message>
         <source>Person on camera</source>
-        <translation>Pessoa em câmara</translation>
+        <translation>Personne à l'écran</translation>
     </message>
     <message>
         <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>ex. mulher perto dos trinta, casa de banho, luz da manhã</translation>
+        <translation>ex. femme d'une trentaine d'années, salle de bain, lumière du matin</translation>
     </message>
     <message>
         <source>Anything else</source>
-        <translation>Mais alguma coisa</translation>
+        <translation>Autres consignes</translation>
     </message>
     <message>
         <source>Mention the 20% launch discount. Do not say "revolutionary".</source>
-        <translation>Mencionar os 20% de desconto de lançamento. Não dizer «revolucionário».</translation>
+        <translation>Mentionner les 20 % de remise de lancement. Ne pas dire « révolutionnaire ».</translation>
     </message>
     <message>
         <source>Your own script (optional)</source>
-        <translation>O seu próprio guião (opcional)</translation>
+        <translation>Votre propre script (facultatif)</translation>
     </message>
     <message>
         <source>skips the writer</source>
-        <translation>ignora o redator</translation>
+        <translation>le rédacteur est ignoré</translation>
     </message>
     <message>
         <source>Leave empty to let the model write it.</source>
-        <translation>Deixe vazio para o modelo o escrever.</translation>
+        <translation>Laissez vide pour que le modèle l'écrive.</translation>
     </message>
     <message>
         <source>Models</source>
-        <translation>Modelos</translation>
+        <translation>Modèles</translation>
     </message>
     <message>
         <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>Combine à vontade. Cada fornecedor cobra-lhe diretamente.</translation>
+        <translation>Combinez librement. Chaque fournisseur vous facture directement.</translation>
     </message>
     <message>
         <source>Script writer</source>
-        <translation>Autor do guião</translation>
+        <translation>Rédacteur du script</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Primeiro fotograma</translation>
+        <translation>Première image</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Vídeo</translation>
+        <translation>Vidéo</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation>Voz</translation>
+        <translation>Voix</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation>Outro id de voz...</translation>
+        <translation>Autre id de voix...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation>Cole um id de voz</translation>
+        <translation>Collez un id de voix</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation>Carregue as vozes da sua conta para escolher uma.</translation>
+        <translation>Chargez les voix de votre compte pour en choisir une.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation>Carregar vozes</translation>
+        <translation>Charger les voix</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>Gravar legendas na imagem (usa OpenAI Whisper)</translation>
+        <translation>Incruster les sous-titres (via OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>A gerar...</translation>
+        <translation>Génération...</translation>
     </message>
     <message>
         <source>Generate UGC ad</source>
-        <translation>Gerar anúncio UGC</translation>
+        <translation>Générer la pub UGC</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation>Cancelar</translation>
+        <translation>Annuler</translation>
     </message>
     <message>
         <source>Add a product name to start.</source>
-        <translation>Indique um nome de produto para começar.</translation>
+        <translation>Indiquez un nom de produit pour commencer.</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation>O seu anúncio está pronto</translation>
+        <translation>Votre pub est prête</translation>
     </message>
     <message>
         <source>Play</source>
-        <translation>Reproduzir</translation>
+        <translation>Lire</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Mostrar ficheiro</translation>
+        <translation>Afficher le fichier</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation>Atividade</translation>
+        <translation>Activité</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation>Limpar</translation>
+        <translation>Effacer</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation>%1 vozes carregadas.</translation>
+        <translation>%1 voix chargées.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation>Não foi possível carregar as vozes: %1</translation>
+        <translation>Impossible de charger les voix : %1</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
-        <translation>Nenhuma voz nesta conta ElevenLabs.</translation>
+        <translation>Aucune voix sur ce compte ElevenLabs.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceTask</name>
     <message>
         <source>Pick an ElevenLabs voice first.</source>
-        <translation>Escolha primeiro uma voz ElevenLabs.</translation>
+        <translation>Choisissez d'abord une voix ElevenLabs.</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>A gravar a narração...</translation>
+        <translation>Enregistrement de la voix off...</translation>
     </message>
     <message>
         <source>ElevenLabs returned no audio.</source>
-        <translation>A ElevenLabs não devolveu áudio.</translation>
+        <translation>ElevenLabs n'a renvoyé aucun audio.</translation>
     </message>
 </context>
 <context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
-        <translation>A fal.ai não devolveu nenhuma imagem.</translation>
+        <translation>fal.ai n'a renvoyé aucune image.</translation>
     </message>
 </context>
 <context>
     <name>FalVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Não há primeiro fotograma para animar.</translation>
+        <translation>Aucune première image à animer.</translation>
     </message>
 </context>
 <context>
     <name>FalVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>A gravar a narração...</translation>
+        <translation>Enregistrement de la voix off...</translation>
     </message>
     <message>
         <source>fal.ai returned no audio.</source>
-        <translation>A fal.ai não devolveu áudio.</translation>
+        <translation>fal.ai n'a renvoyé aucun audio.</translation>
     </message>
 </context>
 <context>
     <name>FfmpegTask</name>
     <message>
         <source>FFmpeg was not found. Install it, or set its path in Settings.</source>
-        <translation>O FFmpeg não foi encontrado. Instale-o ou indique o caminho nas Definições.</translation>
+        <translation>FFmpeg est introuvable. Installez-le, ou indiquez son chemin dans les Réglages.</translation>
     </message>
     <message>
         <source>Could not run FFmpeg (%1).</source>
-        <translation>Não foi possível executar o FFmpeg (%1).</translation>
+        <translation>Impossible de lancer FFmpeg (%1).</translation>
     </message>
     <message>
         <source>FFmpeg stopped unexpectedly.</source>
-        <translation>O FFmpeg parou inesperadamente.</translation>
+        <translation>FFmpeg s'est arrêté de façon inattendue.</translation>
     </message>
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
-        <translation>O FFmpeg falhou (código %1). %2</translation>
+        <translation>Échec de FFmpeg (code %1). %2</translation>
     </message>
 </context>
 <context>
     <name>GeminiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>A escrever o guião com %1...</translation>
+        <translation>Rédaction du script avec %1...</translation>
     </message>
 </context>
 <context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
-        <translation>Resposta inesperada da API: %1</translation>
+        <translation>Réponse inattendue de l'API : %1</translation>
     </message>
     <message>
         <source>Downloading... %1%</source>
-        <translation>A transferir... %1 %</translation>
+        <translation>Téléchargement... %1 %</translation>
     </message>
     <message>
         <source>The provider did not return a result in time.</source>
-        <translation>O fornecedor não devolveu um resultado a tempo.</translation>
+        <translation>Le fournisseur n'a pas renvoyé de résultat à temps.</translation>
     </message>
     <message>
         <source>The generation failed.</source>
-        <translation>A geração falhou.</translation>
+        <translation>La génération a échoué.</translation>
     </message>
     <message>
         <source>Queued on fal.ai (%1)...</source>
-        <translation>Em fila na fal.ai (%1)...</translation>
+        <translation>En file d'attente sur fal.ai (%1)...</translation>
     </message>
     <message>
         <source>fal.ai did not return a job handle.</source>
-        <translation>A fal.ai não devolveu um identificador de tarefa.</translation>
+        <translation>fal.ai n'a pas renvoyé d'identifiant de tâche.</translation>
     </message>
     <message>
         <source>Waiting in queue (position %1)...</source>
-        <translation>A aguardar na fila (posição %1)...</translation>
+        <translation>En attente dans la file (position %1)...</translation>
     </message>
     <message>
         <source>Waiting in queue...</source>
-        <translation>A aguardar na fila...</translation>
+        <translation>En attente dans la file...</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation>A gerar...</translation>
+        <translation>Génération...</translation>
     </message>
     <message>
         <source>fal.ai reported status "%1".</source>
-        <translation>A fal.ai indicou o estado «%1».</translation>
+        <translation>fal.ai a renvoyé le statut « %1 ».</translation>
     </message>
     <message>
         <source>Submitting to Replicate (%1)...</source>
-        <translation>A enviar para a Replicate (%1)...</translation>
+        <translation>Envoi à Replicate (%1)...</translation>
     </message>
     <message>
         <source>Replicate did not return a prediction url.</source>
-        <translation>A Replicate não devolveu um URL de predição.</translation>
+        <translation>Replicate n'a pas renvoyé d'URL de prédiction.</translation>
     </message>
     <message>
         <source>Starting up...</source>
-        <translation>A arrancar...</translation>
+        <translation>Démarrage...</translation>
     </message>
     <message>
         <source>Replicate reported status "%1".</source>
-        <translation>A Replicate indicou o estado «%1».</translation>
+        <translation>Replicate a renvoyé le statut « %1 ».</translation>
     </message>
 </context>
 <context>
     <name>ImageDropField</name>
     <message>
         <source>Product photo</source>
-        <translation>Foto do produto</translation>
+        <translation>Photo du produit</translation>
     </message>
     <message>
         <source>Photo added</source>
-        <translation>Foto adicionada</translation>
+        <translation>Photo ajoutée</translation>
     </message>
     <message>
         <source>Drop a picture here, or browse. Optional, but it keeps the real product in frame.</source>
-        <translation>Largue aqui uma imagem, ou procure. Opcional, mas mantém o produto real na imagem.</translation>
+        <translation>Déposez une image ici, ou parcourez. Facultatif, mais cela garde le vrai produit à l'image.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation>Procurar</translation>
+        <translation>Parcourir</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation>Remover</translation>
+        <translation>Retirer</translation>
     </message>
     <message>
         <source>Choose a product photo</source>
-        <translation>Escolher uma foto do produto</translation>
+        <translation>Choisir une photo du produit</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation>Imagens (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Images (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
     <name>ImageTask</name>
     <message>
         <source>The provider returned an empty image.</source>
-        <translation>O fornecedor devolveu uma imagem vazia.</translation>
+        <translation>Le fournisseur a renvoyé une image vide.</translation>
     </message>
 </context>
 <context>
     <name>KeyField</name>
     <message>
         <source>Get a key</source>
-        <translation>Obter uma chave</translation>
+        <translation>Obtenir une clé</translation>
     </message>
     <message>
         <source>Using %1 from your environment</source>
-        <translation>A usar %1 do seu ambiente</translation>
+        <translation>Utilise %1 depuis votre environnement</translation>
     </message>
     <message>
         <source>Paste your key</source>
-        <translation>Cole a sua chave</translation>
+        <translation>Collez votre clé</translation>
     </message>
     <message>
         <source>Hide</source>
-        <translation>Ocultar</translation>
+        <translation>Masquer</translation>
     </message>
     <message>
         <source>Show</source>
-        <translation>Mostrar</translation>
+        <translation>Afficher</translation>
     </message>
     <message>
         <source>Saved.</source>
-        <translation>Guardado.</translation>
+        <translation>Enregistré.</translation>
     </message>
 </context>
 <context>
     <name>LibraryPage</name>
     <message>
         <source>Library</source>
-        <translation>Biblioteca</translation>
+        <translation>Bibliothèque</translation>
     </message>
     <message>
         <source>Everything you generate lands here.</source>
-        <translation>Tudo o que gerar aparece aqui.</translation>
+        <translation>Tout ce que vous générez arrive ici.</translation>
     </message>
     <message>
         <source>%1 project(s) in %2</source>
-        <translation>%1 projeto(s) em %2</translation>
+        <translation>%1 projet(s) dans %2</translation>
     </message>
     <message>
         <source>Open folder</source>
-        <translation>Abrir pasta</translation>
+        <translation>Ouvrir le dossier</translation>
     </message>
     <message>
         <source>Refresh</source>
-        <translation>Atualizar</translation>
+        <translation>Actualiser</translation>
     </message>
     <message>
         <source>done</source>
-        <translation>concluído</translation>
+        <translation>terminé</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>falhou</translation>
+        <translation>échec</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation>Mostrar ficheiro</translation>
+        <translation>Afficher le fichier</translation>
     </message>
     <message>
         <source>No projects yet</source>
-        <translation>Ainda sem projetos</translation>
+        <translation>Aucun projet pour l'instant</translation>
     </message>
 </context>
 <context>
     <name>LogPanel</name>
     <message>
         <source>Nothing yet.</source>
-        <translation>Ainda nada.</translation>
+        <translation>Rien pour l'instant.</translation>
     </message>
 </context>
 <context>
     <name>ModelPicker</name>
     <message>
         <source>no API key</source>
-        <translation>sem chave de API</translation>
+        <translation>pas de clé API</translation>
     </message>
     <message>
         <source>Other model id...</source>
-        <translation>Outro id de modelo...</translation>
+        <translation>Autre id de modèle...</translation>
     </message>
     <message>
         <source>e.g. fal-ai/some-new-model</source>
-        <translation>ex. fal-ai/novo-modelo</translation>
+        <translation>ex. fal-ai/nouveau-modele</translation>
     </message>
 </context>
 <context>
     <name>OpenAiImageTask</name>
     <message>
         <source>Generating the opening frame with %1...</source>
-        <translation>A gerar o primeiro fotograma com %1...</translation>
+        <translation>Génération de la première image avec %1...</translation>
     </message>
     <message>
         <source>OpenAI returned no image.</source>
-        <translation>A OpenAI não devolveu nenhuma imagem.</translation>
+        <translation>OpenAI n'a renvoyé aucune image.</translation>
     </message>
     <message>
         <source>Building the opening frame from your product photo...</source>
-        <translation>A construir o primeiro fotograma a partir da sua foto...</translation>
+        <translation>Construction de la première image à partir de votre photo...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiScriptTask</name>
     <message>
         <source>Writing the script with %1...</source>
-        <translation>A escrever o guião com %1...</translation>
+        <translation>Rédaction du script avec %1...</translation>
     </message>
 </context>
 <context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>A gravar a narração...</translation>
+        <translation>Enregistrement de la voix off...</translation>
     </message>
     <message>
         <source>OpenAI returned no audio.</source>
-        <translation>A OpenAI não devolveu áudio.</translation>
+        <translation>OpenAI n'a renvoyé aucun audio.</translation>
     </message>
 </context>
 <context>
     <name>PickerWithCustom</name>
     <message>
         <source>Other...</source>
-        <translation>Outro...</translation>
+        <translation>Autre...</translation>
     </message>
     <message>
         <source>Type your own</source>
-        <translation>Escreva o seu</translation>
+        <translation>Saisissez la vôtre</translation>
     </message>
 </context>
 <context>
     <name>Pipeline</name>
     <message>
         <source>Script</source>
-        <translation>Guião</translation>
+        <translation>Script</translation>
     </message>
     <message>
         <source>Opening frame</source>
-        <translation>Primeiro fotograma</translation>
+        <translation>Première image</translation>
     </message>
     <message>
         <source>Voice-over</source>
-        <translation>Narração</translation>
+        <translation>Voix off</translation>
     </message>
     <message>
         <source>Video</source>
-        <translation>Vídeo</translation>
+        <translation>Vidéo</translation>
     </message>
     <message>
         <source>Subtitles</source>
-        <translation>Legendas</translation>
+        <translation>Sous-titres</translation>
     </message>
     <message>
         <source>Final cut</source>
-        <translation>Montagem final</translation>
+        <translation>Montage final</translation>
     </message>
     <message>
         <source>Could not create the project folder in %1.</source>
-        <translation>Não foi possível criar a pasta do projeto em %1.</translation>
+        <translation>Impossible de créer le dossier du projet dans %1.</translation>
     </message>
     <message>
         <source>Project folder: %1</source>
-        <translation>Pasta do projeto: %1</translation>
+        <translation>Dossier du projet : %1</translation>
     </message>
     <message>
         <source>Could not read the product photo.</source>
-        <translation>Não foi possível ler a foto do produto.</translation>
+        <translation>Impossible de lire la photo du produit.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
-        <translation>A cancelar...</translation>
+        <translation>Annulation...</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Cancelado.</translation>
+        <translation>Annulé.</translation>
     </message>
     <message>
         <source>That provider is not available.</source>
-        <translation>Esse fornecedor não está disponível.</translation>
+        <translation>Ce fournisseur n'est pas disponible.</translation>
     </message>
     <message>
         <source>Auto picked %1.</source>
-        <translation>O modo automático escolheu %1.</translation>
+        <translation>Auto a choisi %1.</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation>Não foi possível escrever %1.</translation>
+        <translation>Impossible d'écrire %1.</translation>
     </message>
     <message>
         <source>Using the script you wrote.</source>
-        <translation>A usar o guião que escreveu.</translation>
+        <translation>Utilisation du script que vous avez écrit.</translation>
     </message>
     <message>
         <source>your own script</source>
-        <translation>o seu guião</translation>
+        <translation>votre script</translation>
     </message>
     <message>
         <source>Writing the script...</source>
-        <translation>A escrever o guião...</translation>
+        <translation>Rédaction du script...</translation>
     </message>
     <message>
         <source>Script ready: "%1"</source>
-        <translation>Guião pronto: «%1»</translation>
+        <translation>Script prêt : « %1 »</translation>
     </message>
     <message>
         <source>Using your photo as the opening frame.</source>
-        <translation>A sua foto será o primeiro fotograma.</translation>
+        <translation>Votre photo sert de première image.</translation>
     </message>
     <message>
         <source>your photo</source>
-        <translation>a sua foto</translation>
+        <translation>votre photo</translation>
     </message>
     <message>
         <source>Generating the opening frame...</source>
-        <translation>A gerar o primeiro fotograma...</translation>
+        <translation>Génération de la première image...</translation>
     </message>
     <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
-        <translation>Foto vertical em estilo selfie de uma pessoa real a segurar %1, luz natural de janela, captada com um telemóvel, com o aspeto autêntico de conteúdo criado por utilizadores.</translation>
+        <translation>Photo verticale façon selfie d'une vraie personne tenant %1, lumière naturelle de fenêtre, prise au téléphone, rendu authentique de contenu créé par un utilisateur.</translation>
     </message>
     <message>
         <source>Opening frame saved (%1 KB).</source>
-        <translation>Primeiro fotograma guardado (%1 KB).</translation>
+        <translation>Première image enregistrée (%1 Ko).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
-        <translation>A gravar a narração...</translation>
+        <translation>Enregistrement de la voix off...</translation>
     </message>
     <message>
         <source>Voice-over saved (%1 KB).</source>
-        <translation>Narração guardada (%1 KB).</translation>
+        <translation>Voix off enregistrée (%1 Ko).</translation>
     </message>
     <message>
         <source>%1s (estimated)</source>
-        <translation>%1 s (estimado)</translation>
+        <translation>%1 s (estimé)</translation>
     </message>
     <message>
         <source>%1s</source>
@@ -657,253 +657,253 @@
     </message>
     <message>
         <source>Animating the frame...</source>
-        <translation>A animar o fotograma...</translation>
+        <translation>Animation de l'image...</translation>
     </message>
     <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>A pessoa fala diretamente para a câmara, com um ligeiro movimento de câmara à mão, pestanejo natural e pequenos gestos com as mãos.</translation>
+        <translation>La personne parle face caméra, léger mouvement à main levée, clignements naturels et petits gestes des mains.</translation>
     </message>
     <message>
         <source>Requesting a %1s clip.</source>
-        <translation>A pedir um clipe de %1 s.</translation>
+        <translation>Demande d'un clip de %1 s.</translation>
     </message>
     <message>
         <source>Clip saved (%1 MB).</source>
-        <translation>Clipe guardado (%1 MB).</translation>
+        <translation>Clip enregistré (%1 Mo).</translation>
     </message>
     <message>
         <source>off</source>
-        <translation>desativadas</translation>
+        <translation>désactivé</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>A sincronizar as legendas...</translation>
+        <translation>Calage des sous-titres...</translation>
     </message>
     <message>
         <source>No subtitle provider selected, skipping.</source>
-        <translation>Nenhum fornecedor de legendas selecionado, passo ignorado.</translation>
+        <translation>Aucun fournisseur de sous-titres sélectionné, étape ignorée.</translation>
     </message>
     <message>
         <source>Subtitles unavailable (%1). Continuing without them.</source>
-        <translation>Legendas indisponíveis (%1). A continuar sem elas.</translation>
+        <translation>Sous-titres indisponibles (%1). On continue sans.</translation>
     </message>
     <message>
         <source>failed</source>
-        <translation>falhou</translation>
+        <translation>échec</translation>
     </message>
     <message>
         <source>Subtitles ready.</source>
-        <translation>Legendas prontas.</translation>
+        <translation>Sous-titres prêts.</translation>
     </message>
     <message>
         <source>Assembling the final video...</source>
-        <translation>A montar o vídeo final...</translation>
+        <translation>Assemblage de la vidéo finale...</translation>
     </message>
     <message>
         <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>O FFmpeg é necessário para juntar o clipe, a narração e as legendas. Instale-o ou indique o caminho nas Definições. Os ficheiros gerados estão em %1.</translation>
+        <translation>FFmpeg est nécessaire pour fusionner le clip, la voix off et les sous-titres. Installez-le ou indiquez son chemin dans les Réglages. Vos fichiers générés se trouvent dans %1.</translation>
     </message>
     <message>
         <source>FFmpeg not found.</source>
-        <translation>FFmpeg não encontrado.</translation>
+        <translation>FFmpeg introuvable.</translation>
     </message>
     <message>
         <source>Looping the clip to cover the voice-over.</source>
-        <translation>O clipe é repetido para cobrir a narração.</translation>
+        <translation>Le clip est bouclé pour couvrir la voix off.</translation>
     </message>
     <message>
         <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>O clipe é abrandado %1 % para acompanhar a narração.</translation>
+        <translation>Le clip est ralenti de %1 % pour coller à la voix off.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
-        <translation>O FFmpeg terminou sem produzir qualquer ficheiro.</translation>
+        <translation>FFmpeg a terminé sans produire de fichier.</translation>
     </message>
     <message>
         <source>Done: %1</source>
-        <translation>Concluído: %1</translation>
+        <translation>Terminé : %1</translation>
     </message>
     <message>
         <source>Your ad is ready.</source>
-        <translation>O seu anúncio está pronto.</translation>
+        <translation>Votre pub est prête.</translation>
     </message>
 </context>
 <context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
-        <translation>Sem chave de API para %1. Adicione-a nas Definições.</translation>
+        <translation>Aucune clé API pour %1. Ajoutez-la dans les Réglages.</translation>
     </message>
     <message>
         <source>Cancelled.</source>
-        <translation>Cancelado.</translation>
+        <translation>Annulé.</translation>
     </message>
 </context>
 <context>
     <name>Registry</name>
     <message>
         <source>Auto - best model for this shot</source>
-        <translation>Auto - o melhor modelo para este plano</translation>
+        <translation>Auto - meilleur modèle pour ce plan</translation>
     </message>
     <message>
         <source>Reads the product photo when the model supports vision.</source>
-        <translation>Lê a foto do produto quando o modelo suporta visão.</translation>
+        <translation>Lit la photo du produit quand le modèle gère la vision.</translation>
     </message>
     <message>
         <source>Strong at short, natural-sounding ad copy.</source>
-        <translation>Excelente em textos publicitários curtos e naturais.</translation>
+        <translation>Excellent pour des textes publicitaires courts et naturels.</translation>
     </message>
     <message>
         <source>Free tier available in most regions.</source>
-        <translation>Plano gratuito disponível na maioria das regiões.</translation>
+        <translation>Offre gratuite disponible dans la plupart des régions.</translation>
     </message>
     <message>
         <source>The widest catalogue. Any model id from fal.ai/models also works.</source>
-        <translation>O catálogo mais amplo. Também funciona qualquer id de fal.ai/models.</translation>
+        <translation>Le catalogue le plus large. N'importe quel id de fal.ai/models fonctionne aussi.</translation>
     </message>
     <message>
         <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>O gpt-image-1 pode editar a sua foto do produto diretamente.</translation>
+        <translation>gpt-image-1 peut retoucher directement votre photo produit.</translation>
     </message>
     <message>
         <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - uma única chave.</translation>
+        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - une seule clé.</translation>
     </message>
     <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
-        <translation>Guiões, imagens, vídeo Sora, narração e legendas.</translation>
+        <translation>Scripts, images, vidéo Sora, voix off et sous-titres.</translation>
     </message>
     <message>
         <source>Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).</source>
-        <translation>Imagens, vídeo e vozes (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
+        <translation>Images, vidéo et voix (Kling, Veo, Seedance, FLUX, MiniMax...).</translation>
     </message>
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
-        <translation>Use owner/name, ou owner/name:version para fixar uma versão.</translation>
+        <translation>Utilisez owner/name, ou owner/name:version pour figer une version.</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>
-        <translation>Pagamento ao segundo, sem subscrição.</translation>
+        <translation>Paiement à la seconde, sans abonnement.</translation>
     </message>
     <message>
         <source>The opening frame is resized to Sora's format automatically.</source>
-        <translation>O primeiro fotograma é redimensionado para o formato do Sora automaticamente.</translation>
+        <translation>La première image est redimensionnée au format de Sora automatiquement.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
-        <translation>As vozes mais credíveis para UGC. Carregue a sua lista abaixo.</translation>
+        <translation>Les voix les plus crédibles pour l'UGC. Chargez votre liste ci-dessous.</translation>
     </message>
     <message>
         <source>Cheap and fast, fixed set of voices.</source>
-        <translation>Rápido e barato, com um conjunto fixo de vozes.</translation>
+        <translation>Rapide et bon marché, jeu de voix fixe.</translation>
     </message>
     <message>
         <source>Several voice engines behind the fal key you already have.</source>
-        <translation>Vários motores de voz com a chave fal que já tem.</translation>
+        <translation>Plusieurs moteurs de voix derrière la clé fal que vous avez déjà.</translation>
     </message>
     <message>
         <source>Transcribes the generated voice-over into timed subtitles.</source>
-        <translation>Transcreve a narração gerada em legendas sincronizadas.</translation>
+        <translation>Transcrit la voix off générée en sous-titres synchronisés.</translation>
     </message>
     <message>
         <source>Scripts.</source>
-        <translation>Guiões.</translation>
+        <translation>Scripts.</translation>
     </message>
     <message>
         <source>Images and video.</source>
-        <translation>Imagens e vídeo.</translation>
+        <translation>Images et vidéo.</translation>
     </message>
     <message>
         <source>Voice-over.</source>
-        <translation>Narração.</translation>
+        <translation>Voix off.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateImageTask</name>
     <message>
         <source>Replicate returned no image.</source>
-        <translation>A Replicate não devolveu nenhuma imagem.</translation>
+        <translation>Replicate n'a renvoyé aucune image.</translation>
     </message>
 </context>
 <context>
     <name>ReplicateVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Não há primeiro fotograma para animar.</translation>
+        <translation>Aucune première image à animer.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>The model returned an empty answer.</source>
-        <translation>O modelo devolveu uma resposta vazia.</translation>
+        <translation>Le modèle a renvoyé une réponse vide.</translation>
     </message>
     <message>
         <source>The model answer did not contain a script.</source>
-        <translation>A resposta do modelo não continha um guião.</translation>
+        <translation>La réponse du modèle ne contenait pas de script.</translation>
     </message>
 </context>
 <context>
     <name>SettingsPage</name>
     <message>
         <source>Settings</source>
-        <translation>Definições</translation>
+        <translation>Réglages</translation>
     </message>
     <message>
         <source>Keys are encrypted on this machine and sent only to the provider they belong to.</source>
-        <translation>As chaves são cifradas neste computador e enviadas apenas ao fornecedor a que pertencem.</translation>
+        <translation>Les clés sont chiffrées sur cette machine et envoyées uniquement au fournisseur concerné.</translation>
     </message>
     <message>
         <source>Appearance</source>
-        <translation>Aspeto</translation>
+        <translation>Apparence</translation>
     </message>
     <message>
         <source>The interface language applies immediately, no restart.</source>
-        <translation>O idioma da interface aplica-se de imediato, sem reiniciar.</translation>
+        <translation>La langue de l'interface s'applique immédiatement, sans redémarrage.</translation>
     </message>
     <message>
         <source>Theme</source>
-        <translation>Tema</translation>
+        <translation>Thème</translation>
     </message>
     <message>
         <source>Light</source>
-        <translation>Claro</translation>
+        <translation>Clair</translation>
     </message>
     <message>
         <source>Dark</source>
-        <translation>Escuro</translation>
+        <translation>Sombre</translation>
     </message>
     <message>
         <source>Language</source>
-        <translation>Idioma</translation>
+        <translation>Langue</translation>
     </message>
     <message>
         <source>Use system language</source>
-        <translation>Idioma do sistema</translation>
+        <translation>Langue du système</translation>
     </message>
     <message>
         <source>API keys</source>
-        <translation>Chaves de API</translation>
+        <translation>Clés API</translation>
     </message>
     <message>
         <source>You only need the ones you actually use. An empty field means the provider is off.</source>
-        <translation>Só precisa das que realmente usa. Um campo vazio desativa o fornecedor.</translation>
+        <translation>Seules celles que vous utilisez sont nécessaires. Un champ vide désactive le fournisseur.</translation>
     </message>
     <message>
         <source>Files</source>
-        <translation>Ficheiros</translation>
+        <translation>Fichiers</translation>
     </message>
     <message>
         <source>Projects folder</source>
-        <translation>Pasta de projetos</translation>
+        <translation>Dossier des projets</translation>
     </message>
     <message>
         <source>Change</source>
-        <translation>Alterar</translation>
+        <translation>Modifier</translation>
     </message>
     <message>
         <source>Open</source>
-        <translation>Abrir</translation>
+        <translation>Ouvrir</translation>
     </message>
     <message>
         <source>FFmpeg</source>
@@ -911,141 +911,141 @@
     </message>
     <message>
         <source>not found</source>
-        <translation>não encontrado</translation>
+        <translation>introuvable</translation>
     </message>
     <message>
         <source>Leave empty to use the one on your PATH</source>
-        <translation>Deixe vazio para usar o do PATH</translation>
+        <translation>Laissez vide pour utiliser celui du PATH</translation>
     </message>
     <message>
         <source>Locate</source>
-        <translation>Localizar</translation>
+        <translation>Localiser</translation>
     </message>
     <message>
         <source>Download</source>
-        <translation>Transferir</translation>
+        <translation>Télécharger</translation>
     </message>
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
-        <translation>O FFmpeg junta o clipe, a narração e as legendas no MP4 final. Sem ele a aplicação gera na mesma cada peça, mas não as consegue montar.</translation>
+        <translation>FFmpeg fusionne le clip, la voix off et les sous-titres dans le MP4 final. Sans lui, l'application génère quand même chaque élément, mais ne peut pas les assembler.</translation>
     </message>
     <message>
         <source>About</source>
-        <translation>Acerca</translation>
+        <translation>À propos</translation>
     </message>
     <message>
-        <source>Super Infinity %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
-        <translation>Super Infinity %1 - gratuito e de código aberto. Sem conta e sem servidor: cada pedido vai diretamente do seu computador para o fornecedor escolhido, com a sua chave.</translation>
+        <source>Market Queen %1 - free and open source. There is no account and no server: every request goes straight from your machine to the provider you picked, with your key.</source>
+        <translation>Market Queen %1 - gratuit et open source. Ni compte ni serveur : chaque requête part directement de votre machine vers le fournisseur choisi, avec votre clé.</translation>
     </message>
     <message>
         <source>Config folder</source>
-        <translation>Pasta de configuração</translation>
+        <translation>Dossier de configuration</translation>
     </message>
     <message>
         <source>Choose where projects are saved</source>
-        <translation>Escolher onde guardar os projetos</translation>
+        <translation>Choisir où enregistrer les projets</translation>
     </message>
     <message>
         <source>Locate the ffmpeg executable</source>
-        <translation>Localizar o executável ffmpeg</translation>
+        <translation>Localiser l'exécutable ffmpeg</translation>
     </message>
 </context>
 <context>
     <name>SideNav</name>
     <message>
         <source>Create</source>
-        <translation>Criar</translation>
+        <translation>Créer</translation>
     </message>
     <message>
         <source>Library</source>
-        <translation>Biblioteca</translation>
+        <translation>Bibliothèque</translation>
     </message>
     <message>
         <source>Settings</source>
-        <translation>Definições</translation>
+        <translation>Réglages</translation>
     </message>
     <message>
         <source>FFmpeg ready</source>
-        <translation>FFmpeg pronto</translation>
+        <translation>FFmpeg prêt</translation>
     </message>
     <message>
         <source>FFmpeg missing</source>
-        <translation>FFmpeg em falta</translation>
+        <translation>FFmpeg manquant</translation>
     </message>
     <message>
         <source>Your keys, your files.
 Nothing is uploaded to us.</source>
-        <translation>As suas chaves, os seus ficheiros.
-Nada nos é enviado.</translation>
+        <translation>Vos clés, vos fichiers.
+Rien ne nous est envoyé.</translation>
     </message>
 </context>
 <context>
     <name>SoraVideoTask</name>
     <message>
         <source>No opening frame to animate.</source>
-        <translation>Não há primeiro fotograma para animar.</translation>
+        <translation>Aucune première image à animer.</translation>
     </message>
     <message>
         <source>Could not prepare the opening frame for Sora.</source>
-        <translation>Não foi possível preparar o primeiro fotograma para o Sora.</translation>
+        <translation>Impossible de préparer la première image pour Sora.</translation>
     </message>
     <message>
         <source>Sending the shot to Sora (%1)...</source>
-        <translation>A enviar o plano para o Sora (%1)...</translation>
+        <translation>Envoi du plan à Sora (%1)...</translation>
     </message>
     <message>
         <source>Sora did not return a job id.</source>
-        <translation>O Sora não devolveu um id de tarefa.</translation>
+        <translation>Sora n'a pas renvoyé d'identifiant de tâche.</translation>
     </message>
     <message>
         <source>Sora is rendering... %1%</source>
-        <translation>O Sora está a renderizar... %1 %</translation>
+        <translation>Sora calcule le rendu... %1 %</translation>
     </message>
     <message>
         <source>Sora is rendering...</source>
-        <translation>O Sora está a renderizar...</translation>
+        <translation>Sora calcule le rendu...</translation>
     </message>
     <message>
         <source>Sora reported status "%1".</source>
-        <translation>O Sora indicou o estado «%1».</translation>
+        <translation>Sora a renvoyé le statut « %1 ».</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>A transferir o clipe...</translation>
+        <translation>Téléchargement du clip...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>O clipe transferido estava vazio.</translation>
+        <translation>Le clip téléchargé était vide.</translation>
     </message>
 </context>
 <context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation>O fornecedor não devolveu nenhum vídeo.</translation>
+        <translation>Le fournisseur n'a renvoyé aucune vidéo.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation>A transferir o clipe...</translation>
+        <translation>Téléchargement du clip...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation>O clipe transferido estava vazio.</translation>
+        <translation>Le clip téléchargé était vide.</translation>
     </message>
 </context>
 <context>
     <name>WhisperCaptionTask</name>
     <message>
         <source>Could not read the voice-over file.</source>
-        <translation>Não foi possível ler o ficheiro da narração.</translation>
+        <translation>Impossible de lire le fichier de voix off.</translation>
     </message>
     <message>
         <source>Timing the subtitles...</source>
-        <translation>A sincronizar as legendas...</translation>
+        <translation>Calage des sous-titres...</translation>
     </message>
     <message>
         <source>Whisper returned an empty transcript.</source>
-        <translation>O Whisper devolveu uma transcrição vazia.</translation>
+        <translation>Whisper a renvoyé une transcription vide.</translation>
     </message>
 </context>
 </TS>

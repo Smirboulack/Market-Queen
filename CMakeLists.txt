@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(SuperInfinity
+project(MarketQueen
     VERSION 0.1.0
     DESCRIPTION "Open-source UGC video studio. Bring your own API keys."
     LANGUAGES CXX)
@@ -43,7 +43,7 @@ if(WIN32)
     list(APPEND APP_SOURCES assets/app.rc)
 endif()
 
-qt_add_executable(SuperInfinity WIN32 MACOSX_BUNDLE ${APP_SOURCES})
+qt_add_executable(MarketQueen WIN32 MACOSX_BUNDLE ${APP_SOURCES})
 
 set(APP_QML_FILES
     qml/Main.qml
@@ -77,8 +77,8 @@ endforeach()
 
 set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
-qt_add_qml_module(SuperInfinity
-    URI SuperInfinity
+qt_add_qml_module(MarketQueen
+    URI MarketQueen
     VERSION 1.0
     QML_FILES ${APP_QML_FILES}
     RESOURCES
@@ -88,7 +88,7 @@ qt_add_qml_module(SuperInfinity
 
 # The per-directory entries are what the generated QML type registration file
 # needs: it includes headers by bare name.
-target_include_directories(SuperInfinity PRIVATE
+target_include_directories(MarketQueen PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/app
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
@@ -98,12 +98,12 @@ target_include_directories(SuperInfinity PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/providers
 )
 
-target_compile_definitions(SuperInfinity PRIVATE
+target_compile_definitions(MarketQueen PRIVATE
     APP_VERSION="${PROJECT_VERSION}"
     QT_DISABLE_DEPRECATED_BEFORE=0x060000
 )
 
-target_link_libraries(SuperInfinity PRIVATE
+target_link_libraries(MarketQueen PRIVATE
     Qt6::Core
     Qt6::Gui
     Qt6::Quick
@@ -115,7 +115,7 @@ target_link_libraries(SuperInfinity PRIVATE
 
 if(WIN32)
     # Dark title bar.
-    target_link_libraries(SuperInfinity PRIVATE dwmapi)
+    target_link_libraries(MarketQueen PRIVATE dwmapi)
 endif()
 
 # Interface languages. The .qm files are compiled at build time and embedded
@@ -124,32 +124,32 @@ endif()
 set(APP_LANGUAGES fr es de it pt nl pl ru zh ar)
 set(APP_TS_FILES "")
 foreach(lang IN LISTS APP_LANGUAGES)
-    list(APPEND APP_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/i18n/superinfinity_${lang}.ts)
+    list(APPEND APP_TS_FILES ${CMAKE_CURRENT_SOURCE_DIR}/i18n/marketqueen_${lang}.ts)
 endforeach()
 
-qt_add_translations(SuperInfinity
+qt_add_translations(MarketQueen
     TS_FILES ${APP_TS_FILES}
     RESOURCE_PREFIX "/i18n"
     LUPDATE_OPTIONS -no-obsolete -locations none
 )
 
-set_target_properties(SuperInfinity PROPERTIES
-    OUTPUT_NAME "SuperInfinity"
-    MACOSX_BUNDLE_BUNDLE_NAME "Super Infinity"
-    MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.superinfinity"
+set_target_properties(MarketQueen PROPERTIES
+    OUTPUT_NAME "MarketQueen"
+    MACOSX_BUNDLE_BUNDLE_NAME "Market Queen"
+    MACOSX_BUNDLE_GUI_IDENTIFIER "io.github.marketqueen"
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
 )
 
 include(GNUInstallDirs)
-install(TARGETS SuperInfinity
+install(TARGETS MarketQueen
     BUNDLE  DESTINATION .
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 qt_generate_deploy_qml_app_script(
-    TARGET SuperInfinity
+    TARGET MarketQueen
     OUTPUT_SCRIPT deploy_script
     MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR

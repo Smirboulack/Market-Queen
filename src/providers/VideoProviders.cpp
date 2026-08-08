@@ -201,7 +201,7 @@ void SoraVideoTask::start()
 
     QNetworkRequest request(QUrl(QStringLiteral("https://api.openai.com/v1/videos")));
     request.setRawHeader("Authorization", ("Bearer " + m_request.apiKey).toUtf8());
-    request.setRawHeader("User-Agent", "SuperInfinity/" APP_VERSION);
+    request.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
     request.setTransferTimeout(300'000);
 
     postMultipartForText(request, multiPart, [this](const QByteArray &body, const QString &) {
@@ -249,7 +249,7 @@ void SoraVideoTask::fetchContent(const QString &videoId)
     QNetworkRequest request(
         QUrl(QStringLiteral("https://api.openai.com/v1/videos/%1/content").arg(videoId)));
     request.setRawHeader("Authorization", ("Bearer " + m_request.apiKey).toUtf8());
-    request.setRawHeader("User-Agent", "SuperInfinity/" APP_VERSION);
+    request.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
 
     getBytes(request, [this](const QByteArray &data, const QString &) {
         if (data.isEmpty()) {

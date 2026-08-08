@@ -167,7 +167,7 @@ void HttpTask::getBytes(const QNetworkRequest &request, BytesHandler onSuccess)
 void HttpTask::download(const QUrl &url, BytesHandler onSuccess)
 {
     QNetworkRequest request(url);
-    request.setRawHeader("User-Agent", "SuperInfinity/" APP_VERSION);
+    request.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
     request.setTransferTimeout(300'000);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::NoLessSafeRedirectPolicy);

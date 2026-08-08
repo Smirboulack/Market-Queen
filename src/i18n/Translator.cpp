@@ -103,7 +103,7 @@ void Translator::applyLanguage(const QString &code)
 
     // English is the source language: there is no catalogue to load.
     if (target != QLatin1String("en")) {
-        if (m_appTranslator->load(QStringLiteral(":/i18n/superinfinity_%1.qm").arg(target)))
+        if (m_appTranslator->load(QStringLiteral(":/i18n/marketqueen_%1.qm").arg(target)))
             QCoreApplication::installTranslator(m_appTranslator);
 
         // Qt's own strings (dialog buttons, text field context menu).
