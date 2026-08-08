@@ -157,6 +157,12 @@ QVariantMap Pricing::line(const QString &step, const QString &providerId,
     if (price.unit == QLatin1String("tokens")) {
         amount = units / 1e6 * price.in + unitsOut / 1e6 * price.out;
         shown = units + unitsOut;
+    } else if (price.unit == QLatin1String("video")) {
+        // Some models charge a flat fee per generation rather than by the
+        // second, so the seconds asked for do not enter into it -- only how many
+        // clips the cut needs, which the caller passes as the second quantity.
+        shown = qMax(1.0, unitsOut);
+        amount = shown * price.amount;
     } else {
         // Providers with a floor bill it even for a shorter request.
         shown = qMax(units, price.minUnits);
@@ -236,7 +242,7 @@ QVariantMap Pricing::estimate(const QVariantMap &request) const
         const QString model = m_registry
             ? m_registry->resolveModel(provider, text("videoModel"), clip)
             : text("videoModel");
-        lines.append(line(QStringLiteral("video"), provider, model, double(shots) * clip));
+        lines.append(line(QStringLiteral("video"), provider, model, double(shots) * clip, shots));
     }
 
     // ---- Subtitles ------------------------------------------------------

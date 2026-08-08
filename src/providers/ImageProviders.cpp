@@ -176,8 +176,13 @@ void FalImageTask::start()
         {QStringLiteral("num_images"), 1},
     };
     if (!m_request.referenceImageDataUri.isEmpty()) {
-        // Image-to-image models read this; text-to-image models ignore it.
+        // Image-to-image models read this; text-to-image models ignore it. The
+        // newer edit endpoints (nano-banana-pro/edit, flux-2-*/edit, ...) take a
+        // list instead, so send both spellings and let each model pick the one
+        // it knows.
         input.insert(QStringLiteral("image_url"), m_request.referenceImageDataUri);
+        input.insert(QStringLiteral("image_urls"),
+                     QJsonArray{m_request.referenceImageDataUri});
     }
 
     submitFal(m_request.apiKey, m_request.model, input, [this](const QJsonObject &result) {

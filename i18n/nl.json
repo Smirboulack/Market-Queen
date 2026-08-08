@@ -173,7 +173,6 @@
   "Reads the product photo when the model supports vision.": "Leest de productfoto als het model beeld ondersteunt.",
   "Strong at short, natural-sounding ad copy.": "Sterk in korte, natuurlijk klinkende reclameteksten.",
   "Free tier available in most regions.": "Gratis niveau beschikbaar in de meeste regio's.",
-  "gpt-image-1 can edit your product photo directly.": "gpt-image-1 kan je productfoto rechtstreeks bewerken.",
   "Any fal model id works, paste one from fal.ai/models.": "Elke fal-model-id werkt, plak er een van fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Gebruik owner/name, of owner/name:version om een versie vast te zetten.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - allemaal met één sleutel.",
@@ -199,7 +198,6 @@
   "Auto picked %1.": "Auto koos %1.",
   "Auto - best model for this shot": "Auto - beste model voor deze shot",
   "The widest catalogue. Any model id from fal.ai/models also works.": "De breedste catalogus. Elke model-id van fal.ai/models werkt ook.",
-  "Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.": "Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - één sleutel.",
   "Scripts, images, Sora video, voice-over and subtitles.": "Scripts, beelden, Sora-video, voice-over en ondertitels.",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "Beeld, video en stemmen (Kling, Veo, Seedance, FLUX, MiniMax...).",
   "The opening frame is resized to Sora's format automatically.": "Het eerste beeld wordt automatisch naar Sora's formaat geschaald.",
@@ -244,5 +242,7 @@
   "FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.": "FFmpeg is nodig om de shots met de voice-over en de ondertitels te monteren. Installeer het of geef het pad op bij Instellingen. Je gegenereerde bestanden staan in %1.",
   "No shot was rendered, so there is nothing to cut together.": "Er is geen shot gemaakt, dus er valt niets te monteren.",
   "The clips are %1s short of the voice-over; the last shot holds.": "De clips komen %1 s tekort ten opzichte van de voice-over; het laatste shot blijft staan.",
-  "Cutting %1 shot(s) into %2x%3.": "%1 shot(s) worden gemonteerd naar %2x%3."
+  "Cutting %1 shot(s) into %2x%3.": "%1 shot(s) worden gemonteerd naar %2x%3.",
+  "gpt-image models can edit your product photo directly.": "De gpt-image-modellen kunnen je productfoto rechtstreeks bewerken.",
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - één sleutel voor alles."
 }

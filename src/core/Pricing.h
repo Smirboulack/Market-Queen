@@ -86,8 +86,10 @@ private:
     bool loadFrom(const QString &path);
     Price priceFor(const QString &modelId) const;
 
-    // One row of the estimate. For token pricing `units` is the input count and
-    // `unitsOut` the output count; everything else uses `units` alone.
+    // One row of the estimate. What the two quantities mean depends on how the
+    // model bills: for tokens, input and output counts; for a flat per-clip
+    // video price, seconds and the number of clips; everything else uses
+    // `units` alone.
     QVariantMap line(const QString &step, const QString &providerId,
                      const QString &modelId, double units, double unitsOut = 0) const;
 

@@ -61,11 +61,15 @@ You only need keys for the providers you actually pick.
 
 | Step      | Providers | Models |
 | --------- | --------- | ------ |
-| Script    | OpenAI, Anthropic, Google Gemini | GPT-5, Claude 5, Gemini 2.5 |
-| Frame     | fal.ai, OpenAI Images, Replicate | Nano Banana, FLUX (Ultra / Kontext / dev / schnell), Seedream 4, Imagen 4, Ideogram 3, Recraft V3, Qwen Image, GPT Image 1, DALL·E 3, SD 3.5 |
-| Video     | fal.ai, Replicate, OpenAI (Sora) | Kling 2.1, Veo 3, Seedance 1 Pro/Lite, Hailuo 02, Runway Gen-3, Luma Ray 2, Wan 2.2, Pika 2.2, PixVerse 4.5, Sora 2 |
-| Voice     | ElevenLabs, OpenAI TTS, fal.ai voices | Eleven v3, GPT-4o mini TTS, MiniMax Speech 02, Kokoro, Chatterbox |
+| Script    | OpenAI, Anthropic, Google Gemini | GPT-5.6 / 5.5 / 5.4 / 5.2 / 5.1 / 5, Claude Fable 5, Opus 5, Sonnet 5, Haiku 4.5, Gemini 3.6 / 3.5 / 3.1 / 2.5 |
+| Frames    | fal.ai, OpenAI Images, Replicate | Nano Banana Pro / 2, FLUX.2 (Pro / Flex / Max), Seedream 5 Lite / 4.5, GPT Image 2 / 1.5, Grok Imagine, Imagen 4 Ultra, Recraft V4, Wan 2.7 Image, plus the FLUX.1, Ideogram, Qwen and SD 3.5 back catalogue |
+| Shots     | fal.ai, Replicate, OpenAI (Sora) | Kling 3.0 (Standard / Pro / Turbo / 4K / O3), Veo 3.1 (Lite / Fast / full), Seedance 2.0, Wan 2.7 / 2.6, Hailuo 2.3 (Fast / Standard / Pro), HappyHorse 1.1, Grok Imagine Video, Luma Ray 3.2, Vidu Q3 Pro, Decart Lucy 5B, Sora 2, plus the 2.x back catalogue |
+| Voice     | ElevenLabs, OpenAI TTS, fal.ai voices | Eleven v3, Multilingual v2, Turbo / Flash v2.5, GPT-4o mini TTS, MiniMax Speech 02, Kokoro, Chatterbox |
 | Subtitles | OpenAI Whisper | Whisper |
+
+Around 135 models in all. `Auto` picks the head of each list, and those lists are ordered
+so that pick is a current-generation model at a sane price — for video that is **Kling 3.0
+Standard at $0.084/s**, not the $0.28/s Master tier it supersedes.
 
 Every list is a fixed set of choices plus a final **Other…** entry: pick that and a text
 field appears for a model id the catalogue does not know yet. The `owner/name` and
@@ -92,17 +96,17 @@ ESTIMATED COST                    prices 08/08/2026
 Script                                      ~$0.01
 Voice-over                                  ~$0.03
 Frames         4 x                          ~$0.16
-Shots          20 s                         ~$5.60
+Shots          20 s                         ~$1.68
 Subtitles                                   ~$0.00
 ──────────────────────────────────────────────────
-Total                                       ~$5.80
+Total                                       ~$1.88
 ```
 
 Video is almost always the bill, and cutting an ad into shots buys a clip for each one.
 Switching the video model is the single change that moves the total by an order of
-magnitude — the same 20-second ad is `~$1.80` on Hailuo 02 Pro and `~$5.80` on Kling 2.1
-Master. That is exactly what the per-model prices are there to make obvious before you
-spend anything.
+magnitude — that same 20-second ad runs `~$0.77` end to end on Veo 3.1 Lite and `~$4.66` on
+the premium tier. That is exactly what the per-model prices are there to make obvious
+before you spend anything.
 
 How many shots an ad is cut into follows from its length: every shot is kept at or under
 five seconds, the shortest clip every video model sells, so each one is bought at that floor
@@ -113,7 +117,8 @@ Afterwards the run records what it actually consumed — tokens the writer bille
 sent to the voice, seconds of clip returned — into `project.json`, and the library shows it
 per ad and as a running total.
 
-Prices come from `resources/pricing.json`, checked against each provider's own pricing page.
+Prices come from `resources/pricing.json`, checked against each provider's own pricing page —
+66 of the ~135 models carry one today.
 A model with no public per-request price is reported as unknown and left out of the total
 rather than counted as free. Drop your own `pricing.json` into the config folder to override
 the lot. It is an estimate, never a bill — the providers charge you, we only do the sums.

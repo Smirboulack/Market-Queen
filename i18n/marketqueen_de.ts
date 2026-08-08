@@ -885,14 +885,6 @@
         <translation>Der größte Katalog. Jede Modell-ID von fal.ai/models funktioniert ebenfalls.</translation>
     </message>
     <message>
-        <source>gpt-image-1 can edit your product photo directly.</source>
-        <translation>gpt-image-1 kann dein Produktfoto direkt bearbeiten.</translation>
-    </message>
-    <message>
-        <source>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.</source>
-        <translation>Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - ein Schlüssel für alle.</translation>
-    </message>
-    <message>
         <source>Scripts, images, Sora video, voice-over and subtitles.</source>
         <translation>Skripte, Bilder, Sora-Video, Voice-over und Untertitel.</translation>
     </message>
@@ -903,6 +895,14 @@
     <message>
         <source>Use owner/name, or owner/name:version to pin a version.</source>
         <translation>Nutze owner/name oder owner/name:version, um eine Version festzulegen.</translation>
+    </message>
+    <message>
+        <source>gpt-image models can edit your product photo directly.</source>
+        <translation>Die gpt-image-Modelle können dein Produktfoto direkt bearbeiten.</translation>
+    </message>
+    <message>
+        <source>Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.</source>
+        <translation>Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - ein Schlüssel für alle.</translation>
     </message>
     <message>
         <source>Pay per second, no subscription.</source>

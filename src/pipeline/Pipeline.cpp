@@ -669,7 +669,9 @@ void Pipeline::runVideo()
     attach(providers::video(providerId, request, this),
            [this, providerId, model = request.model, seconds = clipSeconds, index](
                const QVariantMap &result) {
-        recordUsage(QStringLiteral("video"), providerId, model, seconds);
+        // One clip, `seconds` long -- models bill by whichever of the two they
+        // price on.
+        recordUsage(QStringLiteral("video"), providerId, model, seconds, 1);
 
         const QByteArray data = result.value(QStringLiteral("data")).toByteArray();
         const QString extension =

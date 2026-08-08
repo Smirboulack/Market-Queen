@@ -173,7 +173,6 @@
   "Reads the product photo when the model supports vision.": "Liest das Produktfoto, wenn das Modell Bilder versteht.",
   "Strong at short, natural-sounding ad copy.": "Stark bei kurzen, natürlich klingenden Werbetexten.",
   "Free tier available in most regions.": "Kostenloses Kontingent in den meisten Regionen verfügbar.",
-  "gpt-image-1 can edit your product photo directly.": "gpt-image-1 kann dein Produktfoto direkt bearbeiten.",
   "Any fal model id works, paste one from fal.ai/models.": "Jede fal-Modell-ID funktioniert, kopiere eine von fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Nutze owner/name oder owner/name:version, um eine Version festzulegen.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - alle mit einem einzigen Schlüssel.",
@@ -199,7 +198,6 @@
   "Auto picked %1.": "Auto hat %1 gewählt.",
   "Auto - best model for this shot": "Auto - bestes Modell für diese Einstellung",
   "The widest catalogue. Any model id from fal.ai/models also works.": "Der größte Katalog. Jede Modell-ID von fal.ai/models funktioniert ebenfalls.",
-  "Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.": "Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - ein Schlüssel für alle.",
   "Scripts, images, Sora video, voice-over and subtitles.": "Skripte, Bilder, Sora-Video, Voice-over und Untertitel.",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "Bilder, Video und Stimmen (Kling, Veo, Seedance, FLUX, MiniMax...).",
   "The opening frame is resized to Sora's format automatically.": "Das erste Bild wird automatisch auf Soras Format gebracht.",
@@ -244,5 +242,7 @@
   "FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.": "FFmpeg wird gebraucht, um die Einstellungen mit Voice-over und Untertiteln zu schneiden. Installiere es oder gib den Pfad in den Einstellungen an. Deine erzeugten Dateien liegen in %1.",
   "No shot was rendered, so there is nothing to cut together.": "Es wurde keine Einstellung erzeugt, es gibt nichts zu schneiden.",
   "The clips are %1s short of the voice-over; the last shot holds.": "Den Clips fehlen %1 s gegenüber dem Voice-over; die letzte Einstellung steht still.",
-  "Cutting %1 shot(s) into %2x%3.": "%1 Einstellung(en) werden zu %2x%3 geschnitten."
+  "Cutting %1 shot(s) into %2x%3.": "%1 Einstellung(en) werden zu %2x%3 geschnitten.",
+  "gpt-image models can edit your product photo directly.": "Die gpt-image-Modelle können dein Produktfoto direkt bearbeiten.",
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - ein Schlüssel für alle."
 }

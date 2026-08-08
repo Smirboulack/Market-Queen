@@ -173,7 +173,6 @@
   "Reads the product photo when the model supports vision.": "يقرأ صورة المنتج عندما يدعم النموذج الرؤية.",
   "Strong at short, natural-sounding ad copy.": "بارع في النصوص الإعلانية القصيرة والطبيعية.",
   "Free tier available in most regions.": "توجد باقة مجانية في معظم المناطق.",
-  "gpt-image-1 can edit your product photo directly.": "يستطيع gpt-image-1 تعديل صورة منتجك مباشرة.",
   "Any fal model id works, paste one from fal.ai/models.": "أي معرّف نموذج من fal يعمل، انسخه من fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "استخدم owner/name، أو owner/name:version لتثبيت إصدار معيّن.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "‏Kling وHailuo وWan وLuma - جميعها بمفتاح واحد.",
@@ -199,7 +198,6 @@
   "Auto picked %1.": "اختار الوضع التلقائي %1.",
   "Auto - best model for this shot": "تلقائي - أفضل نموذج لهذه اللقطة",
   "The widest catalogue. Any model id from fal.ai/models also works.": "أوسع كتالوج. يعمل أيضًا أي معرّف نموذج من fal.ai/models.",
-  "Kling, Veo, Seedance, Hailuo, Runway, Luma, Wan, Pika - one key for all.": "‏Kling وVeo وSeedance وHailuo وRunway وLuma وWan وPika - مفتاح واحد للجميع.",
   "Scripts, images, Sora video, voice-over and subtitles.": "النصوص والصور وفيديو Sora والتعليق الصوتي والترجمة.",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "الصور والفيديو والأصوات (Kling، Veo، Seedance، FLUX، MiniMax...).",
   "The opening frame is resized to Sora's format automatically.": "يتم تغيير حجم اللقطة الأولى تلقائيًا لتناسب صيغة Sora.",
@@ -244,5 +242,7 @@
   "FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.": "يلزم FFmpeg لتركيب اللقطات مع التعليق الصوتي والترجمة. ثبّته أو حدّد مساره في الإعدادات. ملفاتك المولّدة موجودة في %1.",
   "No shot was rendered, so there is nothing to cut together.": "لم تُنتج أي لقطة، فلا شيء لتركيبه.",
   "The clips are %1s short of the voice-over; the last shot holds.": "المقاطع أقصر من التعليق الصوتي بـ %1 ث؛ تثبت اللقطة الأخيرة.",
-  "Cutting %1 shot(s) into %2x%3.": "تركيب %1 لقطة بمقاس %2x%3."
+  "Cutting %1 shot(s) into %2x%3.": "تركيب %1 لقطة بمقاس %2x%3.",
+  "gpt-image models can edit your product photo directly.": "يمكن لنماذج gpt-image تعديل صورة منتجك مباشرة.",
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "‏Kling وVeo وSeedance وHailuo وWan وRunway وLuma - مفتاح واحد للجميع."
 }
