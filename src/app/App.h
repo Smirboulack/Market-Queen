@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AdProject.h"
 #include "LibraryModel.h"
 #include "core/LogModel.h"
 #include "core/Pricing.h"
@@ -26,6 +27,7 @@ class App : public QObject
     Q_PROPERTY(Registry *registry READ registry CONSTANT)
     Q_PROPERTY(Pricing *pricing READ pricing CONSTANT)
     Q_PROPERTY(Pipeline *pipeline READ pipeline CONSTANT)
+    Q_PROPERTY(AdProject *project READ project CONSTANT)
     Q_PROPERTY(LogModel *log READ log CONSTANT)
     Q_PROPERTY(LibraryModel *library READ library CONSTANT)
     Q_PROPERTY(Translator *translator READ translator CONSTANT)
@@ -41,6 +43,7 @@ public:
     Registry *registry() const { return m_registry; }
     Pricing *pricing() const { return m_pricing; }
     Pipeline *pipeline() const { return m_pipeline; }
+    AdProject *project() const { return m_project; }
     LogModel *log() const { return m_log; }
     LibraryModel *library() const { return m_library; }
     Translator *translator() const { return m_translator; }
@@ -70,6 +73,7 @@ private:
     Pricing *m_pricing;
     LogModel *m_log;
     Pipeline *m_pipeline;
+    AdProject *m_project;
     LibraryModel *m_library;
     Translator *m_translator;
 };

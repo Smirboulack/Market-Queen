@@ -35,6 +35,7 @@ ApplicationWindow {
             Layout.fillHeight: true
             currentIndex: nav.currentIndex
 
+            StudioPage {}
             CreatePage {}
             LibraryPage {}
             SettingsPage {}

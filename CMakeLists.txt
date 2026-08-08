@@ -36,6 +36,7 @@ set(APP_SOURCES
     src/providers/VoiceProviders.h  src/providers/VoiceProviders.cpp
     src/media/Ffmpeg.h           src/media/Ffmpeg.cpp
     src/pipeline/Pipeline.h      src/pipeline/Pipeline.cpp
+    src/app/AdProject.h          src/app/AdProject.cpp
     src/app/LibraryModel.h       src/app/LibraryModel.cpp
     src/app/App.h                src/app/App.cpp
 )
@@ -51,6 +52,14 @@ set(APP_QML_FILES
     qml/Theme.qml
     qml/Format.qml
     qml/SideNav.qml
+    qml/StudioPage.qml
+    qml/StepRail.qml
+    qml/RecapPanel.qml
+    qml/RecapBlock.qml
+    qml/StepProduct.qml
+    qml/StepActor.qml
+    qml/StepScript.qml
+    qml/StepSummary.qml
     qml/CreatePage.qml
     qml/LibraryPage.qml
     qml/SettingsPage.qml

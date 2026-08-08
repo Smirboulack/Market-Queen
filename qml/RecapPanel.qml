@@ -1,0 +1,200 @@
+import QtQuick
+import QtQuick.Controls.Basic
+import QtQuick.Layouts
+import MarketQueen
+
+// What the ad is made of, always visible, always current.
+//
+// This is what replaces "fill the form and hope": every step leaves something
+// here, so the context of the previous steps never leaves the screen, and each
+// block doubles as a way back to the step that produced it.
+Rectangle {
+    id: root
+
+    readonly property var project: App.project
+
+    Layout.preferredWidth: 320
+    Layout.minimumWidth: 320
+    Layout.maximumWidth: 320
+    color: Theme.surface
+
+    Rectangle {
+        width: 1
+        height: parent.height
+        color: Theme.border
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Theme.gapLarge
+        spacing: Theme.gap
+
+        Text {
+            text: qsTr("YOUR AD")
+            color: Theme.textFaint
+            font.pixelSize: Theme.fontSmall
+            font.weight: Font.DemiBold
+            font.letterSpacing: 1
+        }
+
+        ScrollView {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            contentWidth: availableWidth
+            clip: true
+
+            ColumnLayout {
+                width: parent.width
+                spacing: Theme.gap
+
+                // ------------------------------------------------- product
+                RecapBlock {
+                    title: qsTr("Product")
+                    stepIndex: 0
+                    filled: root.project.stepStates[0] !== undefined
+                            && root.project.stepStates[0].valid
+                    placeholder: qsTr("Not set yet")
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.project.product.name !== undefined
+                              ? root.project.product.name : ""
+                        color: Theme.text
+                        font.pixelSize: Theme.fontBody
+                        font.weight: Font.DemiBold
+                        wrapMode: Text.WordWrap
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.project.product.audience !== undefined
+                              ? root.project.product.audience : ""
+                        visible: text !== ""
+                        color: Theme.textDim
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
+                    }
+
+                    // Reference images, as thumbnails: the point of collecting
+                    // several is being able to see them all at a glance.
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 5
+                        visible: repeater.count > 0
+
+                        Repeater {
+                            id: repeater
+                            model: root.project.product.images !== undefined
+                                   ? root.project.product.images : []
+
+                            Rectangle {
+                                required property string modelData
+
+                                width: 44
+                                height: 44
+                                radius: Theme.radiusSmall
+                                color: Theme.surfaceAlt
+                                border.width: 1
+                                border.color: Theme.border
+                                clip: true
+
+                                Image {
+                                    anchors.fill: parent
+                                    anchors.margins: 1
+                                    source: App.toFileUrl(parent.modelData)
+                                    fillMode: Image.PreserveAspectCrop
+                                    asynchronous: true
+                                    smooth: true
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // --------------------------------------------------- actor
+                RecapBlock {
+                    title: qsTr("Actor")
+                    stepIndex: 1
+                    filled: root.project.stepStates[1] !== undefined
+                            && root.project.stepStates[1].valid
+                    placeholder: qsTr("No one cast yet")
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.project.actor.brief !== undefined
+                              ? root.project.actor.brief : ""
+                        color: Theme.text
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 3
+                        elide: Text.ElideRight
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.project.actor.decor !== undefined
+                              ? root.project.actor.decor : ""
+                        visible: text !== ""
+                        color: Theme.textFaint
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
+                    }
+                }
+
+                // -------------------------------------------------- script
+                RecapBlock {
+                    title: qsTr("Script")
+                    stepIndex: 2
+                    filled: root.project.stepStates[2] !== undefined
+                            && root.project.stepStates[2].valid
+                    placeholder: qsTr("Nothing written yet")
+
+                    Text {
+                        Layout.fillWidth: true
+                        //: %1 is a duration in seconds, e.g. "13.5 s"
+                        text: qsTr("%1 s spoken").arg(root.project.spokenSeconds.toFixed(1))
+                        color: Theme.text
+                        font.pixelSize: Theme.fontBody
+                        font.weight: Font.DemiBold
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        text: root.project.script
+                        color: Theme.textDim
+                        font.pixelSize: Theme.fontSmall
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 3
+                        elide: Text.ElideRight
+                    }
+                }
+            }
+        }
+
+        // ------------------------------------------------------------ cost
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: 1
+            color: Theme.border
+        }
+
+        EstimateCard {
+            request: root.project.request
+            visible: root.project.complete && !App.pipeline.running
+                     && App.pipeline.outputFile === ""
+        }
+
+        Text {
+            Layout.fillWidth: true
+            text: qsTr("The estimate appears once the three steps are filled in.")
+            visible: !root.project.complete
+            color: Theme.textFaint
+            font.pixelSize: Theme.fontSmall
+            wrapMode: Text.WordWrap
+        }
+    }
+}

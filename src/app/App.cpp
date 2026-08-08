@@ -25,6 +25,7 @@ App::App(QObject *parent)
     , m_pricing(new Pricing(m_registry, this))
     , m_log(new LogModel(this))
     , m_pipeline(new Pipeline(m_settings, m_registry, m_pricing, m_log, this))
+    , m_project(new AdProject(m_settings, m_registry, this))
     , m_library(new LibraryModel(m_settings, this))
     , m_translator(new Translator(this))
 {

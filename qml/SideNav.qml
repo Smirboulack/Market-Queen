@@ -69,7 +69,10 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { label: qsTr("Create"), glyph: "✦" },
+                    { label: qsTr("Studio"), glyph: "✦" },
+                    // The V1 form, kept reachable until the studio covers
+                    // everything it does. It goes away with S6.
+                    { label: qsTr("Quick form"), glyph: "☰" },
                     { label: qsTr("Library"), glyph: "▦" },
                     { label: qsTr("Settings"), glyph: "⚙" }
                 ]

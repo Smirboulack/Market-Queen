@@ -1,4 +1,9 @@
-# Market Queen — plan V2
+# Market Queen — plan V2 — ⛔ ABANDONNÉ
+
+> **Ce plan est caduc.** Remplacé par [`V3-PLAN.md`](V3-PLAN.md) après le premier
+> test de bout en bout : le pipeline muet et le formulaire central ne peuvent pas
+> produire du UGC crédible. Conservé pour l'historique des décisions V2.0 et
+> V2.1, qui restent livrées et dont le code survit en partie.
 
 Document de travail interne (FR). Le README reste la doc publique.
 
