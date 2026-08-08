@@ -106,39 +106,10 @@ Item {
                         id: productPhoto
                     }
 
-                    CheckBox {
+                    StyledCheck {
                         id: useOwnPhoto
                         text: qsTr("Use my photo as the opening frame (skip image generation)")
                         enabled: productPhoto.filePath !== ""
-                        font.pixelSize: Theme.fontSmall + 1
-
-                        indicator: Rectangle {
-                            width: 16
-                            height: 16
-                            x: 0
-                            y: (useOwnPhoto.height - height) / 2
-                            radius: 4
-                            color: useOwnPhoto.checked ? Theme.accent : Theme.surfaceAlt
-                            border.width: 1
-                            border.color: useOwnPhoto.checked ? Theme.accent : Theme.border
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "✓"
-                                color: "white"
-                                font.pixelSize: 10
-                                font.weight: Font.Bold
-                                visible: useOwnPhoto.checked
-                            }
-                        }
-
-                        contentItem: Text {
-                            text: useOwnPhoto.text
-                            color: useOwnPhoto.enabled ? Theme.textDim : Theme.textFaint
-                            font: useOwnPhoto.font
-                            leftPadding: 24
-                            verticalAlignment: Text.AlignVCenter
-                        }
                     }
                 }
 
@@ -381,10 +352,9 @@ Item {
                         }
                     }
 
-                    CheckBox {
+                    StyledCheck {
                         id: captions
                         text: qsTr("Burn in subtitles (uses OpenAI Whisper)")
-                        font.pixelSize: Theme.fontSmall + 1
 
                         // Restore first, then persist: a plain binding would be
                         // overwritten by the initial unchecked state.
@@ -396,34 +366,6 @@ Item {
                         }
 
                         onCheckedChanged: if (ready) App.settings.setPref("captions", checked)
-
-                        indicator: Rectangle {
-                            width: 16
-                            height: 16
-                            x: 0
-                            y: (captions.height - height) / 2
-                            radius: 4
-                            color: captions.checked ? Theme.accent : Theme.surfaceAlt
-                            border.width: 1
-                            border.color: captions.checked ? Theme.accent : Theme.border
-
-                            Text {
-                                anchors.centerIn: parent
-                                text: "✓"
-                                color: "white"
-                                font.pixelSize: 10
-                                font.weight: Font.Bold
-                                visible: captions.checked
-                            }
-                        }
-
-                        contentItem: Text {
-                            text: captions.text
-                            color: Theme.textDim
-                            font: captions.font
-                            leftPadding: 24
-                            verticalAlignment: Text.AlignVCenter
-                        }
                     }
                 }
 

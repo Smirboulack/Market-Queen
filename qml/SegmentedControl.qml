@@ -37,13 +37,11 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.preferredWidth: text.implicitWidth + 28
                 radius: Theme.radiusSmall - 2
+                // Segments touch each other: hover snaps both ways (see
+                // Theme.qml), so sliding across the pill never lights two.
                 color: selected ? Theme.accent
                      : hover.hovered ? Theme.surfaceHover
                      : "transparent"
-
-                Behavior on color {
-                    ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-                }
 
                 Text {
                     id: text
@@ -60,6 +58,7 @@ Rectangle {
                 }
 
                 TapHandler {
+                    gesturePolicy: TapHandler.ReleaseWithinBounds
                     onTapped: root.picked(segment.modelData.value)
                 }
             }

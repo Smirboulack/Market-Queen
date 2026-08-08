@@ -13,15 +13,13 @@ ApplicationWindow {
     visible: true
     // Product and company name: neither is translated.
     title: "Super Infinity - SegfaultLabs"
+    // No fade here: a theme switch snaps everywhere at once, and a window
+    // that fades under content that snaps reads as two competing animations.
     color: Theme.background
 
     // Arabic mirrors the whole interface.
     LayoutMirroring.enabled: App.translator.rightToLeft
     LayoutMirroring.childrenInherit: true
-
-    Behavior on color {
-        ColorAnimation { duration: 160 }
-    }
 
     RowLayout {
         anchors.fill: parent

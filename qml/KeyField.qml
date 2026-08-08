@@ -100,10 +100,38 @@ Rectangle {
                 }
 
                 background: Rectangle {
+                    id: fieldBg
+
                     radius: Theme.radiusSmall
                     color: Theme.background
                     border.width: 1
-                    border.color: field.activeFocus ? Theme.accent : Theme.border
+                    border.color: Theme.border
+
+                    states: [
+                        State {
+                            name: "focus"
+                            when: field.activeFocus
+                            PropertyChanges {
+                                fieldBg { border.color: Theme.accent }
+                            }
+                        },
+                        State {
+                            name: "hover"
+                            when: field.hovered
+                            PropertyChanges {
+                                fieldBg { border.color: Theme.borderStrong }
+                            }
+                        }
+                    ]
+
+                    transitions: Transition {
+                        to: ""
+                        ColorAnimation {
+                            properties: "border.color"
+                            duration: Theme.hoverDuration
+                            easing.type: Easing.OutQuad
+                        }
+                    }
                 }
             }
 

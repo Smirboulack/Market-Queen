@@ -81,13 +81,11 @@ Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 36
                     radius: Theme.radiusSmall
+                    // Adjacent rows: hover snaps both ways (see Theme.qml), so
+                    // sweeping the list never tints two entries at once.
                     color: root.currentIndex === index ? Theme.accentSoft
-                         : mouse.containsMouse ? Theme.surfaceAlt
+                         : itemHover.hovered ? Theme.surfaceAlt
                          : "transparent"
-
-                    Behavior on color {
-                        ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-                    }
 
                     RowLayout {
                         anchors.fill: parent
@@ -110,12 +108,14 @@ Rectangle {
                         }
                     }
 
-                    MouseArea {
-                        id: mouse
-                        anchors.fill: parent
-                        hoverEnabled: true
+                    HoverHandler {
+                        id: itemHover
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.currentIndex = index
+                    }
+
+                    TapHandler {
+                        gesturePolicy: TapHandler.ReleaseWithinBounds
+                        onTapped: root.currentIndex = index
                     }
                 }
             }

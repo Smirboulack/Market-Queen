@@ -58,6 +58,7 @@ set(APP_QML_FILES
     qml/PrimaryButton.qml
     qml/GhostButton.qml
     qml/StyledCombo.qml
+    qml/StyledCheck.qml
     qml/SegmentedControl.qml
     qml/PickerWithCustom.qml
     qml/ModelPicker.qml

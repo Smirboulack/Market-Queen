@@ -97,13 +97,37 @@ ColumnLayout {
         onTextChanged: if (root.isCustom) root.valueEdited(root.value)
 
         background: Rectangle {
+            id: customBg
+
             radius: Theme.radiusSmall
             color: Theme.surfaceAlt
             border.width: 1
-            border.color: customField.activeFocus ? Theme.accent : Theme.border
+            border.color: Theme.border
 
-            Behavior on border.color {
-                ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
+            states: [
+                State {
+                    name: "focus"
+                    when: customField.activeFocus
+                    PropertyChanges {
+                        customBg { border.color: Theme.accent }
+                    }
+                },
+                State {
+                    name: "hover"
+                    when: customField.hovered
+                    PropertyChanges {
+                        customBg { border.color: Theme.borderStrong }
+                    }
+                }
+            ]
+
+            transitions: Transition {
+                to: ""
+                ColorAnimation {
+                    properties: "border.color"
+                    duration: Theme.hoverDuration
+                    easing.type: Easing.OutQuad
+                }
             }
         }
     }

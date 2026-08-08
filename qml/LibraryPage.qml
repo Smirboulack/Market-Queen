@@ -74,13 +74,11 @@ Item {
                     anchors.rightMargin: Theme.gap
                     anchors.bottomMargin: Theme.gap
                     radius: Theme.radius
+                    // Cards sit in a grid: hover snaps both ways, fill and
+                    // border together (see the spec in Theme.qml).
                     color: hover.hovered ? Theme.surfaceAlt : Theme.surface
                     border.width: 1
                     border.color: hover.hovered ? Theme.borderStrong : Theme.border
-
-                    Behavior on color {
-                        ColorAnimation { duration: 120 }
-                    }
 
                     HoverHandler {
                         id: hover
@@ -88,6 +86,7 @@ Item {
                     }
 
                     TapHandler {
+                        gesturePolicy: TapHandler.ReleaseWithinBounds
                         onTapped: {
                             if (finalVideo !== "")
                                 App.openPath(finalVideo);
@@ -178,10 +177,20 @@ Item {
 
                             Text {
                                 text: qsTr("Show file")
-                                color: Theme.accent
+                                color: linkHover.hovered ? Theme.accentHover : Theme.accent
                                 font.pixelSize: Theme.fontSmall
 
+                                HoverHandler {
+                                    id: linkHover
+                                }
+
+                                // ReleaseWithinBounds takes the exclusive grab
+                                // on press, so the card's own TapHandler never
+                                // sees this click. With the default (passive)
+                                // policy both fired: one click revealed the
+                                // file AND opened the video.
                                 TapHandler {
+                                    gesturePolicy: TapHandler.ReleaseWithinBounds
                                     onTapped: App.revealPath(finalVideo !== "" ? finalVideo : dir)
                                 }
                             }

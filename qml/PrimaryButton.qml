@@ -12,20 +12,36 @@ Button {
     implicitWidth: Math.max(140, label.implicitWidth + 44)
     enabled: !loading
 
-    background: Rectangle {
-        radius: Theme.radius
-        color: !control.enabled ? Theme.surfaceAlt
-             : control.pressed ? Qt.darker(control.accentColor, 1.2)
-             : control.hovered ? Theme.accentHover
-             : control.accentColor
-
-        Behavior on color {
-            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-        }
-    }
-
+    // Cursor only. The hover *state* comes from control.hovered alone; when
+    // the button is disabled the handler goes inactive and the cursor falls
+    // back to the arrow by itself.
     HoverHandler {
         cursorShape: control.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+    }
+
+    background: Rectangle {
+        id: bg
+
+        radius: Theme.radius
+        color: control.enabled ? control.accentColor : Theme.surfaceAlt
+
+        states: [
+            State {
+                name: "pressed"
+                when: control.pressed
+                PropertyChanges { bg.color: Qt.darker(control.accentColor, 1.2) }
+            },
+            State {
+                name: "hover"
+                when: control.enabled && control.hovered
+                PropertyChanges { bg.color: Theme.accentHover }
+            }
+        ]
+
+        transitions: Transition {
+            to: ""
+            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
+        }
     }
 
     contentItem: Item {

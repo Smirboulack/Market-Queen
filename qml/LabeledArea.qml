@@ -23,6 +23,8 @@ ColumnLayout {
     }
 
     Rectangle {
+        id: frame
+
         Layout.fillWidth: true
 
         // The field grows with its content instead of scrolling inside itself:
@@ -33,18 +35,40 @@ ColumnLayout {
         radius: Theme.radiusSmall
         color: Theme.surfaceAlt
         border.width: 1
-        border.color: area.activeFocus ? Theme.accent
-                    : hover.hovered ? Theme.borderStrong
-                    : Theme.border
+        border.color: Theme.border
 
-        Behavior on border.color {
-            ColorAnimation { duration: 120 }
+        states: [
+            State {
+                name: "focus"
+                when: area.activeFocus
+                PropertyChanges {
+                    frame { border.color: Theme.accent }
+                }
+            },
+            State {
+                name: "hover"
+                when: hover.hovered
+                PropertyChanges {
+                    frame { border.color: Theme.borderStrong }
+                }
+            }
+        ]
+
+        transitions: Transition {
+            to: ""
+            ColorAnimation {
+                properties: "border.color"
+                duration: Theme.hoverDuration
+                easing.type: Easing.OutQuad
+            }
         }
 
         Behavior on implicitHeight {
             NumberAnimation { duration: 100; easing.type: Easing.OutQuad }
         }
 
+        // On the frame, not the TextArea: the border must also react over the
+        // 8 px ring the inner area does not cover. Single hover source.
         HoverHandler {
             id: hover
         }

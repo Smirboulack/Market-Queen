@@ -40,8 +40,19 @@ QtObject {
     readonly property int pagePadding: 28
     readonly property int fieldHeight: 38
 
-    // One duration for every hover/press transition. Mixing durations, or
-    // animating a fill but not its border, reads as two separate animations.
+    // Interaction spec, applied by every clickable in the app:
+    //  - exactly one hover source per control: the control's own `hovered`,
+    //    or a single HoverHandler on plain items - never two trackers on the
+    //    same item;
+    //  - entering hover or pressed is instant, so the item under the pointer
+    //    is always the only fully lit one; only the way back to rest fades,
+    //    over hoverDuration. Grouped rows (nav entries, segments, popup
+    //    options, library cards) snap both ways, like native menus, so a fast
+    //    sweep never tints two of them at once;
+    //  - a fill and its border always change together;
+    //  - TapHandlers use ReleaseWithinBounds: the handler takes the exclusive
+    //    grab on press, so a click target nested inside another one can never
+    //    fire both.
     readonly property int hoverDuration: 120
 
     readonly property int fontSmall: 11

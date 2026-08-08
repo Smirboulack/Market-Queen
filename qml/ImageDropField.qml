@@ -13,12 +13,30 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: 132
     radius: Theme.radius
-    color: dropArea.containsDrag ? Theme.accentSoft : Theme.surfaceAlt
+    color: Theme.surfaceAlt
     border.width: 1
-    border.color: dropArea.containsDrag ? Theme.accent : Theme.border
+    border.color: Theme.border
 
-    Behavior on color {
-        ColorAnimation { duration: 120 }
+    // Drag-over works like hover: instant in, fill and border together,
+    // fade only on the way out (see the spec in Theme.qml).
+    states: State {
+        name: "drag"
+        when: dropArea.containsDrag
+        PropertyChanges {
+            root {
+                color: Theme.accentSoft
+                border.color: Theme.accent
+            }
+        }
+    }
+
+    transitions: Transition {
+        to: ""
+        ColorAnimation {
+            properties: "color,border.color"
+            duration: Theme.hoverDuration
+            easing.type: Easing.OutQuad
+        }
     }
 
     RowLayout {

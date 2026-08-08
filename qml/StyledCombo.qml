@@ -62,19 +62,62 @@ ComboBox {
     }
 
     background: Rectangle {
-        radius: Theme.radiusSmall
-        color: control.pressed || control.popup.visible ? Theme.surfaceHover : Theme.surfaceAlt
-        border.width: 1
-        border.color: control.activeFocus || control.popup.visible ? Theme.accent
-                    : control.hovered ? Theme.borderStrong
-                    : Theme.border
+        id: bg
 
-        Behavior on color {
-            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-        }
-        Behavior on border.color {
-            ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-        }
+        radius: Theme.radiusSmall
+        color: Theme.surfaceAlt
+        border.width: 1
+        border.color: Theme.border
+
+        // Opening/pressing and hovering land instantly; the fade only runs on
+        // the way back down ("open" usually ends in "focus", hence the second
+        // transition). See the spec in Theme.qml.
+        states: [
+            State {
+                name: "open"
+                when: control.popup.visible || control.pressed
+                PropertyChanges {
+                    bg {
+                        color: Theme.surfaceHover
+                        border.color: Theme.accent
+                    }
+                }
+            },
+            State {
+                name: "focus"
+                when: control.activeFocus
+                PropertyChanges {
+                    bg { border.color: Theme.accent }
+                }
+            },
+            State {
+                name: "hover"
+                when: control.enabled && control.hovered
+                PropertyChanges {
+                    bg { border.color: Theme.borderStrong }
+                }
+            }
+        ]
+
+        transitions: [
+            Transition {
+                to: ""
+                ColorAnimation {
+                    properties: "color,border.color"
+                    duration: Theme.hoverDuration
+                    easing.type: Easing.OutQuad
+                }
+            },
+            Transition {
+                from: "open"
+                to: "focus"
+                ColorAnimation {
+                    properties: "color,border.color"
+                    duration: Theme.hoverDuration
+                    easing.type: Easing.OutQuad
+                }
+            }
+        ]
     }
 
     // Covers the whole control, arrow included: nothing on top intercepts it.
@@ -107,13 +150,11 @@ ComboBox {
         }
 
         background: Rectangle {
+            // Menu rows snap, like native menus: animating them leaves a
+            // trail of half-lit options behind the pointer.
             color: option.highlighted ? Theme.surfaceHover
                  : option.current ? Theme.accentSoft
                  : "transparent"
-
-            Behavior on color {
-                ColorAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutQuad }
-            }
         }
 
         HoverHandler {

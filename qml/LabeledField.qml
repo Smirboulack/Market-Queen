@@ -43,20 +43,40 @@ ColumnLayout {
 
         onEditingFinished: root.editingFinished()
 
-        HoverHandler {
-            id: fieldHover
-        }
-
+        // The field's own `hovered` is the only hover source here; adding a
+        // HoverHandler on top would track the same pointer twice.
         background: Rectangle {
+            id: fieldBg
+
             radius: Theme.radiusSmall
             color: field.readOnly ? Theme.background : Theme.surfaceAlt
             border.width: 1
-            border.color: field.activeFocus ? Theme.accent
-                        : fieldHover.hovered && !field.readOnly ? Theme.borderStrong
-                        : Theme.border
+            border.color: Theme.border
 
-            Behavior on border.color {
-                ColorAnimation { duration: 120 }
+            states: [
+                State {
+                    name: "focus"
+                    when: field.activeFocus
+                    PropertyChanges {
+                        fieldBg { border.color: Theme.accent }
+                    }
+                },
+                State {
+                    name: "hover"
+                    when: field.hovered && !field.readOnly
+                    PropertyChanges {
+                        fieldBg { border.color: Theme.borderStrong }
+                    }
+                }
+            ]
+
+            transitions: Transition {
+                to: ""
+                ColorAnimation {
+                    properties: "border.color"
+                    duration: Theme.hoverDuration
+                    easing.type: Easing.OutQuad
+                }
             }
         }
     }
