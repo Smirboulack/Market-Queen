@@ -41,7 +41,6 @@ Button {
                 when: control.enabled && control.hovered
                 PropertyChanges {
                     bg {
-                        color: Theme.surfaceAlt
                         border.color: Theme.borderStrong
                     }
                 }
