@@ -47,6 +47,25 @@ protected:
     void start() override;
 };
 
+// Instant voice cloning. Result: { voiceId: QString, name: QString }.
+//
+// This adds a permanent voice to the user's ElevenLabs account, which is why
+// nothing in the pipeline ever calls it: only an explicit click does.
+class ElevenLabsVoiceCloneTask : public HttpTask
+{
+    Q_OBJECT
+
+public:
+    explicit ElevenLabsVoiceCloneTask(const prov::VoiceCloneRequest &request,
+                                      QObject *parent = nullptr);
+
+protected:
+    void start() override;
+
+private:
+    prov::VoiceCloneRequest m_request;
+};
+
 // Subtitles. Result: { srt: QString }.
 class WhisperCaptionTask : public HttpTask
 {

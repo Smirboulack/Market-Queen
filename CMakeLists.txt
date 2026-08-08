@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
 endif()
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Quick QuickControls2 QuickDialogs2 Network Svg
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui Quick QuickControls2 QuickDialogs2 Network Svg Multimedia
                                          LinguistTools)
 
 qt_standard_project_setup(REQUIRES 6.5)
@@ -36,7 +36,12 @@ set(APP_SOURCES
     src/providers/VoiceProviders.h  src/providers/VoiceProviders.cpp
     src/media/Ffmpeg.h           src/media/Ffmpeg.cpp
     src/pipeline/Pipeline.h      src/pipeline/Pipeline.cpp
+    src/app/SceneModel.h         src/app/SceneModel.cpp
     src/app/AdProject.h          src/app/AdProject.cpp
+    src/app/Casting.h            src/app/Casting.cpp
+    src/app/ActorLibrary.h       src/app/ActorLibrary.cpp
+    src/app/VoiceBooth.h         src/app/VoiceBooth.cpp
+    src/app/Director.h           src/app/Director.cpp
     src/app/LibraryModel.h       src/app/LibraryModel.cpp
     src/app/App.h                src/app/App.cpp
 )
@@ -58,7 +63,13 @@ set(APP_QML_FILES
     qml/RecapBlock.qml
     qml/StepProduct.qml
     qml/StepActor.qml
+    qml/PortraitGrid.qml
+    qml/ActorStrip.qml
+    qml/TraitPicker.qml
+    qml/VoiceBooth.qml
+    qml/LabeledSlider.qml
     qml/StepScript.qml
+    qml/SceneCard.qml
     qml/StepSummary.qml
     qml/CreatePage.qml
     qml/LibraryPage.qml
@@ -75,6 +86,7 @@ set(APP_QML_FILES
     qml/PickerWithCustom.qml
     qml/ModelPicker.qml
     qml/ImageDropField.qml
+    qml/ImageDropGrid.qml
     qml/StepList.qml
     qml/LogPanel.qml
     qml/KeyField.qml
@@ -98,6 +110,7 @@ qt_add_qml_module(MarketQueen
         assets/icon-full.png
         assets/icon-head.png
         resources/pricing.json
+        resources/casting.json
 )
 
 # The per-directory entries are what the generated QML type registration file
@@ -125,6 +138,7 @@ target_link_libraries(MarketQueen PRIVATE
     Qt6::QuickDialogs2
     Qt6::Network
     Qt6::Svg
+    Qt6::Multimedia
 )
 
 if(WIN32)

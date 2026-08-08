@@ -63,25 +63,15 @@ ColumnLayout {
     }
 
     SectionCard {
-        title: qsTr("Reference")
+        title: qsTr("Reference pictures")
         subtitle: qsTr("A picture of the real product keeps it recognisable in every shot.")
 
-        ImageDropField {
-            id: photoField
-            filePath: {
-                const images = root.project.product.images;
-                return images !== undefined && images.length > 0 ? images[0] : "";
-            }
-            onFilePathChanged: {
-                const images = root.project.product.images;
-                const current = images !== undefined && images.length > 0 ? images[0] : "";
-                if (filePath === current)
-                    return;
-                if (current !== "")
-                    root.project.removeProductImage(0);
-                if (filePath !== "")
-                    root.project.addProductImage(filePath);
-            }
+        ImageDropGrid {
+            images: root.project.product.images !== undefined
+                    ? root.project.product.images : []
+            onFilesAdded: function (urls) { root.project.addImages("product", urls); }
+            onRemoveRequested: function (index) { root.project.removeImage("product", index); }
+            onPrimaryRequested: function (index) { root.project.setPrimaryImage("product", index); }
         }
     }
 
@@ -104,7 +94,6 @@ ColumnLayout {
             nameField.text = "";
             descriptionField.text = "";
             audienceField.text = "";
-            photoField.filePath = "";
         }
     }
 }

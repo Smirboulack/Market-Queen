@@ -36,14 +36,20 @@ void ElevenLabsVoiceTask::start()
     query.addQueryItem(QStringLiteral("output_format"), QStringLiteral("mp3_44100_128"));
     url.setQuery(query);
 
+    QJsonObject settings{{QStringLiteral("stability"), m_request.stability},
+                         {QStringLiteral("similarity_boost"), m_request.similarity},
+                         {QStringLiteral("style"), m_request.style},
+                         {QStringLiteral("use_speaker_boost"), true}};
+
+    // Only sent when it is actually asked for: not every model accepts a speed,
+    // and a default of 1.0 changes nothing anyway.
+    if (!qFuzzyCompare(m_request.speed, 1.0))
+        settings.insert(QStringLiteral("speed"), m_request.speed);
+
     const QJsonObject body{
         {QStringLiteral("text"), m_request.text},
         {QStringLiteral("model_id"), m_request.model},
-        {QStringLiteral("voice_settings"),
-         QJsonObject{{QStringLiteral("stability"), 0.45},
-                     {QStringLiteral("similarity_boost"), 0.8},
-                     {QStringLiteral("style"), 0.35},
-                     {QStringLiteral("use_speaker_boost"), true}}},
+        {QStringLiteral("voice_settings"), settings},
     };
 
     QNetworkRequest request =
@@ -214,6 +220,83 @@ void WhisperCaptionTask::start()
             return;
         }
         succeed({{QStringLiteral("srt"), srt}});
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Voice cloning
+// ---------------------------------------------------------------------------
+ElevenLabsVoiceCloneTask::ElevenLabsVoiceCloneTask(const prov::VoiceCloneRequest &request,
+                                                   QObject *parent)
+    : HttpTask(parent)
+    , m_request(request)
+{
+}
+
+void ElevenLabsVoiceCloneTask::start()
+{
+    if (!requireKey(m_request.apiKey, QStringLiteral("ElevenLabs")))
+        return;
+
+    if (m_request.samplePaths.isEmpty()) {
+        fail(tr("Add at least one audio sample to clone from."));
+        return;
+    }
+
+    report(tr("Uploading the samples..."));
+
+    auto *multiPart = new QHttpMultiPart(QHttpMultiPart::FormDataType);
+
+    const auto addField = [multiPart](const QString &name, const QString &value) {
+        if (value.isEmpty())
+            return;
+        QHttpPart part;
+        part.setHeader(QNetworkRequest::ContentDispositionHeader,
+                       QStringLiteral("form-data; name=\"%1\"").arg(name));
+        part.setBody(value.toUtf8());
+        multiPart->append(part);
+    };
+
+    addField(QStringLiteral("name"), m_request.name);
+    addField(QStringLiteral("description"), m_request.description);
+
+    int added = 0;
+    for (const QString &path : m_request.samplePaths) {
+        QFile sample(path);
+        if (!sample.open(QIODevice::ReadOnly))
+            continue;
+
+        QHttpPart filePart;
+        filePart.setHeader(QNetworkRequest::ContentDispositionHeader,
+                           QStringLiteral("form-data; name=\"files\"; filename=\"%1\"")
+                               .arg(QFileInfo(path).fileName()));
+        filePart.setHeader(QNetworkRequest::ContentTypeHeader,
+                           QMimeDatabase().mimeTypeForFile(path).name());
+        filePart.setBody(sample.readAll());
+        multiPart->append(filePart);
+        ++added;
+    }
+
+    if (added == 0) {
+        delete multiPart;
+        fail(tr("None of the samples could be read."));
+        return;
+    }
+
+    QNetworkRequest request(QUrl(QStringLiteral("https://api.elevenlabs.io/v1/voices/add")));
+    request.setRawHeader("xi-api-key", m_request.apiKey.toUtf8());
+    request.setRawHeader("User-Agent", "MarketQueen/" APP_VERSION);
+    request.setTransferTimeout(600'000);
+
+    postMultipartForText(request, multiPart, [this](const QByteArray &body, const QString &) {
+        const QJsonObject response = QJsonDocument::fromJson(body).object();
+        const QString voiceId = response.value(QStringLiteral("voice_id")).toString();
+        if (voiceId.isEmpty()) {
+            fail(tr("ElevenLabs did not return a voice id."));
+            return;
+        }
+        succeed({{QStringLiteral("voiceId"), voiceId},
+                 {QStringLiteral("name"), m_request.name}});
     });
 }
 

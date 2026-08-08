@@ -22,6 +22,8 @@ public:
 protected:
     QString systemPrompt() const;
     QString userPrompt() const;
+    // "Writing" or "Directing", depending on which job this is.
+    QString progressLabel() const;
 
     // Parses the model's answer (tolerating markdown fences and stray prose)
     // and completes the task.

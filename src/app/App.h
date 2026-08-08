@@ -1,6 +1,10 @@
 #pragma once
 
+#include "ActorLibrary.h"
 #include "AdProject.h"
+#include "Casting.h"
+#include "Director.h"
+#include "VoiceBooth.h"
 #include "LibraryModel.h"
 #include "core/LogModel.h"
 #include "core/Pricing.h"
@@ -28,6 +32,10 @@ class App : public QObject
     Q_PROPERTY(Pricing *pricing READ pricing CONSTANT)
     Q_PROPERTY(Pipeline *pipeline READ pipeline CONSTANT)
     Q_PROPERTY(AdProject *project READ project CONSTANT)
+    Q_PROPERTY(Casting *casting READ casting CONSTANT)
+    Q_PROPERTY(ActorLibrary *actors READ actors CONSTANT)
+    Q_PROPERTY(VoiceBooth *voiceBooth READ voiceBooth CONSTANT)
+    Q_PROPERTY(Director *director READ director CONSTANT)
     Q_PROPERTY(LogModel *log READ log CONSTANT)
     Q_PROPERTY(LibraryModel *library READ library CONSTANT)
     Q_PROPERTY(Translator *translator READ translator CONSTANT)
@@ -44,6 +52,10 @@ public:
     Pricing *pricing() const { return m_pricing; }
     Pipeline *pipeline() const { return m_pipeline; }
     AdProject *project() const { return m_project; }
+    Casting *casting() const { return m_casting; }
+    ActorLibrary *actors() const { return m_actors; }
+    VoiceBooth *voiceBooth() const { return m_voiceBooth; }
+    Director *director() const { return m_director; }
     LogModel *log() const { return m_log; }
     LibraryModel *library() const { return m_library; }
     Translator *translator() const { return m_translator; }
@@ -74,6 +86,10 @@ private:
     LogModel *m_log;
     Pipeline *m_pipeline;
     AdProject *m_project;
+    Casting *m_casting;
+    ActorLibrary *m_actors;
+    VoiceBooth *m_voiceBooth;
+    Director *m_director;
     LibraryModel *m_library;
     Translator *m_translator;
 };

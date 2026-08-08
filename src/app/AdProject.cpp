@@ -11,6 +11,7 @@
 #include <QJsonObject>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QUuid>
 
 namespace {
 
@@ -34,6 +35,7 @@ AdProject::AdProject(SettingsStore *settings, Registry *registry, QObject *paren
     , m_settings(settings)
     , m_registry(registry)
     , m_autosave(new QTimer(this))
+    , m_scenes(new SceneModel(this))
 {
     m_autosave->setSingleShot(true);
     m_autosave->setInterval(kAutosaveDelayMs);
@@ -45,6 +47,16 @@ AdProject::AdProject(SettingsStore *settings, Registry *registry, QObject *paren
                         &AdProject::scenesChanged, &AdProject::scriptChanged,
                         &AdProject::renderChanged})
         connect(this, signal, this, &AdProject::requestChanged);
+
+    // The scene model owns its own edits; the project only has to notice them.
+    connect(m_scenes, &SceneModel::changed, this, [this]() {
+        emit scenesChanged();
+        emit stepsChanged();
+    });
+    connect(m_scenes, &SceneModel::dirtied, this, [this]() {
+        emit requestChanged();
+        touch();
+    });
 
     load();
 }
@@ -72,30 +84,90 @@ void AdProject::setActorField(const QString &key, const QVariant &value)
     touch();
 }
 
-void AdProject::addProductImage(const QString &path)
+QVariantMap *AdProject::imageOwner(const QString &target, QString *key)
 {
-    if (path.isEmpty())
+    if (target == QLatin1String("actor")) {
+        *key = QStringLiteral("referenceImages");
+        return &m_actor;
+    }
+    *key = QStringLiteral("images");
+    return &m_product;
+}
+
+void AdProject::addImages(const QString &target, const QList<QUrl> &urls)
+{
+    QString key;
+    QVariantMap *owner = imageOwner(target, &key);
+
+    // A multi-select dialog or a multi-file drop arrives all at once; adding
+    // them one signal at a time would rebuild the grid once per file.
+    QStringList images = toStringList(owner->value(key));
+    const int before = images.size();
+
+    for (const QUrl &url : urls) {
+        const QString path = url.isLocalFile() ? url.toLocalFile() : url.toString();
+        if (!path.isEmpty() && !images.contains(path))
+            images.append(path);
+    }
+
+    if (images.size() == before)
         return;
 
-    QStringList images = toStringList(m_product.value(QStringLiteral("images")));
-    if (images.contains(path))
-        return;
-
-    images.append(path);
-    m_product.insert(QStringLiteral("images"), images);
-    emit productChanged();
+    owner->insert(key, images);
+    if (owner == &m_actor)
+        emit actorChanged();
+    else
+        emit productChanged();
     touch();
 }
 
-void AdProject::removeProductImage(int index)
+void AdProject::removeImage(const QString &target, int index)
 {
-    QStringList images = toStringList(m_product.value(QStringLiteral("images")));
+    QString key;
+    QVariantMap *owner = imageOwner(target, &key);
+
+    QStringList images = toStringList(owner->value(key));
     if (index < 0 || index >= images.size())
         return;
 
     images.removeAt(index);
-    m_product.insert(QStringLiteral("images"), images);
-    emit productChanged();
+    owner->insert(key, images);
+    if (owner == &m_actor)
+        emit actorChanged();
+    else
+        emit productChanged();
+    touch();
+}
+
+void AdProject::setPrimaryImage(const QString &target, int index)
+{
+    QString key;
+    QVariantMap *owner = imageOwner(target, &key);
+
+    QStringList images = toStringList(owner->value(key));
+    if (index <= 0 || index >= images.size())
+        return;
+
+    images.move(index, 0);
+    owner->insert(key, images);
+    if (owner == &m_actor)
+        emit actorChanged();
+    else
+        emit productChanged();
+    touch();
+}
+
+void AdProject::applyActor(const QVariantMap &actor)
+{
+    if (actor.isEmpty())
+        return;
+
+    // Wholesale, not merged: loading a saved actor should give exactly the actor
+    // that was saved, not a blend with whatever was half-typed before.
+    m_actor = actor;
+    emit actorChanged();
+    emit stepsChanged();
+    emit actorReset();
     touch();
 }
 
@@ -131,7 +203,7 @@ void AdProject::clear()
 {
     m_product.clear();
     m_actor.clear();
-    m_scenes.clear();
+    m_scenes->setList({});
     m_script.clear();
     m_aspectRatio = QStringLiteral("9:16");
     m_captions = true;
@@ -149,6 +221,19 @@ void AdProject::clear()
 }
 
 // ---------------------------------------------------------------------------
+// Scenes
+// ---------------------------------------------------------------------------
+void AdProject::applyDirection(const QVariantList &shots)
+{
+    m_scenes->applyDirection(shots);
+}
+
+QString AdProject::spokenScript() const
+{
+    return m_scenes->rowCount() > 0 ? m_scenes->spokenScript() : m_script.trimmed();
+}
+
+// ---------------------------------------------------------------------------
 // Steps
 // ---------------------------------------------------------------------------
 bool AdProject::stepValid(int step) const
@@ -157,10 +242,12 @@ bool AdProject::stepValid(int step) const
     case StepProduct:
         return !m_product.value(QStringLiteral("name")).toString().trimmed().isEmpty();
     case StepActor:
-        // S2 raises this to "a portrait has been generated or supplied".
-        return !m_actor.value(QStringLiteral("brief")).toString().trimmed().isEmpty();
+        // A description is not an actor. The step is satisfied by a picture --
+        // cast here, or one of the user's own promoted to the part.
+        return !m_actor.value(QStringLiteral("portraitPath")).toString().trimmed().isEmpty();
     case StepScript:
-        return !m_script.trimmed().isEmpty();
+        // A draft written before scenes existed still counts.
+        return m_scenes->hasSpokenLine() || !m_script.trimmed().isEmpty();
     case StepSummary:
         return stepValid(StepProduct) && stepValid(StepActor) && stepValid(StepScript);
     default:
@@ -211,6 +298,10 @@ void AdProject::setCurrentStep(int step)
 
 double AdProject::spokenSeconds() const
 {
+    if (m_scenes->rowCount() > 0)
+        return m_scenes->totalSeconds();
+
+    // A draft written before scenes existed.
     const QString text = m_script.trimmed();
     if (text.isEmpty())
         return 0.0;
@@ -259,12 +350,16 @@ QVariantMap AdProject::toRequest() const
         {QStringLiteral("language"), m_actor.value(QStringLiteral("language")).toString()},
         {QStringLiteral("avatarBrief"), m_actor.value(QStringLiteral("brief")).toString().trimmed()},
         {QStringLiteral("extraInstructions"), m_actor.value(QStringLiteral("decor")).toString().trimmed()},
-        {QStringLiteral("script"), m_script.trimmed()},
+        // Both: `scenes` is what the pipeline cuts on, `script` is the same
+        // words in one piece for the single voice-over take.
+        {QStringLiteral("scenes"), m_scenes->toList()},
+        {QStringLiteral("script"), spokenScript()},
         {QStringLiteral("durationSeconds"), duration},
         {QStringLiteral("aspectRatio"), m_aspectRatio},
         // One image for now: the pipeline takes a single reference. S1 keeps
         // collecting them, S5 is what finally passes them all through.
         {QStringLiteral("productImagePath"), images.value(0)},
+        {QStringLiteral("actorPortraitPath"), m_actor.value(QStringLiteral("portraitPath")).toString()},
         {QStringLiteral("useProductPhotoAsFrame"), false},
         {QStringLiteral("textProvider"), textProvider},
         {QStringLiteral("textModel"), pickedModel(QStringLiteral("text"), textProvider)},
@@ -275,6 +370,11 @@ QVariantMap AdProject::toRequest() const
         {QStringLiteral("voiceProvider"), voiceProvider},
         {QStringLiteral("voiceModel"), pickedModel(QStringLiteral("voice"), voiceProvider)},
         {QStringLiteral("voiceId"), m_actor.value(QStringLiteral("voiceId")).toString()},
+        // What was auditioned has to be what is bought.
+        {QStringLiteral("voiceStability"), m_actor.value(QStringLiteral("voiceStability"), 0.45)},
+        {QStringLiteral("voiceSimilarity"), m_actor.value(QStringLiteral("voiceSimilarity"), 0.8)},
+        {QStringLiteral("voiceStyle"), m_actor.value(QStringLiteral("voiceStyle"), 0.35)},
+        {QStringLiteral("voiceSpeed"), m_actor.value(QStringLiteral("voiceSpeed"), 1.0)},
         {QStringLiteral("captionsEnabled"), m_captions},
         {QStringLiteral("captionsProvider"), QStringLiteral("openai-whisper")},
         {QStringLiteral("captionsModel"), QStringLiteral("whisper-1")},
@@ -301,7 +401,7 @@ void AdProject::save()
         {QStringLiteral("schemaVersion"), 3},
         {QStringLiteral("product"), QJsonObject::fromVariantMap(m_product)},
         {QStringLiteral("actor"), QJsonObject::fromVariantMap(m_actor)},
-        {QStringLiteral("scenes"), QJsonArray::fromVariantList(m_scenes)},
+        {QStringLiteral("scenes"), QJsonArray::fromVariantList(m_scenes->toList())},
         {QStringLiteral("script"), m_script},
         {QStringLiteral("aspectRatio"), m_aspectRatio},
         {QStringLiteral("captions"), m_captions},
@@ -330,7 +430,7 @@ void AdProject::load()
 
     m_product = root.value(QStringLiteral("product")).toObject().toVariantMap();
     m_actor = root.value(QStringLiteral("actor")).toObject().toVariantMap();
-    m_scenes = root.value(QStringLiteral("scenes")).toArray().toVariantList();
+    m_scenes->setList(root.value(QStringLiteral("scenes")).toArray().toVariantList());
     m_script = root.value(QStringLiteral("script")).toString();
     m_aspectRatio = root.value(QStringLiteral("aspectRatio")).toString(QStringLiteral("9:16"));
     m_captions = root.value(QStringLiteral("captions")).toBool(true);

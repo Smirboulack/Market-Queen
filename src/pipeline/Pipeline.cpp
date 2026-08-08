@@ -200,6 +200,14 @@ void Pipeline::start(const QVariantMap &request)
             m_log->append(LogModel::Warning, tr("Could not read the product photo."));
     }
 
+    const QString portrait =
+        localPathFromUrlOrPath(request.value(QStringLiteral("actorPortraitPath")).toString());
+    if (!portrait.isEmpty() && QFileInfo::exists(portrait)) {
+        m_run.actorPortraitDataUri = http::imageToDataUri(portrait);
+        if (m_run.actorPortraitDataUri.isEmpty())
+            m_log->append(LogModel::Warning, tr("Could not read the actor portrait."));
+    }
+
     m_current = -1;
     advance();
 }
@@ -372,7 +380,36 @@ void Pipeline::stepScript()
     const int shotCount = Pricing::shotCount(
         m_request.value(QStringLiteral("durationSeconds"), 20).toInt());
 
+    // Scenes the studio cut and directed: the shot list is already decided, so
+    // there is nothing to write and nothing to guess at.
+    const QVariantList scenes = m_request.value(QStringLiteral("scenes")).toList();
+    if (!scenes.isEmpty()) {
+        m_run.shots.clear();
+        for (const QVariant &entry : scenes) {
+            const QVariantMap scene = entry.toMap();
+            const QString line = scene.value(QStringLiteral("line")).toString().trimmed();
+            if (line.isEmpty())
+                continue;
+
+            Shot shot;
+            shot.line = line;
+            shot.imagePrompt = scene.value(QStringLiteral("imagePrompt")).toString().trimmed();
+            shot.videoPrompt = scene.value(QStringLiteral("videoPrompt")).toString().trimmed();
+            m_run.shots.append(shot);
+        }
+    }
+
     const QString ownScript = m_request.value(QStringLiteral("script")).toString().trimmed();
+    if (!m_run.shots.isEmpty()) {
+        m_run.script = ownScript;
+        m_run.hook = m_run.shots.first().line;
+        m_log->append(LogModel::Info,
+                      tr("Using your %1 scene(s).").arg(m_run.shots.size()));
+        setStepState(StepScript, Skipped, tr("your own scenes"));
+        advance();
+        return;
+    }
+
     if (!ownScript.isEmpty()) {
         m_run.script = ownScript;
         m_run.hook = ownScript.section(QRegularExpression(QStringLiteral("[.!?]")), 0, 0).trimmed();
@@ -470,6 +507,11 @@ void Pipeline::stepVoice()
     request.model = pickModel(providerId, m_request.value(QStringLiteral("voiceModel")).toString());
     request.voiceId = m_request.value(QStringLiteral("voiceId")).toString();
     request.text = m_run.script;
+    // The booth's sliders, so the ad sounds like the audition did.
+    request.stability = m_request.value(QStringLiteral("voiceStability"), 0.45).toDouble();
+    request.similarity = m_request.value(QStringLiteral("voiceSimilarity"), 0.8).toDouble();
+    request.style = m_request.value(QStringLiteral("voiceStyle"), 0.35).toDouble();
+    request.speed = m_request.value(QStringLiteral("voiceSpeed"), 1.0).toDouble();
 
     attach(providers::voice(providerId, request, this),
            [this, providerId, model = request.model, chars = request.text.size()](
@@ -597,7 +639,9 @@ void Pipeline::runFrame()
     request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
     request.model = pickModel(providerId, m_request.value(QStringLiteral("imageModel")).toString());
     request.aspectRatio = m_request.value(QStringLiteral("aspectRatio"), QStringLiteral("9:16")).toString();
-    request.referenceImageDataUri = m_run.productImageDataUri;
+    request.referenceImageDataUri = m_run.actorPortraitDataUri.isEmpty()
+                                        ? m_run.productImageDataUri
+                                        : m_run.actorPortraitDataUri;
     request.prompt = m_run.shots[index].imagePrompt.isEmpty()
         ? tr("Vertical selfie-style photo of a real person holding %1, natural window light, "
              "shot on a phone camera, authentic user generated content look.")

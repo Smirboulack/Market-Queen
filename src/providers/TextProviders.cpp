@@ -70,8 +70,38 @@ ScriptTask::ScriptTask(const prov::ScriptRequest &request, QObject *parent)
 {
 }
 
+QString ScriptTask::progressLabel() const
+{
+    return m_request.mode == prov::ScriptRequest::Mode::DirectVisuals
+               ? tr("Directing the shots with %1...").arg(m_request.model)
+               : tr("Writing the script with %1...").arg(m_request.model);
+}
+
 QString ScriptTask::systemPrompt() const
 {
+    if (m_request.mode == prov::ScriptRequest::Mode::DirectVisuals) {
+        return QStringLiteral(
+                   "You are the director of a vertical UGC video ad. The spoken lines are "
+                   "already written and are not yours to change: your only job is to say what "
+                   "the camera sees while each one is said.\n"
+                   "\n")
+             + m_request.directionRules
+             + QStringLiteral(
+                   "\n\n"
+                   "Answer with a single JSON object and nothing else:\n"
+                   "{\n"
+                   "  \"shots\": [\n"
+                   "    {\n"
+                   "      \"imagePrompt\": \"the still this shot starts from: the person, what "
+                   "they are doing with their hands, the framing, the room, the light\",\n"
+                   "      \"videoPrompt\": \"how it moves over its few seconds: one small human "
+                   "gesture and one small camera movement\"\n"
+                   "    }\n"
+                   "  ]\n"
+                   "}\n"
+                   "Return exactly one entry per line you were given, in the same order.");
+    }
+
     return QStringLiteral(
         "You are a senior UGC (user generated content) ad writer. You write short "
         "vertical video ads that look like a real person filmed themselves, not like "
@@ -109,6 +139,38 @@ QString ScriptTask::systemPrompt() const
 
 QString ScriptTask::userPrompt() const
 {
+    if (m_request.mode == prov::ScriptRequest::Mode::DirectVisuals) {
+        QString prompt;
+        prompt += sectionIfSet(QStringLiteral("Product"), m_request.productName);
+        prompt += sectionIfSet(QStringLiteral("What it is"), m_request.productDescription);
+        prompt += sectionIfSet(QStringLiteral("The person on camera"), m_request.actorBrief);
+        prompt += sectionIfSet(QStringLiteral("Where they are"), m_request.actorDecor);
+
+        prompt += QStringLiteral("\nThe lines, in order:\n");
+        for (int i = 0; i < m_request.lines.size(); ++i) {
+            // A b-roll scene is the one place the person may leave the frame:
+            // saying so per line is what stops the model inventing cutaways
+            // everywhere else.
+            const QString kind = m_request.kinds.value(i) == QLatin1String("broll")
+                                     ? QStringLiteral(" [no face on screen, show the product "
+                                                      "being used or held instead]")
+                                     : QString();
+            prompt += QStringLiteral("%1. \"%2\"%3\n")
+                          .arg(i + 1)
+                          .arg(m_request.lines.at(i), kind);
+        }
+
+        if (!m_request.referenceImageDataUri.isEmpty()) {
+            prompt += QStringLiteral(
+                "\nA photo of the product is attached. Describe the real product accurately "
+                "wherever it appears: same shape, same colours, same label.\n");
+        }
+
+        prompt += QStringLiteral("\nDirect these %1 shot(s) now. JSON only.")
+                      .arg(m_request.lines.size());
+        return prompt;
+    }
+
     const int words = targetWordCount(m_request.durationSeconds);
 
     QString prompt;
@@ -214,7 +276,7 @@ void OpenAiScriptTask::start()
     if (!requireKey(m_request.apiKey, QStringLiteral("OpenAI")))
         return;
 
-    report(tr("Writing the script with %1...").arg(m_request.model));
+    report(progressLabel());
 
     const QString base = m_request.baseUrl.isEmpty()
         ? QStringLiteral("https://api.openai.com/v1")
@@ -264,7 +326,7 @@ void AnthropicScriptTask::start()
     if (!requireKey(m_request.apiKey, QStringLiteral("Anthropic")))
         return;
 
-    report(tr("Writing the script with %1...").arg(m_request.model));
+    report(progressLabel());
 
     QJsonArray content;
     if (!m_request.referenceImageDataUri.isEmpty()) {
@@ -324,7 +386,7 @@ void GeminiScriptTask::start()
     if (!requireKey(m_request.apiKey, QStringLiteral("Google Gemini")))
         return;
 
-    report(tr("Writing the script with %1...").arg(m_request.model));
+    report(progressLabel());
 
     QJsonArray parts;
     parts.append(QJsonObject{{QStringLiteral("text"), userPrompt()}});

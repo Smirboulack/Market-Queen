@@ -2,10 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="fr_FR">
 <context>
-    <name>AnthropicScriptTask</name>
+    <name>ActorLibrary</name>
     <message>
-        <source>Writing the script with %1...</source>
-        <translation>Rédaction du script avec %1...</translation>
+        <source>Actor %1</source>
+        <translation>Acteur %1</translation>
+    </message>
+</context>
+<context>
+    <name>ActorStrip</name>
+    <message>
+        <source>Your actors</source>
+        <translation>Vos acteurs</translation>
     </message>
 </context>
 <context>
@@ -21,6 +28,33 @@
     <message>
         <source>This provider has no voice list.</source>
         <translation>Ce fournisseur n&apos;a pas de liste de voix.</translation>
+    </message>
+</context>
+<context>
+    <name>Casting</name>
+    <message>
+        <source>No portrait came back. Check the log.</source>
+        <translation>Aucun portrait n’est revenu. Regardez le journal.</translation>
+    </message>
+    <message>
+        <source>Could not create the casting folder.</source>
+        <translation>Impossible de créer le dossier de casting.</translation>
+    </message>
+    <message>
+        <source>Casting %1 portrait(s) with %2.</source>
+        <translation>Casting de %1 portrait(s) avec %2.</translation>
+    </message>
+    <message>
+        <source>No image provider called %1.</source>
+        <translation>Aucun fournisseur d’images nommé %1.</translation>
+    </message>
+    <message>
+        <source>Portrait failed: %1</source>
+        <translation>Portrait échoué : %1</translation>
+    </message>
+    <message>
+        <source>Could not write %1.</source>
+        <translation>Impossible d’écrire %1.</translation>
     </message>
 </context>
 <context>
@@ -254,6 +288,56 @@
     </message>
 </context>
 <context>
+    <name>Director</name>
+    <message>
+        <source>Write at least one line first.</source>
+        <translation>Écrivez d’abord au moins une réplique.</translation>
+    </message>
+    <message>
+        <source>No text provider called %1.</source>
+        <translation>Aucun fournisseur de texte nommé %1.</translation>
+    </message>
+    <message>
+        <source>Directing %1 scene(s) with %2.</source>
+        <translation>Direction de %1 scène(s) avec %2.</translation>
+    </message>
+    <message>
+        <source>Direction failed: %1</source>
+        <translation>Direction échouée : %1</translation>
+    </message>
+    <message>
+        <source>The model returned no shots.</source>
+        <translation>Le modèle n’a renvoyé aucun plan.</translation>
+    </message>
+    <message>
+        <source>Only %1 of %2 scenes came back directed.</source>
+        <translation>Seules %1 scènes sur %2 sont revenues dirigées.</translation>
+    </message>
+    <message>
+        <source>%1 scene(s) directed.</source>
+        <translation>%1 scène(s) dirigée(s).</translation>
+    </message>
+</context>
+<context>
+    <name>ElevenLabsVoiceCloneTask</name>
+    <message>
+        <source>Add at least one audio sample to clone from.</source>
+        <translation>Ajoutez au moins un échantillon audio à cloner.</translation>
+    </message>
+    <message>
+        <source>Uploading the samples...</source>
+        <translation>Envoi des échantillons...</translation>
+    </message>
+    <message>
+        <source>None of the samples could be read.</source>
+        <translation>Aucun échantillon n’a pu être lu.</translation>
+    </message>
+    <message>
+        <source>ElevenLabs did not return a voice id.</source>
+        <translation>ElevenLabs n’a pas renvoyé d’id de voix.</translation>
+    </message>
+</context>
+<context>
     <name>ElevenLabsVoiceListTask</name>
     <message>
         <source>No voices on this ElevenLabs account.</source>
@@ -412,13 +496,6 @@
     </message>
 </context>
 <context>
-    <name>GeminiScriptTask</name>
-    <message>
-        <source>Writing the script with %1...</source>
-        <translation>Rédaction du script avec %1...</translation>
-    </message>
-</context>
-<context>
     <name>HttpTask</name>
     <message>
         <source>Unexpected response from the API: %1</source>
@@ -502,6 +579,38 @@
     <message>
         <source>Choose a product photo</source>
         <translation>Choisir une photo du produit</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>Images (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+</context>
+<context>
+    <name>ImageDropGrid</name>
+    <message>
+        <source>Drop your product pictures here</source>
+        <translation>Déposez vos photos du produit ici</translation>
+    </message>
+    <message>
+        <source>As many as you like. Packshot, in use, close-up on the label.</source>
+        <translation>Autant que vous voulez. Packshot, en situation, gros plan sur l’étiquette.</translation>
+    </message>
+    <message>
+        <source>1 picture. It is the reference.</source>
+        <translation>1 photo. C’est la référence.</translation>
+    </message>
+    <message>
+        <source>%1 pictures. The starred one is the main reference.</source>
+        <extracomment>%1 is a number of pictures</extracomment>
+        <translation>%1 photos. Celle avec l’étoile est la référence principale.</translation>
+    </message>
+    <message>
+        <source>Browse</source>
+        <translation>Parcourir</translation>
+    </message>
+    <message>
+        <source>Choose product pictures</source>
+        <translation>Choisir des photos du produit</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
@@ -624,13 +733,6 @@
     </message>
 </context>
 <context>
-    <name>OpenAiScriptTask</name>
-    <message>
-        <source>Writing the script with %1...</source>
-        <translation>Rédaction du script avec %1...</translation>
-    </message>
-</context>
-<context>
     <name>OpenAiVoiceTask</name>
     <message>
         <source>Recording the voice-over...</source>
@@ -691,6 +793,10 @@
         <translation>Impossible de lire la photo du produit.</translation>
     </message>
     <message>
+        <source>Could not read the actor portrait.</source>
+        <translation>Impossible de lire le portrait de l’acteur.</translation>
+    </message>
+    <message>
         <source>Cancelling...</source>
         <translation>Annulation...</translation>
     </message>
@@ -709,6 +815,14 @@
     <message>
         <source>Could not write %1.</source>
         <translation>Impossible d&apos;écrire %1.</translation>
+    </message>
+    <message>
+        <source>Using your %1 scene(s).</source>
+        <translation>Utilisation de vos %1 scène(s).</translation>
+    </message>
+    <message>
+        <source>your own scenes</source>
+        <translation>vos propres scènes</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -852,6 +966,26 @@
     </message>
 </context>
 <context>
+    <name>PortraitGrid</name>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>Casting... %1 sur %2</translation>
+    </message>
+    <message>
+        <source>Pick the one that looks real</source>
+        <translation>Choisissez celui qui a l’air vrai</translation>
+    </message>
+    <message>
+        <source>None of them? Cast again.</source>
+        <translation>Aucun ne va ? Relancez un casting.</translation>
+    </message>
+    <message>
+        <source>Cast</source>
+        <translation>Retenu</translation>
+    </message>
+</context>
+<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -890,6 +1024,10 @@
     <message>
         <source>No one cast yet</source>
         <translation>Personne de casté</translation>
+    </message>
+    <message>
+        <source>Not saved</source>
+        <translation>Non enregistré</translation>
     </message>
     <message>
         <source>Script</source>
@@ -1003,7 +1141,59 @@
     </message>
 </context>
 <context>
+    <name>SceneCard</name>
+    <message>
+        <source>Talking</source>
+        <translation>Parlant</translation>
+    </message>
+    <message>
+        <source>Product</source>
+        <translation>Produit</translation>
+    </message>
+    <message>
+        <source>%1 s</source>
+        <extracomment>%1 is a duration in seconds</extracomment>
+        <translation>%1 s</translation>
+    </message>
+    <message>
+        <source>Hide the visual</source>
+        <translation>Masquer le visuel</translation>
+    </message>
+    <message>
+        <source>Visual</source>
+        <translation>Visuel</translation>
+    </message>
+    <message>
+        <source>Not directed yet</source>
+        <translation>Pas encore dirigée</translation>
+    </message>
+    <message>
+        <source>What the camera sees</source>
+        <translation>Ce que voit la caméra</translation>
+    </message>
+    <message>
+        <source>Press Direct the shots, or write it yourself.</source>
+        <translation>Lancez « Diriger les plans », ou écrivez-le vous-même.</translation>
+    </message>
+    <message>
+        <source>How it moves</source>
+        <translation>Comment ça bouge</translation>
+    </message>
+    <message>
+        <source>One small gesture, one small camera movement.</source>
+        <translation>Un petit geste, un petit mouvement de caméra.</translation>
+    </message>
+</context>
+<context>
     <name>ScriptTask</name>
+    <message>
+        <source>Directing the shots with %1...</source>
+        <translation>Direction des plans avec %1...</translation>
+    </message>
+    <message>
+        <source>Writing the script with %1...</source>
+        <translation>Écriture du script avec %1...</translation>
+    </message>
     <message>
         <source>The model returned an empty answer.</source>
         <translation>Le modèle a renvoyé une réponse vide.</translation>
@@ -1220,14 +1410,6 @@ Rien ne nous est envoyé.</translation>
         <translation>Une personne crédible vaut mieux qu’une personne trop lisse. Visage ordinaire, pièce ordinaire.</translation>
     </message>
     <message>
-        <source>The person</source>
-        <translation>La personne</translation>
-    </message>
-    <message>
-        <source>e.g. a woman in her thirties, tired but friendly, no makeup, messy bun</source>
-        <translation>ex. une femme d’une trentaine d’années, fatiguée mais avenante, sans maquillage, chignon défait</translation>
-    </message>
-    <message>
         <source>Where they are</source>
         <translation>Où elle se trouve</translation>
     </message>
@@ -1236,84 +1418,199 @@ Rien ne nous est envoyé.</translation>
         <translation>ex. une petite salle de bain, serviettes par terre, lumière du matin à travers les stores</translation>
     </message>
     <message>
-        <source>Delivery</source>
-        <translation>Le débit</translation>
+        <source>Describe them</source>
+        <translation>Décrivez-la</translation>
     </message>
     <message>
-        <source>How they speak, and in what language.</source>
-        <translation>Comment elle parle, et dans quelle langue.</translation>
+        <source>Plain words work best. The traits below only fill in what you left out.</source>
+        <translation>Les mots simples marchent le mieux. Les traits ci-dessous ne comblent que ce que vous n’avez pas dit.</translation>
     </message>
     <message>
-        <source>Tone</source>
-        <translation>Ton</translation>
+        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
+        <translation>ex. fatiguée mais avenante, sans maquillage, chignon défait, sourire un peu de travers</translation>
     </message>
     <message>
-        <source>Describe the tone in your own words</source>
-        <translation>Décrivez le ton avec vos mots</translation>
+        <source>Gender</source>
+        <translation>Genre</translation>
     </message>
     <message>
-        <source>excited and casual</source>
-        <translation>enthousiaste et décontracté</translation>
+        <source>a woman</source>
+        <translation>une femme</translation>
     </message>
     <message>
-        <source>calm and honest</source>
-        <translation>posé et sincère</translation>
+        <source>a man</source>
+        <translation>un homme</translation>
     </message>
     <message>
-        <source>funny</source>
-        <translation>drôle</translation>
+        <source>a non-binary person</source>
+        <translation>une personne non binaire</translation>
     </message>
     <message>
-        <source>straight to the point</source>
-        <translation>droit au but</translation>
+        <source>Age</source>
+        <translation>Âge</translation>
     </message>
     <message>
-        <source>storytelling</source>
-        <translation>narratif</translation>
+        <source>early twenties</source>
+        <translation>début vingtaine</translation>
     </message>
     <message>
-        <source>Language</source>
-        <translation>Langue</translation>
+        <source>late twenties</source>
+        <translation>fin vingtaine</translation>
     </message>
     <message>
-        <source>Any other language</source>
-        <translation>Toute autre langue</translation>
+        <source>thirties</source>
+        <translation>trentaine</translation>
     </message>
     <message>
-        <source>Voice</source>
-        <translation>Voix</translation>
+        <source>forties</source>
+        <translation>quarantaine</translation>
     </message>
     <message>
-        <source>Other voice id...</source>
-        <translation>Autre id de voix...</translation>
+        <source>fifties or older</source>
+        <translation>cinquantaine ou plus</translation>
     </message>
     <message>
-        <source>Paste a voice id</source>
-        <translation>Collez un id de voix</translation>
+        <source>Dress</source>
+        <translation>Tenue</translation>
     </message>
     <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>Chargez les voix de votre compte pour en choisir une.</translation>
+        <source>casual</source>
+        <translation>décontractée</translation>
     </message>
     <message>
-        <source>Load voices</source>
-        <translation>Charger les voix</translation>
+        <source>sportswear</source>
+        <translation>sport</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>bureau</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>streetwear</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>Énergie</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>calme</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>enjouée</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>au réveil</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>chaleureuse</translation>
+    </message>
+    <message>
+        <source>Someone real</source>
+        <translation>Quelqu’un de réel</translation>
+    </message>
+    <message>
+        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
+        <translation>Facultatif. La photo d’une vraie personne garde le même visage sur tous les plans.</translation>
+    </message>
+    <message>
+        <source>Use this photo as the actor, without generating</source>
+        <translation>Utiliser cette photo comme acteur, sans générer</translation>
+    </message>
+    <message>
+        <source>Cast</source>
+        <translation>Casting</translation>
+    </message>
+    <message>
+        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
+        <translation>Quatre visages à la fois. Gardez celui qui pourrait être le selfie d’une vraie personne.</translation>
+    </message>
+    <message>
+        <source>Casting...</source>
+        <translation>Casting...</translation>
+    </message>
+    <message>
+        <source>Cast 1 portrait</source>
+        <translation>Générer 1 portrait</translation>
+    </message>
+    <message>
+        <source>Cast %1 portraits</source>
+        <extracomment>%1 is a number of portraits</extracomment>
+        <translation>Générer %1 portraits</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>prix inconnu</translation>
+    </message>
+    <message>
+        <source>Their voice</source>
+        <translation>Sa voix</translation>
+    </message>
+    <message>
+        <source>Hear them for a fraction of a cent before you buy any video.</source>
+        <translation>Écoutez-la pour une fraction de centime avant d’acheter la moindre vidéo.</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>Garder cet acteur</translation>
+    </message>
+    <message>
+        <source>Saved actors are one click away in every ad after this one.</source>
+        <translation>Les acteurs enregistrés sont à un clic dans toutes vos pubs suivantes.</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Mettre à jour</translation>
+    </message>
+    <message>
+        <source>Save actor</source>
+        <translation>Enregistrer l’acteur</translation>
+    </message>
+    <message>
+        <source>What gets sent</source>
+        <translation>Ce qui est envoyé</translation>
+    </message>
+    <message>
+        <source>Hide the prompt</source>
+        <translation>Masquer le prompt</translation>
+    </message>
+    <message>
+        <source>Show the prompt</source>
+        <translation>Voir le prompt</translation>
+    </message>
+    <message>
+        <source>Built from your own %1.</source>
+        <extracomment>%1 is a file path</extracomment>
+        <translation>Construit depuis votre %1.</translation>
+    </message>
+    <message>
+        <source>Drop a casting.json at %1 to change how this is written.</source>
+        <extracomment>%1 is a file path</extracomment>
+        <translation>Déposez un casting.json dans %1 pour changer sa rédaction.</translation>
+    </message>
+    <message>
+        <source>Portrait model</source>
+        <translation>Modèle de portrait</translation>
     </message>
     <message>
         <source>Back</source>
         <translation>Retour</translation>
     </message>
     <message>
+        <source>Cast someone to continue</source>
+        <translation>Castez quelqu’un pour continuer</translation>
+    </message>
+    <message>
         <source>Next: write the script</source>
         <translation>Suite : écrire le script</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>%1 voix chargées.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>Impossible de charger les voix : %1</translation>
     </message>
 </context>
 <context>
@@ -1351,8 +1648,8 @@ Rien ne nous est envoyé.</translation>
         <translation>ex. femmes de 25 à 35 ans sensibles à la clean beauty</translation>
     </message>
     <message>
-        <source>Reference</source>
-        <translation>Référence</translation>
+        <source>Reference pictures</source>
+        <translation>Photos de référence</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
@@ -1413,29 +1710,8 @@ Rien ne nous est envoyé.</translation>
         <translation>Que dit la personne ?</translation>
     </message>
     <message>
-        <source>Write it the way you would say it out loud. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>Écrivez-le comme vous le diriez à voix haute. Aucune durée à choisir : la pub dure le temps des mots.</translation>
-    </message>
-    <message>
-        <source>I bought this thinking it was another gimmick...</source>
-        <translation>Je l’ai acheté en pensant que c’était encore un gadget...</translation>
-    </message>
-    <message>
-        <source>About %1 s spoken</source>
-        <extracomment>%1 is a duration in seconds</extracomment>
-        <translation>Environ %1 s de parole</translation>
-    </message>
-    <message>
         <source>15 to 30 s converts best</source>
         <translation>15 à 30 s convertit le mieux</translation>
-    </message>
-    <message>
-        <source>If you are stuck</source>
-        <translation>Si vous bloquez</translation>
-    </message>
-    <message>
-        <source>A structure that works for most UGC ads. Ignore it freely.</source>
-        <translation>Une structure qui marche pour la plupart des pubs UGC. Ignorez-la sans souci.</translation>
     </message>
     <message>
         <source>Hook</source>
@@ -1476,6 +1752,47 @@ Rien ne nous est envoyé.</translation>
     <message>
         <source>Say what to do next, casually.</source>
         <translation>Dites quoi faire ensuite, sans insister.</translation>
+    </message>
+    <message>
+        <source>Keep going, or leave it here.</source>
+        <translation>Continuez, ou arrêtez-vous là.</translation>
+    </message>
+    <message>
+        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
+        <translation>Une réplique par scène, avec vos mots. Aucune durée à choisir : la pub dure le temps des mots.</translation>
+    </message>
+    <message>
+        <source>Add a scene</source>
+        <translation>Ajouter une scène</translation>
+    </message>
+    <message>
+        <source>%1 scene(s) · %2 s</source>
+        <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
+        <translation>%1 scène(s) · %2 s</translation>
+    </message>
+    <message>
+        <source>Direct the shots</source>
+        <translation>Diriger les plans</translation>
+    </message>
+    <message>
+        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
+        <translation>Transforme vos répliques en ce que voit la caméra. Vos mots ne sont jamais modifiés.</translation>
+    </message>
+    <message>
+        <source>Directing...</source>
+        <translation>Direction...</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuler</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>prix inconnu</translation>
+    </message>
+    <message>
+        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
+        <translation>Facultatif : une scène non dirigée se rend quand même, à partir d’un prompt générique. C’est la direction qui garde la même personne dans la même pièce d’un plan à l’autre.</translation>
     </message>
     <message>
         <source>Back</source>
@@ -1580,6 +1897,13 @@ Rien ne nous est envoyé.</translation>
     </message>
 </context>
 <context>
+    <name>TraitPicker</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>peu importe</translation>
+    </message>
+</context>
+<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1592,6 +1916,185 @@ Rien ne nous est envoyé.</translation>
     <message>
         <source>The downloaded clip was empty.</source>
         <translation>Le clip téléchargé était vide.</translation>
+    </message>
+</context>
+<context>
+    <name>VoiceBooth</name>
+    <message>
+        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
+        <translation>Honnêtement, je n’y croyais pas. Deux semaines après, je l’utilise toujours.</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>Voix</translation>
+    </message>
+    <message>
+        <source>Other voice id...</source>
+        <translation>Autre id de voix...</translation>
+    </message>
+    <message>
+        <source>Paste a voice id</source>
+        <translation>Collez un id de voix</translation>
+    </message>
+    <message>
+        <source>Load the voices on your account to pick one.</source>
+        <translation>Chargez les voix de votre compte pour en choisir une.</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>Charger les voix</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>Stabilité</translation>
+    </message>
+    <message>
+        <source>Low wanders and sounds alive. High is even and safe.</source>
+        <translation>Bas, ça varie et ça vit. Haut, c’est régulier et sans risque.</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>Similarité</translation>
+    </message>
+    <message>
+        <source>How closely it holds to the original voice.</source>
+        <translation>À quel point elle colle à la voix d’origine.</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>Style</translation>
+    </message>
+    <message>
+        <source>Pushes the delivery. Past halfway it starts acting.</source>
+        <translation>Force l’interprétation. Au-delà de la moitié, ça surjoue.</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Vitesse</translation>
+    </message>
+    <message>
+        <source>Leave at 1.00 unless the read drags.</source>
+        <translation>Laissez à 1,00 sauf si la lecture traîne.</translation>
+    </message>
+    <message>
+        <source>Audition line</source>
+        <translation>Phrase d’essai</translation>
+    </message>
+    <message>
+        <source>Recording...</source>
+        <translation>Enregistrement...</translation>
+    </message>
+    <message>
+        <source>Hear them</source>
+        <translation>L’écouter</translation>
+    </message>
+    <message>
+        <source>Stop</source>
+        <translation>Arrêter</translation>
+    </message>
+    <message>
+        <source>Play again</source>
+        <translation>Réécouter</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>prix inconnu</translation>
+    </message>
+    <message>
+        <source>Hide voice cloning</source>
+        <translation>Masquer le clonage</translation>
+    </message>
+    <message>
+        <source>Clone a voice from a recording</source>
+        <translation>Cloner une voix depuis un enregistrement</translation>
+    </message>
+    <message>
+        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
+        <translation>Déposez un ou plusieurs enregistrements propres de la voix. Une minute de parole suffit largement.</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Retirer</translation>
+    </message>
+    <message>
+        <source>Add recordings</source>
+        <translation>Ajouter des enregistrements</translation>
+    </message>
+    <message>
+        <source>Name for the cloned voice</source>
+        <translation>Nom de la voix clonée</translation>
+    </message>
+    <message>
+        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
+        <translation>Ceci envoie vos enregistrements à ElevenLabs et ajoute une voix permanente à votre compte. Ne clonez qu’une voix que vous avez le droit d’utiliser.</translation>
+    </message>
+    <message>
+        <source>Cloning...</source>
+        <translation>Clonage...</translation>
+    </message>
+    <message>
+        <source>Clone onto my ElevenLabs account</source>
+        <translation>Cloner sur mon compte ElevenLabs</translation>
+    </message>
+    <message>
+        <source>Choose voice recordings</source>
+        <translation>Choisir des enregistrements</translation>
+    </message>
+    <message>
+        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
+        <translation>Audio (*.mp3 *.wav *.m4a *.ogg)</translation>
+    </message>
+    <message>
+        <source>%1 voices loaded.</source>
+        <translation>%1 voix chargées.</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>Impossible de charger les voix : %1</translation>
+    </message>
+    <message>
+        <source>Write a line for them to say.</source>
+        <translation>Écrivez une phrase à lui faire dire.</translation>
+    </message>
+    <message>
+        <source>Could not create the auditions folder.</source>
+        <translation>Impossible de créer le dossier des essais.</translation>
+    </message>
+    <message>
+        <source>No voice provider called %1.</source>
+        <translation>Aucun fournisseur de voix nommé %1.</translation>
+    </message>
+    <message>
+        <source>Audition failed: %1</source>
+        <translation>Essai échoué : %1</translation>
+    </message>
+    <message>
+        <source>Could not write %1.</source>
+        <translation>Impossible d’écrire %1.</translation>
+    </message>
+    <message>
+        <source>Add at least one recording first.</source>
+        <translation>Ajoutez d’abord au moins un enregistrement.</translation>
+    </message>
+    <message>
+        <source>Market Queen voice</source>
+        <translation>Voix Market Queen</translation>
+    </message>
+    <message>
+        <source>Cloned with Market Queen.</source>
+        <translation>Clonée avec Market Queen.</translation>
+    </message>
+    <message>
+        <source>Cloning a voice from %1 recording(s).</source>
+        <translation>Clonage d’une voix à partir de %1 enregistrement(s).</translation>
+    </message>
+    <message>
+        <source>Cloning failed: %1</source>
+        <translation>Clonage échoué : %1</translation>
+    </message>
+    <message>
+        <source>Voice &quot;%1&quot; is on your account.</source>
+        <translation>La voix « %1 » est sur votre compte.</translation>
     </message>
 </context>
 <context>

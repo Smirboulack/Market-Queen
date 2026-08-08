@@ -88,6 +88,10 @@ private:
         QString dir;
         QString productImagePath;
         QString productImageDataUri;
+        // The cast actor. Where both exist the portrait wins for the frames --
+        // a face that changes between shots is more visible than a product
+        // rendered from its description rather than its photo.
+        QString actorPortraitDataUri;
         QString hook;
         QString script;
         QString caption;

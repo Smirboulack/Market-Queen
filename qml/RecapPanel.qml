@@ -90,20 +90,26 @@ Rectangle {
                                    ? root.project.product.images : []
 
                             Rectangle {
+                                id: thumb
+
                                 required property string modelData
+                                required property int index
 
                                 width: 44
                                 height: 44
                                 radius: Theme.radiusSmall
                                 color: Theme.surfaceAlt
-                                border.width: 1
-                                border.color: Theme.border
+                                // The primary reference is outlined here too,
+                                // so the two views never disagree about which
+                                // picture the models will actually get.
+                                border.width: thumb.index === 0 ? 2 : 1
+                                border.color: thumb.index === 0 ? Theme.accent : Theme.border
                                 clip: true
 
                                 Image {
                                     anchors.fill: parent
-                                    anchors.margins: 1
-                                    source: App.toFileUrl(parent.modelData)
+                                    anchors.margins: thumb.index === 0 ? 2 : 1
+                                    source: App.toFileUrl(thumb.modelData)
                                     fillMode: Image.PreserveAspectCrop
                                     asynchronous: true
                                     smooth: true
@@ -121,15 +127,57 @@ Rectangle {
                             && root.project.stepStates[1].valid
                     placeholder: qsTr("No one cast yet")
 
-                    Text {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: root.project.actor.brief !== undefined
-                              ? root.project.actor.brief : ""
-                        color: Theme.text
-                        font.pixelSize: Theme.fontSmall
-                        wrapMode: Text.WordWrap
-                        maximumLineCount: 3
-                        elide: Text.ElideRight
+                        spacing: 8
+
+                        Rectangle {
+                            Layout.preferredWidth: 48
+                            Layout.preferredHeight: 64
+                            radius: Theme.radiusSmall
+                            color: Theme.surfaceAlt
+                            border.width: 1
+                            border.color: Theme.border
+                            clip: true
+
+                            Image {
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                source: root.project.actor.portraitPath !== undefined
+                                        ? App.toFileUrl(root.project.actor.portraitPath) : ""
+                                fillMode: Image.PreserveAspectCrop
+                                asynchronous: true
+                                smooth: true
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            Layout.alignment: Qt.AlignTop
+                            spacing: 2
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.project.actor.name !== undefined
+                                      && root.project.actor.name !== ""
+                                      ? root.project.actor.name : qsTr("Not saved")
+                                color: Theme.text
+                                font.pixelSize: Theme.fontSmall
+                                font.weight: Font.DemiBold
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: root.project.actor.brief !== undefined
+                                      ? root.project.actor.brief : ""
+                                color: Theme.textDim
+                                font.pixelSize: Theme.fontSmall
+                                wrapMode: Text.WordWrap
+                                maximumLineCount: 3
+                                elide: Text.ElideRight
+                            }
+                        }
                     }
 
                     Text {
