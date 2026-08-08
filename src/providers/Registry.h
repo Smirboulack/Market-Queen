@@ -31,6 +31,9 @@ public:
     Q_INVOKABLE QString credentialFor(const QString &providerId) const;
     Q_INVOKABLE QString defaultProvider(const QString &category) const;
 
+    // Readable name for a model, or the id itself when it came from "Other...".
+    Q_INVOKABLE QString modelLabel(const QString &providerId, const QString &modelId) const;
+
     // [{id, label, envVar, signupUrl, note}] for the settings page.
     QVariantList credentials() const;
 

@@ -237,6 +237,33 @@ ScrollView {
         SectionCard {
             Layout.leftMargin: Theme.pagePadding
             Layout.rightMargin: Theme.pagePadding
+            title: qsTr("Prices")
+            subtitle: qsTr("Used for the cost estimate. They are what the providers publish, not what they billed you.")
+
+            Text {
+                Layout.fillWidth: true
+                text: App.pricing.overridden
+                    //: %1 is a date
+                    ? qsTr("Using your own price list, last edited %1.").arg(App.pricing.updated)
+                    : qsTr("Checked against the providers' pricing pages on %1. Drop a pricing.json in the config folder to use your own.")
+                          .arg(App.pricing.updated)
+                color: Theme.textDim
+                font.pixelSize: Theme.fontSmall + 1
+                wrapMode: Text.WordWrap
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: App.pricing.overridePath
+                color: Theme.textFaint
+                font.pixelSize: Theme.fontSmall
+                elide: Text.ElideMiddle
+            }
+        }
+
+        SectionCard {
+            Layout.leftMargin: Theme.pagePadding
+            Layout.rightMargin: Theme.pagePadding
             title: qsTr("About")
 
             Text {

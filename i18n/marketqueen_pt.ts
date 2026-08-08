@@ -219,6 +219,16 @@
         <translation>O seu anúncio está pronto</translation>
     </message>
     <message>
+        <source>Cost %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Custo %1</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 modelo(s) sem preço publicado</translation>
+    </message>
+    <message>
         <source>Play</source>
         <translation>Reproduzir</translation>
     </message>
@@ -266,6 +276,35 @@
     </message>
 </context>
 <context>
+    <name>EstimateCard</name>
+    <message>
+        <source>Estimated cost</source>
+        <translation>Custo estimado</translation>
+    </message>
+    <message>
+        <source>prices %1</source>
+        <extracomment>%1 is a date like "8 Aug 2026"</extracomment>
+        <translation>preços de %1</translation>
+    </message>
+    <message>
+        <source>?</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Total</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 modelo(s) sem preço publicado</translation>
+    </message>
+    <message>
+        <source>An estimate, not a bill. Each provider charges you directly.</source>
+        <translation>Uma estimativa, não uma fatura. Cada fornecedor cobra-lhe diretamente.</translation>
+    </message>
+</context>
+<context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
@@ -307,6 +346,69 @@
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
         <translation>O FFmpeg falhou (código %1). %2</translation>
+    </message>
+</context>
+<context>
+    <name>Format</name>
+    <message>
+        <source>~%1</source>
+        <extracomment>Prefix meaning "approximately". %1 is a price like $1.10</extracomment>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Script</source>
+        <translation>Guião</translation>
+    </message>
+    <message>
+        <source>Voice-over</source>
+        <translation>Narração</translation>
+    </message>
+    <message>
+        <source>Frames</source>
+        <translation>Imagens</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Planos</translation>
+    </message>
+    <message>
+        <source>Subtitles</source>
+        <translation>Legendas</translation>
+    </message>
+    <message>
+        <source>%1 s</source>
+        <extracomment>%1 is a number of seconds</extracomment>
+        <translation>%1 s</translation>
+    </message>
+    <message>
+        <source>%1 x</source>
+        <extracomment>%1 is a number of images</extracomment>
+        <translation>%1 ×</translation>
+    </message>
+    <message>
+        <source>%1/s</source>
+        <extracomment>Price per second of generated video</extracomment>
+        <translation>%1/s</translation>
+    </message>
+    <message>
+        <source>%1/image</source>
+        <extracomment>Price per generated image</extracomment>
+        <translation>%1/imagem</translation>
+    </message>
+    <message>
+        <source>%1/1k chars</source>
+        <extracomment>Price per 1000 characters of speech</extracomment>
+        <translation>%1/1k car.</translation>
+    </message>
+    <message>
+        <source>%1/min</source>
+        <extracomment>Price per minute of audio</extracomment>
+        <translation>%1/min</translation>
+    </message>
+    <message>
+        <source>%1/1M out</source>
+        <extracomment>Price per million output tokens</extracomment>
+        <translation>%1/1M saída</translation>
     </message>
 </context>
 <context>
@@ -455,6 +557,11 @@
         <translation>%1 projeto(s) em %2</translation>
     </message>
     <message>
+        <source>%1 spent across these projects</source>
+        <extracomment>%1 is a total price like ~$12.40</extracomment>
+        <translation>%1 gastos nestes projetos</translation>
+    </message>
+    <message>
         <source>Open folder</source>
         <translation>Abrir pasta</translation>
     </message>
@@ -552,16 +659,16 @@
         <translation>Guião</translation>
     </message>
     <message>
-        <source>Opening frame</source>
-        <translation>Primeiro fotograma</translation>
-    </message>
-    <message>
         <source>Voice-over</source>
         <translation>Narração</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation>Vídeo</translation>
+        <source>Frames</source>
+        <translation>Imagens</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Planos</translation>
     </message>
     <message>
         <source>Subtitles</source>
@@ -604,8 +711,68 @@
         <translation>Não foi possível escrever %1.</translation>
     </message>
     <message>
-        <source>Using the script you wrote.</source>
-        <translation>A usar o guião que escreveu.</translation>
+        <source>Using the script you wrote, cut into %1 shot(s).</source>
+        <translation>A usar o seu guião, dividido em %1 plano(s).</translation>
+    </message>
+    <message>
+        <source>The model answer did not contain a script.</source>
+        <translation>A resposta do modelo não continha um guião.</translation>
+    </message>
+    <message>
+        <source>Script ready in %1 shot(s): "%2"</source>
+        <translation>Guião pronto em %1 plano(s): «%2»</translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s, about %3s each.</source>
+        <translation>%1 plano(s) ao longo de %2 s, cerca de %3 s cada.</translation>
+    </message>
+    <message>
+        <source>%1 frame(s)</source>
+        <translation>%1 imagem(ns)</translation>
+    </message>
+    <message>
+        <source>Using your photo for shot 1.</source>
+        <translation>A sua foto é usada no plano 1.</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Drawing shot %1 of %2...</source>
+        <translation>A gerar a imagem do plano %1 de %2...</translation>
+    </message>
+    <message>
+        <source>Frame %1 saved (%2 KB).</source>
+        <translation>Imagem %1 guardada (%2 KB).</translation>
+    </message>
+    <message>
+        <source>Filming shot %1 of %2...</source>
+        <translation>A filmar o plano %1 de %2...</translation>
+    </message>
+    <message>
+        <source>Shot %1 saved (%2 MB).</source>
+        <translation>Plano %1 guardado (%2 MB).</translation>
+    </message>
+    <message>
+        <source>%1 shot(s)</source>
+        <translation>%1 plano(s)</translation>
+    </message>
+    <message>
+        <source>FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
+        <translation>O FFmpeg é necessário para montar os planos com a locução e as legendas. Instale-o ou indique o caminho nas Definições. Os ficheiros gerados estão em %1.</translation>
+    </message>
+    <message>
+        <source>No shot was rendered, so there is nothing to cut together.</source>
+        <translation>Nenhum plano foi produzido, por isso não há nada para montar.</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
+        <translation>Faltam %1 s de vídeo face à locução; o último plano fica congelado.</translation>
+    </message>
+    <message>
+        <source>Cutting %1 shot(s) into %2x%3.</source>
+        <translation>A montar %1 plano(s) em %2x%3.</translation>
     </message>
     <message>
         <source>your own script</source>
@@ -616,28 +783,8 @@
         <translation>A escrever o guião...</translation>
     </message>
     <message>
-        <source>Script ready: "%1"</source>
-        <translation>Guião pronto: «%1»</translation>
-    </message>
-    <message>
-        <source>Using your photo as the opening frame.</source>
-        <translation>A sua foto será o primeiro fotograma.</translation>
-    </message>
-    <message>
-        <source>your photo</source>
-        <translation>a sua foto</translation>
-    </message>
-    <message>
-        <source>Generating the opening frame...</source>
-        <translation>A gerar o primeiro fotograma...</translation>
-    </message>
-    <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
         <translation>Foto vertical em estilo selfie de uma pessoa real a segurar %1, luz natural de janela, captada com um telemóvel, com o aspeto autêntico de conteúdo criado por utilizadores.</translation>
-    </message>
-    <message>
-        <source>Opening frame saved (%1 KB).</source>
-        <translation>Primeiro fotograma guardado (%1 KB).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
@@ -656,20 +803,8 @@
         <translation>%1 s</translation>
     </message>
     <message>
-        <source>Animating the frame...</source>
-        <translation>A animar o fotograma...</translation>
-    </message>
-    <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
         <translation>A pessoa fala diretamente para a câmara, com um ligeiro movimento de câmara à mão, pestanejo natural e pequenos gestos com as mãos.</translation>
-    </message>
-    <message>
-        <source>Requesting a %1s clip.</source>
-        <translation>A pedir um clipe de %1 s.</translation>
-    </message>
-    <message>
-        <source>Clip saved (%1 MB).</source>
-        <translation>Clipe guardado (%1 MB).</translation>
     </message>
     <message>
         <source>off</source>
@@ -700,20 +835,8 @@
         <translation>A montar o vídeo final...</translation>
     </message>
     <message>
-        <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>O FFmpeg é necessário para juntar o clipe, a narração e as legendas. Instale-o ou indique o caminho nas Definições. Os ficheiros gerados estão em %1.</translation>
-    </message>
-    <message>
         <source>FFmpeg not found.</source>
         <translation>FFmpeg não encontrado.</translation>
-    </message>
-    <message>
-        <source>Looping the clip to cover the voice-over.</source>
-        <translation>O clipe é repetido para cobrir a narração.</translation>
-    </message>
-    <message>
-        <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>O clipe é abrandado %1 % para acompanhar a narração.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -928,6 +1051,23 @@
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
         <translation>O FFmpeg junta o clipe, a narração e as legendas no MP4 final. Sem ele a aplicação gera na mesma cada peça, mas não as consegue montar.</translation>
+    </message>
+    <message>
+        <source>Prices</source>
+        <translation>Preços</translation>
+    </message>
+    <message>
+        <source>Used for the cost estimate. They are what the providers publish, not what they billed you.</source>
+        <translation>Usados para a estimativa de custo. São os preços que os fornecedores publicam, não o que lhe cobraram.</translation>
+    </message>
+    <message>
+        <source>Using your own price list, last edited %1.</source>
+        <extracomment>%1 is a date</extracomment>
+        <translation>A usar a sua própria lista de preços, editada a %1.</translation>
+    </message>
+    <message>
+        <source>Checked against the providers' pricing pages on %1. Drop a pricing.json in the config folder to use your own.</source>
+        <translation>Verificados nas páginas de preços dos fornecedores a %1. Coloque um pricing.json na pasta de configuração para usar os seus.</translation>
     </message>
     <message>
         <source>About</source>

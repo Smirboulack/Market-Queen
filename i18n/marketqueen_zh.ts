@@ -219,6 +219,16 @@
         <translation>你的广告已就绪</translation>
     </message>
     <message>
+        <source>Cost %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>费用 %1</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>另有 %1 个模型未公布价格</translation>
+    </message>
+    <message>
         <source>Play</source>
         <translation>播放</translation>
     </message>
@@ -266,6 +276,35 @@
     </message>
 </context>
 <context>
+    <name>EstimateCard</name>
+    <message>
+        <source>Estimated cost</source>
+        <translation>预计费用</translation>
+    </message>
+    <message>
+        <source>prices %1</source>
+        <extracomment>%1 is a date like "8 Aug 2026"</extracomment>
+        <translation>%1 的价格</translation>
+    </message>
+    <message>
+        <source>?</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>合计</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>另有 %1 个模型未公布价格</translation>
+    </message>
+    <message>
+        <source>An estimate, not a bill. Each provider charges you directly.</source>
+        <translation>这是预估，不是账单。各服务商直接向你收费。</translation>
+    </message>
+</context>
+<context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
@@ -307,6 +346,69 @@
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
         <translation>FFmpeg 执行失败（退出码 %1）。%2</translation>
+    </message>
+</context>
+<context>
+    <name>Format</name>
+    <message>
+        <source>~%1</source>
+        <extracomment>Prefix meaning "approximately". %1 is a price like $1.10</extracomment>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Script</source>
+        <translation>脚本</translation>
+    </message>
+    <message>
+        <source>Voice-over</source>
+        <translation>配音</translation>
+    </message>
+    <message>
+        <source>Frames</source>
+        <translation>画面</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>镜头</translation>
+    </message>
+    <message>
+        <source>Subtitles</source>
+        <translation>字幕</translation>
+    </message>
+    <message>
+        <source>%1 s</source>
+        <extracomment>%1 is a number of seconds</extracomment>
+        <translation>%1 秒</translation>
+    </message>
+    <message>
+        <source>%1 x</source>
+        <extracomment>%1 is a number of images</extracomment>
+        <translation>%1 张</translation>
+    </message>
+    <message>
+        <source>%1/s</source>
+        <extracomment>Price per second of generated video</extracomment>
+        <translation>%1/秒</translation>
+    </message>
+    <message>
+        <source>%1/image</source>
+        <extracomment>Price per generated image</extracomment>
+        <translation>%1/张</translation>
+    </message>
+    <message>
+        <source>%1/1k chars</source>
+        <extracomment>Price per 1000 characters of speech</extracomment>
+        <translation>%1/千字符</translation>
+    </message>
+    <message>
+        <source>%1/min</source>
+        <extracomment>Price per minute of audio</extracomment>
+        <translation>%1/分钟</translation>
+    </message>
+    <message>
+        <source>%1/1M out</source>
+        <extracomment>Price per million output tokens</extracomment>
+        <translation>%1/百万输出</translation>
     </message>
 </context>
 <context>
@@ -455,6 +557,11 @@
         <translation>%2 中有 %1 个项目</translation>
     </message>
     <message>
+        <source>%1 spent across these projects</source>
+        <extracomment>%1 is a total price like ~$12.40</extracomment>
+        <translation>这些项目共花费 %1</translation>
+    </message>
+    <message>
         <source>Open folder</source>
         <translation>打开文件夹</translation>
     </message>
@@ -552,16 +659,16 @@
         <translation>脚本</translation>
     </message>
     <message>
-        <source>Opening frame</source>
-        <translation>首帧画面</translation>
-    </message>
-    <message>
         <source>Voice-over</source>
         <translation>配音</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation>视频</translation>
+        <source>Frames</source>
+        <translation>画面</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>镜头</translation>
     </message>
     <message>
         <source>Subtitles</source>
@@ -604,8 +711,68 @@
         <translation>无法写入 %1。</translation>
     </message>
     <message>
-        <source>Using the script you wrote.</source>
-        <translation>将使用你自己写的脚本。</translation>
+        <source>Using the script you wrote, cut into %1 shot(s).</source>
+        <translation>使用你写的脚本，分成 %1 个镜头。</translation>
+    </message>
+    <message>
+        <source>The model answer did not contain a script.</source>
+        <translation>模型的回复中没有脚本。</translation>
+    </message>
+    <message>
+        <source>Script ready in %1 shot(s): "%2"</source>
+        <translation>脚本已就绪，共 %1 个镜头：“%2”</translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s, about %3s each.</source>
+        <translation>%1 个镜头，共 %2 秒，每个约 %3 秒。</translation>
+    </message>
+    <message>
+        <source>%1 frame(s)</source>
+        <translation>%1 张画面</translation>
+    </message>
+    <message>
+        <source>Using your photo for shot 1.</source>
+        <translation>第 1 个镜头使用你的照片。</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Drawing shot %1 of %2...</source>
+        <translation>正在生成第 %1/%2 个镜头的画面...</translation>
+    </message>
+    <message>
+        <source>Frame %1 saved (%2 KB).</source>
+        <translation>画面 %1 已保存（%2 KB）。</translation>
+    </message>
+    <message>
+        <source>Filming shot %1 of %2...</source>
+        <translation>正在拍摄第 %1/%2 个镜头...</translation>
+    </message>
+    <message>
+        <source>Shot %1 saved (%2 MB).</source>
+        <translation>镜头 %1 已保存（%2 MB）。</translation>
+    </message>
+    <message>
+        <source>%1 shot(s)</source>
+        <translation>%1 个镜头</translation>
+    </message>
+    <message>
+        <source>FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
+        <translation>需要 FFmpeg 才能把镜头与配音、字幕剪辑在一起。请安装它，或在设置中指定它的路径。已生成的文件在 %1。</translation>
+    </message>
+    <message>
+        <source>No shot was rendered, so there is nothing to cut together.</source>
+        <translation>没有生成任何镜头，无法剪辑。</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
+        <translation>片段比配音短 %1 秒，最后一个镜头将定格。</translation>
+    </message>
+    <message>
+        <source>Cutting %1 shot(s) into %2x%3.</source>
+        <translation>正在将 %1 个镜头剪辑为 %2x%3。</translation>
     </message>
     <message>
         <source>your own script</source>
@@ -616,28 +783,8 @@
         <translation>正在撰写脚本…</translation>
     </message>
     <message>
-        <source>Script ready: "%1"</source>
-        <translation>脚本已就绪：“%1”</translation>
-    </message>
-    <message>
-        <source>Using your photo as the opening frame.</source>
-        <translation>将用你的照片作为首帧。</translation>
-    </message>
-    <message>
-        <source>your photo</source>
-        <translation>你的照片</translation>
-    </message>
-    <message>
-        <source>Generating the opening frame...</source>
-        <translation>正在生成首帧…</translation>
-    </message>
-    <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
         <translation>竖构图自拍风格照片：一位真实人物手持 %1，自然窗光，手机拍摄，具有真实的用户原创内容质感。</translation>
-    </message>
-    <message>
-        <source>Opening frame saved (%1 KB).</source>
-        <translation>首帧已保存（%1 KB）。</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
@@ -656,20 +803,8 @@
         <translation>%1 秒</translation>
     </message>
     <message>
-        <source>Animating the frame...</source>
-        <translation>正在让画面动起来…</translation>
-    </message>
-    <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
         <translation>人物直视镜头说话，轻微的手持晃动，自然眨眼和细小的手势。</translation>
-    </message>
-    <message>
-        <source>Requesting a %1s clip.</source>
-        <translation>正在请求 %1 秒的片段。</translation>
-    </message>
-    <message>
-        <source>Clip saved (%1 MB).</source>
-        <translation>片段已保存（%1 MB）。</translation>
     </message>
     <message>
         <source>off</source>
@@ -700,20 +835,8 @@
         <translation>正在合成最终视频…</translation>
     </message>
     <message>
-        <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>合并片段、配音和字幕需要 FFmpeg。请安装它，或在设置中指定其路径。已生成的文件位于 %1。</translation>
-    </message>
-    <message>
         <source>FFmpeg not found.</source>
         <translation>未找到 FFmpeg。</translation>
-    </message>
-    <message>
-        <source>Looping the clip to cover the voice-over.</source>
-        <translation>循环播放片段以覆盖整段配音。</translation>
-    </message>
-    <message>
-        <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>将片段放慢 %1% 以匹配配音。</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -928,6 +1051,23 @@
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
         <translation>FFmpeg 会把片段、配音和字幕合成为最终的 MP4。没有它，应用仍会生成各个部分，但无法合成。</translation>
+    </message>
+    <message>
+        <source>Prices</source>
+        <translation>价格</translation>
+    </message>
+    <message>
+        <source>Used for the cost estimate. They are what the providers publish, not what they billed you.</source>
+        <translation>用于费用预估。这些是服务商公布的价格，不是他们向你实际收取的金额。</translation>
+    </message>
+    <message>
+        <source>Using your own price list, last edited %1.</source>
+        <extracomment>%1 is a date</extracomment>
+        <translation>正在使用你自己的价格表，最后修改于 %1。</translation>
+    </message>
+    <message>
+        <source>Checked against the providers' pricing pages on %1. Drop a pricing.json in the config folder to use your own.</source>
+        <translation>已于 %1 对照各服务商的价格页面核对。将 pricing.json 放入配置文件夹即可使用你自己的价格。</translation>
     </message>
     <message>
         <source>About</source>

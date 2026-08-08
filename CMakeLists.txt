@@ -24,6 +24,7 @@ set(APP_SOURCES
     src/core/Paths.h             src/core/Paths.cpp
     src/core/LogModel.h          src/core/LogModel.cpp
     src/core/SettingsStore.h     src/core/SettingsStore.cpp
+    src/core/Pricing.h           src/core/Pricing.cpp
     src/core/Http.h              src/core/Http.cpp
     src/i18n/Translator.h        src/i18n/Translator.cpp
     src/providers/Types.h
@@ -48,11 +49,13 @@ qt_add_executable(MarketQueen WIN32 MACOSX_BUNDLE ${APP_SOURCES})
 set(APP_QML_FILES
     qml/Main.qml
     qml/Theme.qml
+    qml/Format.qml
     qml/SideNav.qml
     qml/CreatePage.qml
     qml/LibraryPage.qml
     qml/SettingsPage.qml
     qml/SectionCard.qml
+    qml/EstimateCard.qml
     qml/LabeledField.qml
     qml/LabeledArea.qml
     qml/PrimaryButton.qml
@@ -75,7 +78,8 @@ foreach(qml_file IN LISTS APP_QML_FILES)
     set_source_files_properties(${qml_file} PROPERTIES QT_RESOURCE_ALIAS ${qml_name})
 endforeach()
 
-set_source_files_properties(qml/Theme.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Theme.qml qml/Format.qml
+                            PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
 qt_add_qml_module(MarketQueen
     URI MarketQueen
@@ -84,6 +88,7 @@ qt_add_qml_module(MarketQueen
     RESOURCES
         assets/icon-full.png
         assets/icon-head.png
+        resources/pricing.json
 )
 
 # The per-directory entries are what the generated QML type registration file
@@ -140,6 +145,15 @@ set_target_properties(MarketQueen PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
 )
+
+# A model the price list has never heard of drops out of the cost estimate
+# without a word, so the two lists have to be checked against each other.
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_FOUND)
+    enable_testing()
+    add_test(NAME pricing_catalogue
+             COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/check_pricing.py)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS MarketQueen

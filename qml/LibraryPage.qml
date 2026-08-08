@@ -33,6 +33,15 @@ Item {
                     font.pixelSize: Theme.fontBody
                     elide: Text.ElideMiddle
                 }
+
+                Text {
+                    //: %1 is a total price like ~$12.40
+                    text: qsTr("%1 spent across these projects").arg(
+                              Format.estimated(App.library.totalCost))
+                    visible: App.library.totalCost > 0
+                    color: Theme.textFaint
+                    font.pixelSize: Theme.fontSmall
+                }
             }
 
             Item { Layout.fillWidth: true }
@@ -65,6 +74,8 @@ Item {
                 required property string finalVideo
                 required property string thumbnail
                 required property bool success
+                required property double cost
+                required property bool hasCost
 
                 width: GridView.view.cellWidth
                 height: GridView.view.cellHeight
@@ -169,6 +180,13 @@ Item {
 
                             Text {
                                 text: createdAt
+                                color: Theme.textFaint
+                                font.pixelSize: Theme.fontSmall
+                            }
+
+                            Text {
+                                text: "·  " + Format.estimated(cost)
+                                visible: hasCost
                                 color: Theme.textFaint
                                 font.pixelSize: Theme.fontSmall
                             }

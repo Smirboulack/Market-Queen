@@ -11,15 +11,19 @@ and you pay the providers directly for what you use.
 ```
 Product + brief
       │
-      ├─ 1. Script      (OpenAI / Claude / Gemini)
-      ├─ 2. Frame       (gpt-image-1 / Flux via fal.ai or Replicate)
-      ├─ 3. Voice-over  (ElevenLabs / OpenAI TTS)
-      ├─ 4. Video       (Kling / Wan / Hailuo / Luma, image-to-video)
+      ├─ 1. Script      (OpenAI / Claude / Gemini)      → N shots
+      ├─ 2. Voice-over  (ElevenLabs / OpenAI TTS)       → one take, measured
+      ├─ 3. Frames      (gpt-image-1 / Flux via fal.ai) → one still per shot
+      ├─ 4. Shots       (Kling / Wan / Hailuo / Luma)   → one clip per shot
       ├─ 5. Subtitles   (Whisper)
-      └─ 6. Final cut   (FFmpeg)
+      └─ 6. Final cut   (FFmpeg)                        → trim, concat, mux
                 │
           final.mp4
 ```
+
+The ad is cut into shots rather than being one clip on a loop. The voice-over is
+recorded first, in a single take, and how long each shot holds the screen is that shot's
+share of it — so nothing is ever stretched or looped to fill time.
 
 ## Status
 
@@ -76,6 +80,44 @@ always know what you were billed for.
 
 Midjourney is not in the list: it has no public API.
 
+## What it costs
+
+Every model shows its unit price where you pick it — `Kling 2.1 Master   $0.28/s` — and the
+panel on the right adds up what the next click on *Generate* will spend, updating as you
+change the form:
+
+```
+ESTIMATED COST                    prices 08/08/2026
+
+Script                                      ~$0.01
+Voice-over                                  ~$0.03
+Frames         4 x                          ~$0.16
+Shots          20 s                         ~$5.60
+Subtitles                                   ~$0.00
+──────────────────────────────────────────────────
+Total                                       ~$5.80
+```
+
+Video is almost always the bill, and cutting an ad into shots buys a clip for each one.
+Switching the video model is the single change that moves the total by an order of
+magnitude — the same 20-second ad is `~$1.80` on Hailuo 02 Pro and `~$5.80` on Kling 2.1
+Master. That is exactly what the per-model prices are there to make obvious before you
+spend anything.
+
+How many shots an ad is cut into follows from its length: every shot is kept at or under
+five seconds, the shortest clip every video model sells, so each one is bought at that floor
+with nothing paid for and left unused. You choose the length; there is no second control to
+get wrong.
+
+Afterwards the run records what it actually consumed — tokens the writer billed, characters
+sent to the voice, seconds of clip returned — into `project.json`, and the library shows it
+per ad and as a running total.
+
+Prices come from `resources/pricing.json`, checked against each provider's own pricing page.
+A model with no public per-request price is reported as unknown and left out of the total
+rather than counted as free. Drop your own `pricing.json` into the config folder to override
+the lot. It is an estimate, never a bill — the providers charge you, we only do the sums.
+
 Keys can also come from the environment (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
 `GEMINI_API_KEY`, `FAL_KEY`, `REPLICATE_API_TOKEN`, `ELEVENLABS_API_KEY`), which is handy
 if you already have them exported.
@@ -89,8 +131,9 @@ if you already have them exported.
   machine identity. That stops a stray backup or a synced folder from leaking them; it is
   not a defence against malware already running as you. An OS keychain backend is the
   planned follow-up.
-- Every run writes its own folder (script, frame, voice, clip, subtitles, final cut) so you
-  can reuse or fix any single piece by hand.
+- Every run writes its own folder — the script and its shot list, the voice-over, one still
+  and one clip per shot, the subtitles and the final cut — so you can reuse or fix any
+  single piece by hand.
 
 ## Build from source
 
@@ -117,7 +160,7 @@ cmake --install build --prefix dist
 
 ```
 src/
-├── core/        settings + encrypted key store, logging, HTTP helpers
+├── core/        settings + encrypted key store, pricing, logging, HTTP helpers
 ├── providers/   one class per API, behind ProviderTask
 ├── media/       FFmpeg process wrapper
 ├── pipeline/    the state machine that chains the steps
@@ -125,8 +168,15 @@ src/
 └── app/         the object QML talks to
 qml/             the interface
 i18n/            translations: <lang>.json + generated .ts
+resources/       pricing.json, the model price list
 assets/          icons + the Windows resource script
 ```
+
+**Prices.** `resources/pricing.json` is data, not code, so a provider changing its rates is
+a one-line pull request rather than a release. Every model id in `Registry.cpp` has to
+appear there, priced or explicitly `"unknown": true` — `tools/check_pricing.py` (wired up as
+the `pricing_catalogue` ctest) fails if one is missing, which is what stops a new model from
+quietly vanishing out of the estimate.
 
 **Icons.** Windows draws two different icons for one window: `ICON_SMALL` in the title bar
 and `ICON_BIG` in the taskbar. They get different artwork on purpose — at 16px the full
@@ -157,10 +207,14 @@ applies). `python tools/fill_translations.py --list` prints every string that ne
 
 ## Roadmap
 
+Next up are ad formats, then per-shot regeneration. The full plan is in
+[docs/V2-PLAN.md](docs/V2-PLAN.md).
+
+- UGC ad formats (problem/solution, testimonial, unboxing, ...)
+- Per-shot regeneration and an in-app preview player
+- Batch mode: one product, N variants, with a budget cap
+- Auto model routing by cost and capability
 - OS keychain for the API keys
-- Multiple shots per ad instead of one looping clip
-- Batch mode: one product, N variants
-- In-app preview player
 - Caption styling in the UI
 
 ## License

@@ -85,16 +85,25 @@ QString ScriptTask::systemPrompt() const
         "- Only words that will be spoken out loud.\n"
         "- End with one clear, casual call to action.\n"
         "\n"
+        "The ad is cut into shots. Each shot is one camera setup that stays on screen "
+        "for about five seconds while its line is spoken. Consecutive shots must look "
+        "clearly different -- change the angle, the framing or what is in the frame -- "
+        "but keep the same person, the same product and the same place throughout.\n"
+        "\n"
         "Answer with a single JSON object and nothing else, using exactly these keys:\n"
         "{\n"
         "  \"hook\": \"the first spoken line, under 15 words\",\n"
-        "  \"script\": \"the full voice-over including the hook\",\n"
-        "  \"imagePrompt\": \"a photographic prompt for the opening frame: describe the "
-        "person, their expression, how they hold the product, the room, the lighting and "
-        "the phone-camera look. Vertical 9:16 selfie framing.\",\n"
-        "  \"videoPrompt\": \"how that frame should move over a few seconds: subtle handheld "
-        "camera, the person talking to camera, small natural gestures\",\n"
-        "  \"caption\": \"a short on-screen title, under 8 words\"\n"
+        "  \"caption\": \"a short on-screen title, under 8 words\",\n"
+        "  \"shots\": [\n"
+        "    {\n"
+        "      \"line\": \"the words spoken while this shot is on screen\",\n"
+        "      \"imagePrompt\": \"a photographic prompt for this shot: the person, their "
+        "expression, how they hold the product, the framing, the room, the lighting and "
+        "the phone-camera look\",\n"
+        "      \"videoPrompt\": \"how this shot should move over its few seconds: subtle "
+        "handheld camera, small natural gestures\"\n"
+        "    }\n"
+        "  ]\n"
         "}");
 }
 
@@ -116,6 +125,10 @@ QString ScriptTask::userPrompt() const
     prompt += QStringLiteral("Target length: about %1 seconds, so roughly %2 spoken words.\n")
                   .arg(m_request.durationSeconds)
                   .arg(words);
+    prompt += QStringLiteral("Write it as exactly %1 shots, so about %2 words per shot. "
+                             "Split the script where the thought changes, not mid-sentence.\n")
+                  .arg(m_request.shotCount)
+                  .arg(qMax(1, words / qMax(1, m_request.shotCount)));
 
     if (!m_request.referenceImageDataUri.isEmpty()) {
         prompt += QStringLiteral(
@@ -127,7 +140,7 @@ QString ScriptTask::userPrompt() const
     return prompt;
 }
 
-void ScriptTask::deliver(const QString &rawText)
+void ScriptTask::deliver(const QString &rawText, int inputTokens, int outputTokens)
 {
     if (rawText.trimmed().isEmpty()) {
         fail(tr("The model returned an empty answer."));
@@ -135,11 +148,44 @@ void ScriptTask::deliver(const QString &rawText)
     }
 
     const QJsonObject obj = extractJsonObject(rawText);
-    QString script = obj.value(QStringLiteral("script")).toString().trimmed();
 
-    // A model that ignored the JSON instruction still gave us usable copy.
-    if (script.isEmpty() && obj.isEmpty())
-        script = rawText.trimmed();
+    QVariantList shots;
+    QStringList lines;
+    for (const QJsonValue &value : obj.value(QStringLiteral("shots")).toArray()) {
+        const QJsonObject shot = value.toObject();
+        const QString line = shot.value(QStringLiteral("line")).toString().trimmed();
+        if (line.isEmpty())
+            continue;
+        lines << line;
+        shots.append(QVariantMap{
+            {QStringLiteral("line"), line},
+            {QStringLiteral("imagePrompt"),
+             shot.value(QStringLiteral("imagePrompt")).toString().trimmed()},
+            {QStringLiteral("videoPrompt"),
+             shot.value(QStringLiteral("videoPrompt")).toString().trimmed()},
+        });
+    }
+
+    QString script = lines.join(QLatin1Char(' '));
+
+    // Some models answer in the shape we asked for before shots existed, and a
+    // model that ignored the JSON instruction altogether still gave us usable
+    // copy. Both become a single shot rather than a failed run; the pipeline
+    // splits it up afterwards.
+    if (shots.isEmpty()) {
+        script = obj.value(QStringLiteral("script")).toString().trimmed();
+        if (script.isEmpty() && obj.isEmpty())
+            script = rawText.trimmed();
+        if (!script.isEmpty()) {
+            shots.append(QVariantMap{
+                {QStringLiteral("line"), script},
+                {QStringLiteral("imagePrompt"),
+                 obj.value(QStringLiteral("imagePrompt")).toString().trimmed()},
+                {QStringLiteral("videoPrompt"),
+                 obj.value(QStringLiteral("videoPrompt")).toString().trimmed()},
+            });
+        }
+    }
 
     if (script.isEmpty()) {
         fail(tr("The model answer did not contain a script."));
@@ -153,9 +199,10 @@ void ScriptTask::deliver(const QString &rawText)
     succeed({
         {QStringLiteral("hook"), hook},
         {QStringLiteral("script"), script},
-        {QStringLiteral("imagePrompt"), obj.value(QStringLiteral("imagePrompt")).toString().trimmed()},
-        {QStringLiteral("videoPrompt"), obj.value(QStringLiteral("videoPrompt")).toString().trimmed()},
+        {QStringLiteral("shots"), shots},
         {QStringLiteral("caption"), obj.value(QStringLiteral("caption")).toString().trimmed()},
+        {QStringLiteral("inputTokens"), inputTokens},
+        {QStringLiteral("outputTokens"), outputTokens},
     });
 }
 
@@ -202,7 +249,10 @@ void OpenAiScriptTask::start()
         {{QStringLiteral("Authorization"), QStringLiteral("Bearer ") + m_request.apiKey}});
 
     postJson(request, body, [this](const QJsonObject &response) {
-        deliver(jsonPath(response, QStringLiteral("choices.0.message.content")));
+        const QJsonObject usage = response.value(QStringLiteral("usage")).toObject();
+        deliver(jsonPath(response, QStringLiteral("choices.0.message.content")),
+                usage.value(QStringLiteral("prompt_tokens")).toInt(),
+                usage.value(QStringLiteral("completion_tokens")).toInt());
     });
 }
 
@@ -249,16 +299,20 @@ void AnthropicScriptTask::start()
          {QStringLiteral("anthropic-version"), QStringLiteral("2023-06-01")}});
 
     postJson(request, body, [this](const QJsonObject &response) {
+        const QJsonObject usage = response.value(QStringLiteral("usage")).toObject();
+        const int in = usage.value(QStringLiteral("input_tokens")).toInt();
+        const int out = usage.value(QStringLiteral("output_tokens")).toInt();
+
         // Skip any leading thinking blocks and take the first text block.
         const QJsonArray blocks = response.value(QStringLiteral("content")).toArray();
         for (const QJsonValue &block : blocks) {
             const QJsonObject o = block.toObject();
             if (o.value(QStringLiteral("type")).toString() == QLatin1String("text")) {
-                deliver(o.value(QStringLiteral("text")).toString());
+                deliver(o.value(QStringLiteral("text")).toString(), in, out);
                 return;
             }
         }
-        deliver({});
+        deliver({}, in, out);
     });
 }
 
@@ -304,6 +358,9 @@ void GeminiScriptTask::start()
         http::jsonRequest(url, {{QStringLiteral("x-goog-api-key"), m_request.apiKey}});
 
     postJson(request, body, [this](const QJsonObject &response) {
-        deliver(jsonPath(response, QStringLiteral("candidates.0.content.parts.0.text")));
+        const QJsonObject usage = response.value(QStringLiteral("usageMetadata")).toObject();
+        deliver(jsonPath(response, QStringLiteral("candidates.0.content.parts.0.text")),
+                usage.value(QStringLiteral("promptTokenCount")).toInt(),
+                usage.value(QStringLiteral("candidatesTokenCount")).toInt());
     });
 }

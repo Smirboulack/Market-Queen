@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "updated": "2026-08-08",
+  "currency": "USD",
+
+  "_comment": [
+    "What each model costs, keyed by the model id the providers actually send.",
+    "Every id in src/providers/Registry.cpp must appear here, either with a price",
+    "or with \"unknown\": true -- tools/check_pricing.py fails the build otherwise.",
+    "",
+    "unit: tokens  -> in/out are dollars per 1M tokens",
+    "      image   -> amount is dollars per generated image",
+    "      second  -> amount is dollars per second of video, minUnits is the",
+    "                 shortest clip the provider will bill for",
+    "      kchars  -> amount is dollars per 1000 characters of speech",
+    "      minute  -> amount is dollars per minute of audio",
+    "",
+    "approx: the published price depends on resolution, quality or plan, and the",
+    "        number here is one representative point. Shown with a ~ in the UI.",
+    "unknown: no public per-request price, or not checked yet. Excluded from the",
+    "         total and reported as such -- never guessed."
+  ],
+
+  "models": {
+
+    "gpt-5":        { "unit": "tokens", "in": 1.25, "out": 10.00, "source": "https://developers.openai.com/api/docs/pricing" },
+    "gpt-5-mini":   { "unit": "tokens", "in": 0.25, "out": 2.00,  "source": "https://developers.openai.com/api/docs/pricing" },
+    "gpt-4.1":      { "unit": "tokens", "in": 2.00, "out": 8.00,  "source": "https://developers.openai.com/api/docs/pricing" },
+    "gpt-4o":       { "unit": "tokens", "in": 2.50, "out": 10.00, "source": "https://developers.openai.com/api/docs/pricing" },
+    "gpt-4o-mini":  { "unit": "tokens", "in": 0.15, "out": 0.60,  "source": "https://developers.openai.com/api/docs/pricing" },
+
+    "claude-opus-5":              { "unit": "tokens", "in": 5.00, "out": 25.00, "source": "https://claude.com/pricing" },
+    "claude-sonnet-5":            { "unit": "tokens", "in": 3.00, "out": 15.00, "source": "https://claude.com/pricing" },
+    "claude-haiku-4-5-20251001":  { "unit": "tokens", "in": 1.00, "out": 5.00,  "source": "https://claude.com/pricing" },
+
+    "gemini-2.5-pro":   { "unit": "tokens", "in": 1.25, "out": 10.00, "approx": true, "source": "https://ai.google.dev/gemini-api/docs/pricing" },
+    "gemini-2.5-flash": { "unit": "tokens", "in": 0.30, "out": 2.50,  "source": "https://ai.google.dev/gemini-api/docs/pricing" },
+    "gemini-2.0-flash": { "unit": "tokens", "in": 0.10, "out": 0.40,  "source": "https://ai.google.dev/gemini-api/docs/pricing" },
+
+    "fal-ai/nano-banana/edit":                  { "unit": "image", "amount": 0.039, "source": "https://fal.ai/models/fal-ai/nano-banana/edit" },
+    "fal-ai/nano-banana":                       { "unit": "image", "amount": 0.039, "source": "https://fal.ai/models/fal-ai/nano-banana" },
+    "fal-ai/flux-pro/v1.1-ultra":               { "unit": "image", "amount": 0.06,  "source": "https://fal.ai/models/fal-ai/flux-pro/v1.1-ultra" },
+    "fal-ai/flux-pro/kontext":                  { "unknown": true },
+    "fal-ai/flux/dev":                          { "unknown": true },
+    "fal-ai/flux/schnell":                      { "unknown": true },
+    "fal-ai/bytedance/seedream/v4/text-to-image": { "unknown": true },
+    "fal-ai/imagen4/preview":                   { "unknown": true },
+    "fal-ai/ideogram/v3":                       { "unknown": true },
+    "fal-ai/recraft-v3":                        { "unknown": true },
+    "fal-ai/qwen-image":                        { "unknown": true },
+
+    "gpt-image-1":      { "unit": "image", "amount": 0.042, "approx": true, "source": "https://developers.openai.com/api/docs/pricing" },
+    "gpt-image-1-mini": { "unknown": true },
+    "dall-e-3":         { "unit": "image", "amount": 0.04, "approx": true, "source": "https://developers.openai.com/api/docs/pricing" },
+
+    "google/nano-banana":                        { "unknown": true },
+    "black-forest-labs/flux-1.1-pro-ultra":      { "unknown": true },
+    "black-forest-labs/flux-kontext-pro":        { "unknown": true },
+    "black-forest-labs/flux-schnell":            { "unit": "image", "amount": 0.003, "source": "https://replicate.com/pricing" },
+    "bytedance/seedream-4":                      { "unknown": true },
+    "google/imagen-4":                           { "unknown": true },
+    "ideogram-ai/ideogram-v3-turbo":             { "unknown": true },
+    "recraft-ai/recraft-v3":                     { "unit": "image", "amount": 0.04, "source": "https://replicate.com/pricing" },
+    "stability-ai/stable-diffusion-3.5-large":   { "unknown": true },
+
+    "fal-ai/kling-video/v2.1/master/image-to-video":        { "unit": "second", "amount": 0.28, "minUnits": 5, "source": "https://fal.ai/models/fal-ai/kling-video/v2.1/master/image-to-video" },
+    "fal-ai/kling-video/v2/master/image-to-video":          { "unknown": true },
+    "fal-ai/veo3/image-to-video":                           { "unit": "second", "amount": 0.20, "source": "https://fal.ai/models/fal-ai/veo3/image-to-video" },
+    "fal-ai/veo2/image-to-video":                           { "unknown": true },
+    "fal-ai/bytedance/seedance/v1/pro/image-to-video":      { "unit": "second", "amount": 0.124, "approx": true, "source": "https://fal.ai/models/fal-ai/bytedance/seedance/v1/pro/image-to-video" },
+    "fal-ai/bytedance/seedance/v1/lite/image-to-video":     { "unknown": true },
+    "fal-ai/minimax/hailuo-02/pro/image-to-video":          { "unit": "second", "amount": 0.08, "source": "https://fal.ai/models/fal-ai/minimax/hailuo-02/pro/image-to-video" },
+    "fal-ai/minimax/hailuo-02/standard/image-to-video":     { "unknown": true },
+    "fal-ai/runway-gen3/turbo/image-to-video":              { "unknown": true },
+    "fal-ai/luma-dream-machine/ray-2/image-to-video":       { "unknown": true },
+    "fal-ai/luma-dream-machine/image-to-video":             { "unknown": true },
+    "fal-ai/wan/v2.2-a14b/image-to-video":                  { "unknown": true },
+    "fal-ai/wan-i2v":                                       { "unknown": true },
+    "fal-ai/pika/v2.2/image-to-video":                      { "unknown": true },
+    "fal-ai/pixverse/v4.5/image-to-video":                  { "unknown": true },
+
+    "kwaivgi/kling-v2.1":        { "unknown": true },
+    "kwaivgi/kling-v1.6-pro":    { "unknown": true },
+    "google/veo-3":              { "unknown": true },
+    "google/veo-3-fast":         { "unknown": true },
+    "bytedance/seedance-1-pro":  { "unknown": true },
+    "bytedance/seedance-1-lite": { "unknown": true },
+    "minimax/hailuo-02":         { "unknown": true },
+    "minimax/video-01":          { "unknown": true },
+    "luma/ray":                  { "unknown": true },
+    "wan-video/wan-2.2-i2v-fast":{ "unknown": true },
+    "pixverse/pixverse-v4.5":    { "unknown": true },
+
+    "sora-2":     { "unit": "second", "amount": 0.10, "source": "https://developers.openai.com/api/docs/pricing" },
+    "sora-2-pro": { "unit": "second", "amount": 0.30, "approx": true, "source": "https://developers.openai.com/api/docs/pricing" },
+
+    "eleven_v3":              { "unit": "kchars", "amount": 0.10, "source": "https://elevenlabs.io/pricing/api" },
+    "eleven_multilingual_v2": { "unit": "kchars", "amount": 0.10, "source": "https://elevenlabs.io/pricing/api" },
+    "eleven_turbo_v2_5":      { "unit": "kchars", "amount": 0.05, "source": "https://elevenlabs.io/pricing/api" },
+    "eleven_flash_v2_5":      { "unit": "kchars", "amount": 0.05, "source": "https://elevenlabs.io/pricing/api" },
+
+    "gpt-4o-mini-tts": { "unit": "kchars", "amount": 0.017, "approx": true, "source": "https://developers.openai.com/api/docs/pricing" },
+    "tts-1-hd":        { "unit": "kchars", "amount": 0.030, "source": "https://developers.openai.com/api/docs/pricing" },
+    "tts-1":           { "unit": "kchars", "amount": 0.015, "source": "https://developers.openai.com/api/docs/pricing" },
+
+    "fal-ai/minimax/speech-02-hd":            { "unit": "kchars", "amount": 0.10, "source": "https://fal.ai/models/fal-ai/minimax/speech-02-hd" },
+    "fal-ai/minimax/speech-02-turbo":         { "unknown": true },
+    "fal-ai/elevenlabs/tts/multilingual-v2":  { "unknown": true },
+    "fal-ai/elevenlabs/tts/turbo-v2.5":       { "unknown": true },
+    "fal-ai/kokoro/american-english":         { "unknown": true },
+    "fal-ai/chatterbox/text-to-speech":       { "unknown": true },
+
+    "whisper-1": { "unit": "minute", "amount": 0.006, "source": "https://developers.openai.com/api/docs/pricing" }
+  }
+}

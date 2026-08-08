@@ -219,6 +219,16 @@
         <translation>Ваша реклама готова</translation>
     </message>
     <message>
+        <source>Cost %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Стоимость %1</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 модель(и) без опубликованной цены</translation>
+    </message>
+    <message>
         <source>Play</source>
         <translation>Воспроизвести</translation>
     </message>
@@ -266,6 +276,35 @@
     </message>
 </context>
 <context>
+    <name>EstimateCard</name>
+    <message>
+        <source>Estimated cost</source>
+        <translation>Примерная стоимость</translation>
+    </message>
+    <message>
+        <source>prices %1</source>
+        <extracomment>%1 is a date like "8 Aug 2026"</extracomment>
+        <translation>цены от %1</translation>
+    </message>
+    <message>
+        <source>?</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Итого</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 модель(и) без опубликованной цены</translation>
+    </message>
+    <message>
+        <source>An estimate, not a bill. Each provider charges you directly.</source>
+        <translation>Это оценка, а не счёт. Каждый провайдер списывает деньги напрямую.</translation>
+    </message>
+</context>
+<context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
@@ -307,6 +346,69 @@
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
         <translation>Ошибка FFmpeg (код %1). %2</translation>
+    </message>
+</context>
+<context>
+    <name>Format</name>
+    <message>
+        <source>~%1</source>
+        <extracomment>Prefix meaning "approximately". %1 is a price like $1.10</extracomment>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Script</source>
+        <translation>Сценарий</translation>
+    </message>
+    <message>
+        <source>Voice-over</source>
+        <translation>Озвучка</translation>
+    </message>
+    <message>
+        <source>Frames</source>
+        <translation>Кадры</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Планы</translation>
+    </message>
+    <message>
+        <source>Subtitles</source>
+        <translation>Субтитры</translation>
+    </message>
+    <message>
+        <source>%1 s</source>
+        <extracomment>%1 is a number of seconds</extracomment>
+        <translation>%1 с</translation>
+    </message>
+    <message>
+        <source>%1 x</source>
+        <extracomment>%1 is a number of images</extracomment>
+        <translation>%1 ×</translation>
+    </message>
+    <message>
+        <source>%1/s</source>
+        <extracomment>Price per second of generated video</extracomment>
+        <translation>%1/с</translation>
+    </message>
+    <message>
+        <source>%1/image</source>
+        <extracomment>Price per generated image</extracomment>
+        <translation>%1/изображение</translation>
+    </message>
+    <message>
+        <source>%1/1k chars</source>
+        <extracomment>Price per 1000 characters of speech</extracomment>
+        <translation>%1/1k символов</translation>
+    </message>
+    <message>
+        <source>%1/min</source>
+        <extracomment>Price per minute of audio</extracomment>
+        <translation>%1/мин</translation>
+    </message>
+    <message>
+        <source>%1/1M out</source>
+        <extracomment>Price per million output tokens</extracomment>
+        <translation>%1/1M вывода</translation>
     </message>
 </context>
 <context>
@@ -455,6 +557,11 @@
         <translation>Проектов: %1 в %2</translation>
     </message>
     <message>
+        <source>%1 spent across these projects</source>
+        <extracomment>%1 is a total price like ~$12.40</extracomment>
+        <translation>%1 потрачено на эти проекты</translation>
+    </message>
+    <message>
         <source>Open folder</source>
         <translation>Открыть папку</translation>
     </message>
@@ -552,16 +659,16 @@
         <translation>Сценарий</translation>
     </message>
     <message>
-        <source>Opening frame</source>
-        <translation>Первый кадр</translation>
-    </message>
-    <message>
         <source>Voice-over</source>
         <translation>Озвучка</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation>Видео</translation>
+        <source>Frames</source>
+        <translation>Кадры</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Планы</translation>
     </message>
     <message>
         <source>Subtitles</source>
@@ -604,8 +711,68 @@
         <translation>Не удалось записать %1.</translation>
     </message>
     <message>
-        <source>Using the script you wrote.</source>
-        <translation>Используется написанный вами сценарий.</translation>
+        <source>Using the script you wrote, cut into %1 shot(s).</source>
+        <translation>Используется ваш сценарий, разбитый на %1 план(ов).</translation>
+    </message>
+    <message>
+        <source>The model answer did not contain a script.</source>
+        <translation>В ответе модели не было сценария.</translation>
+    </message>
+    <message>
+        <source>Script ready in %1 shot(s): "%2"</source>
+        <translation>Сценарий готов, %1 план(ов): «%2»</translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s, about %3s each.</source>
+        <translation>%1 план(ов) на %2 с, примерно по %3 с.</translation>
+    </message>
+    <message>
+        <source>%1 frame(s)</source>
+        <translation>%1 кадр(ов)</translation>
+    </message>
+    <message>
+        <source>Using your photo for shot 1.</source>
+        <translation>Ваше фото используется для плана 1.</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Drawing shot %1 of %2...</source>
+        <translation>Кадр плана %1 из %2...</translation>
+    </message>
+    <message>
+        <source>Frame %1 saved (%2 KB).</source>
+        <translation>Кадр %1 сохранён (%2 КБ).</translation>
+    </message>
+    <message>
+        <source>Filming shot %1 of %2...</source>
+        <translation>Съёмка плана %1 из %2...</translation>
+    </message>
+    <message>
+        <source>Shot %1 saved (%2 MB).</source>
+        <translation>План %1 сохранён (%2 МБ).</translation>
+    </message>
+    <message>
+        <source>%1 shot(s)</source>
+        <translation>%1 план(ов)</translation>
+    </message>
+    <message>
+        <source>FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
+        <translation>FFmpeg нужен, чтобы смонтировать планы с озвучкой и субтитрами. Установите его или укажите путь в Настройках. Созданные файлы находятся в %1.</translation>
+    </message>
+    <message>
+        <source>No shot was rendered, so there is nothing to cut together.</source>
+        <translation>Ни один план не создан, монтировать нечего.</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
+        <translation>Клипам не хватает %1 с до озвучки; последний план застывает.</translation>
+    </message>
+    <message>
+        <source>Cutting %1 shot(s) into %2x%3.</source>
+        <translation>Монтаж %1 план(ов) в %2x%3.</translation>
     </message>
     <message>
         <source>your own script</source>
@@ -616,28 +783,8 @@
         <translation>Пишем сценарий...</translation>
     </message>
     <message>
-        <source>Script ready: "%1"</source>
-        <translation>Сценарий готов: «%1»</translation>
-    </message>
-    <message>
-        <source>Using your photo as the opening frame.</source>
-        <translation>Ваше фото станет первым кадром.</translation>
-    </message>
-    <message>
-        <source>your photo</source>
-        <translation>ваше фото</translation>
-    </message>
-    <message>
-        <source>Generating the opening frame...</source>
-        <translation>Генерация первого кадра...</translation>
-    </message>
-    <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
         <translation>Вертикальное фото в стиле селфи: живой человек держит %1, естественный свет из окна, снято на телефон, достоверный вид пользовательского контента.</translation>
-    </message>
-    <message>
-        <source>Opening frame saved (%1 KB).</source>
-        <translation>Первый кадр сохранён (%1 КБ).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
@@ -656,20 +803,8 @@
         <translation>%1 с</translation>
     </message>
     <message>
-        <source>Animating the frame...</source>
-        <translation>Анимируем кадр...</translation>
-    </message>
-    <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
         <translation>Человек говорит прямо в камеру, лёгкое движение камеры с рук, естественное моргание и небольшие жесты руками.</translation>
-    </message>
-    <message>
-        <source>Requesting a %1s clip.</source>
-        <translation>Запрашиваем клип на %1 с.</translation>
-    </message>
-    <message>
-        <source>Clip saved (%1 MB).</source>
-        <translation>Клип сохранён (%1 МБ).</translation>
     </message>
     <message>
         <source>off</source>
@@ -700,20 +835,8 @@
         <translation>Собираем финальное видео...</translation>
     </message>
     <message>
-        <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>FFmpeg нужен, чтобы соединить клип, озвучку и субтитры. Установите его или укажите путь в настройках. Созданные файлы лежат в %1.</translation>
-    </message>
-    <message>
         <source>FFmpeg not found.</source>
         <translation>FFmpeg не найден.</translation>
-    </message>
-    <message>
-        <source>Looping the clip to cover the voice-over.</source>
-        <translation>Клип зациклен, чтобы перекрыть озвучку.</translation>
-    </message>
-    <message>
-        <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>Клип замедлен на %1 %, чтобы совпасть с озвучкой.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -928,6 +1051,23 @@
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
         <translation>FFmpeg соединяет клип, озвучку и субтитры в итоговый MP4. Без него приложение всё равно создаст каждую часть, но не сможет их собрать.</translation>
+    </message>
+    <message>
+        <source>Prices</source>
+        <translation>Цены</translation>
+    </message>
+    <message>
+        <source>Used for the cost estimate. They are what the providers publish, not what they billed you.</source>
+        <translation>Используются для оценки стоимости. Это цены, опубликованные провайдерами, а не то, что они вам выставили.</translation>
+    </message>
+    <message>
+        <source>Using your own price list, last edited %1.</source>
+        <extracomment>%1 is a date</extracomment>
+        <translation>Используется ваш собственный прайс-лист, изменён %1.</translation>
+    </message>
+    <message>
+        <source>Checked against the providers' pricing pages on %1. Drop a pricing.json in the config folder to use your own.</source>
+        <translation>Сверено со страницами тарифов провайдеров %1. Положите pricing.json в папку конфигурации, чтобы использовать свои цены.</translation>
     </message>
     <message>
         <source>About</source>

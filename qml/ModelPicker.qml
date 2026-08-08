@@ -20,6 +20,20 @@ ColumnLayout {
     property bool keyMissing: false
     property bool ready: false
 
+    // The catalogue's models, each with its unit price appended. Seeing
+    // "$0.28/s" while choosing is what stops the total on the right being a
+    // surprise; a model we have no price for is simply left plain.
+    readonly property var pricedModels: {
+        const models = providerInfo.models !== undefined ? providerInfo.models : [];
+        return models.map(function (model) {
+            const price = Format.unitPriceLabel(App.pricing.unitPrice(model.value));
+            return {
+                label: price === "" ? model.label : model.label + "   " + price,
+                value: model.value
+            };
+        });
+    }
+
     spacing: 5
     Layout.fillWidth: true
 
@@ -112,7 +126,7 @@ ColumnLayout {
             id: modelPicker
 
             Layout.fillWidth: true
-            options: root.providerInfo.models !== undefined ? root.providerInfo.models : []
+            options: root.pricedModels
             customLabel: qsTr("Other model id...")
             customPlaceholder: qsTr("e.g. fal-ai/some-new-model")
 

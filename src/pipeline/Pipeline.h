@@ -7,6 +7,7 @@
 #include <QtQml/qqmlregistration.h>
 
 class LogModel;
+class Pricing;
 class ProviderTask;
 class Registry;
 class SettingsStore;
@@ -27,9 +28,11 @@ class Pipeline : public QObject
     Q_PROPERTY(double progress READ progress NOTIFY statusChanged)
     Q_PROPERTY(QString outputFile READ outputFile NOTIFY finishedChanged)
     Q_PROPERTY(QString projectDir READ projectDir NOTIFY finishedChanged)
+    // What the run has cost so far, in the shape Pricing::actual returns.
+    Q_PROPERTY(QVariantMap cost READ cost NOTIFY costChanged)
 
 public:
-    Pipeline(SettingsStore *settings, Registry *registry, LogModel *log,
+    Pipeline(SettingsStore *settings, Registry *registry, Pricing *pricing, LogModel *log,
              QObject *parent = nullptr);
 
     bool running() const { return m_running; }
@@ -38,6 +41,7 @@ public:
     double progress() const;
     QString outputFile() const { return m_run.finalPath; }
     QString projectDir() const { return m_run.dir; }
+    QVariantMap cost() const;
 
     // Everything the form collected. See CreatePage.qml for the keys.
     Q_INVOKABLE void start(const QVariantMap &request);
@@ -51,6 +55,7 @@ signals:
     void stepsChanged();
     void statusChanged();
     void finishedChanged();
+    void costChanged();
     void finished(bool success, const QString &outputFile);
 
 private:
@@ -62,6 +67,23 @@ private:
         QString detail;
     };
 
+    // One camera setup: the words spoken over it, the still it starts from and
+    // the clip that still was animated into.
+    struct Shot {
+        QString line;
+        QString imagePrompt;
+        QString videoPrompt;
+        QString framePath;
+        QString frameDataUri;
+        QString clipPath;
+        // Where this shot sits in the finished cut, in seconds. `duration` is
+        // its share of the voice-over; `clipDuration` is what the provider
+        // actually returned, which can be shorter.
+        double start = 0.0;
+        double duration = 0.0;
+        double clipDuration = -1.0;
+    };
+
     struct RunState {
         QString dir;
         QString productImagePath;
@@ -69,16 +91,15 @@ private:
         QString hook;
         QString script;
         QString caption;
-        QString imagePrompt;
-        QString videoPrompt;
-        QString framePath;
-        QString frameDataUri;
         QString voicePath;
-        QString clipPath;
         QString srtPath;
         QString finalPath;
         double voiceDuration = -1.0;
-        double clipDuration = -1.0;
+        QList<Shot> shots;
+        // Which shot the frame or video step is currently on.
+        int currentShot = 0;
+        // One entry per billable call: {step, provider, model, units, unitsOut}.
+        QVariantList consumed;
     };
 
     static QString stepLabel(int index);
@@ -95,17 +116,33 @@ private:
     void attach(ProviderTask *task, const std::function<void(const QVariantMap &)> &onSuccess);
 
     void stepScript();
-    void stepFrame();
     void stepVoice();
-    void stepVideo();
+    void stepFrames();
+    void stepVideos();
     void stepCaptions();
     void stepAssemble();
 
+    // The frame and video steps walk the shot list one at a time; these run the
+    // shot at m_run.currentShot and move on to the next when it lands.
+    void runFrame();
+    void runVideo();
+
     void probeVoiceDuration();
-    void probeClipDuration();
+    void probeClipDurations();
+    void probeNextClip();
+
+    // Splits the script into shots when the writer was skipped, and hands each
+    // shot its slice of the measured voice-over.
+    void splitOwnScript(int shotCount);
+    void planShotTimings();
     // Turns an "auto" pick into a concrete model id and says so in the log.
     QString pickModel(const QString &providerId, const QString &requestedModel,
                       int durationSeconds = 0);
+
+    // Records what a step actually bought, so the run can report a real cost
+    // instead of repeating the estimate.
+    void recordUsage(const QString &step, const QString &providerId, const QString &modelId,
+                     double units, double unitsOut = 0.0);
 
     QString writeArtifact(const QString &fileName, const QByteArray &data);
     void writeProjectManifest(bool success);
@@ -114,10 +151,15 @@ private:
 
     SettingsStore *m_settings;
     Registry *m_registry;
+    Pricing *m_pricing;
     LogModel *m_log;
 
     QVariantMap m_request;
     RunState m_run;
+    // "2/4" while a step is walking the shot list. Set, it pins the step's
+    // detail column so a provider's progress chatter cannot bury the count --
+    // which, on a six-shot run, is the one thing worth seeing at a glance.
+    QString m_shotLabel;
     QList<Step> m_steps;
     int m_current = -1;
     bool m_running = false;

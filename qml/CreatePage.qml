@@ -9,6 +9,11 @@ Item {
     readonly property bool busy: App.pipeline.running
     readonly property bool canGenerate: productName.text.trim() !== "" && !busy
 
+    // Every field buildRequest() reads is a bound property, so this rebuilds
+    // itself whenever the form changes -- which is what keeps the cost estimate
+    // in step with what Generate would actually run.
+    readonly property var currentRequest: buildRequest()
+
     function buildRequest() {
         return {
             "productName": productName.text.trim(),
@@ -393,12 +398,17 @@ Item {
                 anchors.margins: Theme.gapLarge
                 spacing: Theme.gap
 
+                EstimateCard {
+                    request: root.currentRequest
+                    visible: !root.busy && App.pipeline.outputFile === ""
+                }
+
                 PrimaryButton {
                     Layout.fillWidth: true
                     text: root.busy ? qsTr("Generating...") : qsTr("Generate UGC ad")
                     loading: root.busy
                     enabled: root.canGenerate
-                    onClicked: App.pipeline.start(root.buildRequest())
+                    onClicked: App.pipeline.start(root.currentRequest)
                 }
 
                 GhostButton {
@@ -473,6 +483,29 @@ Item {
                             color: Theme.text
                             font.pixelSize: Theme.fontBody
                             font.weight: Font.DemiBold
+                        }
+
+                        // What the run actually consumed, priced the same way
+                        // as the estimate that replaced this card.
+                        Text {
+                            Layout.fillWidth: true
+                            //: %1 is a price
+                            text: qsTr("Cost %1").arg(Format.estimated(App.pipeline.cost.total))
+                            visible: App.pipeline.cost.lines !== undefined
+                                     && App.pipeline.cost.lines.length > 0
+                            color: Theme.textDim
+                            font.pixelSize: Theme.fontSmall
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            //: %1 is a count of models
+                            text: qsTr("+ %1 model(s) with no published price")
+                                      .arg(App.pipeline.cost.unknownCount)
+                            visible: App.pipeline.cost.unknownCount > 0
+                            color: Theme.textDim
+                            font.pixelSize: Theme.fontSmall
+                            wrapMode: Text.WordWrap
                         }
 
                         RowLayout {

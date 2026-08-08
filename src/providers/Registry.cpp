@@ -263,6 +263,20 @@ QString Registry::credentialFor(const QString &providerId) const
     return {};
 }
 
+QString Registry::modelLabel(const QString &providerId, const QString &modelId) const
+{
+    for (const Entry &e : m_entries) {
+        if (e.id != providerId)
+            continue;
+        for (const Model &model : e.models) {
+            if (model.id == modelId)
+                return model.label;
+        }
+        break;
+    }
+    return modelId;
+}
+
 QString Registry::defaultProvider(const QString &category) const
 {
     for (const Entry &e : m_entries) {

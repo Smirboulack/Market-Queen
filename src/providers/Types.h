@@ -19,6 +19,7 @@ struct ScriptRequest {
     QString extraInstructions;
     QString referenceImageDataUri; // product photo, passed to vision-capable models
     int durationSeconds = 20;
+    int shotCount = 4;            // how many camera setups to write the ad across
 };
 
 struct ImageRequest {

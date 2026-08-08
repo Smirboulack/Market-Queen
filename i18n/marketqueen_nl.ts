@@ -219,6 +219,16 @@
         <translation>Je advertentie is klaar</translation>
     </message>
     <message>
+        <source>Cost %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Kosten %1</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 model(len) zonder gepubliceerde prijs</translation>
+    </message>
+    <message>
         <source>Play</source>
         <translation>Afspelen</translation>
     </message>
@@ -266,6 +276,35 @@
     </message>
 </context>
 <context>
+    <name>EstimateCard</name>
+    <message>
+        <source>Estimated cost</source>
+        <translation>Geschatte kosten</translation>
+    </message>
+    <message>
+        <source>prices %1</source>
+        <extracomment>%1 is a date like "8 Aug 2026"</extracomment>
+        <translation>prijzen van %1</translation>
+    </message>
+    <message>
+        <source>?</source>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Total</source>
+        <translation>Totaal</translation>
+    </message>
+    <message>
+        <source>+ %1 model(s) with no published price</source>
+        <extracomment>%1 is a count of models</extracomment>
+        <translation>+ %1 model(len) zonder gepubliceerde prijs</translation>
+    </message>
+    <message>
+        <source>An estimate, not a bill. Each provider charges you directly.</source>
+        <translation>Een schatting, geen factuur. Elke aanbieder rekent rechtstreeks met je af.</translation>
+    </message>
+</context>
+<context>
     <name>FalImageTask</name>
     <message>
         <source>fal.ai returned no image.</source>
@@ -307,6 +346,69 @@
     <message>
         <source>FFmpeg failed (exit %1). %2</source>
         <translation>FFmpeg is mislukt (code %1). %2</translation>
+    </message>
+</context>
+<context>
+    <name>Format</name>
+    <message>
+        <source>~%1</source>
+        <extracomment>Prefix meaning "approximately". %1 is a price like $1.10</extracomment>
+        <translation type="unfinished" />
+    </message>
+    <message>
+        <source>Script</source>
+        <translation>Script</translation>
+    </message>
+    <message>
+        <source>Voice-over</source>
+        <translation>Voice-over</translation>
+    </message>
+    <message>
+        <source>Frames</source>
+        <translation>Beelden</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Shots</translation>
+    </message>
+    <message>
+        <source>Subtitles</source>
+        <translation>Ondertitels</translation>
+    </message>
+    <message>
+        <source>%1 s</source>
+        <extracomment>%1 is a number of seconds</extracomment>
+        <translation>%1 s</translation>
+    </message>
+    <message>
+        <source>%1 x</source>
+        <extracomment>%1 is a number of images</extracomment>
+        <translation>%1 ×</translation>
+    </message>
+    <message>
+        <source>%1/s</source>
+        <extracomment>Price per second of generated video</extracomment>
+        <translation>%1/s</translation>
+    </message>
+    <message>
+        <source>%1/image</source>
+        <extracomment>Price per generated image</extracomment>
+        <translation>%1/afbeelding</translation>
+    </message>
+    <message>
+        <source>%1/1k chars</source>
+        <extracomment>Price per 1000 characters of speech</extracomment>
+        <translation>%1/1k tekens</translation>
+    </message>
+    <message>
+        <source>%1/min</source>
+        <extracomment>Price per minute of audio</extracomment>
+        <translation>%1/min</translation>
+    </message>
+    <message>
+        <source>%1/1M out</source>
+        <extracomment>Price per million output tokens</extracomment>
+        <translation>%1/1M uitvoer</translation>
     </message>
 </context>
 <context>
@@ -455,6 +557,11 @@
         <translation>%1 project(en) in %2</translation>
     </message>
     <message>
+        <source>%1 spent across these projects</source>
+        <extracomment>%1 is a total price like ~$12.40</extracomment>
+        <translation>%1 uitgegeven aan deze projecten</translation>
+    </message>
+    <message>
         <source>Open folder</source>
         <translation>Map openen</translation>
     </message>
@@ -552,16 +659,16 @@
         <translation>Script</translation>
     </message>
     <message>
-        <source>Opening frame</source>
-        <translation>Eerste beeld</translation>
-    </message>
-    <message>
         <source>Voice-over</source>
         <translation>Voice-over</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation>Video</translation>
+        <source>Frames</source>
+        <translation>Beelden</translation>
+    </message>
+    <message>
+        <source>Shots</source>
+        <translation>Shots</translation>
     </message>
     <message>
         <source>Subtitles</source>
@@ -604,8 +711,68 @@
         <translation>%1 kon niet worden weggeschreven.</translation>
     </message>
     <message>
-        <source>Using the script you wrote.</source>
-        <translation>Je eigen script wordt gebruikt.</translation>
+        <source>Using the script you wrote, cut into %1 shot(s).</source>
+        <translation>Je eigen script wordt gebruikt, opgedeeld in %1 shot(s).</translation>
+    </message>
+    <message>
+        <source>The model answer did not contain a script.</source>
+        <translation>Het antwoord van het model bevatte geen script.</translation>
+    </message>
+    <message>
+        <source>Script ready in %1 shot(s): "%2"</source>
+        <translation>Script klaar in %1 shot(s): '%2'</translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s, about %3s each.</source>
+        <translation>%1 shot(s) over %2 s, ongeveer %3 s elk.</translation>
+    </message>
+    <message>
+        <source>%1 frame(s)</source>
+        <translation>%1 beeld(en)</translation>
+    </message>
+    <message>
+        <source>Using your photo for shot 1.</source>
+        <translation>Je foto wordt gebruikt voor shot 1.</translation>
+    </message>
+    <message>
+        <source>%1/%2</source>
+        <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Drawing shot %1 of %2...</source>
+        <translation>Beeld van shot %1 van %2...</translation>
+    </message>
+    <message>
+        <source>Frame %1 saved (%2 KB).</source>
+        <translation>Beeld %1 opgeslagen (%2 KB).</translation>
+    </message>
+    <message>
+        <source>Filming shot %1 of %2...</source>
+        <translation>Shot %1 van %2 wordt gefilmd...</translation>
+    </message>
+    <message>
+        <source>Shot %1 saved (%2 MB).</source>
+        <translation>Shot %1 opgeslagen (%2 MB).</translation>
+    </message>
+    <message>
+        <source>%1 shot(s)</source>
+        <translation>%1 shot(s)</translation>
+    </message>
+    <message>
+        <source>FFmpeg is required to cut the shots together with the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
+        <translation>FFmpeg is nodig om de shots met de voice-over en de ondertitels te monteren. Installeer het of geef het pad op bij Instellingen. Je gegenereerde bestanden staan in %1.</translation>
+    </message>
+    <message>
+        <source>No shot was rendered, so there is nothing to cut together.</source>
+        <translation>Er is geen shot gemaakt, dus er valt niets te monteren.</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
+        <translation>De clips komen %1 s tekort ten opzichte van de voice-over; het laatste shot blijft staan.</translation>
+    </message>
+    <message>
+        <source>Cutting %1 shot(s) into %2x%3.</source>
+        <translation>%1 shot(s) worden gemonteerd naar %2x%3.</translation>
     </message>
     <message>
         <source>your own script</source>
@@ -616,28 +783,8 @@
         <translation>Script schrijven...</translation>
     </message>
     <message>
-        <source>Script ready: "%1"</source>
-        <translation>Script klaar: „%1”</translation>
-    </message>
-    <message>
-        <source>Using your photo as the opening frame.</source>
-        <translation>Je foto wordt het eerste beeld.</translation>
-    </message>
-    <message>
-        <source>your photo</source>
-        <translation>je foto</translation>
-    </message>
-    <message>
-        <source>Generating the opening frame...</source>
-        <translation>Eerste beeld genereren...</translation>
-    </message>
-    <message>
         <source>Vertical selfie-style photo of a real person holding %1, natural window light, shot on a phone camera, authentic user generated content look.</source>
         <translation>Verticale selfie-achtige foto van een echt persoon met %1 in de hand, natuurlijk raamlicht, gemaakt met een telefooncamera, authentieke user-generated-content-look.</translation>
-    </message>
-    <message>
-        <source>Opening frame saved (%1 KB).</source>
-        <translation>Eerste beeld opgeslagen (%1 KB).</translation>
     </message>
     <message>
         <source>Recording the voice-over...</source>
@@ -656,20 +803,8 @@
         <translation>%1 s</translation>
     </message>
     <message>
-        <source>Animating the frame...</source>
-        <translation>Het beeld animeren...</translation>
-    </message>
-    <message>
         <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
         <translation>De persoon praat recht in de camera, met subtiele handheld-beweging, natuurlijk knipperen en kleine handgebaren.</translation>
-    </message>
-    <message>
-        <source>Requesting a %1s clip.</source>
-        <translation>Een clip van %1 s aanvragen.</translation>
-    </message>
-    <message>
-        <source>Clip saved (%1 MB).</source>
-        <translation>Clip opgeslagen (%1 MB).</translation>
     </message>
     <message>
         <source>off</source>
@@ -700,20 +835,8 @@
         <translation>De eindvideo samenstellen...</translation>
     </message>
     <message>
-        <source>FFmpeg is required to merge the clip, the voice-over and the subtitles. Install it or set its path in Settings. Your generated files are in %1.</source>
-        <translation>FFmpeg is nodig om de clip, de voice-over en de ondertitels samen te voegen. Installeer het of stel het pad in bij Instellingen. Je gegenereerde bestanden staan in %1.</translation>
-    </message>
-    <message>
         <source>FFmpeg not found.</source>
         <translation>FFmpeg niet gevonden.</translation>
-    </message>
-    <message>
-        <source>Looping the clip to cover the voice-over.</source>
-        <translation>De clip wordt herhaald om de voice-over te dekken.</translation>
-    </message>
-    <message>
-        <source>Slowing the clip by %1% to match the voice-over.</source>
-        <translation>De clip wordt %1 % vertraagd om bij de voice-over te passen.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -928,6 +1051,23 @@
     <message>
         <source>FFmpeg merges the clip, the voice-over and the subtitles into the final MP4. Without it the app still generates every piece, but cannot assemble them.</source>
         <translation>FFmpeg voegt de clip, de voice-over en de ondertitels samen tot de uiteindelijke MP4. Zonder FFmpeg genereert de app nog steeds elk onderdeel, maar kan ze niet samenvoegen.</translation>
+    </message>
+    <message>
+        <source>Prices</source>
+        <translation>Prijzen</translation>
+    </message>
+    <message>
+        <source>Used for the cost estimate. They are what the providers publish, not what they billed you.</source>
+        <translation>Gebruikt voor de kostenschatting. Dit zijn de prijzen die aanbieders publiceren, niet wat ze je in rekening brachten.</translation>
+    </message>
+    <message>
+        <source>Using your own price list, last edited %1.</source>
+        <extracomment>%1 is a date</extracomment>
+        <translation>Je eigen prijslijst wordt gebruikt, laatst bewerkt op %1.</translation>
+    </message>
+    <message>
+        <source>Checked against the providers' pricing pages on %1. Drop a pricing.json in the config folder to use your own.</source>
+        <translation>Op %1 gecontroleerd op de prijspagina's van de aanbieders. Zet een pricing.json in de configuratiemap om je eigen prijzen te gebruiken.</translation>
     </message>
     <message>
         <source>About</source>

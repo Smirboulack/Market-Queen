@@ -2,6 +2,7 @@
 
 #include "LibraryModel.h"
 #include "core/LogModel.h"
+#include "core/Pricing.h"
 #include "core/SettingsStore.h"
 #include "media/Ffmpeg.h"
 #include "pipeline/Pipeline.h"
@@ -21,8 +22,9 @@ App::App(QObject *parent)
     : QObject(parent)
     , m_settings(new SettingsStore(this))
     , m_registry(new Registry(this))
+    , m_pricing(new Pricing(m_registry, this))
     , m_log(new LogModel(this))
-    , m_pipeline(new Pipeline(m_settings, m_registry, m_log, this))
+    , m_pipeline(new Pipeline(m_settings, m_registry, m_pricing, m_log, this))
     , m_library(new LibraryModel(m_settings, this))
     , m_translator(new Translator(this))
 {

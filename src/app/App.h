@@ -2,6 +2,7 @@
 
 #include "LibraryModel.h"
 #include "core/LogModel.h"
+#include "core/Pricing.h"
 #include "core/SettingsStore.h"
 #include "i18n/Translator.h"
 #include "pipeline/Pipeline.h"
@@ -23,6 +24,7 @@ class App : public QObject
 
     Q_PROPERTY(SettingsStore *settings READ settings CONSTANT)
     Q_PROPERTY(Registry *registry READ registry CONSTANT)
+    Q_PROPERTY(Pricing *pricing READ pricing CONSTANT)
     Q_PROPERTY(Pipeline *pipeline READ pipeline CONSTANT)
     Q_PROPERTY(LogModel *log READ log CONSTANT)
     Q_PROPERTY(LibraryModel *library READ library CONSTANT)
@@ -37,6 +39,7 @@ public:
 
     SettingsStore *settings() const { return m_settings; }
     Registry *registry() const { return m_registry; }
+    Pricing *pricing() const { return m_pricing; }
     Pipeline *pipeline() const { return m_pipeline; }
     LogModel *log() const { return m_log; }
     LibraryModel *library() const { return m_library; }
@@ -64,6 +67,7 @@ signals:
 private:
     SettingsStore *m_settings;
     Registry *m_registry;
+    Pricing *m_pricing;
     LogModel *m_log;
     Pipeline *m_pipeline;
     LibraryModel *m_library;
