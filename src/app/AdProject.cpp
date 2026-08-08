@@ -331,6 +331,7 @@ QVariantMap AdProject::toRequest() const
 
     const QString textProvider = pickedProvider(QStringLiteral("text"));
     const QString imageProvider = pickedProvider(QStringLiteral("image"));
+    const QString avatarProvider = pickedProvider(QStringLiteral("avatar"));
     const QString videoProvider = pickedProvider(QStringLiteral("video"));
     const QString voiceProvider = pickedProvider(QStringLiteral("voice"));
 
@@ -365,6 +366,8 @@ QVariantMap AdProject::toRequest() const
         {QStringLiteral("textModel"), pickedModel(QStringLiteral("text"), textProvider)},
         {QStringLiteral("imageProvider"), imageProvider},
         {QStringLiteral("imageModel"), pickedModel(QStringLiteral("image"), imageProvider)},
+        {QStringLiteral("avatarProvider"), avatarProvider},
+        {QStringLiteral("avatarModel"), pickedModel(QStringLiteral("avatar"), avatarProvider)},
         {QStringLiteral("videoProvider"), videoProvider},
         {QStringLiteral("videoModel"), pickedModel(QStringLiteral("video"), videoProvider)},
         {QStringLiteral("voiceProvider"), voiceProvider},

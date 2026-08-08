@@ -30,6 +30,8 @@ class Pipeline : public QObject
     Q_PROPERTY(QString projectDir READ projectDir NOTIFY finishedChanged)
     // What the run has cost so far, in the shape Pricing::actual returns.
     Q_PROPERTY(QVariantMap cost READ cost NOTIFY costChanged)
+    // The finished cut, shot by shot: what the storyboard is drawn from.
+    Q_PROPERTY(QVariantList shots READ shotsInfo NOTIFY shotsChanged)
 
 public:
     Pipeline(SettingsStore *settings, Registry *registry, Pricing *pricing, LogModel *log,
@@ -42,10 +44,18 @@ public:
     QString outputFile() const { return m_run.finalPath; }
     QString projectDir() const { return m_run.dir; }
     QVariantMap cost() const;
+    QVariantList shotsInfo() const;
 
-    // Everything the form collected. See CreatePage.qml for the keys.
+    // The whole ad, as AdProject::toRequest() builds it.
     Q_INVOKABLE void start(const QVariantMap &request);
     Q_INVOKABLE void cancel();
+
+    // Re-shoots one scene and cuts the ad again. Repairing a bad shot costs a
+    // fraction of relaunching the whole ad, which is the whole reason the shots
+    // are kept as separate files.
+    Q_INVOKABLE void regenerateShot(int index);
+    // What that would cost: { amount, known }.
+    Q_INVOKABLE QVariantMap regenerateEstimate(int index) const;
 
     // Re-labels the steps after a language switch.
     void retranslate();
@@ -56,6 +66,7 @@ signals:
     void statusChanged();
     void finishedChanged();
     void costChanged();
+    void shotsChanged();
     void finished(bool success, const QString &outputFile);
 
 private:
@@ -71,10 +82,16 @@ private:
     // the clip that still was animated into.
     struct Shot {
         QString line;
+        QString kind = QStringLiteral("talking");   // talking | broll
         QString imagePrompt;
         QString videoPrompt;
         QString framePath;
         QString frameDataUri;
+        // This shot's own slice of the read. It is what the avatar model is
+        // lip-synced to, and its length is what the shot lasts -- measured,
+        // not apportioned.
+        QString voicePath;
+        QString voiceDataUri;
         QString clipPath;
         // Where this shot sits in the finished cut, in seconds. `duration` is
         // its share of the voice-over; `clipDuration` is what the provider
@@ -126,18 +143,23 @@ private:
     void stepCaptions();
     void stepAssemble();
 
+    // The voice step walks the shots too: one take per line, each one told what
+    // was said before and after it so the delivery carries across the cuts.
+    void runVoiceLine();
+    void probeShotAudio();
+    void joinVoice();
+
     // The frame and video steps walk the shot list one at a time; these run the
     // shot at m_run.currentShot and move on to the next when it lands.
     void runFrame();
     void runVideo();
 
-    void probeVoiceDuration();
     void probeClipDurations();
     void probeNextClip();
 
-    // Splits the script into shots when the writer was skipped, and hands each
-    // shot its slice of the measured voice-over.
+    // Splits the script into shots when the writer was skipped.
     void splitOwnScript(int shotCount);
+    // Lays the measured per-shot durations end to end.
     void planShotTimings();
     // Turns an "auto" pick into a concrete model id and says so in the log.
     QString pickModel(const QString &providerId, const QString &requestedModel,
@@ -164,6 +186,9 @@ private:
     // detail column so a provider's progress chatter cannot bury the count --
     // which, on a six-shot run, is the one thing worth seeing at a glance.
     QString m_shotLabel;
+    // When >= 0, the frame and video steps do this shot only and then go
+    // straight to the cut: re-shooting one scene must not re-buy the others.
+    int m_onlyShot = -1;
     QList<Step> m_steps;
     int m_current = -1;
     bool m_running = false;

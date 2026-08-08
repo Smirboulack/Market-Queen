@@ -193,11 +193,11 @@ de la voix, nombre de scènes et durée parlée) et le coût estimé en bas, tou
 
 ## 7. Les jalons
 
-Sept, chacun livrable et testable seul. **L'application génère une pub à la fin
+**Les sept sont livrés.** Chacun l’était seul et testable seul. **L'application génère une pub à la fin
 de chaque jalon** — S0 branche le nouveau modèle sur l'ancien pipeline, et
 `CreatePage` reste accessible jusqu'à S6.
 
-### S0 — Les fondations : modèle + shell
+### S0 — Les fondations : modèle + shell — ✅ livré
 
 Le socle. Aucune fonctionnalité visible, mais rien d'autre ne peut atterrir sans.
 
@@ -209,7 +209,7 @@ Le socle. Aucune fonctionnalité visible, mais rien d'autre ne peut atterrir san
 
 **Sortie** : on crée un projet, on navigue entre trois panneaux, on génère.
 
-### S1 — Étape 1 : le produit
+### S1 — Étape 1 : le produit — ✅ livré
 
 Le plus petit jalon, il sert à valider le shell et le récapitulatif sur un cas
 réel.
@@ -221,7 +221,7 @@ réel.
 
 **Sortie** : le contexte produit est complet et visible en permanence.
 
-### S2 — Étape 2a : le casting
+### S2 — Étape 2a : le casting — ✅ livré
 
 **Le jalon le plus important du plan.** C'est ici que se joue le réalisme.
 
@@ -243,7 +243,7 @@ réel.
 **Sortie** : on obtient un acteur qui passe pour une personne réelle filmée au
 téléphone, et on le retrouve dans la pub suivante.
 
-### S3 — Étape 2b : la voix
+### S3 — Étape 2b : la voix — ✅ livré
 
 - Sélection dans les voix du compte ElevenLabs
 - Curseurs stabilité / similarité / style / vitesse — ils sont déjà envoyés,
@@ -255,7 +255,7 @@ téléphone, et on le retrouve dans la pub suivante.
 
 **Sortie** : on entend l'acteur parler avant d'avoir dépensé un dollar en vidéo.
 
-### S4 — Étape 3 : le script
+### S4 — Étape 3 : le script — ✅ livré
 
 - Éditeur scène par scène : ajouter, supprimer, réordonner ; une réplique par
   scène
@@ -269,7 +269,7 @@ téléphone, et on le retrouve dans la pub suivante.
 
 **Sortie** : un script découpé, dirigé visuellement, sans durée imposée.
 
-### S5 — Le rendu parlant
+### S5 — Le rendu parlant — ✅ livré
 
 Le jalon risqué. À faire d'un bloc.
 
@@ -285,7 +285,7 @@ Le jalon risqué. À faire d'un bloc.
 durée est celle du script. Critère : aucun `setpts`, aucun `stream_loop`, aucun
 `-shortest` dans la commande ffmpeg.
 
-### S6 — Le résumé et le studio
+### S6 — Le résumé et le studio — ✅ livré
 
 - Panneau de résumé final : vue globale, coût détaillé, bouton Générer
 - Après génération : bande de scènes, **régénération d'une scène seule**

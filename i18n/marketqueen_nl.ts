@@ -31,6 +31,21 @@
     </message>
 </context>
 <context>
+    <name>AvatarTask</name>
+    <message>
+        <source>The provider returned no video.</source>
+        <translation type="unfinished">De aanbieder gaf geen video terug.</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation type="unfinished">De clip downloaden...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation type="unfinished">De gedownloade clip was leeg.</translation>
+    </message>
+</context>
+<context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
@@ -55,236 +70,6 @@
     <message>
         <source>Could not write %1.</source>
         <translation type="unfinished">%1 kon niet worden weggeschreven.</translation>
-    </message>
-</context>
-<context>
-    <name>CreatePage</name>
-    <message>
-        <source>Create a UGC ad</source>
-        <translation>Een UGC-advertentie maken</translation>
-    </message>
-    <message>
-        <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>Script, beeld, voice-over, video en ondertitels. Jouw API-sleutels, jouw bestanden.</translation>
-    </message>
-    <message>
-        <source>Your product</source>
-        <translation>Je product</translation>
-    </message>
-    <message>
-        <source>What are we selling, and to whom?</source>
-        <translation>Wat verkopen we, en aan wie?</translation>
-    </message>
-    <message>
-        <source>Product name</source>
-        <translation>Productnaam</translation>
-    </message>
-    <message>
-        <source>e.g. Lumen glow serum</source>
-        <translation>bv. Lumen glow serum</translation>
-    </message>
-    <message>
-        <source>What it is</source>
-        <translation>Wat het is</translation>
-    </message>
-    <message>
-        <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>Een vitamine C-serum dat een doffe huid in twee weken opfleurt. Parfumvrij, 30 ml.</translation>
-    </message>
-    <message>
-        <source>Target audience</source>
-        <translation>Doelgroep</translation>
-    </message>
-    <message>
-        <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>bv. vrouwen van 25 tot 35 die om clean beauty geven</translation>
-    </message>
-    <message>
-        <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>Mijn foto als eerste beeld gebruiken (geen beeldgeneratie)</translation>
-    </message>
-    <message>
-        <source>The ad</source>
-        <translation>De advertentie</translation>
-    </message>
-    <message>
-        <source>How it should sound and how long it runs.</source>
-        <translation>Hoe het moet klinken en hoe lang het duurt.</translation>
-    </message>
-    <message>
-        <source>Tone</source>
-        <translation>Toon</translation>
-    </message>
-    <message>
-        <source>Describe the tone in your own words</source>
-        <translation>Beschrijf de toon in je eigen woorden</translation>
-    </message>
-    <message>
-        <source>excited and casual</source>
-        <translation>enthousiast en informeel</translation>
-    </message>
-    <message>
-        <source>calm and honest</source>
-        <translation>rustig en eerlijk</translation>
-    </message>
-    <message>
-        <source>funny</source>
-        <translation>grappig</translation>
-    </message>
-    <message>
-        <source>straight to the point</source>
-        <translation>recht voor z&apos;n raap</translation>
-    </message>
-    <message>
-        <source>storytelling</source>
-        <translation>verhalend</translation>
-    </message>
-    <message>
-        <source>Language</source>
-        <translation>Taal</translation>
-    </message>
-    <message>
-        <source>Any other language</source>
-        <translation>Een andere taal</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>Lengte</translation>
-    </message>
-    <message>
-        <source>%1 s</source>
-        <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 s</translation>
-    </message>
-    <message>
-        <source>Format</source>
-        <translation>Formaat</translation>
-    </message>
-    <message>
-        <source>Person on camera</source>
-        <translation>Persoon in beeld</translation>
-    </message>
-    <message>
-        <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>bv. vrouw van eind twintig, badkamer, ochtendlicht</translation>
-    </message>
-    <message>
-        <source>Anything else</source>
-        <translation>Nog iets</translation>
-    </message>
-    <message>
-        <source>Mention the 20% launch discount. Do not say &quot;revolutionary&quot;.</source>
-        <translation>Noem de lanceerkorting van 20%. Zeg niet „revolutionair”.</translation>
-    </message>
-    <message>
-        <source>Your own script (optional)</source>
-        <translation>Je eigen script (optioneel)</translation>
-    </message>
-    <message>
-        <source>skips the writer</source>
-        <translation>slaat de schrijver over</translation>
-    </message>
-    <message>
-        <source>Leave empty to let the model write it.</source>
-        <translation>Laat leeg om het model het te laten schrijven.</translation>
-    </message>
-    <message>
-        <source>Models</source>
-        <translation>Modellen</translation>
-    </message>
-    <message>
-        <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>Vrij te combineren. Elke aanbieder factureert je rechtstreeks.</translation>
-    </message>
-    <message>
-        <source>Script writer</source>
-        <translation>Scriptschrijver</translation>
-    </message>
-    <message>
-        <source>Opening frame</source>
-        <translation>Eerste beeld</translation>
-    </message>
-    <message>
-        <source>Video</source>
-        <translation>Video</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>Stem</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>Andere stem-id...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>Plak een stem-id</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>Laad de stemmen van je account om er een te kiezen.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>Stemmen laden</translation>
-    </message>
-    <message>
-        <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>Ondertitels inbranden (gebruikt OpenAI Whisper)</translation>
-    </message>
-    <message>
-        <source>Generating...</source>
-        <translation>Bezig met genereren...</translation>
-    </message>
-    <message>
-        <source>Generate UGC ad</source>
-        <translation>UGC-advertentie genereren</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuleren</translation>
-    </message>
-    <message>
-        <source>Add a product name to start.</source>
-        <translation>Vul een productnaam in om te starten.</translation>
-    </message>
-    <message>
-        <source>Your ad is ready</source>
-        <translation>Je advertentie is klaar</translation>
-    </message>
-    <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation>Kosten %1</translation>
-    </message>
-    <message>
-        <source>+ %1 model(s) with no published price</source>
-        <extracomment>%1 is a count of models</extracomment>
-        <translation>+ %1 model(len) zonder gepubliceerde prijs</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation>Afspelen</translation>
-    </message>
-    <message>
-        <source>Show file</source>
-        <translation>Bestand tonen</translation>
-    </message>
-    <message>
-        <source>Activity</source>
-        <translation>Activiteit</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation>Wissen</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>%1 stemmen geladen.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>Stemmen konden niet worden geladen: %1</translation>
     </message>
 </context>
 <context>
@@ -386,6 +171,17 @@
     <message>
         <source>An estimate, not a bill. Each provider charges you directly.</source>
         <translation>Een schatting, geen factuur. Elke aanbieder rekent rechtstreeks met je af.</translation>
+    </message>
+</context>
+<context>
+    <name>FalAvatarTask</name>
+    <message>
+        <source>No frame to animate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No audio for this shot, so there is nothing to lip-sync to.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -797,6 +593,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>unchanged</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting scene %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Cancelling...</source>
         <translation>Bezig met annuleren...</translation>
     </message>
@@ -837,10 +641,6 @@
         <translation>Script klaar in %1 shot(s): &apos;%2&apos;</translation>
     </message>
     <message>
-        <source>%1 shot(s) over %2s, about %3s each.</source>
-        <translation>%1 shot(s) over %2 s, ongeveer %3 s elk.</translation>
-    </message>
-    <message>
         <source>%1 frame(s)</source>
         <translation>%1 beeld(en)</translation>
     </message>
@@ -851,6 +651,26 @@
     <message>
         <source>%1/%2</source>
         <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Recording line %1 of %2...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No voice-over was recorded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not join the voice-over: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice-over ready: %1 line(s), %2s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -865,8 +685,20 @@
         <translation>Shot %1 van %2 wordt gefilmd...</translation>
     </message>
     <message>
+        <source>Filming the product for shot %1...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Shot %1 saved (%2 MB).</source>
         <translation>Shot %1 opgeslagen (%2 MB).</translation>
+    </message>
+    <message>
+        <source>No avatar provider called %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slow handheld move around the product, natural light, nobody on screen.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -879,10 +711,6 @@
     <message>
         <source>No shot was rendered, so there is nothing to cut together.</source>
         <translation>Er is geen shot gemaakt, dus er valt niets te monteren.</translation>
-    </message>
-    <message>
-        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
-        <translation>De clips komen %1 s tekort ten opzichte van de voice-over; het laatste shot blijft staan.</translation>
     </message>
     <message>
         <source>Cutting %1 shot(s) into %2x%3.</source>
@@ -901,24 +729,8 @@
         <translation>Verticale selfie-achtige foto van een echt persoon met %1 in de hand, natuurlijk raamlicht, gemaakt met een telefooncamera, authentieke user-generated-content-look.</translation>
     </message>
     <message>
-        <source>Recording the voice-over...</source>
-        <translation>Voice-over opnemen...</translation>
-    </message>
-    <message>
-        <source>Voice-over saved (%1 KB).</source>
-        <translation>Voice-over opgeslagen (%1 KB).</translation>
-    </message>
-    <message>
-        <source>%1s (estimated)</source>
-        <translation>%1 s (geschat)</translation>
-    </message>
-    <message>
         <source>%1s</source>
         <translation>%1 s</translation>
-    </message>
-    <message>
-        <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>De persoon praat recht in de camera, met subtiele handheld-beweging, natuurlijk knipperen en kleine handgebaren.</translation>
     </message>
     <message>
         <source>off</source>
@@ -951,6 +763,10 @@
     <message>
         <source>FFmpeg not found.</source>
         <translation>FFmpeg niet gevonden.</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short in total; those shots hold their last frame.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -1096,6 +912,10 @@
     <message>
         <source>The opening frame is resized to Sora&apos;s format automatically.</source>
         <translation>Het eerste beeld wordt automatisch naar Sora&apos;s formaat geschaald.</translation>
+    </message>
+    <message>
+        <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -1331,10 +1151,6 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quick form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1810,11 +1626,6 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>About %1 s of video. Nothing is charged until you press generate.</source>
-        <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1847,8 +1658,30 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation type="unfinished">Beelden</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation type="unfinished">Video</translation>
+        <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fixing one scene costs a fraction of starting over.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in my player</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
+        <extracomment>%1 is a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Talking shots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Product shots</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Voice</source>
@@ -1875,17 +1708,12 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation type="unfinished">Je advertentie is klaar</translation>
     </message>
     <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished">Kosten %1</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation type="unfinished">Afspelen</translation>
-    </message>
-    <message>
         <source>Show file</source>
         <translation type="unfinished">Bestand tonen</translation>
+    </message>
+    <message>
+        <source>Start a new ad</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Activity</source>
@@ -1894,6 +1722,36 @@ Er wordt niets naar ons gestuurd.</translation>
     <message>
         <source>Clear</source>
         <translation type="unfinished">Wissen</translation>
+    </message>
+</context>
+<context>
+    <name>Storyboard</name>
+    <message>
+        <source>%1 · %2s</source>
+        <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scene %1</source>
+        <extracomment>%1 is a shot number</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene — %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The voice-over is kept, so it is not paid for again.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

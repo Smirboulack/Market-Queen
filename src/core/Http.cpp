@@ -140,6 +140,22 @@ QByteArray dataUriPayload(const QString &uri, QString *mimeType)
     return QByteArray::fromBase64(uri.mid(comma + 1).toLatin1());
 }
 
+QString fileToDataUri(const QString &path, int maxBytes)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return {};
+
+    const QByteArray data = file.readAll();
+    if (data.isEmpty() || data.size() > maxBytes)
+        return {};
+
+    const QString mime = QMimeDatabase().mimeTypeForFileNameAndData(path, data).name();
+    return QStringLiteral("data:%1;base64,%2")
+        .arg(mime.isEmpty() ? QStringLiteral("application/octet-stream") : mime,
+             QString::fromLatin1(data.toBase64()));
+}
+
 QString guessExtension(const QString &url, const QString &contentType, const QString &fallback)
 {
     const QString suffix = QFileInfo(QUrl(url).path()).suffix().toLower();

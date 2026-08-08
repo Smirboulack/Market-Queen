@@ -36,7 +36,6 @@ ApplicationWindow {
             currentIndex: nav.currentIndex
 
             StudioPage {}
-            CreatePage {}
             LibraryPage {}
             SettingsPage {}
         }

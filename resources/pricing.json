@@ -358,6 +358,22 @@
     "stability-ai/stable-diffusion-3.5-large": {
       "unknown": true
     },
+    "fal-ai/kling-video/ai-avatar/v2/standard": {
+      "unit": "second", "amount": 0.0562,
+      "source": "https://fal.ai/models/fal-ai/kling-video/ai-avatar/v2/standard"
+    },
+    "fal-ai/kling-video/ai-avatar/v2/pro": {
+      "unit": "second", "amount": 0.115,
+      "source": "https://fal.ai/models/fal-ai/kling-video/ai-avatar/v2/pro"
+    },
+    "veed/fabric-1.0": {
+      "unit": "second", "amount": 0.08,
+      "source": "https://fal.ai/models/veed/fabric-1.0"
+    },
+    "fal-ai/infinitalk": {
+      "unit": "second", "amount": 0.2,
+      "source": "https://fal.ai/models/fal-ai/infinitalk"
+    },
     "fal-ai/kling-video/v3/standard/image-to-video": {
       "unit": "second",
       "amount": 0.084,

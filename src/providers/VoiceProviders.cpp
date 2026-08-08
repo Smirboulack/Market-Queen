@@ -46,11 +46,18 @@ void ElevenLabsVoiceTask::start()
     if (!qFuzzyCompare(m_request.speed, 1.0))
         settings.insert(QStringLiteral("speed"), m_request.speed);
 
-    const QJsonObject body{
+    QJsonObject body{
         {QStringLiteral("text"), m_request.text},
         {QStringLiteral("model_id"), m_request.model},
         {QStringLiteral("voice_settings"), settings},
     };
+
+    // The neighbouring lines, so a scene-by-scene recording still sounds like
+    // one continuous read rather than a series of fresh takes.
+    if (!m_request.previousText.isEmpty())
+        body.insert(QStringLiteral("previous_text"), m_request.previousText);
+    if (!m_request.nextText.isEmpty())
+        body.insert(QStringLiteral("next_text"), m_request.nextText);
 
     QNetworkRequest request =
         http::jsonRequest(url, {{QStringLiteral("xi-api-key"), m_request.apiKey}});

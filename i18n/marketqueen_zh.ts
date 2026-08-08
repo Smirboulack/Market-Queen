@@ -31,6 +31,21 @@
     </message>
 </context>
 <context>
+    <name>AvatarTask</name>
+    <message>
+        <source>The provider returned no video.</source>
+        <translation type="unfinished">服务商未返回视频。</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation type="unfinished">正在下载片段…</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation type="unfinished">下载到的片段是空的。</translation>
+    </message>
+</context>
+<context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
@@ -55,236 +70,6 @@
     <message>
         <source>Could not write %1.</source>
         <translation type="unfinished">无法写入 %1。</translation>
-    </message>
-</context>
-<context>
-    <name>CreatePage</name>
-    <message>
-        <source>Create a UGC ad</source>
-        <translation>创建 UGC 广告</translation>
-    </message>
-    <message>
-        <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>脚本、画面、配音、视频和字幕。你的密钥，你的文件。</translation>
-    </message>
-    <message>
-        <source>Your product</source>
-        <translation>你的产品</translation>
-    </message>
-    <message>
-        <source>What are we selling, and to whom?</source>
-        <translation>我们卖什么，卖给谁？</translation>
-    </message>
-    <message>
-        <source>Product name</source>
-        <translation>产品名称</translation>
-    </message>
-    <message>
-        <source>e.g. Lumen glow serum</source>
-        <translation>例如：Lumen 亮采精华</translation>
-    </message>
-    <message>
-        <source>What it is</source>
-        <translation>产品简介</translation>
-    </message>
-    <message>
-        <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>一款维生素 C 精华，两周改善暗沉肌肤。无香精，30 毫升。</translation>
-    </message>
-    <message>
-        <source>Target audience</source>
-        <translation>目标人群</translation>
-    </message>
-    <message>
-        <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>例如：注重纯净美妆的 25 至 35 岁女性</translation>
-    </message>
-    <message>
-        <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>用我的照片作为首帧（跳过图像生成）</translation>
-    </message>
-    <message>
-        <source>The ad</source>
-        <translation>广告</translation>
-    </message>
-    <message>
-        <source>How it should sound and how long it runs.</source>
-        <translation>语气如何，时长多久。</translation>
-    </message>
-    <message>
-        <source>Tone</source>
-        <translation>语气</translation>
-    </message>
-    <message>
-        <source>Describe the tone in your own words</source>
-        <translation>用你自己的话描述语气</translation>
-    </message>
-    <message>
-        <source>excited and casual</source>
-        <translation>热情随意</translation>
-    </message>
-    <message>
-        <source>calm and honest</source>
-        <translation>平和真诚</translation>
-    </message>
-    <message>
-        <source>funny</source>
-        <translation>幽默</translation>
-    </message>
-    <message>
-        <source>straight to the point</source>
-        <translation>开门见山</translation>
-    </message>
-    <message>
-        <source>storytelling</source>
-        <translation>讲故事</translation>
-    </message>
-    <message>
-        <source>Language</source>
-        <translation>语言</translation>
-    </message>
-    <message>
-        <source>Any other language</source>
-        <translation>任何其他语言</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>时长</translation>
-    </message>
-    <message>
-        <source>%1 s</source>
-        <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 秒</translation>
-    </message>
-    <message>
-        <source>Format</source>
-        <translation>画幅</translation>
-    </message>
-    <message>
-        <source>Person on camera</source>
-        <translation>出镜人物</translation>
-    </message>
-    <message>
-        <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>例如：快三十岁的女性，浴室，晨光</translation>
-    </message>
-    <message>
-        <source>Anything else</source>
-        <translation>其他要求</translation>
-    </message>
-    <message>
-        <source>Mention the 20% launch discount. Do not say &quot;revolutionary&quot;.</source>
-        <translation>提到八折上市优惠。不要说“革命性”。</translation>
-    </message>
-    <message>
-        <source>Your own script (optional)</source>
-        <translation>你自己的脚本（可选）</translation>
-    </message>
-    <message>
-        <source>skips the writer</source>
-        <translation>将跳过脚本撰写</translation>
-    </message>
-    <message>
-        <source>Leave empty to let the model write it.</source>
-        <translation>留空则由模型来写。</translation>
-    </message>
-    <message>
-        <source>Models</source>
-        <translation>模型</translation>
-    </message>
-    <message>
-        <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>自由搭配。各服务商直接向你计费。</translation>
-    </message>
-    <message>
-        <source>Script writer</source>
-        <translation>脚本模型</translation>
-    </message>
-    <message>
-        <source>Opening frame</source>
-        <translation>首帧画面</translation>
-    </message>
-    <message>
-        <source>Video</source>
-        <translation>视频</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>配音</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>其他语音 ID…</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>粘贴语音 ID</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>加载账号下的语音后即可选择。</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>加载语音</translation>
-    </message>
-    <message>
-        <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>烧录字幕（使用 OpenAI Whisper）</translation>
-    </message>
-    <message>
-        <source>Generating...</source>
-        <translation>生成中…</translation>
-    </message>
-    <message>
-        <source>Generate UGC ad</source>
-        <translation>生成 UGC 广告</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>取消</translation>
-    </message>
-    <message>
-        <source>Add a product name to start.</source>
-        <translation>填写产品名称即可开始。</translation>
-    </message>
-    <message>
-        <source>Your ad is ready</source>
-        <translation>你的广告已就绪</translation>
-    </message>
-    <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation>费用 %1</translation>
-    </message>
-    <message>
-        <source>+ %1 model(s) with no published price</source>
-        <extracomment>%1 is a count of models</extracomment>
-        <translation>另有 %1 个模型未公布价格</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation>播放</translation>
-    </message>
-    <message>
-        <source>Show file</source>
-        <translation>显示文件</translation>
-    </message>
-    <message>
-        <source>Activity</source>
-        <translation>运行日志</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation>清空</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>已加载 %1 个语音。</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>无法加载语音：%1</translation>
     </message>
 </context>
 <context>
@@ -386,6 +171,17 @@
     <message>
         <source>An estimate, not a bill. Each provider charges you directly.</source>
         <translation>这是预估，不是账单。各服务商直接向你收费。</translation>
+    </message>
+</context>
+<context>
+    <name>FalAvatarTask</name>
+    <message>
+        <source>No frame to animate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No audio for this shot, so there is nothing to lip-sync to.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -797,6 +593,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>unchanged</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting scene %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Cancelling...</source>
         <translation>正在取消…</translation>
     </message>
@@ -837,10 +641,6 @@
         <translation>脚本已就绪，共 %1 个镜头：“%2”</translation>
     </message>
     <message>
-        <source>%1 shot(s) over %2s, about %3s each.</source>
-        <translation>%1 个镜头，共 %2 秒，每个约 %3 秒。</translation>
-    </message>
-    <message>
         <source>%1 frame(s)</source>
         <translation>%1 张画面</translation>
     </message>
@@ -851,6 +651,26 @@
     <message>
         <source>%1/%2</source>
         <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Recording line %1 of %2...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No voice-over was recorded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not join the voice-over: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice-over ready: %1 line(s), %2s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -865,8 +685,20 @@
         <translation>正在拍摄第 %1/%2 个镜头...</translation>
     </message>
     <message>
+        <source>Filming the product for shot %1...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Shot %1 saved (%2 MB).</source>
         <translation>镜头 %1 已保存（%2 MB）。</translation>
+    </message>
+    <message>
+        <source>No avatar provider called %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slow handheld move around the product, natural light, nobody on screen.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -879,10 +711,6 @@
     <message>
         <source>No shot was rendered, so there is nothing to cut together.</source>
         <translation>没有生成任何镜头，无法剪辑。</translation>
-    </message>
-    <message>
-        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
-        <translation>片段比配音短 %1 秒，最后一个镜头将定格。</translation>
     </message>
     <message>
         <source>Cutting %1 shot(s) into %2x%3.</source>
@@ -901,24 +729,8 @@
         <translation>竖构图自拍风格照片：一位真实人物手持 %1，自然窗光，手机拍摄，具有真实的用户原创内容质感。</translation>
     </message>
     <message>
-        <source>Recording the voice-over...</source>
-        <translation>正在生成配音…</translation>
-    </message>
-    <message>
-        <source>Voice-over saved (%1 KB).</source>
-        <translation>配音已保存（%1 KB）。</translation>
-    </message>
-    <message>
-        <source>%1s (estimated)</source>
-        <translation>约 %1 秒</translation>
-    </message>
-    <message>
         <source>%1s</source>
         <translation>%1 秒</translation>
-    </message>
-    <message>
-        <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>人物直视镜头说话，轻微的手持晃动，自然眨眼和细小的手势。</translation>
     </message>
     <message>
         <source>off</source>
@@ -951,6 +763,10 @@
     <message>
         <source>FFmpeg not found.</source>
         <translation>未找到 FFmpeg。</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short in total; those shots hold their last frame.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -1096,6 +912,10 @@
     <message>
         <source>The opening frame is resized to Sora&apos;s format automatically.</source>
         <translation>首帧会自动缩放为 Sora 所需的尺寸。</translation>
+    </message>
+    <message>
+        <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -1331,10 +1151,6 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quick form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1810,11 +1626,6 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>About %1 s of video. Nothing is charged until you press generate.</source>
-        <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1847,8 +1658,30 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished">画面</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation type="unfinished">视频</translation>
+        <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fixing one scene costs a fraction of starting over.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in my player</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
+        <extracomment>%1 is a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Talking shots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Product shots</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Voice</source>
@@ -1875,17 +1708,12 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished">你的广告已就绪</translation>
     </message>
     <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished">费用 %1</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation type="unfinished">播放</translation>
-    </message>
-    <message>
         <source>Show file</source>
         <translation type="unfinished">显示文件</translation>
+    </message>
+    <message>
+        <source>Start a new ad</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Activity</source>
@@ -1894,6 +1722,36 @@ Nothing is uploaded to us.</source>
     <message>
         <source>Clear</source>
         <translation type="unfinished">清空</translation>
+    </message>
+</context>
+<context>
+    <name>Storyboard</name>
+    <message>
+        <source>%1 · %2s</source>
+        <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scene %1</source>
+        <extracomment>%1 is a shot number</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene — %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The voice-over is kept, so it is not paid for again.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

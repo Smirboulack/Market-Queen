@@ -82,6 +82,8 @@ ProviderTask *image(const QString &providerId, const prov::ImageRequest &request
                     QObject *parent = nullptr);
 ProviderTask *video(const QString &providerId, const prov::VideoRequest &request,
                     QObject *parent = nullptr);
+ProviderTask *avatar(const QString &providerId, const prov::AvatarRequest &request,
+                     QObject *parent = nullptr);
 ProviderTask *voice(const QString &providerId, const prov::VoiceRequest &request,
                     QObject *parent = nullptr);
 ProviderTask *transcribe(const QString &providerId, const prov::TranscribeRequest &request,

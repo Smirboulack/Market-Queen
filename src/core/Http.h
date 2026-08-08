@@ -27,6 +27,11 @@ QString extractApiError(const QByteArray &body);
 // stay storage-free.
 QString imageToDataUri(const QString &path, int maxBytes = 2 * 1024 * 1024);
 
+// Encodes any local file as a data: URI, verbatim. Used for the few seconds of
+// speech a talking shot is lip-synced to -- small enough that uploading it
+// separately would only add a failure mode.
+QString fileToDataUri(const QString &path, int maxBytes = 12 * 1024 * 1024);
+
 QString guessExtension(const QString &url, const QString &contentType, const QString &fallback);
 
 // Decodes "data:<mime>;base64,<payload>" back into raw bytes.

@@ -31,6 +31,21 @@
     </message>
 </context>
 <context>
+    <name>AvatarTask</name>
+    <message>
+        <source>The provider returned no video.</source>
+        <translation type="unfinished">لم يُرجع المزوّد أي فيديو.</translation>
+    </message>
+    <message>
+        <source>Downloading the clip...</source>
+        <translation type="unfinished">جارٍ تنزيل المقطع...</translation>
+    </message>
+    <message>
+        <source>The downloaded clip was empty.</source>
+        <translation type="unfinished">كان المقطع الذي جرى تنزيله فارغًا.</translation>
+    </message>
+</context>
+<context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
@@ -55,236 +70,6 @@
     <message>
         <source>Could not write %1.</source>
         <translation type="unfinished">تعذّرت كتابة %1.</translation>
-    </message>
-</context>
-<context>
-    <name>CreatePage</name>
-    <message>
-        <source>Create a UGC ad</source>
-        <translation>إنشاء إعلان UGC</translation>
-    </message>
-    <message>
-        <source>Script, visual, voice-over, video and subtitles. Your API keys, your files.</source>
-        <translation>النص والصورة والتعليق الصوتي والفيديو والترجمة. مفاتيحك وملفاتك.</translation>
-    </message>
-    <message>
-        <source>Your product</source>
-        <translation>منتجك</translation>
-    </message>
-    <message>
-        <source>What are we selling, and to whom?</source>
-        <translation>ماذا نبيع، ولمن؟</translation>
-    </message>
-    <message>
-        <source>Product name</source>
-        <translation>اسم المنتج</translation>
-    </message>
-    <message>
-        <source>e.g. Lumen glow serum</source>
-        <translation>مثال: سيروم لومن للإشراق</translation>
-    </message>
-    <message>
-        <source>What it is</source>
-        <translation>ما هو</translation>
-    </message>
-    <message>
-        <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation>سيروم بفيتامين C ينعش البشرة الباهتة خلال أسبوعين. خالٍ من العطور، 30 مل.</translation>
-    </message>
-    <message>
-        <source>Target audience</source>
-        <translation>الجمهور المستهدف</translation>
-    </message>
-    <message>
-        <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation>مثال: نساء بين 25 و35 عامًا يهتممن بمستحضرات التجميل النظيفة</translation>
-    </message>
-    <message>
-        <source>Use my photo as the opening frame (skip image generation)</source>
-        <translation>استخدام صورتي كأول لقطة (تخطّي توليد الصورة)</translation>
-    </message>
-    <message>
-        <source>The ad</source>
-        <translation>الإعلان</translation>
-    </message>
-    <message>
-        <source>How it should sound and how long it runs.</source>
-        <translation>كيف يبدو وكم يستغرق.</translation>
-    </message>
-    <message>
-        <source>Tone</source>
-        <translation>النبرة</translation>
-    </message>
-    <message>
-        <source>Describe the tone in your own words</source>
-        <translation>صِف النبرة بكلماتك</translation>
-    </message>
-    <message>
-        <source>excited and casual</source>
-        <translation>متحمّسة وعفوية</translation>
-    </message>
-    <message>
-        <source>calm and honest</source>
-        <translation>هادئة وصادقة</translation>
-    </message>
-    <message>
-        <source>funny</source>
-        <translation>طريفة</translation>
-    </message>
-    <message>
-        <source>straight to the point</source>
-        <translation>مباشرة إلى الهدف</translation>
-    </message>
-    <message>
-        <source>storytelling</source>
-        <translation>سرد قصصي</translation>
-    </message>
-    <message>
-        <source>Language</source>
-        <translation>اللغة</translation>
-    </message>
-    <message>
-        <source>Any other language</source>
-        <translation>أي لغة أخرى</translation>
-    </message>
-    <message>
-        <source>Length</source>
-        <translation>المدة</translation>
-    </message>
-    <message>
-        <source>%1 s</source>
-        <extracomment>%1 is a number of seconds</extracomment>
-        <translation>%1 ث</translation>
-    </message>
-    <message>
-        <source>Format</source>
-        <translation>الأبعاد</translation>
-    </message>
-    <message>
-        <source>Person on camera</source>
-        <translation>الشخص أمام الكاميرا</translation>
-    </message>
-    <message>
-        <source>e.g. woman in her late twenties, bathroom, morning light</source>
-        <translation>مثال: امرأة في أواخر العشرينات، حمّام، ضوء الصباح</translation>
-    </message>
-    <message>
-        <source>Anything else</source>
-        <translation>أي ملاحظات أخرى</translation>
-    </message>
-    <message>
-        <source>Mention the 20% launch discount. Do not say &quot;revolutionary&quot;.</source>
-        <translation>اذكر خصم الإطلاق بنسبة 20%. لا تقل «ثوري».</translation>
-    </message>
-    <message>
-        <source>Your own script (optional)</source>
-        <translation>نصّك الخاص (اختياري)</translation>
-    </message>
-    <message>
-        <source>skips the writer</source>
-        <translation>يتخطّى كاتب النص</translation>
-    </message>
-    <message>
-        <source>Leave empty to let the model write it.</source>
-        <translation>اتركه فارغًا ليكتبه النموذج.</translation>
-    </message>
-    <message>
-        <source>Models</source>
-        <translation>النماذج</translation>
-    </message>
-    <message>
-        <source>Mix and match. You are billed by each provider directly.</source>
-        <translation>امزج بينها كما تشاء. كل مزوّد يحاسبك مباشرة.</translation>
-    </message>
-    <message>
-        <source>Script writer</source>
-        <translation>كاتب النص</translation>
-    </message>
-    <message>
-        <source>Opening frame</source>
-        <translation>اللقطة الأولى</translation>
-    </message>
-    <message>
-        <source>Video</source>
-        <translation>الفيديو</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>الصوت</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>معرّف صوت آخر...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>الصق معرّف صوت</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>حمّل أصوات حسابك لاختيار أحدها.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>تحميل الأصوات</translation>
-    </message>
-    <message>
-        <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation>دمج الترجمة في الصورة (عبر OpenAI Whisper)</translation>
-    </message>
-    <message>
-        <source>Generating...</source>
-        <translation>جارٍ التوليد...</translation>
-    </message>
-    <message>
-        <source>Generate UGC ad</source>
-        <translation>توليد إعلان UGC</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>إلغاء</translation>
-    </message>
-    <message>
-        <source>Add a product name to start.</source>
-        <translation>أدخل اسم المنتج للبدء.</translation>
-    </message>
-    <message>
-        <source>Your ad is ready</source>
-        <translation>إعلانك جاهز</translation>
-    </message>
-    <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation>التكلفة %1</translation>
-    </message>
-    <message>
-        <source>+ %1 model(s) with no published price</source>
-        <extracomment>%1 is a count of models</extracomment>
-        <translation>+ %1 نموذج بدون سعر منشور</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation>تشغيل</translation>
-    </message>
-    <message>
-        <source>Show file</source>
-        <translation>إظهار الملف</translation>
-    </message>
-    <message>
-        <source>Activity</source>
-        <translation>السجل</translation>
-    </message>
-    <message>
-        <source>Clear</source>
-        <translation>مسح</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>تم تحميل %1 صوتًا.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>تعذّر تحميل الأصوات: %1</translation>
     </message>
 </context>
 <context>
@@ -386,6 +171,17 @@
     <message>
         <source>An estimate, not a bill. Each provider charges you directly.</source>
         <translation>هذا تقدير وليس فاتورة. كل مزوّد يحاسبك مباشرة.</translation>
+    </message>
+</context>
+<context>
+    <name>FalAvatarTask</name>
+    <message>
+        <source>No frame to animate.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No audio for this shot, so there is nothing to lip-sync to.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -797,6 +593,14 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <source>unchanged</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting scene %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Cancelling...</source>
         <translation>جارٍ الإلغاء...</translation>
     </message>
@@ -837,10 +641,6 @@
         <translation>النص جاهز في %1 لقطة: «%2»</translation>
     </message>
     <message>
-        <source>%1 shot(s) over %2s, about %3s each.</source>
-        <translation>%1 لقطة على مدى %2 ث، نحو %3 ث لكل واحدة.</translation>
-    </message>
-    <message>
         <source>%1 frame(s)</source>
         <translation>%1 صورة</translation>
     </message>
@@ -851,6 +651,26 @@
     <message>
         <source>%1/%2</source>
         <translation>%1/%2</translation>
+    </message>
+    <message>
+        <source>Recording line %1 of %2...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>No voice-over was recorded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Could not join the voice-over: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Voice-over ready: %1 line(s), %2s.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>%1 shot(s) over %2s.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -865,8 +685,20 @@
         <translation>تصوير اللقطة %1 من %2...</translation>
     </message>
     <message>
+        <source>Filming the product for shot %1...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Shot %1 saved (%2 MB).</source>
         <translation>حُفظت اللقطة %1 (%2 م.ب).</translation>
+    </message>
+    <message>
+        <source>No avatar provider called %1.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Slow handheld move around the product, natural light, nobody on screen.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -879,10 +711,6 @@
     <message>
         <source>No shot was rendered, so there is nothing to cut together.</source>
         <translation>لم تُنتج أي لقطة، فلا شيء لتركيبه.</translation>
-    </message>
-    <message>
-        <source>The clips are %1s short of the voice-over; the last shot holds.</source>
-        <translation>المقاطع أقصر من التعليق الصوتي بـ %1 ث؛ تثبت اللقطة الأخيرة.</translation>
     </message>
     <message>
         <source>Cutting %1 shot(s) into %2x%3.</source>
@@ -901,24 +729,8 @@
         <translation>صورة عمودية بأسلوب السيلفي لشخص حقيقي يحمل %1، بإضاءة نافذة طبيعية، ملتقطة بكاميرا هاتف، بمظهر أصيل لمحتوى صنعه المستخدمون.</translation>
     </message>
     <message>
-        <source>Recording the voice-over...</source>
-        <translation>جارٍ تسجيل التعليق الصوتي...</translation>
-    </message>
-    <message>
-        <source>Voice-over saved (%1 KB).</source>
-        <translation>تم حفظ التعليق الصوتي (%1 كيلوبايت).</translation>
-    </message>
-    <message>
-        <source>%1s (estimated)</source>
-        <translation>‏%1 ث (تقديري)</translation>
-    </message>
-    <message>
         <source>%1s</source>
         <translation>‏%1 ث</translation>
-    </message>
-    <message>
-        <source>The person talks straight to the camera, subtle handheld movement, natural blinking and small hand gestures.</source>
-        <translation>يتحدث الشخص مباشرة إلى الكاميرا، مع اهتزاز خفيف لكاميرا محمولة باليد، ورمش طبيعي وإيماءات يد صغيرة.</translation>
     </message>
     <message>
         <source>off</source>
@@ -951,6 +763,10 @@
     <message>
         <source>FFmpeg not found.</source>
         <translation>لم يتم العثور على FFmpeg.</translation>
+    </message>
+    <message>
+        <source>The clips are %1s short in total; those shots hold their last frame.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -1096,6 +912,10 @@
     <message>
         <source>The opening frame is resized to Sora&apos;s format automatically.</source>
         <translation>يتم تغيير حجم اللقطة الأولى تلقائيًا لتناسب صيغة Sora.</translation>
+    </message>
+    <message>
+        <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -1331,10 +1151,6 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Quick form</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1810,11 +1626,6 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>About %1 s of video. Nothing is charged until you press generate.</source>
-        <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Output</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1847,8 +1658,30 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished">اللقطات الثابتة</translation>
     </message>
     <message>
-        <source>Video</source>
-        <translation type="unfinished">الفيديو</translation>
+        <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fixing one scene costs a fraction of starting over.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Open in my player</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
+        <extracomment>%1 is a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Talking shots</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Product shots</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Voice</source>
@@ -1875,17 +1708,12 @@ Nothing is uploaded to us.</source>
         <translation type="unfinished">إعلانك جاهز</translation>
     </message>
     <message>
-        <source>Cost %1</source>
-        <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished">التكلفة %1</translation>
-    </message>
-    <message>
-        <source>Play</source>
-        <translation type="unfinished">تشغيل</translation>
-    </message>
-    <message>
         <source>Show file</source>
         <translation type="unfinished">إظهار الملف</translation>
+    </message>
+    <message>
+        <source>Start a new ad</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Activity</source>
@@ -1894,6 +1722,36 @@ Nothing is uploaded to us.</source>
     <message>
         <source>Clear</source>
         <translation type="unfinished">مسح</translation>
+    </message>
+</context>
+<context>
+    <name>Storyboard</name>
+    <message>
+        <source>%1 · %2s</source>
+        <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Scene %1</source>
+        <extracomment>%1 is a shot number</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shooting...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene — %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Re-shoot this scene</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>The voice-over is kept, so it is not paid for again.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

@@ -42,7 +42,7 @@ public:
     // Empty when the price is unknown.
     Q_INVOKABLE QVariantMap unitPrice(const QString &modelId) const;
 
-    // What the form is about to spend, taking the same map CreatePage builds
+    // What the studio is about to spend, taking the same map AdProject builds
     // for the pipeline. Returns:
     //   { lines: [{step, model, units, unit, amount, known, approx}],
     //     total, unknownCount, approx }

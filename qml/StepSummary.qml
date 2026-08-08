@@ -30,7 +30,7 @@ ColumnLayout {
         Text {
             Layout.fillWidth: true
             //: %1 is a duration in seconds
-            text: qsTr("About %1 s of video. Nothing is charged until you press generate.")
+            text: qsTr("About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.")
                       .arg(root.project.spokenSeconds.toFixed(1))
             color: Theme.textDim
             font.pixelSize: Theme.fontBody
@@ -96,7 +96,8 @@ ColumnLayout {
             visible: advanced.expanded
 
             ModelPicker { category: "image"; label: qsTr("Frames") }
-            ModelPicker { category: "video"; label: qsTr("Video") }
+            ModelPicker { category: "avatar"; label: qsTr("Talking shots") }
+            ModelPicker { category: "video"; label: qsTr("Product shots") }
             ModelPicker { category: "voice"; label: qsTr("Voice") }
         }
     }
@@ -166,50 +167,37 @@ ColumnLayout {
         }
     }
 
-    // Result
-    Rectangle {
-        Layout.fillWidth: true
-        implicitHeight: resultColumn.implicitHeight + 24
-        radius: Theme.radius
-        color: Theme.accentSoft
-        border.width: 1
-        border.color: Theme.accent
-        visible: !root.busy && App.pipeline.outputFile !== ""
+    // Result: the ad, and the one scene you might want to redo.
+    SectionCard {
+        visible: App.pipeline.outputFile !== ""
+        title: qsTr("Your ad is ready")
+        //: %1 is a price
+        subtitle: App.pipeline.cost.lines !== undefined && App.pipeline.cost.lines.length > 0
+                  ? qsTr("Cost so far %1. Fixing one scene costs a fraction of starting over.")
+                        .arg(Format.estimated(App.pipeline.cost.total))
+                  : qsTr("Fixing one scene costs a fraction of starting over.")
 
-        ColumnLayout {
-            id: resultColumn
-            anchors.fill: parent
-            anchors.margins: 12
+        Storyboard {}
+
+        RowLayout {
             spacing: 8
 
-            Text {
-                text: qsTr("Your ad is ready")
-                color: Theme.text
-                font.pixelSize: Theme.fontBody
-                font.weight: Font.DemiBold
+            GhostButton {
+                text: qsTr("Open in my player")
+                onClicked: App.openPath(App.pipeline.outputFile)
             }
 
-            Text {
-                Layout.fillWidth: true
-                //: %1 is a price
-                text: qsTr("Cost %1").arg(Format.estimated(App.pipeline.cost.total))
-                visible: App.pipeline.cost.lines !== undefined
-                         && App.pipeline.cost.lines.length > 0
-                color: Theme.textDim
-                font.pixelSize: Theme.fontSmall
+            GhostButton {
+                text: qsTr("Show file")
+                onClicked: App.revealPath(App.pipeline.outputFile)
             }
 
-            RowLayout {
-                spacing: 8
-
-                GhostButton {
-                    text: qsTr("Play")
-                    onClicked: App.openPath(App.pipeline.outputFile)
-                }
-
-                GhostButton {
-                    text: qsTr("Show file")
-                    onClicked: App.revealPath(App.pipeline.outputFile)
+            GhostButton {
+                text: qsTr("Start a new ad")
+                enabled: !root.busy
+                onClicked: {
+                    root.project.clear();
+                    root.project.currentStep = 0;
                 }
             }
         }

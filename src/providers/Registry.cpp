@@ -1,5 +1,6 @@
 #include "Registry.h"
 
+#include "AvatarProviders.h"
 #include "ImageProviders.h"
 #include "ProviderTask.h"
 #include "TextProviders.h"
@@ -225,6 +226,18 @@ void Registry::buildEntries()
          tr("The opening frame is resized to Sora's format automatically.")},
 
         // ---- Voice ----------------------------------------------------------
+        // Talking shots. These take the audio as an input, so the clip comes
+        // back exactly as long as the line and the mouth actually matches.
+        {QStringLiteral("fal-avatar"), QStringLiteral("avatar"), QStringLiteral("fal.ai avatars"),
+         QStringLiteral("fal"),
+         {autoModel,
+          M("fal-ai/kling-video/ai-avatar/v2/standard", "Kling AI Avatar v2 Standard"),
+          M("fal-ai/kling-video/ai-avatar/v2/pro", "Kling AI Avatar v2 Pro"),
+          M("veed/fabric-1.0", "VEED Fabric 1.0"),
+          M("fal-ai/infinitalk", "InfiniTalk")},
+         QStringLiteral("auto"),
+         tr("Lip-synced talking shots. The clip lasts exactly as long as the line.")},
+
         {QStringLiteral("elevenlabs"), QStringLiteral("voice"), QStringLiteral("ElevenLabs"),
          QStringLiteral("elevenlabs"),
          {M("eleven_v3", "Eleven v3"), M("eleven_multilingual_v2", "Multilingual v2"),
@@ -421,6 +434,14 @@ ProviderTask *video(const QString &providerId, const prov::VideoRequest &request
         return new ReplicateVideoTask(request, parent);
     if (providerId == QLatin1String("openai-video"))
         return new SoraVideoTask(request, parent);
+    return nullptr;
+}
+
+ProviderTask *avatar(const QString &providerId, const prov::AvatarRequest &request,
+                     QObject *parent)
+{
+    if (providerId == QLatin1String("fal-avatar"))
+        return new FalAvatarTask(request, parent);
     return nullptr;
 }
 

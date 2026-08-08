@@ -184,6 +184,15 @@ QVariantMap Pricing::estimate(const QVariantMap &request) const
     const int duration = request.value(QStringLiteral("durationSeconds"), 20).toInt();
     const bool hasPhoto = !text("productImagePath").isEmpty();
 
+    // The studio hands over an explicit scene list; the old form does not, and
+    // its shot count still has to be inferred from the length asked for.
+    const QVariantList scenes = request.value(QStringLiteral("scenes")).toList();
+    int sceneCount = 0;
+    for (const QVariant &entry : scenes) {
+        if (!entry.toMap().value(QStringLiteral("line")).toString().trimmed().isEmpty())
+            ++sceneCount;
+    }
+
     // The voice-over drives both the TTS bill and the clip length, so work it
     // out first. A script the user wrote is measurable; otherwise we go by the
     // length they asked for.
@@ -194,7 +203,7 @@ QVariantMap Pricing::estimate(const QVariantMap &request) const
 
     // The ad is cut into shots, and each one buys its own frame and its own
     // clip. This is what multiplies the bill, so it has to be in the estimate.
-    const int shots = shotCount(duration);
+    const int shots = sceneCount > 0 ? sceneCount : shotCount(duration);
     const int clip = clipSeconds(voiceSeconds / shots);
 
     QVariantList lines;
@@ -237,7 +246,42 @@ QVariantMap Pricing::estimate(const QVariantMap &request) const
     }
 
     // ---- Video ----------------------------------------------------------
-    {
+    // A studio ad is a list of scenes, and a talking one is bought by the second
+    // of speech rather than by the clip: the avatar model is handed the line's
+    // audio and gives back exactly that much video. Product scenes have no face
+    // to sync and stay on the by-the-clip image-to-video path.
+    if (!scenes.isEmpty()) {
+        int talking = 0;
+        int broll = 0;
+        double talkingSeconds = 0.0;
+        for (const QVariant &entry : scenes) {
+            const QVariantMap scene = entry.toMap();
+            const QString sceneLine = scene.value(QStringLiteral("line")).toString().trimmed();
+            if (sceneLine.isEmpty())
+                continue;
+            if (scene.value(QStringLiteral("kind")).toString() == QLatin1String("broll")) {
+                ++broll;
+            } else {
+                ++talking;
+                talkingSeconds += speechSeconds(wordCount(sceneLine));
+            }
+        }
+
+        if (talking > 0) {
+            const QString provider = text("avatarProvider");
+            const QString model = m_registry
+                ? m_registry->resolveModel(provider, text("avatarModel"))
+                : text("avatarModel");
+            lines.append(line(QStringLiteral("video"), provider, model, talkingSeconds, talking));
+        }
+        if (broll > 0) {
+            const QString provider = text("videoProvider");
+            const QString model = m_registry
+                ? m_registry->resolveModel(provider, text("videoModel"), clip)
+                : text("videoModel");
+            lines.append(line(QStringLiteral("video"), provider, model, double(broll) * clip, broll));
+        }
+    } else {
         const QString provider = text("videoProvider");
         const QString model = m_registry
             ? m_registry->resolveModel(provider, text("videoModel"), clip)

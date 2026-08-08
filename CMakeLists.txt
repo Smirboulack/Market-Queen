@@ -33,6 +33,7 @@ set(APP_SOURCES
     src/providers/TextProviders.h   src/providers/TextProviders.cpp
     src/providers/ImageProviders.h  src/providers/ImageProviders.cpp
     src/providers/VideoProviders.h  src/providers/VideoProviders.cpp
+    src/providers/AvatarProviders.h src/providers/AvatarProviders.cpp
     src/providers/VoiceProviders.h  src/providers/VoiceProviders.cpp
     src/media/Ffmpeg.h           src/media/Ffmpeg.cpp
     src/pipeline/Pipeline.h      src/pipeline/Pipeline.cpp
@@ -70,8 +71,8 @@ set(APP_QML_FILES
     qml/LabeledSlider.qml
     qml/StepScript.qml
     qml/SceneCard.qml
+    qml/Storyboard.qml
     qml/StepSummary.qml
-    qml/CreatePage.qml
     qml/LibraryPage.qml
     qml/SettingsPage.qml
     qml/SectionCard.qml

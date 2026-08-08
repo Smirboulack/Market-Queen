@@ -165,6 +165,7 @@ void Pipeline::start(const QVariantMap &request)
     m_request = request;
     m_run = RunState{};
     m_shotLabel.clear();
+    m_onlyShot = -1;
 
     resetSteps();
     setStatus({});
@@ -209,6 +210,89 @@ void Pipeline::start(const QVariantMap &request)
     }
 
     m_current = -1;
+    advance();
+}
+
+QVariantList Pipeline::shotsInfo() const
+{
+    QVariantList list;
+    for (int i = 0; i < m_run.shots.size(); ++i) {
+        const Shot &shot = m_run.shots.at(i);
+        list.append(QVariantMap{
+            {QStringLiteral("index"), i},
+            {QStringLiteral("line"), shot.line},
+            {QStringLiteral("kind"), shot.kind},
+            {QStringLiteral("framePath"), shot.framePath},
+            {QStringLiteral("clipPath"), shot.clipPath},
+            {QStringLiteral("imagePrompt"), shot.imagePrompt},
+            {QStringLiteral("start"), shot.start},
+            {QStringLiteral("duration"), shot.duration},
+        });
+    }
+    return list;
+}
+
+// What re-shooting one scene buys: a still and however many seconds it runs.
+// The voice-over is not touched, so it is not re-bought.
+QVariantMap Pipeline::regenerateEstimate(int index) const
+{
+    if (index < 0 || index >= m_run.shots.size())
+        return {{QStringLiteral("known"), false}, {QStringLiteral("amount"), 0.0}};
+
+    const Shot &shot = m_run.shots.at(index);
+    const bool talking = shot.kind != QLatin1String("broll");
+
+    const QString imageProvider = m_request.value(QStringLiteral("imageProvider")).toString();
+    const QString imageModel = m_registry->resolveModel(
+        imageProvider, m_request.value(QStringLiteral("imageModel")).toString());
+
+    const QString clipProvider =
+        talking ? m_request.value(QStringLiteral("avatarProvider")).toString()
+                : m_request.value(QStringLiteral("videoProvider")).toString();
+    const QString clipModel = m_registry->resolveModel(
+        clipProvider,
+        talking ? m_request.value(QStringLiteral("avatarModel")).toString()
+                : m_request.value(QStringLiteral("videoModel")).toString());
+
+    const QVariantMap framePrice = m_pricing->unitPrice(imageModel);
+    const QVariantMap clipPrice = m_pricing->unitPrice(clipModel);
+    if (framePrice.isEmpty() || clipPrice.isEmpty())
+        return {{QStringLiteral("known"), false}, {QStringLiteral("amount"), 0.0}};
+
+    const double seconds = talking ? shot.duration : Pricing::clipSeconds(shot.duration);
+    const double amount = framePrice.value(QStringLiteral("amount")).toDouble()
+        + clipPrice.value(QStringLiteral("amount")).toDouble()
+              * (clipPrice.value(QStringLiteral("unit")).toString() == QLatin1String("video")
+                     ? 1.0
+                     : seconds);
+
+    return {{QStringLiteral("known"), true}, {QStringLiteral("amount"), amount}};
+}
+
+void Pipeline::regenerateShot(int index)
+{
+    if (m_running || index < 0 || index >= m_run.shots.size() || m_run.dir.isEmpty())
+        return;
+
+    m_onlyShot = index;
+    m_shotLabel.clear();
+
+    resetSteps();
+    setStatus({});
+    // The words and the read are exactly what they were; only the picture for
+    // this one scene is being bought again.
+    setStepState(StepScript, Skipped, tr("unchanged"));
+    setStepState(StepVoice, Skipped, tr("unchanged"));
+
+    m_running = true;
+    m_run.finalPath.clear();
+    emit runningChanged();
+    emit finishedChanged();
+
+    m_log->append(LogModel::Info, tr("Re-shooting scene %1.").arg(index + 1));
+
+    // advance() steps to the frames, which is where a re-shoot starts.
+    m_current = StepVoice;
     advance();
 }
 
@@ -393,6 +477,7 @@ void Pipeline::stepScript()
 
             Shot shot;
             shot.line = line;
+            shot.kind = scene.value(QStringLiteral("kind"), QStringLiteral("talking")).toString();
             shot.imagePrompt = scene.value(QStringLiteral("imagePrompt")).toString().trimmed();
             shot.videoPrompt = scene.value(QStringLiteral("videoPrompt")).toString().trimmed();
             m_run.shots.append(shot);
@@ -489,113 +574,194 @@ void Pipeline::stepScript()
 }
 
 // ---------------------------------------------------------------------------
-// 2. Voice-over (+ duration probe, then the cut plan)
+// 2. Voice-over -- one take per scene, then the measured cut plan
 // ---------------------------------------------------------------------------
-// The whole script is read in one take. Recording it shot by shot would cost
-// the same and sound worse: every join resets the delivery, and the pauses a
-// speaker leaves between sentences land in the wrong places. One take also
-// means the audio is never cut, so the shot boundaries below only ever move
-// the picture.
+// The read is recorded scene by scene rather than in one piece, because a
+// talking shot is lip-synced to its own audio: the model needs the words for
+// that shot and nothing else.
+//
+// Recorded naively that would sound like a series of fresh takes, so each
+// request carries the neighbouring lines in previous_text/next_text. The engine
+// uses them for context only -- it never speaks them -- and the delivery carries
+// across the joins.
+//
+// The gain is that a scene's length stops being an estimate. It is however long
+// its audio turned out to be, measured, which is what finally removes every
+// reason to stretch, loop or trim a clip.
 void Pipeline::stepVoice()
 {
-    const QString providerId = m_request.value(QStringLiteral("voiceProvider")).toString();
+    m_run.currentShot = 0;
     setStepState(StepVoice, Running);
-    setStatus(tr("Recording the voice-over..."));
+    runVoiceLine();
+}
+
+void Pipeline::runVoiceLine()
+{
+    const int index = m_run.currentShot;
+    if (index >= m_run.shots.size()) {
+        m_shotLabel.clear();
+        m_run.currentShot = 0;
+        probeShotAudio();
+        return;
+    }
+
+    const QString providerId = m_request.value(QStringLiteral("voiceProvider")).toString();
+    m_shotLabel = tr("%1/%2").arg(index + 1).arg(m_run.shots.size());
+    setStepState(StepVoice, Running, m_shotLabel);
+    setStatus(tr("Recording line %1 of %2...").arg(index + 1).arg(m_run.shots.size()));
 
     prov::VoiceRequest request;
     request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
     request.model = pickModel(providerId, m_request.value(QStringLiteral("voiceModel")).toString());
     request.voiceId = m_request.value(QStringLiteral("voiceId")).toString();
-    request.text = m_run.script;
+    request.text = m_run.shots[index].line;
     // The booth's sliders, so the ad sounds like the audition did.
     request.stability = m_request.value(QStringLiteral("voiceStability"), 0.45).toDouble();
     request.similarity = m_request.value(QStringLiteral("voiceSimilarity"), 0.8).toDouble();
     request.style = m_request.value(QStringLiteral("voiceStyle"), 0.35).toDouble();
     request.speed = m_request.value(QStringLiteral("voiceSpeed"), 1.0).toDouble();
+    if (index > 0)
+        request.previousText = m_run.shots[index - 1].line;
+    if (index + 1 < m_run.shots.size())
+        request.nextText = m_run.shots[index + 1].line;
 
     attach(providers::voice(providerId, request, this),
-           [this, providerId, model = request.model, chars = request.text.size()](
+           [this, providerId, model = request.model, chars = request.text.size(), index](
                const QVariantMap &result) {
         // TTS is billed on the text we sent, not on the audio that came back.
         recordUsage(QStringLiteral("voice"), providerId, model, chars / 1000.0);
 
         const QByteArray data = result.value(QStringLiteral("data")).toByteArray();
-        // Not every engine returns mp3; keep the real extension so ffmpeg and
-        // Whisper can tell what they are looking at.
         const QString extension =
             result.value(QStringLiteral("extension"), QStringLiteral("mp3")).toString();
-        m_run.voicePath = writeArtifact(QStringLiteral("voice.%1").arg(extension), data);
-        if (m_run.voicePath.isEmpty())
+        const QString path = writeArtifact(
+            QStringLiteral("shot%1-voice.%2").arg(index + 1).arg(extension), data);
+        if (path.isEmpty())
             return;
 
-        m_log->append(LogModel::Success, tr("Voice-over saved (%1 KB).").arg(data.size() / 1024));
-        probeVoiceDuration();
+        m_run.shots[index].voicePath = path;
+        m_run.shots[index].voiceDataUri = http::fileToDataUri(path);
+
+        ++m_run.currentShot;
+        runVoiceLine();
     });
 }
 
-void Pipeline::probeVoiceDuration()
+// Measures every line. Without ffmpeg there is nothing to measure with, so the
+// old word-count estimate stands in -- the ad still renders, it just plans
+// against a guess again.
+void Pipeline::probeShotAudio()
 {
-    const auto settle = [this](double duration, bool measured) {
-        m_run.voiceDuration = duration > 0 ? duration : estimatedSpeechDuration();
+    const int index = m_run.currentShot;
+
+    if (ffmpegExecutable().isEmpty() || index >= m_run.shots.size()) {
+        if (ffmpegExecutable().isEmpty()) {
+            const double estimated = estimatedSpeechDuration();
+            const int count = qMax(1, int(m_run.shots.size()));
+            for (Shot &shot : m_run.shots)
+                shot.duration = estimated / count;
+        }
         planShotTimings();
-        setStepState(StepVoice, Done,
-                     measured ? tr("%1s").arg(m_run.voiceDuration, 0, 'f', 1)
-                              : tr("%1s (estimated)").arg(m_run.voiceDuration, 0, 'f', 1));
+        joinVoice();
+        return;
+    }
+
+    auto *probe = new FfmpegProbeTask(ffmpegExecutable(), m_run.shots[index].voicePath, this);
+    m_activeTask = probe;
+    const auto done = [this, index](double duration) {
+        m_activeTask = nullptr;
+        // A line that could not be measured still has to hold the screen for as
+        // long as it is heard; the word-count estimate is the safest guess.
+        m_run.shots[index].duration =
+            duration > 0 ? duration : qMax(0.5, m_run.shots[index].line.size() / 15.6);
+        ++m_run.currentShot;
+        probeShotAudio();
+    };
+    connect(probe, &ProviderTask::failed, this, [done](const QString &) { done(-1.0); });
+    connect(probe, &ProviderTask::succeeded, this, [done](const QVariantMap &result) {
+        done(result.value(QStringLiteral("duration"), -1.0).toDouble());
+    });
+}
+
+// One file with the whole read in it. Whisper times the subtitles against it and
+// the final mux uses it as the audio track, so the picture and the sound come
+// from the same sequence in the same order.
+void Pipeline::joinVoice()
+{
+    QList<Shot> withAudio;
+    for (const Shot &shot : m_run.shots) {
+        if (!shot.voicePath.isEmpty())
+            withAudio.append(shot);
+    }
+
+    if (withAudio.isEmpty()) {
+        failRun(tr("No voice-over was recorded."));
+        return;
+    }
+
+    const auto settle = [this]() {
+        setStepState(StepVoice, Done, tr("%1s").arg(m_run.voiceDuration, 0, 'f', 1));
         advance();
     };
 
     const QString exe = ffmpegExecutable();
-    if (exe.isEmpty()) {
-        settle(-1.0, false);
+    if (exe.isEmpty() || withAudio.size() == 1) {
+        // Nothing to join, or nothing to join it with.
+        m_run.voicePath = withAudio.first().voicePath;
+        settle();
         return;
     }
 
-    auto *probe = new FfmpegProbeTask(exe, m_run.voicePath, this);
-    m_activeTask = probe;
-    connect(probe, &ProviderTask::failed, this, [this, settle](const QString &) {
+    QStringList args{QStringLiteral("-y"), QStringLiteral("-hide_banner")};
+    QString inputs;
+    for (int i = 0; i < withAudio.size(); ++i) {
+        args << QStringLiteral("-i") << QFileInfo(withAudio.at(i).voicePath).fileName();
+        inputs += QStringLiteral("[%1:a]").arg(i);
+    }
+    args << QStringLiteral("-filter_complex")
+         << QStringLiteral("%1concat=n=%2:v=0:a=1[a]").arg(inputs).arg(withAudio.size());
+    args << QStringLiteral("-map") << QStringLiteral("[a]");
+    args << QStringLiteral("-c:a") << QStringLiteral("libmp3lame");
+    args << QStringLiteral("-q:a") << QStringLiteral("2");
+    args << QStringLiteral("voice.mp3");
+
+    auto *task = new FfmpegTask(exe, args, m_run.dir, this);
+    m_activeTask = task;
+    connect(task, &ProviderTask::failed, this, [this, settle, withAudio](const QString &error) {
         m_activeTask = nullptr;
-        settle(-1.0, false);
+        // The scenes still have their own audio, so the ad is not lost -- only
+        // the subtitles, which are timed against the joined file.
+        m_log->append(LogModel::Warning, tr("Could not join the voice-over: %1").arg(error));
+        m_run.voicePath = withAudio.first().voicePath;
+        settle();
     });
-    connect(probe, &ProviderTask::succeeded, this, [this, settle](const QVariantMap &result) {
+    connect(task, &ProviderTask::succeeded, this, [this, settle](const QVariantMap &) {
         m_activeTask = nullptr;
-        settle(result.value(QStringLiteral("duration"), -1.0).toDouble(), true);
+        m_run.voicePath = QDir(m_run.dir).filePath(QStringLiteral("voice.mp3"));
+        m_log->append(LogModel::Success,
+                      tr("Voice-over ready: %1 line(s), %2s.")
+                          .arg(m_run.shots.size())
+                          .arg(m_run.voiceDuration, 0, 'f', 1));
+        settle();
     });
 }
 
-// Hands each shot its slice of the voice-over, in proportion to how much of the
-// script it speaks.
-//
-// One voice reading one take keeps a near-constant pace, so characters are a
-// good stand-in for seconds. And because the audio plays through uncut, a shot
-// boundary landing a fraction of a second early or late only changes the
-// picture slightly sooner or later; nothing can drift out of sync.
+// Lays the measured durations end to end. Nothing is apportioned any more: each
+// shot lasts exactly as long as its own line was recorded to be, so the picture
+// and the sound cannot drift apart.
 void Pipeline::planShotTimings()
 {
-    if (m_run.shots.isEmpty())
-        return;
-
-    int totalChars = 0;
-    for (const Shot &shot : m_run.shots)
-        totalChars += qMax(1, int(shot.line.size()));
-
     double cursor = 0.0;
-    for (int i = 0; i < m_run.shots.size(); ++i) {
-        Shot &shot = m_run.shots[i];
-        const double share = double(qMax(1, int(shot.line.size()))) / totalChars;
+    for (Shot &shot : m_run.shots) {
         shot.start = cursor;
-        // The last shot takes whatever is left, so rounding can never leave a
-        // gap at the end of the ad.
-        shot.duration = (i == m_run.shots.size() - 1)
-            ? qMax(0.5, m_run.voiceDuration - cursor)
-            : m_run.voiceDuration * share;
         cursor += shot.duration;
     }
+    m_run.voiceDuration = cursor;
 
     m_log->append(LogModel::Info,
-                  tr("%1 shot(s) over %2s, about %3s each.")
+                  tr("%1 shot(s) over %2s.")
                       .arg(m_run.shots.size())
-                      .arg(m_run.voiceDuration, 0, 'f', 1)
-                      .arg(m_run.voiceDuration / m_run.shots.size(), 0, 'f', 1));
+                      .arg(m_run.voiceDuration, 0, 'f', 1));
 }
 
 // ---------------------------------------------------------------------------
@@ -603,7 +769,7 @@ void Pipeline::planShotTimings()
 // ---------------------------------------------------------------------------
 void Pipeline::stepFrames()
 {
-    m_run.currentShot = 0;
+    m_run.currentShot = m_onlyShot >= 0 ? m_onlyShot : 0;
     setStepState(StepFrames, Running);
     runFrame();
 }
@@ -611,7 +777,7 @@ void Pipeline::stepFrames()
 void Pipeline::runFrame()
 {
     const int index = m_run.currentShot;
-    if (index >= m_run.shots.size()) {
+    if (index >= m_run.shots.size() || (m_onlyShot >= 0 && index > m_onlyShot)) {
         m_shotLabel.clear();
         setStepState(StepFrames, Done, tr("%1 frame(s)").arg(m_run.shots.size()));
         advance();
@@ -671,52 +837,39 @@ void Pipeline::runFrame()
 }
 
 // ---------------------------------------------------------------------------
-// 4. Shots -- one clip each, only as long as it is on screen
+// 4. Shots -- talking ones are lip-synced, the rest are animated
 // ---------------------------------------------------------------------------
 void Pipeline::stepVideos()
 {
-    m_run.currentShot = 0;
+    m_run.currentShot = m_onlyShot >= 0 ? m_onlyShot : 0;
     setStepState(StepVideos, Running);
     runVideo();
 }
 
+// A talking shot goes to an avatar model: it takes the still and the line's
+// audio and gives back a clip whose mouth matches, exactly as long as the audio.
+// Nothing is asked for in seconds and nothing needs trimming afterwards.
+//
+// A product shot has no face to sync, so it stays on the ordinary
+// image-to-video path and buys the smallest clip that covers its slot.
 void Pipeline::runVideo()
 {
     const int index = m_run.currentShot;
-    if (index >= m_run.shots.size()) {
+    if (index >= m_run.shots.size() || (m_onlyShot >= 0 && index > m_onlyShot)) {
         probeClipDurations();
         return;
     }
 
-    const QString providerId = m_request.value(QStringLiteral("videoProvider")).toString();
+    const Shot &shot = m_run.shots.at(index);
+    const bool talking = shot.kind != QLatin1String("broll") && !shot.voiceDataUri.isEmpty();
+
     m_shotLabel = tr("%1/%2").arg(index + 1).arg(m_run.shots.size());
     setStepState(StepVideos, Running, m_shotLabel);
-    setStatus(tr("Filming shot %1 of %2...").arg(index + 1).arg(m_run.shots.size()));
+    setStatus(talking ? tr("Filming shot %1 of %2...").arg(index + 1).arg(m_run.shots.size())
+                      : tr("Filming the product for shot %1...").arg(index + 1));
 
-    // Clips are billed by the second and this one only has to cover its own
-    // slice. Short shots are what let every clip be bought at the five-second
-    // floor instead of a ten-second one that mostly goes unused.
-    const int clipSeconds = Pricing::clipSeconds(m_run.shots[index].duration);
-
-    prov::VideoRequest request;
-    request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
-    request.model = pickModel(providerId, m_request.value(QStringLiteral("videoModel")).toString(),
-                              clipSeconds);
-    request.aspectRatio = m_request.value(QStringLiteral("aspectRatio"), QStringLiteral("9:16")).toString();
-    request.imageDataUri = m_run.shots[index].frameDataUri;
-    request.prompt = m_run.shots[index].videoPrompt.isEmpty()
-        ? tr("The person talks straight to the camera, subtle handheld movement, natural blinking "
-             "and small hand gestures.")
-        : m_run.shots[index].videoPrompt;
-    request.durationSeconds = clipSeconds;
-
-    attach(providers::video(providerId, request, this),
-           [this, providerId, model = request.model, seconds = clipSeconds, index](
-               const QVariantMap &result) {
-        // One clip, `seconds` long -- models bill by whichever of the two they
-        // price on.
-        recordUsage(QStringLiteral("video"), providerId, model, seconds, 1);
-
+    const auto landed = [this, index](const QString &providerId, const QString &model,
+                                      const QVariantMap &result) {
         const QByteArray data = result.value(QStringLiteral("data")).toByteArray();
         const QString extension =
             result.value(QStringLiteral("extension"), QStringLiteral("mp4")).toString();
@@ -733,6 +886,55 @@ void Pipeline::runVideo()
 
         ++m_run.currentShot;
         runVideo();
+    };
+
+    if (talking) {
+        const QString providerId = m_request.value(QStringLiteral("avatarProvider"),
+                                                   QStringLiteral("fal-avatar")).toString();
+
+        prov::AvatarRequest request;
+        request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
+        request.model = pickModel(providerId,
+                                  m_request.value(QStringLiteral("avatarModel")).toString());
+        request.imageDataUri = shot.frameDataUri;
+        request.audioDataUri = shot.voiceDataUri;
+        request.prompt = shot.videoPrompt;
+
+        ProviderTask *task = providers::avatar(providerId, request, this);
+        if (!task) {
+            failRun(tr("No avatar provider called %1.").arg(providerId));
+            return;
+        }
+
+        attach(task, [this, landed, providerId, model = request.model,
+                      seconds = shot.duration](const QVariantMap &result) {
+            // Billed by the second of clip, and the clip is the line.
+            recordUsage(QStringLiteral("video"), providerId, model, seconds, 1);
+            landed(providerId, model, result);
+        });
+        return;
+    }
+
+    const QString providerId = m_request.value(QStringLiteral("videoProvider")).toString();
+    const int clipSeconds = Pricing::clipSeconds(shot.duration);
+
+    prov::VideoRequest request;
+    request.apiKey = m_settings->apiKey(m_registry->credentialFor(providerId));
+    request.model = pickModel(providerId, m_request.value(QStringLiteral("videoModel")).toString(),
+                              clipSeconds);
+    request.aspectRatio =
+        m_request.value(QStringLiteral("aspectRatio"), QStringLiteral("9:16")).toString();
+    request.imageDataUri = shot.frameDataUri;
+    request.prompt = shot.videoPrompt.isEmpty()
+        ? tr("Slow handheld move around the product, natural light, nobody on screen.")
+        : shot.videoPrompt;
+    request.durationSeconds = clipSeconds;
+
+    attach(providers::video(providerId, request, this),
+           [this, landed, providerId, model = request.model, seconds = clipSeconds](
+               const QVariantMap &result) {
+        recordUsage(QStringLiteral("video"), providerId, model, seconds, 1);
+        landed(providerId, model, result);
     });
 }
 
@@ -754,7 +956,7 @@ void Pipeline::probeClipDurations()
 void Pipeline::probeNextClip()
 {
     const int index = m_run.currentShot;
-    if (index >= m_run.shots.size()) {
+    if (index >= m_run.shots.size() || (m_onlyShot >= 0 && index > m_onlyShot)) {
         m_shotLabel.clear();
         setStepState(StepVideos, Done, tr("%1 shot(s)").arg(m_run.shots.size()));
         advance();
@@ -782,6 +984,14 @@ void Pipeline::stepCaptions()
 {
     if (!m_request.value(QStringLiteral("captionsEnabled"), true).toBool()) {
         setStepState(StepCaptions, Skipped, tr("off"));
+        advance();
+        return;
+    }
+
+    // Re-shooting a scene changes the picture, never the read, so the subtitles
+    // that were timed against it are still exactly right.
+    if (m_onlyShot >= 0 && !m_run.srtPath.isEmpty()) {
+        setStepState(StepCaptions, Skipped, tr("unchanged"));
         advance();
         return;
     }
@@ -876,46 +1086,44 @@ void Pipeline::stepAssemble()
     // Clips come from different models at different sizes and frame rates.
     // concat refuses to join streams that do not match, so each one is padded
     // to the same canvas and resampled to the same rate first.
-    // A clip can come back shorter than the slot it has to fill. Work out how
-    // much picture we will actually have before writing the graph, so the last
-    // shot can hold its final frame over any shortfall -- otherwise -shortest
-    // below would trim the voice-over to match the video and cut the ad off
-    // mid-sentence.
-    QList<double> onScreen;
-    double picture = 0.0;
-    for (const Shot &shot : usable) {
-        const double available =
-            shot.clipDuration > 0 ? qMin(shot.duration, shot.clipDuration) : shot.duration;
-        onScreen.append(available);
-        picture += available;
-    }
-    const double shortfall = qMax(0.0, m_run.voiceDuration - picture);
-    if (shortfall > 0.5) {
-        m_log->append(LogModel::Warning,
-                      tr("The clips are %1s short of the voice-over; the last shot holds.")
-                          .arg(shortfall, 0, 'f', 1));
-    }
-
+    //
+    // Every shot is then made exactly as long as its own line: trimmed if the
+    // clip overran, and holding its last frame if it came back short. Because
+    // each length is the measured length of that line's audio, the shots add up
+    // to the voice-over on their own -- so nothing is stretched, nothing is
+    // looped, and there is no -shortest deciding where the ad ends.
     QStringList chains;
     QString concatInputs;
+    double shortfall = 0.0;
+
     for (int i = 0; i < usable.size(); ++i) {
+        const Shot &shot = usable.at(i);
+        const double slot = shot.duration;
+        const double available = shot.clipDuration > 0 ? qMin(slot, shot.clipDuration) : slot;
+        const double pad = qMax(0.0, slot - available);
+        shortfall += pad;
+
         QString chain = QStringLiteral("[%1:v]trim=0:%2,setpts=PTS-STARTPTS,"
                                        "scale=%3:%4:force_original_aspect_ratio=decrease,"
                                        "pad=%3:%4:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30")
                             .arg(i)
-                            .arg(onScreen.at(i), 0, 'f', 3)
+                            .arg(available, 0, 'f', 3)
                             .arg(frame.width())
                             .arg(frame.height());
 
-        // Half a second of slack on top, so rounding can never leave the last
-        // frames of the voice-over without a picture. -shortest trims it back.
-        if (i == usable.size() - 1) {
+        if (pad > 0.02) {
             chain += QStringLiteral(",tpad=stop_mode=clone:stop_duration=%1")
-                         .arg(shortfall + 0.5, 0, 'f', 3);
+                         .arg(pad, 0, 'f', 3);
         }
 
         chains << chain + QStringLiteral("[v%1]").arg(i);
         concatInputs += QStringLiteral("[v%1]").arg(i);
+    }
+
+    if (shortfall > 0.5) {
+        m_log->append(LogModel::Warning,
+                      tr("The clips are %1s short in total; those shots hold their last frame.")
+                          .arg(shortfall, 0, 'f', 1));
     }
 
     QString lastLabel = QStringLiteral("vc");
@@ -936,7 +1144,6 @@ void Pipeline::stepAssemble()
     args << QStringLiteral("-pix_fmt") << QStringLiteral("yuv420p");
     args << QStringLiteral("-c:a") << QStringLiteral("aac");
     args << QStringLiteral("-b:a") << QStringLiteral("192k");
-    args << QStringLiteral("-shortest");
     args << QStringLiteral("-movflags") << QStringLiteral("+faststart");
     args << QString::fromLatin1(kFinalFile);
 
@@ -1037,8 +1244,10 @@ void Pipeline::failRun(const QString &error)
 
     writeProjectManifest(false);
 
+    m_onlyShot = -1;
     m_running = false;
     m_activeTask = nullptr;
+    emit shotsChanged();
     emit runningChanged();
     emit finishedChanged();
     emit finished(false, {});
@@ -1048,9 +1257,11 @@ void Pipeline::completeRun()
 {
     writeProjectManifest(true);
 
+    m_onlyShot = -1;
     m_running = false;
     emit runningChanged();
     emit finishedChanged();
+    emit shotsChanged();
 
     m_log->append(LogModel::Success,
                   tr("Done: %1").arg(QDir::toNativeSeparators(m_run.finalPath)));

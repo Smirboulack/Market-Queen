@@ -56,6 +56,19 @@ struct VideoRequest {
     int durationSeconds = 5;
 };
 
+// A talking shot: a still plus the audio it should be saying.
+//
+// This is the difference between an ad and a video of someone whose mouth does
+// not match the words. The clip that comes back is exactly as long as the audio,
+// so nothing downstream has to stretch, loop or trim it.
+struct AvatarRequest {
+    QString apiKey;
+    QString model;
+    QString imageDataUri;         // the actor, framed for this shot
+    QString audioDataUri;         // what they say during it
+    QString prompt;               // optional nudge on the motion
+};
+
 struct VoiceRequest {
     QString apiKey;
     QString model;
@@ -68,6 +81,11 @@ struct VoiceRequest {
     double stability = 0.45;
     double similarity = 0.8;
     double style = 0.35;
+    // Request stitching. An ad recorded scene by scene would otherwise reset its
+    // delivery at every join; telling the engine what came before and after each
+    // chunk is what keeps one continuous read across the cuts.
+    QString previousText;
+    QString nextText;
 };
 
 // Instant voice cloning from the user's own recordings. This creates a
