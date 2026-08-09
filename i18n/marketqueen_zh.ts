@@ -5,14 +5,14 @@
     <name>ActorLibrary</name>
     <message>
         <source>Actor %1</source>
-        <translation type="unfinished"></translation>
+        <translation>演员 %1</translation>
     </message>
 </context>
 <context>
     <name>ActorStrip</name>
     <message>
         <source>Your actors</source>
-        <translation type="unfinished"></translation>
+        <translation>你的演员</translation>
     </message>
 </context>
 <context>
@@ -34,92 +34,92 @@
     <name>AvatarTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation type="unfinished">服务商未返回视频。</translation>
+        <translation>服务商未返回视频。</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation type="unfinished">正在下载片段…</translation>
+        <translation>正在下载片段…</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation type="unfinished">下载到的片段是空的。</translation>
+        <translation>下载到的片段是空的。</translation>
     </message>
 </context>
 <context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有返回任何肖像。请查看日志。</translation>
     </message>
     <message>
         <source>Could not create the casting folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法创建选角文件夹。</translation>
     </message>
     <message>
         <source>Casting %1 portrait(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>正在用 %2 生成 %1 张肖像。</translation>
     </message>
     <message>
         <source>No image provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有名为 %1 的图像提供商。</translation>
     </message>
     <message>
         <source>Portrait failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>肖像生成失败：%1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">无法写入 %1。</translation>
+        <translation>无法写入 %1。</translation>
     </message>
 </context>
 <context>
     <name>Director</name>
     <message>
         <source>Write at least one line first.</source>
-        <translation type="unfinished"></translation>
+        <translation>请先写至少一句台词。</translation>
     </message>
     <message>
         <source>No text provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有名为 %1 的文本提供商。</translation>
     </message>
     <message>
         <source>Directing %1 scene(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>正在用 %2 为 %1 个场景做导演。</translation>
     </message>
     <message>
         <source>Direction failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>导演失败：%1</translation>
     </message>
     <message>
         <source>The model returned no shots.</source>
-        <translation type="unfinished"></translation>
+        <translation>模型没有返回任何镜头。</translation>
     </message>
     <message>
         <source>Only %1 of %2 scenes came back directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>%2 个场景中只有 %1 个返回了导演结果。</translation>
     </message>
     <message>
         <source>%1 scene(s) directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>已导演 %1 个场景。</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceCloneTask</name>
     <message>
         <source>Add at least one audio sample to clone from.</source>
-        <translation type="unfinished"></translation>
+        <translation>请至少添加一段音频样本用于克隆。</translation>
     </message>
     <message>
         <source>Uploading the samples...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在上传样本…</translation>
     </message>
     <message>
         <source>None of the samples could be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有一个样本可以读取。</translation>
     </message>
     <message>
         <source>ElevenLabs did not return a voice id.</source>
-        <translation type="unfinished"></translation>
+        <translation>ElevenLabs 未返回声音 id。</translation>
     </message>
 </context>
 <context>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>?</source>
-        <translation type="unfinished"></translation>
+        <translation>？</translation>
     </message>
     <message>
         <source>Total</source>
@@ -177,11 +177,11 @@
     <name>FalAvatarTask</name>
     <message>
         <source>No frame to animate.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有可用于生成动画的画面。</translation>
     </message>
     <message>
         <source>No audio for this shot, so there is nothing to lip-sync to.</source>
-        <translation type="unfinished"></translation>
+        <translation>这个镜头没有音频，因此没有可对口型的内容。</translation>
     </message>
 </context>
 <context>
@@ -233,7 +233,7 @@
     <message>
         <source>~%1</source>
         <extracomment>Prefix meaning &quot;approximately&quot;. %1 is a price like $1.10</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>~%1</translation>
     </message>
     <message>
         <source>Script</source>
@@ -385,32 +385,32 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation type="unfinished"></translation>
+        <translation>把产品照片拖到这里</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
-        <translation type="unfinished"></translation>
+        <translation>想放多少都行。产品图、使用场景、标签特写。</translation>
     </message>
     <message>
         <source>1 picture. It is the reference.</source>
-        <translation type="unfinished"></translation>
+        <translation>1 张照片。它就是参考图。</translation>
     </message>
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 张照片。带星标的那张是主参考图。</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation type="unfinished">浏览</translation>
+        <translation>浏览</translation>
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>选择产品照片</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation type="unfinished">图像 (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>图像 (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
@@ -590,15 +590,15 @@
     </message>
     <message>
         <source>Could not read the actor portrait.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法读取演员肖像。</translation>
     </message>
     <message>
         <source>unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>未改动</translation>
     </message>
     <message>
         <source>Re-shooting scene %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>正在重拍场景 %1。</translation>
     </message>
     <message>
         <source>Cancelling...</source>
@@ -622,11 +622,11 @@
     </message>
     <message>
         <source>Using your %1 scene(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>正在使用你的 %1 个场景。</translation>
     </message>
     <message>
         <source>your own scenes</source>
-        <translation type="unfinished"></translation>
+        <translation>你自己的场景</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -654,23 +654,23 @@
     </message>
     <message>
         <source>Recording line %1 of %2...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在录制第 %1 句，共 %2 句…</translation>
     </message>
     <message>
         <source>No voice-over was recorded.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有录制任何配音。</translation>
     </message>
     <message>
         <source>Could not join the voice-over: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>无法合并配音：%1</translation>
     </message>
     <message>
         <source>Voice-over ready: %1 line(s), %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>配音已就绪：%1 句，%2 秒。</translation>
     </message>
     <message>
         <source>%1 shot(s) over %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 个镜头，共 %2 秒。</translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -686,7 +686,7 @@
     </message>
     <message>
         <source>Filming the product for shot %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在为镜头 %1 拍摄产品…</translation>
     </message>
     <message>
         <source>Shot %1 saved (%2 MB).</source>
@@ -694,11 +694,11 @@
     </message>
     <message>
         <source>No avatar provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有名为 %1 的虚拟人提供商。</translation>
     </message>
     <message>
         <source>Slow handheld move around the product, natural light, nobody on screen.</source>
-        <translation type="unfinished"></translation>
+        <translation>手持缓慢绕产品移动，自然光，画面中没有人。</translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -766,7 +766,7 @@
     </message>
     <message>
         <source>The clips are %1s short in total; those shots hold their last frame.</source>
-        <translation type="unfinished"></translation>
+        <translation>素材总共短了 %1 秒；这些镜头会停在最后一帧。</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -786,19 +786,19 @@
     <message>
         <source>Casting... %1 of %2</source>
         <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>选角中… %1 / %2</translation>
     </message>
     <message>
         <source>Pick the one that looks real</source>
-        <translation type="unfinished"></translation>
+        <translation>选一个看起来真实的</translation>
     </message>
     <message>
         <source>None of them? Cast again.</source>
-        <translation type="unfinished"></translation>
+        <translation>都不合适？再选一次角。</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>已选定</translation>
     </message>
 </context>
 <context>
@@ -816,51 +816,51 @@
     <name>RecapBlock</name>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>编辑</translation>
     </message>
 </context>
 <context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>你的广告</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>产品</translation>
     </message>
     <message>
         <source>Not set yet</source>
-        <translation type="unfinished"></translation>
+        <translation>尚未填写</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>演员</translation>
     </message>
     <message>
         <source>No one cast yet</source>
-        <translation type="unfinished"></translation>
+        <translation>尚未选定演员</translation>
     </message>
     <message>
         <source>Not saved</source>
-        <translation type="unfinished"></translation>
+        <translation>未保存</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">脚本</translation>
+        <translation>脚本</translation>
     </message>
     <message>
         <source>Nothing written yet</source>
-        <translation type="unfinished"></translation>
+        <translation>尚未写内容</translation>
     </message>
     <message>
         <source>%1 s spoken</source>
         <extracomment>%1 is a duration in seconds, e.g. &quot;13.5 s&quot;</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 秒口播</translation>
     </message>
     <message>
         <source>The estimate appears once the three steps are filled in.</source>
-        <translation type="unfinished"></translation>
+        <translation>三个步骤填完后会出现估价。</translation>
     </message>
 </context>
 <context>
@@ -915,7 +915,7 @@
     </message>
     <message>
         <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
-        <translation type="unfinished"></translation>
+        <translation>对口型的说话镜头。片段长度恰好等于台词长度。</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -964,55 +964,55 @@
     <name>SceneCard</name>
     <message>
         <source>Talking</source>
-        <translation type="unfinished"></translation>
+        <translation>说话</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>产品</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished">%1 秒</translation>
+        <translation>%1 秒</translation>
     </message>
     <message>
         <source>Hide the visual</source>
-        <translation type="unfinished"></translation>
+        <translation>隐藏画面描述</translation>
     </message>
     <message>
         <source>Visual</source>
-        <translation type="unfinished"></translation>
+        <translation>画面</translation>
     </message>
     <message>
         <source>Not directed yet</source>
-        <translation type="unfinished"></translation>
+        <translation>尚未导演</translation>
     </message>
     <message>
         <source>What the camera sees</source>
-        <translation type="unfinished"></translation>
+        <translation>镜头里看到什么</translation>
     </message>
     <message>
         <source>Press Direct the shots, or write it yourself.</source>
-        <translation type="unfinished"></translation>
+        <translation>点击“导演镜头”，或者自己写。</translation>
     </message>
     <message>
         <source>How it moves</source>
-        <translation type="unfinished"></translation>
+        <translation>如何运动</translation>
     </message>
     <message>
         <source>One small gesture, one small camera movement.</source>
-        <translation type="unfinished"></translation>
+        <translation>一个小动作，一个小的镜头移动。</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>Directing the shots with %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>正在用 %1 导演镜头…</translation>
     </message>
     <message>
         <source>Writing the script with %1...</source>
-        <translation type="unfinished">正在用 %1 撰写脚本…</translation>
+        <translation>正在用 %1 撰写脚本…</translation>
     </message>
     <message>
         <source>The model returned an empty answer.</source>
@@ -1151,7 +1151,7 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
+        <translation>工作室</translation>
     </message>
     <message>
         <source>Library</source>
@@ -1219,509 +1219,509 @@ Nothing is uploaded to us.</source>
     <name>StepActor</name>
     <message>
         <source>Who says it?</source>
-        <translation type="unfinished"></translation>
+        <translation>谁来说？</translation>
     </message>
     <message>
         <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation type="unfinished"></translation>
+        <translation>可信的人胜过完美的人。普通的脸，普通的房间。</translation>
     </message>
     <message>
         <source>Where they are</source>
-        <translation type="unfinished"></translation>
+        <translation>她在哪里</translation>
     </message>
     <message>
         <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation type="unfinished"></translation>
+        <translation>例如：小浴室，地上放着毛巾，晨光透过百叶窗</translation>
     </message>
     <message>
         <source>Describe them</source>
-        <translation type="unfinished"></translation>
+        <translation>描述她</translation>
     </message>
     <message>
         <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation type="unfinished"></translation>
+        <translation>朴素的措辞最有效。下面的特征只补充你没写到的部分。</translation>
     </message>
     <message>
         <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation type="unfinished"></translation>
+        <translation>例如：疲惫但亲切，没化妆，随手挽的发髻，笑起来有点歪</translation>
     </message>
     <message>
         <source>Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>性别</translation>
     </message>
     <message>
         <source>a woman</source>
-        <translation type="unfinished"></translation>
+        <translation>一位女性</translation>
     </message>
     <message>
         <source>a man</source>
-        <translation type="unfinished"></translation>
+        <translation>一位男性</translation>
     </message>
     <message>
         <source>a non-binary person</source>
-        <translation type="unfinished"></translation>
+        <translation>一位非二元性别者</translation>
     </message>
     <message>
         <source>Age</source>
-        <translation type="unfinished"></translation>
+        <translation>年龄</translation>
     </message>
     <message>
         <source>early twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>二十出头</translation>
     </message>
     <message>
         <source>late twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>接近三十</translation>
     </message>
     <message>
         <source>thirties</source>
-        <translation type="unfinished"></translation>
+        <translation>三十五岁上下</translation>
     </message>
     <message>
         <source>forties</source>
-        <translation type="unfinished"></translation>
+        <translation>四十五岁上下</translation>
     </message>
     <message>
         <source>fifties or older</source>
-        <translation type="unfinished"></translation>
+        <translation>五十岁及以上</translation>
     </message>
     <message>
         <source>Dress</source>
-        <translation type="unfinished"></translation>
+        <translation>着装</translation>
     </message>
     <message>
         <source>casual</source>
-        <translation type="unfinished"></translation>
+        <translation>休闲</translation>
     </message>
     <message>
         <source>sportswear</source>
-        <translation type="unfinished"></translation>
+        <translation>运动装</translation>
     </message>
     <message>
         <source>office</source>
-        <translation type="unfinished"></translation>
+        <translation>职业装</translation>
     </message>
     <message>
         <source>streetwear</source>
-        <translation type="unfinished"></translation>
+        <translation>街头风</translation>
     </message>
     <message>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>气质</translation>
     </message>
     <message>
         <source>calm</source>
-        <translation type="unfinished"></translation>
+        <translation>平静</translation>
     </message>
     <message>
         <source>upbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>活泼</translation>
     </message>
     <message>
         <source>just woke up</source>
-        <translation type="unfinished"></translation>
+        <translation>刚睡醒</translation>
     </message>
     <message>
         <source>warm</source>
-        <translation type="unfinished"></translation>
+        <translation>温暖</translation>
     </message>
     <message>
         <source>Someone real</source>
-        <translation type="unfinished"></translation>
+        <translation>真实的人</translation>
     </message>
     <message>
         <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>可选。真人照片能让每个镜头保持同一张脸。</translation>
     </message>
     <message>
         <source>Use this photo as the actor, without generating</source>
-        <translation type="unfinished"></translation>
+        <translation>直接用这张照片作为演员，不生成</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>选角</translation>
     </message>
     <message>
         <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation type="unfinished"></translation>
+        <translation>一次四张脸。留下那张看起来像真人自拍的。</translation>
     </message>
     <message>
         <source>Casting...</source>
-        <translation type="unfinished"></translation>
+        <translation>选角中…</translation>
     </message>
     <message>
         <source>Cast 1 portrait</source>
-        <translation type="unfinished"></translation>
+        <translation>生成 1 张肖像</translation>
     </message>
     <message>
         <source>Cast %1 portraits</source>
         <extracomment>%1 is a number of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>生成 %1 张肖像</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>价格未知</translation>
     </message>
     <message>
         <source>Their voice</source>
-        <translation type="unfinished"></translation>
+        <translation>她的声音</translation>
     </message>
     <message>
         <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation type="unfinished"></translation>
+        <translation>花不到一分钱先听听她，再去买视频。</translation>
     </message>
     <message>
         <source>Keep this actor</source>
-        <translation type="unfinished"></translation>
+        <translation>保留这位演员</translation>
     </message>
     <message>
         <source>Saved actors are one click away in every ad after this one.</source>
-        <translation type="unfinished"></translation>
+        <translation>保存过的演员，在之后的每支广告里都只需一次点击。</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>更新</translation>
     </message>
     <message>
         <source>Save actor</source>
-        <translation type="unfinished"></translation>
+        <translation>保存演员</translation>
     </message>
     <message>
         <source>What gets sent</source>
-        <translation type="unfinished"></translation>
+        <translation>实际发送的内容</translation>
     </message>
     <message>
         <source>Hide the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>隐藏提示词</translation>
     </message>
     <message>
         <source>Show the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>查看提示词</translation>
     </message>
     <message>
         <source>Built from your own %1.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>来自你自己的 %1。</translation>
     </message>
     <message>
         <source>Drop a casting.json at %1 to change how this is written.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>把 casting.json 放到 %1 即可改写它的写法。</translation>
     </message>
     <message>
         <source>Portrait model</source>
-        <translation type="unfinished"></translation>
+        <translation>肖像模型</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>返回</translation>
     </message>
     <message>
         <source>Cast someone to continue</source>
-        <translation type="unfinished"></translation>
+        <translation>先选定一个人才能继续</translation>
     </message>
     <message>
         <source>Next: write the script</source>
-        <translation type="unfinished"></translation>
+        <translation>下一步：写脚本</translation>
     </message>
 </context>
 <context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
-        <translation type="unfinished"></translation>
+        <translation>你在卖什么？</translation>
     </message>
     <message>
         <source>Everything the actor says and everything on screen is built from this.</source>
-        <translation type="unfinished"></translation>
+        <translation>演员说的每句话和画面上的一切都由此而来。</translation>
     </message>
     <message>
         <source>Product or service</source>
-        <translation type="unfinished"></translation>
+        <translation>产品或服务</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation type="unfinished">例如：Lumen 亮采精华</translation>
+        <translation>例如：Lumen 亮采精华</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation type="unfinished">产品简介</translation>
+        <translation>产品简介</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation type="unfinished">一款维生素 C 精华，两周改善暗沉肌肤。无香精，30 毫升。</translation>
+        <translation>一款维生素 C 精华，两周改善暗沉肌肤。无香精，30 毫升。</translation>
     </message>
     <message>
         <source>Who it is for</source>
-        <translation type="unfinished"></translation>
+        <translation>面向谁</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation type="unfinished">例如：注重纯净美妆的 25 至 35 岁女性</translation>
+        <translation>例如：注重纯净美妆的 25 至 35 岁女性</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>参考照片</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>真实产品的照片能让它在每个镜头里都认得出来。</translation>
     </message>
     <message>
         <source>Next: cast your actor</source>
-        <translation type="unfinished"></translation>
+        <translation>下一步：选角</translation>
     </message>
 </context>
 <context>
     <name>StepRail</name>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>产品</translation>
     </message>
     <message>
         <source>What you are selling</source>
-        <translation type="unfinished"></translation>
+        <translation>你卖的东西</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>演员</translation>
     </message>
     <message>
         <source>Who says it</source>
-        <translation type="unfinished"></translation>
+        <translation>谁在说</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">脚本</translation>
+        <translation>脚本</translation>
     </message>
     <message>
         <source>What they say</source>
-        <translation type="unfinished"></translation>
+        <translation>说了什么</translation>
     </message>
     <message>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>总览</translation>
     </message>
     <message>
         <source>Check and generate</source>
-        <translation type="unfinished"></translation>
+        <translation>检查并生成</translation>
     </message>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>你的广告</translation>
     </message>
     <message>
         <source>Start over</source>
-        <translation type="unfinished"></translation>
+        <translation>重新开始</translation>
     </message>
 </context>
 <context>
     <name>StepScript</name>
     <message>
         <source>What do they say?</source>
-        <translation type="unfinished"></translation>
+        <translation>这个人说什么？</translation>
     </message>
     <message>
         <source>15 to 30 s converts best</source>
-        <translation type="unfinished"></translation>
+        <translation>15 到 30 秒转化最好</translation>
     </message>
     <message>
         <source>Hook</source>
-        <translation type="unfinished"></translation>
+        <translation>钩子</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>用一句话点出那个烦恼。你只有三秒。</translation>
     </message>
     <message>
         <source>Problem</source>
-        <translation type="unfinished"></translation>
+        <translation>问题</translation>
     </message>
     <message>
         <source>Make it concrete. What did you try that failed?</source>
-        <translation type="unfinished"></translation>
+        <translation>讲具体。你试过什么，结果没用？</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>产品</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
-        <translation type="unfinished"></translation>
+        <translation>把它当作终于奏效的东西介绍，而不是当作商品。</translation>
     </message>
     <message>
         <source>Proof</source>
-        <translation type="unfinished"></translation>
+        <translation>证据</translation>
     </message>
     <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>一个具体细节。一个数字、一段时间、一个瞬间。</translation>
     </message>
     <message>
         <source>Ask</source>
-        <translation type="unfinished"></translation>
+        <translation>行动</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
-        <translation type="unfinished"></translation>
+        <translation>随口说出接下来该做什么。</translation>
     </message>
     <message>
         <source>Keep going, or leave it here.</source>
-        <translation type="unfinished"></translation>
+        <translation>继续写，或者就到这里。</translation>
     </message>
     <message>
         <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation type="unfinished"></translation>
+        <translation>一个场景一句台词，用你自己的话。不需要选时长：广告有多长，取决于这些话有多长。</translation>
     </message>
     <message>
         <source>Add a scene</source>
-        <translation type="unfinished"></translation>
+        <translation>添加场景</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
         <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 个场景 · %2 秒</translation>
     </message>
     <message>
         <source>Direct the shots</source>
-        <translation type="unfinished"></translation>
+        <translation>导演镜头</translation>
     </message>
     <message>
         <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>把你的台词变成镜头里看到的画面。你的措辞永远不会被改动。</translation>
     </message>
     <message>
         <source>Directing...</source>
-        <translation type="unfinished"></translation>
+        <translation>导演中…</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>价格未知</translation>
     </message>
     <message>
         <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation type="unfinished"></translation>
+        <translation>可选：没有导演的场景也能生成，只是用通用提示词。导演的作用，是让同一个人从这一刀到下一刀都待在同一个房间里。</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>返回</translation>
     </message>
     <message>
         <source>Next: review</source>
-        <translation type="unfinished"></translation>
+        <translation>下一步：检查</translation>
     </message>
 </context>
 <context>
     <name>StepSummary</name>
     <message>
         <source>Ready to shoot</source>
-        <translation type="unfinished"></translation>
+        <translation>可以开拍了</translation>
     </message>
     <message>
         <source>Output</source>
-        <translation type="unfinished"></translation>
+        <translation>输出</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">画幅</translation>
+        <translation>画幅</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation type="unfinished">烧录字幕（使用 OpenAI Whisper）</translation>
+        <translation>烧录字幕（使用 OpenAI Whisper）</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>高级</translation>
     </message>
     <message>
         <source>Which models do the work. The defaults are sensible.</source>
-        <translation type="unfinished"></translation>
+        <translation>由哪些模型来完成。默认值是合理的。</translation>
     </message>
     <message>
         <source>Hide models</source>
-        <translation type="unfinished"></translation>
+        <translation>隐藏模型</translation>
     </message>
     <message>
         <source>Choose models manually</source>
-        <translation type="unfinished"></translation>
+        <translation>手动选择模型</translation>
     </message>
     <message>
         <source>Frames</source>
-        <translation type="unfinished">画面</translation>
+        <translation>画面</translation>
     </message>
     <message>
         <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>目前花费 %1。修好一个场景，只要重来一遍的零头。</translation>
     </message>
     <message>
         <source>Fixing one scene costs a fraction of starting over.</source>
-        <translation type="unfinished"></translation>
+        <translation>修好一个场景，只要重来一遍的零头。</translation>
     </message>
     <message>
         <source>Open in my player</source>
-        <translation type="unfinished"></translation>
+        <translation>用我的播放器打开</translation>
     </message>
     <message>
         <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>大约 %1 秒视频，与你的台词对口型。在你点击生成之前不会产生任何费用。</translation>
     </message>
     <message>
         <source>Talking shots</source>
-        <translation type="unfinished"></translation>
+        <translation>说话镜头</translation>
     </message>
     <message>
         <source>Product shots</source>
-        <translation type="unfinished"></translation>
+        <translation>产品镜头</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">配音</translation>
+        <translation>配音</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>返回</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">取消</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation type="unfinished">生成中…</translation>
+        <translation>生成中…</translation>
     </message>
     <message>
         <source>Generate the ad</source>
-        <translation type="unfinished"></translation>
+        <translation>生成广告</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation type="unfinished">你的广告已就绪</translation>
+        <translation>你的广告已就绪</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation type="unfinished">显示文件</translation>
+        <translation>显示文件</translation>
     </message>
     <message>
         <source>Start a new ad</source>
-        <translation type="unfinished"></translation>
+        <translation>新建广告</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished">运行日志</translation>
+        <translation>运行日志</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished">清空</translation>
+        <translation>清空</translation>
     </message>
 </context>
 <context>
@@ -1729,36 +1729,36 @@ Nothing is uploaded to us.</source>
     <message>
         <source>%1 · %2s</source>
         <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2 秒</translation>
     </message>
     <message>
         <source>Scene %1</source>
         <extracomment>%1 is a shot number</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>场景 %1</translation>
     </message>
     <message>
         <source>Re-shooting...</source>
-        <translation type="unfinished"></translation>
+        <translation>重拍中…</translation>
     </message>
     <message>
         <source>Re-shoot this scene — %1</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>重拍这个场景 — %1</translation>
     </message>
     <message>
         <source>Re-shoot this scene</source>
-        <translation type="unfinished"></translation>
+        <translation>重拍这个场景</translation>
     </message>
     <message>
         <source>The voice-over is kept, so it is not paid for again.</source>
-        <translation type="unfinished"></translation>
+        <translation>配音会保留，因此不会再次收费。</translation>
     </message>
 </context>
 <context>
     <name>TraitPicker</name>
     <message>
         <source>doesn&apos;t matter</source>
-        <translation type="unfinished"></translation>
+        <translation>都可以</translation>
     </message>
 </context>
 <context>
@@ -1780,179 +1780,179 @@ Nothing is uploaded to us.</source>
     <name>VoiceBooth</name>
     <message>
         <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation type="unfinished"></translation>
+        <translation>老实说，我本来没抱希望。两周后我还在用。</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">配音</translation>
+        <translation>配音</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation type="unfinished">其他语音 ID…</translation>
+        <translation>其他语音 ID…</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation type="unfinished">粘贴语音 ID</translation>
+        <translation>粘贴语音 ID</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation type="unfinished">加载账号下的语音后即可选择。</translation>
+        <translation>加载账号下的语音后即可选择。</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation type="unfinished">加载语音</translation>
+        <translation>加载语音</translation>
     </message>
     <message>
         <source>Stability</source>
-        <translation type="unfinished"></translation>
+        <translation>稳定度</translation>
     </message>
     <message>
         <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>低则起伏、听起来有生气。高则平稳、保险。</translation>
     </message>
     <message>
         <source>Similarity</source>
-        <translation type="unfinished"></translation>
+        <translation>相似度</translation>
     </message>
     <message>
         <source>How closely it holds to the original voice.</source>
-        <translation type="unfinished"></translation>
+        <translation>与原声贴合的程度。</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>风格</translation>
     </message>
     <message>
         <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation type="unfinished"></translation>
+        <translation>加强表现力。过了一半就开始表演了。</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>语速</translation>
     </message>
     <message>
         <source>Leave at 1.00 unless the read drags.</source>
-        <translation type="unfinished"></translation>
+        <translation>除非念得拖沓，否则保持 1.00。</translation>
     </message>
     <message>
         <source>Audition line</source>
-        <translation type="unfinished"></translation>
+        <translation>试听台词</translation>
     </message>
     <message>
         <source>Recording...</source>
-        <translation type="unfinished"></translation>
+        <translation>录制中…</translation>
     </message>
     <message>
         <source>Hear them</source>
-        <translation type="unfinished"></translation>
+        <translation>听听她</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>停止</translation>
     </message>
     <message>
         <source>Play again</source>
-        <translation type="unfinished"></translation>
+        <translation>再听一遍</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>价格未知</translation>
     </message>
     <message>
         <source>Hide voice cloning</source>
-        <translation type="unfinished"></translation>
+        <translation>隐藏声音克隆</translation>
     </message>
     <message>
         <source>Clone a voice from a recording</source>
-        <translation type="unfinished"></translation>
+        <translation>从录音克隆一个声音</translation>
     </message>
     <message>
         <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation type="unfinished"></translation>
+        <translation>拖入一段或多段干净的人声录音。一分钟语音就足够了。</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished">移除</translation>
+        <translation>移除</translation>
     </message>
     <message>
         <source>Add recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>添加录音</translation>
     </message>
     <message>
         <source>Name for the cloned voice</source>
-        <translation type="unfinished"></translation>
+        <translation>克隆声音的名称</translation>
     </message>
     <message>
         <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>这会把你的录音上传到 ElevenLabs，并在你的账户中添加一个永久声音。请只克隆你有权使用的声音。</translation>
     </message>
     <message>
         <source>Cloning...</source>
-        <translation type="unfinished"></translation>
+        <translation>克隆中…</translation>
     </message>
     <message>
         <source>Clone onto my ElevenLabs account</source>
-        <translation type="unfinished"></translation>
+        <translation>克隆到我的 ElevenLabs 账户</translation>
     </message>
     <message>
         <source>Choose voice recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>选择声音录音</translation>
     </message>
     <message>
         <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation type="unfinished"></translation>
+        <translation>音频 (*.mp3 *.wav *.m4a *.ogg)</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation type="unfinished">已加载 %1 个语音。</translation>
+        <translation>已加载 %1 个语音。</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation type="unfinished">无法加载语音：%1</translation>
+        <translation>无法加载语音：%1</translation>
     </message>
     <message>
         <source>Write a line for them to say.</source>
-        <translation type="unfinished"></translation>
+        <translation>写一句让她说的话。</translation>
     </message>
     <message>
         <source>Could not create the auditions folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>无法创建试听文件夹。</translation>
     </message>
     <message>
         <source>No voice provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>没有名为 %1 的语音提供商。</translation>
     </message>
     <message>
         <source>Audition failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>试听失败：%1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">无法写入 %1。</translation>
+        <translation>无法写入 %1。</translation>
     </message>
     <message>
         <source>Add at least one recording first.</source>
-        <translation type="unfinished"></translation>
+        <translation>请先添加至少一段录音。</translation>
     </message>
     <message>
         <source>Market Queen voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Market Queen 声音</translation>
     </message>
     <message>
         <source>Cloned with Market Queen.</source>
-        <translation type="unfinished"></translation>
+        <translation>由 Market Queen 克隆。</translation>
     </message>
     <message>
         <source>Cloning a voice from %1 recording(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>正在从 %1 段录音克隆声音。</translation>
     </message>
     <message>
         <source>Cloning failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>克隆失败：%1</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation type="unfinished"></translation>
+        <translation>声音“%1”已在你的账户中。</translation>
     </message>
 </context>
 <context>

@@ -5,14 +5,14 @@
     <name>ActorLibrary</name>
     <message>
         <source>Actor %1</source>
-        <translation type="unfinished"></translation>
+        <translation>ممثل %1</translation>
     </message>
 </context>
 <context>
     <name>ActorStrip</name>
     <message>
         <source>Your actors</source>
-        <translation type="unfinished"></translation>
+        <translation>ممثلوك</translation>
     </message>
 </context>
 <context>
@@ -34,92 +34,92 @@
     <name>AvatarTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation type="unfinished">لم يُرجع المزوّد أي فيديو.</translation>
+        <translation>لم يُرجع المزوّد أي فيديو.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation type="unfinished">جارٍ تنزيل المقطع...</translation>
+        <translation>جارٍ تنزيل المقطع...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation type="unfinished">كان المقطع الذي جرى تنزيله فارغًا.</translation>
+        <translation>كان المقطع الذي جرى تنزيله فارغًا.</translation>
     </message>
 </context>
 <context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يعُد أي بورتريه. راجع السجل.</translation>
     </message>
     <message>
         <source>Could not create the casting folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>تعذّر إنشاء مجلد الاختيار.</translation>
     </message>
     <message>
         <source>Casting %1 portrait(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>اختيار %1 بورتريه باستخدام %2.</translation>
     </message>
     <message>
         <source>No image provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يوجد مزوّد صور باسم %1.</translation>
     </message>
     <message>
         <source>Portrait failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>فشل البورتريه: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">تعذّرت كتابة %1.</translation>
+        <translation>تعذّرت كتابة %1.</translation>
     </message>
 </context>
 <context>
     <name>Director</name>
     <message>
         <source>Write at least one line first.</source>
-        <translation type="unfinished"></translation>
+        <translation>اكتب أولاً جملة واحدة على الأقل.</translation>
     </message>
     <message>
         <source>No text provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يوجد مزوّد نصوص باسم %1.</translation>
     </message>
     <message>
         <source>Directing %1 scene(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>إخراج %1 مشهد باستخدام %2.</translation>
     </message>
     <message>
         <source>Direction failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>فشل الإخراج: %1</translation>
     </message>
     <message>
         <source>The model returned no shots.</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُعِد النموذج أي لقطة.</translation>
     </message>
     <message>
         <source>Only %1 of %2 scenes came back directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>عاد %1 مشهد فقط من أصل %2 مع الإخراج.</translation>
     </message>
     <message>
         <source>%1 scene(s) directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>تم إخراج %1 مشهد.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceCloneTask</name>
     <message>
         <source>Add at least one audio sample to clone from.</source>
-        <translation type="unfinished"></translation>
+        <translation>أضف عيّنة صوتية واحدة على الأقل للاستنساخ.</translation>
     </message>
     <message>
         <source>Uploading the samples...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ رفع العيّنات...</translation>
     </message>
     <message>
         <source>None of the samples could be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>تعذّرت قراءة أي من العيّنات.</translation>
     </message>
     <message>
         <source>ElevenLabs did not return a voice id.</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُعِد ElevenLabs معرّف صوت.</translation>
     </message>
 </context>
 <context>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>?</source>
-        <translation type="unfinished"></translation>
+        <translation>؟</translation>
     </message>
     <message>
         <source>Total</source>
@@ -177,11 +177,11 @@
     <name>FalAvatarTask</name>
     <message>
         <source>No frame to animate.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا توجد صورة لتحريكها.</translation>
     </message>
     <message>
         <source>No audio for this shot, so there is nothing to lip-sync to.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يوجد صوت لهذه اللقطة، فلا شيء لمزامنة الشفاه معه.</translation>
     </message>
 </context>
 <context>
@@ -233,7 +233,7 @@
     <message>
         <source>~%1</source>
         <extracomment>Prefix meaning &quot;approximately&quot;. %1 is a price like $1.10</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>~%1</translation>
     </message>
     <message>
         <source>Script</source>
@@ -385,32 +385,32 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation type="unfinished"></translation>
+        <translation>أفلِت صور منتجك هنا</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
-        <translation type="unfinished"></translation>
+        <translation>بالعدد الذي تريد. صورة المنتج، أثناء الاستخدام، لقطة قريبة للملصق.</translation>
     </message>
     <message>
         <source>1 picture. It is the reference.</source>
-        <translation type="unfinished"></translation>
+        <translation>صورة واحدة. هي المرجع.</translation>
     </message>
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 صورة. المميّزة بنجمة هي المرجع الأساسي.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation type="unfinished">تصفّح</translation>
+        <translation>تصفّح</translation>
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>اختيار صور المنتج</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation type="unfinished">الصور (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>الصور (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
@@ -590,15 +590,15 @@
     </message>
     <message>
         <source>Could not read the actor portrait.</source>
-        <translation type="unfinished"></translation>
+        <translation>تعذّرت قراءة بورتريه الممثل.</translation>
     </message>
     <message>
         <source>unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>دون تغيير</translation>
     </message>
     <message>
         <source>Re-shooting scene %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>إعادة تصوير المشهد %1.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
@@ -622,11 +622,11 @@
     </message>
     <message>
         <source>Using your %1 scene(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>استخدام مشاهدك الـ%1.</translation>
     </message>
     <message>
         <source>your own scenes</source>
-        <translation type="unfinished"></translation>
+        <translation>مشاهدك الخاصة</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -654,23 +654,23 @@
     </message>
     <message>
         <source>Recording line %1 of %2...</source>
-        <translation type="unfinished"></translation>
+        <translation>تسجيل الجملة %1 من %2...</translation>
     </message>
     <message>
         <source>No voice-over was recorded.</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُسجَّل أي تعليق صوتي.</translation>
     </message>
     <message>
         <source>Could not join the voice-over: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>تعذّر دمج التعليق الصوتي: %1</translation>
     </message>
     <message>
         <source>Voice-over ready: %1 line(s), %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>التعليق الصوتي جاهز: %1 جملة، %2 ثانية.</translation>
     </message>
     <message>
         <source>%1 shot(s) over %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 لقطة على مدى %2 ثانية.</translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -686,7 +686,7 @@
     </message>
     <message>
         <source>Filming the product for shot %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>تصوير المنتج للقطة %1...</translation>
     </message>
     <message>
         <source>Shot %1 saved (%2 MB).</source>
@@ -694,11 +694,11 @@
     </message>
     <message>
         <source>No avatar provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يوجد مزوّد أفاتار باسم %1.</translation>
     </message>
     <message>
         <source>Slow handheld move around the product, natural light, nobody on screen.</source>
-        <translation type="unfinished"></translation>
+        <translation>حركة بطيئة باليد حول المنتج، ضوء طبيعي، لا أحد في الكادر.</translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -766,7 +766,7 @@
     </message>
     <message>
         <source>The clips are %1s short in total; those shots hold their last frame.</source>
-        <translation type="unfinished"></translation>
+        <translation>ينقص %1 ثانية من المقاطع إجمالاً؛ تلك اللقطات تثبت على آخر صورة.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -786,19 +786,19 @@
     <message>
         <source>Casting... %1 of %2</source>
         <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ الاختيار... %1 من %2</translation>
     </message>
     <message>
         <source>Pick the one that looks real</source>
-        <translation type="unfinished"></translation>
+        <translation>اختر من يبدو حقيقيًا</translation>
     </message>
     <message>
         <source>None of them? Cast again.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا أحد منهم يناسب؟ أعد الاختيار.</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>مُختار</translation>
     </message>
 </context>
 <context>
@@ -816,51 +816,51 @@
     <name>RecapBlock</name>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>تعديل</translation>
     </message>
 </context>
 <context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>إعلانك</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>المنتج</translation>
     </message>
     <message>
         <source>Not set yet</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُحدَّد بعد</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>الممثل</translation>
     </message>
     <message>
         <source>No one cast yet</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُختَر أحد بعد</translation>
     </message>
     <message>
         <source>Not saved</source>
-        <translation type="unfinished"></translation>
+        <translation>غير محفوظ</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">النص</translation>
+        <translation>النص</translation>
     </message>
     <message>
         <source>Nothing written yet</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُكتب شيء بعد</translation>
     </message>
     <message>
         <source>%1 s spoken</source>
         <extracomment>%1 is a duration in seconds, e.g. &quot;13.5 s&quot;</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 ثانية كلام</translation>
     </message>
     <message>
         <source>The estimate appears once the three steps are filled in.</source>
-        <translation type="unfinished"></translation>
+        <translation>يظهر التقدير بمجرد استكمال الخطوات الثلاث.</translation>
     </message>
 </context>
 <context>
@@ -915,7 +915,7 @@
     </message>
     <message>
         <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
-        <translation type="unfinished"></translation>
+        <translation>لقطات متكلّمة بمزامنة الشفاه. يدوم المقطع بالضبط بقدر الجملة.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -964,55 +964,55 @@
     <name>SceneCard</name>
     <message>
         <source>Talking</source>
-        <translation type="unfinished"></translation>
+        <translation>متكلّم</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>المنتج</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished">%1 ث</translation>
+        <translation>%1 ث</translation>
     </message>
     <message>
         <source>Hide the visual</source>
-        <translation type="unfinished"></translation>
+        <translation>إخفاء الوصف البصري</translation>
     </message>
     <message>
         <source>Visual</source>
-        <translation type="unfinished"></translation>
+        <translation>الوصف البصري</translation>
     </message>
     <message>
         <source>Not directed yet</source>
-        <translation type="unfinished"></translation>
+        <translation>لم يُخرَج بعد</translation>
     </message>
     <message>
         <source>What the camera sees</source>
-        <translation type="unfinished"></translation>
+        <translation>ما تراه الكاميرا</translation>
     </message>
     <message>
         <source>Press Direct the shots, or write it yourself.</source>
-        <translation type="unfinished"></translation>
+        <translation>اضغط «أخرِج اللقطات»، أو اكتبها بنفسك.</translation>
     </message>
     <message>
         <source>How it moves</source>
-        <translation type="unfinished"></translation>
+        <translation>كيف يتحرك</translation>
     </message>
     <message>
         <source>One small gesture, one small camera movement.</source>
-        <translation type="unfinished"></translation>
+        <translation>إيماءة صغيرة واحدة، وحركة كاميرا صغيرة واحدة.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>Directing the shots with %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>إخراج اللقطات باستخدام %1...</translation>
     </message>
     <message>
         <source>Writing the script with %1...</source>
-        <translation type="unfinished">جارٍ كتابة النص باستخدام %1...</translation>
+        <translation>جارٍ كتابة النص باستخدام %1...</translation>
     </message>
     <message>
         <source>The model returned an empty answer.</source>
@@ -1151,7 +1151,7 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
+        <translation>الاستوديو</translation>
     </message>
     <message>
         <source>Library</source>
@@ -1219,509 +1219,509 @@ Nothing is uploaded to us.</source>
     <name>StepActor</name>
     <message>
         <source>Who says it?</source>
-        <translation type="unfinished"></translation>
+        <translation>من يقولها؟</translation>
     </message>
     <message>
         <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation type="unfinished"></translation>
+        <translation>الشخص المقنع أفضل من الشخص المثالي. وجه عادي، غرفة عادية.</translation>
     </message>
     <message>
         <source>Where they are</source>
-        <translation type="unfinished"></translation>
+        <translation>أين توجد</translation>
     </message>
     <message>
         <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation type="unfinished"></translation>
+        <translation>مثلاً: حمّام صغير، مناشف على الأرض، ضوء الصباح عبر الستائر</translation>
     </message>
     <message>
         <source>Describe them</source>
-        <translation type="unfinished"></translation>
+        <translation>صِفها</translation>
     </message>
     <message>
         <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation type="unfinished"></translation>
+        <translation>الكلمات البسيطة تعمل أفضل. السمات أدناه تكمل فقط ما لم تذكره.</translation>
     </message>
     <message>
         <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation type="unfinished"></translation>
+        <translation>مثلاً: متعبة لكن ودودة، بلا مكياج، شعر مجموع بإهمال، ابتسامة مائلة قليلاً</translation>
     </message>
     <message>
         <source>Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>النوع</translation>
     </message>
     <message>
         <source>a woman</source>
-        <translation type="unfinished"></translation>
+        <translation>امرأة</translation>
     </message>
     <message>
         <source>a man</source>
-        <translation type="unfinished"></translation>
+        <translation>رجل</translation>
     </message>
     <message>
         <source>a non-binary person</source>
-        <translation type="unfinished"></translation>
+        <translation>شخص غير ثنائي النوع</translation>
     </message>
     <message>
         <source>Age</source>
-        <translation type="unfinished"></translation>
+        <translation>العمر</translation>
     </message>
     <message>
         <source>early twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>في أوائل العشرينات</translation>
     </message>
     <message>
         <source>late twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>في أواخر العشرينات</translation>
     </message>
     <message>
         <source>thirties</source>
-        <translation type="unfinished"></translation>
+        <translation>في منتصف الثلاثينات</translation>
     </message>
     <message>
         <source>forties</source>
-        <translation type="unfinished"></translation>
+        <translation>في منتصف الأربعينات</translation>
     </message>
     <message>
         <source>fifties or older</source>
-        <translation type="unfinished"></translation>
+        <translation>في الخمسينات أو أكثر</translation>
     </message>
     <message>
         <source>Dress</source>
-        <translation type="unfinished"></translation>
+        <translation>الملابس</translation>
     </message>
     <message>
         <source>casual</source>
-        <translation type="unfinished"></translation>
+        <translation>عادية</translation>
     </message>
     <message>
         <source>sportswear</source>
-        <translation type="unfinished"></translation>
+        <translation>رياضية</translation>
     </message>
     <message>
         <source>office</source>
-        <translation type="unfinished"></translation>
+        <translation>مكتبية</translation>
     </message>
     <message>
         <source>streetwear</source>
-        <translation type="unfinished"></translation>
+        <translation>ستريت وير</translation>
     </message>
     <message>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>الطاقة</translation>
     </message>
     <message>
         <source>calm</source>
-        <translation type="unfinished"></translation>
+        <translation>هادئة</translation>
     </message>
     <message>
         <source>upbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>مفعمة بالحيوية</translation>
     </message>
     <message>
         <source>just woke up</source>
-        <translation type="unfinished"></translation>
+        <translation>استيقظت للتو</translation>
     </message>
     <message>
         <source>warm</source>
-        <translation type="unfinished"></translation>
+        <translation>دافئة</translation>
     </message>
     <message>
         <source>Someone real</source>
-        <translation type="unfinished"></translation>
+        <translation>شخص حقيقي</translation>
     </message>
     <message>
         <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>اختياري. صورة شخص حقيقي تحافظ على الوجه نفسه في كل لقطة.</translation>
     </message>
     <message>
         <source>Use this photo as the actor, without generating</source>
-        <translation type="unfinished"></translation>
+        <translation>استخدام هذه الصورة كممثل، دون توليد</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>الاختيار</translation>
     </message>
     <message>
         <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation type="unfinished"></translation>
+        <translation>أربعة وجوه في المرة. احتفظ بمن يمكن أن يكون سيلفي شخص حقيقي.</translation>
     </message>
     <message>
         <source>Casting...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ الاختيار...</translation>
     </message>
     <message>
         <source>Cast 1 portrait</source>
-        <translation type="unfinished"></translation>
+        <translation>توليد بورتريه واحد</translation>
     </message>
     <message>
         <source>Cast %1 portraits</source>
         <extracomment>%1 is a number of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>توليد %1 بورتريه</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">إلغاء</translation>
+        <translation>إلغاء</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>السعر غير معروف</translation>
     </message>
     <message>
         <source>Their voice</source>
-        <translation type="unfinished"></translation>
+        <translation>صوتها</translation>
     </message>
     <message>
         <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation type="unfinished"></translation>
+        <translation>استمع إليها مقابل جزء من السنت قبل أن تشتري أي فيديو.</translation>
     </message>
     <message>
         <source>Keep this actor</source>
-        <translation type="unfinished"></translation>
+        <translation>احتفظ بهذا الممثل</translation>
     </message>
     <message>
         <source>Saved actors are one click away in every ad after this one.</source>
-        <translation type="unfinished"></translation>
+        <translation>الممثلون المحفوظون على بُعد نقرة في كل إعلان تالٍ.</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>تحديث</translation>
     </message>
     <message>
         <source>Save actor</source>
-        <translation type="unfinished"></translation>
+        <translation>حفظ الممثل</translation>
     </message>
     <message>
         <source>What gets sent</source>
-        <translation type="unfinished"></translation>
+        <translation>ما يُرسَل فعليًا</translation>
     </message>
     <message>
         <source>Hide the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>إخفاء الموجّه</translation>
     </message>
     <message>
         <source>Show the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>إظهار الموجّه</translation>
     </message>
     <message>
         <source>Built from your own %1.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>مبني من ملفك %1.</translation>
     </message>
     <message>
         <source>Drop a casting.json at %1 to change how this is written.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>ضع ملف casting.json في %1 لتغيير طريقة صياغته.</translation>
     </message>
     <message>
         <source>Portrait model</source>
-        <translation type="unfinished"></translation>
+        <translation>نموذج البورتريه</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>رجوع</translation>
     </message>
     <message>
         <source>Cast someone to continue</source>
-        <translation type="unfinished"></translation>
+        <translation>اختر شخصًا للمتابعة</translation>
     </message>
     <message>
         <source>Next: write the script</source>
-        <translation type="unfinished"></translation>
+        <translation>التالي: كتابة النص</translation>
     </message>
 </context>
 <context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
-        <translation type="unfinished"></translation>
+        <translation>ماذا تبيع؟</translation>
     </message>
     <message>
         <source>Everything the actor says and everything on screen is built from this.</source>
-        <translation type="unfinished"></translation>
+        <translation>كل ما يقوله الممثل وكل ما يظهر على الشاشة ينطلق من هنا.</translation>
     </message>
     <message>
         <source>Product or service</source>
-        <translation type="unfinished"></translation>
+        <translation>المنتج أو الخدمة</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation type="unfinished">مثال: سيروم لومن للإشراق</translation>
+        <translation>مثال: سيروم لومن للإشراق</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation type="unfinished">ما هو</translation>
+        <translation>ما هو</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation type="unfinished">سيروم بفيتامين C ينعش البشرة الباهتة خلال أسبوعين. خالٍ من العطور، 30 مل.</translation>
+        <translation>سيروم بفيتامين C ينعش البشرة الباهتة خلال أسبوعين. خالٍ من العطور، 30 مل.</translation>
     </message>
     <message>
         <source>Who it is for</source>
-        <translation type="unfinished"></translation>
+        <translation>لمن هو موجَّه</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation type="unfinished">مثال: نساء بين 25 و35 عامًا يهتممن بمستحضرات التجميل النظيفة</translation>
+        <translation>مثال: نساء بين 25 و35 عامًا يهتممن بمستحضرات التجميل النظيفة</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>صور مرجعية</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>صورة المنتج الحقيقي تُبقيه مميَّزًا في كل لقطة.</translation>
     </message>
     <message>
         <source>Next: cast your actor</source>
-        <translation type="unfinished"></translation>
+        <translation>التالي: اختيار الممثل</translation>
     </message>
 </context>
 <context>
     <name>StepRail</name>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>المنتج</translation>
     </message>
     <message>
         <source>What you are selling</source>
-        <translation type="unfinished"></translation>
+        <translation>ما تبيعه</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>الممثل</translation>
     </message>
     <message>
         <source>Who says it</source>
-        <translation type="unfinished"></translation>
+        <translation>من يتكلم</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">النص</translation>
+        <translation>النص</translation>
     </message>
     <message>
         <source>What they say</source>
-        <translation type="unfinished"></translation>
+        <translation>ما يُقال</translation>
     </message>
     <message>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>الملخّص</translation>
     </message>
     <message>
         <source>Check and generate</source>
-        <translation type="unfinished"></translation>
+        <translation>المراجعة والتوليد</translation>
     </message>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>إعلانك</translation>
     </message>
     <message>
         <source>Start over</source>
-        <translation type="unfinished"></translation>
+        <translation>البدء من جديد</translation>
     </message>
 </context>
 <context>
     <name>StepScript</name>
     <message>
         <source>What do they say?</source>
-        <translation type="unfinished"></translation>
+        <translation>ماذا يقول هذا الشخص؟</translation>
     </message>
     <message>
         <source>15 to 30 s converts best</source>
-        <translation type="unfinished"></translation>
+        <translation>من 15 إلى 30 ثانية هو الأفضل للتحويل</translation>
     </message>
     <message>
         <source>Hook</source>
-        <translation type="unfinished"></translation>
+        <translation>الخطّاف</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>سمِّ الإحباط في جملة واحدة. لديك ثلاث ثوانٍ.</translation>
     </message>
     <message>
         <source>Problem</source>
-        <translation type="unfinished"></translation>
+        <translation>المشكلة</translation>
     </message>
     <message>
         <source>Make it concrete. What did you try that failed?</source>
-        <translation type="unfinished"></translation>
+        <translation>اجعلها ملموسة. ما الذي جرّبته ولم ينجح؟</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>المنتج</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
-        <translation type="unfinished"></translation>
+        <translation>قدّمه بوصفه ما نجح أخيرًا، لا بوصفه منتجًا.</translation>
     </message>
     <message>
         <source>Proof</source>
-        <translation type="unfinished"></translation>
+        <translation>الدليل</translation>
     </message>
     <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>تفصيلة محددة واحدة. رقم، أو مدة، أو لحظة.</translation>
     </message>
     <message>
         <source>Ask</source>
-        <translation type="unfinished"></translation>
+        <translation>الدعوة</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
-        <translation type="unfinished"></translation>
+        <translation>قل ما يجب فعله بعد ذلك، بعفوية.</translation>
     </message>
     <message>
         <source>Keep going, or leave it here.</source>
-        <translation type="unfinished"></translation>
+        <translation>تابع، أو توقّف هنا.</translation>
     </message>
     <message>
         <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation type="unfinished"></translation>
+        <translation>جملة واحدة لكل مشهد، بكلماتك. لا مدة تختارها: يدوم الإعلان بقدر ما تدوم الكلمات.</translation>
     </message>
     <message>
         <source>Add a scene</source>
-        <translation type="unfinished"></translation>
+        <translation>إضافة مشهد</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
         <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 مشهد · %2 ثانية</translation>
     </message>
     <message>
         <source>Direct the shots</source>
-        <translation type="unfinished"></translation>
+        <translation>أخرِج اللقطات</translation>
     </message>
     <message>
         <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>يحوّل جملك إلى ما تراه الكاميرا. كلماتك لا تُغيَّر أبدًا.</translation>
     </message>
     <message>
         <source>Directing...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ الإخراج...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">إلغاء</translation>
+        <translation>إلغاء</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>السعر غير معروف</translation>
     </message>
     <message>
         <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation type="unfinished"></translation>
+        <translation>اختياري: المشهد غير المُخرَج يُولَّد أيضًا، من موجّه عام. الإخراج هو ما يُبقي الشخص نفسه في الغرفة نفسها من قطع إلى آخر.</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>رجوع</translation>
     </message>
     <message>
         <source>Next: review</source>
-        <translation type="unfinished"></translation>
+        <translation>التالي: المراجعة</translation>
     </message>
 </context>
 <context>
     <name>StepSummary</name>
     <message>
         <source>Ready to shoot</source>
-        <translation type="unfinished"></translation>
+        <translation>جاهز للتصوير</translation>
     </message>
     <message>
         <source>Output</source>
-        <translation type="unfinished"></translation>
+        <translation>الإخراج النهائي</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">الأبعاد</translation>
+        <translation>الأبعاد</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation type="unfinished">دمج الترجمة في الصورة (عبر OpenAI Whisper)</translation>
+        <translation>دمج الترجمة في الصورة (عبر OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>إعدادات متقدمة</translation>
     </message>
     <message>
         <source>Which models do the work. The defaults are sensible.</source>
-        <translation type="unfinished"></translation>
+        <translation>أي النماذج تقوم بالعمل. القيم الافتراضية مناسبة.</translation>
     </message>
     <message>
         <source>Hide models</source>
-        <translation type="unfinished"></translation>
+        <translation>إخفاء النماذج</translation>
     </message>
     <message>
         <source>Choose models manually</source>
-        <translation type="unfinished"></translation>
+        <translation>اختيار النماذج يدويًا</translation>
     </message>
     <message>
         <source>Frames</source>
-        <translation type="unfinished">اللقطات الثابتة</translation>
+        <translation>اللقطات الثابتة</translation>
     </message>
     <message>
         <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>التكلفة حتى الآن %1. إصلاح مشهد واحد يكلّف جزءًا يسيرًا من البدء من جديد.</translation>
     </message>
     <message>
         <source>Fixing one scene costs a fraction of starting over.</source>
-        <translation type="unfinished"></translation>
+        <translation>إصلاح مشهد واحد يكلّف جزءًا يسيرًا من البدء من جديد.</translation>
     </message>
     <message>
         <source>Open in my player</source>
-        <translation type="unfinished"></translation>
+        <translation>فتحه في مشغّلي</translation>
     </message>
     <message>
         <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>نحو %1 ثانية من الفيديو، متزامنة مع جملك. لا يُحتسب أي مبلغ حتى تضغط «توليد».</translation>
     </message>
     <message>
         <source>Talking shots</source>
-        <translation type="unfinished"></translation>
+        <translation>اللقطات المتكلّمة</translation>
     </message>
     <message>
         <source>Product shots</source>
-        <translation type="unfinished"></translation>
+        <translation>لقطات المنتج</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">الصوت</translation>
+        <translation>الصوت</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>رجوع</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">إلغاء</translation>
+        <translation>إلغاء</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation type="unfinished">جارٍ التوليد...</translation>
+        <translation>جارٍ التوليد...</translation>
     </message>
     <message>
         <source>Generate the ad</source>
-        <translation type="unfinished"></translation>
+        <translation>توليد الإعلان</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation type="unfinished">إعلانك جاهز</translation>
+        <translation>إعلانك جاهز</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation type="unfinished">إظهار الملف</translation>
+        <translation>إظهار الملف</translation>
     </message>
     <message>
         <source>Start a new ad</source>
-        <translation type="unfinished"></translation>
+        <translation>إعلان جديد</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished">السجل</translation>
+        <translation>السجل</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished">مسح</translation>
+        <translation>مسح</translation>
     </message>
 </context>
 <context>
@@ -1729,36 +1729,36 @@ Nothing is uploaded to us.</source>
     <message>
         <source>%1 · %2s</source>
         <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2 ثانية</translation>
     </message>
     <message>
         <source>Scene %1</source>
         <extracomment>%1 is a shot number</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>المشهد %1</translation>
     </message>
     <message>
         <source>Re-shooting...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ إعادة التصوير...</translation>
     </message>
     <message>
         <source>Re-shoot this scene — %1</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>أعِد تصوير هذا المشهد — %1</translation>
     </message>
     <message>
         <source>Re-shoot this scene</source>
-        <translation type="unfinished"></translation>
+        <translation>أعِد تصوير هذا المشهد</translation>
     </message>
     <message>
         <source>The voice-over is kept, so it is not paid for again.</source>
-        <translation type="unfinished"></translation>
+        <translation>يُحتفظ بالتعليق الصوتي، فلا يُدفَع ثمنه مرة أخرى.</translation>
     </message>
 </context>
 <context>
     <name>TraitPicker</name>
     <message>
         <source>doesn&apos;t matter</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يهم</translation>
     </message>
 </context>
 <context>
@@ -1780,179 +1780,179 @@ Nothing is uploaded to us.</source>
     <name>VoiceBooth</name>
     <message>
         <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation type="unfinished"></translation>
+        <translation>بصراحة، لم أظن أن هذا سينجح. بعد أسبوعين ما زلت أستخدمه.</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">الصوت</translation>
+        <translation>الصوت</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation type="unfinished">معرّف صوت آخر...</translation>
+        <translation>معرّف صوت آخر...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation type="unfinished">الصق معرّف صوت</translation>
+        <translation>الصق معرّف صوت</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation type="unfinished">حمّل أصوات حسابك لاختيار أحدها.</translation>
+        <translation>حمّل أصوات حسابك لاختيار أحدها.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation type="unfinished">تحميل الأصوات</translation>
+        <translation>تحميل الأصوات</translation>
     </message>
     <message>
         <source>Stability</source>
-        <translation type="unfinished"></translation>
+        <translation>الثبات</translation>
     </message>
     <message>
         <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>المنخفض يتنوّع ويبدو حيًّا. المرتفع منتظم وآمن.</translation>
     </message>
     <message>
         <source>Similarity</source>
-        <translation type="unfinished"></translation>
+        <translation>التشابه</translation>
     </message>
     <message>
         <source>How closely it holds to the original voice.</source>
-        <translation type="unfinished"></translation>
+        <translation>إلى أي مدى يلتزم بالصوت الأصلي.</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>الأسلوب</translation>
     </message>
     <message>
         <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation type="unfinished"></translation>
+        <translation>يدفع الأداء. بعد المنتصف يبدأ التمثيل.</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>السرعة</translation>
     </message>
     <message>
         <source>Leave at 1.00 unless the read drags.</source>
-        <translation type="unfinished"></translation>
+        <translation>اتركها على 1٫00 إلا إذا كانت القراءة بطيئة.</translation>
     </message>
     <message>
         <source>Audition line</source>
-        <translation type="unfinished"></translation>
+        <translation>جملة التجربة</translation>
     </message>
     <message>
         <source>Recording...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ التسجيل...</translation>
     </message>
     <message>
         <source>Hear them</source>
-        <translation type="unfinished"></translation>
+        <translation>استمع إليها</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>إيقاف</translation>
     </message>
     <message>
         <source>Play again</source>
-        <translation type="unfinished"></translation>
+        <translation>تشغيل مرة أخرى</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>السعر غير معروف</translation>
     </message>
     <message>
         <source>Hide voice cloning</source>
-        <translation type="unfinished"></translation>
+        <translation>إخفاء استنساخ الصوت</translation>
     </message>
     <message>
         <source>Clone a voice from a recording</source>
-        <translation type="unfinished"></translation>
+        <translation>استنساخ صوت من تسجيل</translation>
     </message>
     <message>
         <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation type="unfinished"></translation>
+        <translation>أفلِت تسجيلاً نظيفًا واحدًا أو أكثر للصوت. دقيقة من الكلام تكفي تمامًا.</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished">إزالة</translation>
+        <translation>إزالة</translation>
     </message>
     <message>
         <source>Add recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>إضافة تسجيلات</translation>
     </message>
     <message>
         <source>Name for the cloned voice</source>
-        <translation type="unfinished"></translation>
+        <translation>اسم الصوت المستنسَخ</translation>
     </message>
     <message>
         <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>سيرفع هذا تسجيلاتك إلى ElevenLabs ويضيف صوتًا دائمًا إلى حسابك. لا تستنسخ إلا صوتًا يحق لك استخدامه.</translation>
     </message>
     <message>
         <source>Cloning...</source>
-        <translation type="unfinished"></translation>
+        <translation>جارٍ الاستنساخ...</translation>
     </message>
     <message>
         <source>Clone onto my ElevenLabs account</source>
-        <translation type="unfinished"></translation>
+        <translation>الاستنساخ إلى حسابي على ElevenLabs</translation>
     </message>
     <message>
         <source>Choose voice recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>اختيار تسجيلات صوتية</translation>
     </message>
     <message>
         <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation type="unfinished"></translation>
+        <translation>صوت (*.mp3 *.wav *.m4a *.ogg)</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation type="unfinished">تم تحميل %1 صوتًا.</translation>
+        <translation>تم تحميل %1 صوتًا.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation type="unfinished">تعذّر تحميل الأصوات: %1</translation>
+        <translation>تعذّر تحميل الأصوات: %1</translation>
     </message>
     <message>
         <source>Write a line for them to say.</source>
-        <translation type="unfinished"></translation>
+        <translation>اكتب جملة لتقولها.</translation>
     </message>
     <message>
         <source>Could not create the auditions folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>تعذّر إنشاء مجلد التجارب.</translation>
     </message>
     <message>
         <source>No voice provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>لا يوجد مزوّد أصوات باسم %1.</translation>
     </message>
     <message>
         <source>Audition failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>فشلت التجربة: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">تعذّرت كتابة %1.</translation>
+        <translation>تعذّرت كتابة %1.</translation>
     </message>
     <message>
         <source>Add at least one recording first.</source>
-        <translation type="unfinished"></translation>
+        <translation>أضف أولاً تسجيلاً واحدًا على الأقل.</translation>
     </message>
     <message>
         <source>Market Queen voice</source>
-        <translation type="unfinished"></translation>
+        <translation>صوت Market Queen</translation>
     </message>
     <message>
         <source>Cloned with Market Queen.</source>
-        <translation type="unfinished"></translation>
+        <translation>مستنسَخ بواسطة Market Queen.</translation>
     </message>
     <message>
         <source>Cloning a voice from %1 recording(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>استنساخ صوت من %1 تسجيل.</translation>
     </message>
     <message>
         <source>Cloning failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>فشل الاستنساخ: %1</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation type="unfinished"></translation>
+        <translation>الصوت «%1» موجود في حسابك.</translation>
     </message>
 </context>
 <context>

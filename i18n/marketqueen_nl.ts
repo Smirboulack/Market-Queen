@@ -5,14 +5,14 @@
     <name>ActorLibrary</name>
     <message>
         <source>Actor %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Acteur %1</translation>
     </message>
 </context>
 <context>
     <name>ActorStrip</name>
     <message>
         <source>Your actors</source>
-        <translation type="unfinished"></translation>
+        <translation>Jouw acteurs</translation>
     </message>
 </context>
 <context>
@@ -34,92 +34,92 @@
     <name>AvatarTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation type="unfinished">De aanbieder gaf geen video terug.</translation>
+        <translation>De aanbieder gaf geen video terug.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation type="unfinished">De clip downloaden...</translation>
+        <translation>De clip downloaden...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation type="unfinished">De gedownloade clip was leeg.</translation>
+        <translation>De gedownloade clip was leeg.</translation>
     </message>
 </context>
 <context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>Er kwam geen portret terug. Bekijk het logboek.</translation>
     </message>
     <message>
         <source>Could not create the casting folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kon de castingmap niet aanmaken.</translation>
     </message>
     <message>
         <source>Casting %1 portrait(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Casting van %1 portret(ten) met %2.</translation>
     </message>
     <message>
         <source>No image provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen afbeeldingsaanbieder met de naam %1.</translation>
     </message>
     <message>
         <source>Portrait failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Portret mislukt: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">%1 kon niet worden weggeschreven.</translation>
+        <translation>%1 kon niet worden weggeschreven.</translation>
     </message>
 </context>
 <context>
     <name>Director</name>
     <message>
         <source>Write at least one line first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Schrijf eerst minstens één zin.</translation>
     </message>
     <message>
         <source>No text provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen tekstaanbieder met de naam %1.</translation>
     </message>
     <message>
         <source>Directing %1 scene(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Regie van %1 scène(s) met %2.</translation>
     </message>
     <message>
         <source>Direction failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Regie mislukt: %1</translation>
     </message>
     <message>
         <source>The model returned no shots.</source>
-        <translation type="unfinished"></translation>
+        <translation>Het model gaf geen shots terug.</translation>
     </message>
     <message>
         <source>Only %1 of %2 scenes came back directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Slechts %1 van %2 scènes kwamen geregisseerd terug.</translation>
     </message>
     <message>
         <source>%1 scene(s) directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 scène(s) geregisseerd.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceCloneTask</name>
     <message>
         <source>Add at least one audio sample to clone from.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voeg minstens één audiofragment toe om te klonen.</translation>
     </message>
     <message>
         <source>Uploading the samples...</source>
-        <translation type="unfinished"></translation>
+        <translation>Fragmenten uploaden...</translation>
     </message>
     <message>
         <source>None of the samples could be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen van de fragmenten kon worden gelezen.</translation>
     </message>
     <message>
         <source>ElevenLabs did not return a voice id.</source>
-        <translation type="unfinished"></translation>
+        <translation>ElevenLabs gaf geen stem-id terug.</translation>
     </message>
 </context>
 <context>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>?</source>
-        <translation type="unfinished"></translation>
+        <translation>?</translation>
     </message>
     <message>
         <source>Total</source>
@@ -177,11 +177,11 @@
     <name>FalAvatarTask</name>
     <message>
         <source>No frame to animate.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen beeld om te animeren.</translation>
     </message>
     <message>
         <source>No audio for this shot, so there is nothing to lip-sync to.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen audio voor dit shot, dus er valt niets te synchroniseren.</translation>
     </message>
 </context>
 <context>
@@ -233,7 +233,7 @@
     <message>
         <source>~%1</source>
         <extracomment>Prefix meaning &quot;approximately&quot;. %1 is a price like $1.10</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>~%1</translation>
     </message>
     <message>
         <source>Script</source>
@@ -385,32 +385,32 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation type="unfinished"></translation>
+        <translation>Sleep hier je productfoto's naartoe</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zoveel je wilt. Packshot, in gebruik, close-up van het etiket.</translation>
     </message>
     <message>
         <source>1 picture. It is the reference.</source>
-        <translation type="unfinished"></translation>
+        <translation>1 foto. Dat is de referentie.</translation>
     </message>
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 foto's. Die met de ster is de hoofdreferentie.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation type="unfinished">Bladeren</translation>
+        <translation>Bladeren</translation>
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Productfoto's kiezen</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation type="unfinished">Afbeeldingen (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Afbeeldingen (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
@@ -590,15 +590,15 @@
     </message>
     <message>
         <source>Could not read the actor portrait.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kon het portret van de acteur niet lezen.</translation>
     </message>
     <message>
         <source>unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>ongewijzigd</translation>
     </message>
     <message>
         <source>Re-shooting scene %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Scène %1 wordt opnieuw opgenomen.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
@@ -622,11 +622,11 @@
     </message>
     <message>
         <source>Using your %1 scene(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Je %1 scène(s) worden gebruikt.</translation>
     </message>
     <message>
         <source>your own scenes</source>
-        <translation type="unfinished"></translation>
+        <translation>je eigen scènes</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -654,23 +654,23 @@
     </message>
     <message>
         <source>Recording line %1 of %2...</source>
-        <translation type="unfinished"></translation>
+        <translation>Zin %1 van %2 opnemen...</translation>
     </message>
     <message>
         <source>No voice-over was recorded.</source>
-        <translation type="unfinished"></translation>
+        <translation>Er is geen voice-over opgenomen.</translation>
     </message>
     <message>
         <source>Could not join the voice-over: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Kon de voice-over niet samenvoegen: %1</translation>
     </message>
     <message>
         <source>Voice-over ready: %1 line(s), %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voice-over klaar: %1 zin(nen), %2 s.</translation>
     </message>
     <message>
         <source>%1 shot(s) over %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 shot(s) over %2 s.</translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -686,7 +686,7 @@
     </message>
     <message>
         <source>Filming the product for shot %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Het product filmen voor shot %1...</translation>
     </message>
     <message>
         <source>Shot %1 saved (%2 MB).</source>
@@ -694,11 +694,11 @@
     </message>
     <message>
         <source>No avatar provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen avataraanbieder met de naam %1.</translation>
     </message>
     <message>
         <source>Slow handheld move around the product, natural light, nobody on screen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Trage handbeweging rond het product, natuurlijk licht, niemand in beeld.</translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -766,7 +766,7 @@
     </message>
     <message>
         <source>The clips are %1s short in total; those shots hold their last frame.</source>
-        <translation type="unfinished"></translation>
+        <translation>Er ontbreekt in totaal %1 s clip; die shots houden hun laatste beeld vast.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -786,19 +786,19 @@
     <message>
         <source>Casting... %1 of %2</source>
         <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Casting... %1 van %2</translation>
     </message>
     <message>
         <source>Pick the one that looks real</source>
-        <translation type="unfinished"></translation>
+        <translation>Kies degene die echt lijkt</translation>
     </message>
     <message>
         <source>None of them? Cast again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen enkele goed? Cast opnieuw.</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Gekozen</translation>
     </message>
 </context>
 <context>
@@ -816,51 +816,51 @@
     <name>RecapBlock</name>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Bewerken</translation>
     </message>
 </context>
 <context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>JOUW ADVERTENTIE</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Product</translation>
     </message>
     <message>
         <source>Not set yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Nog niet ingevuld</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Acteur</translation>
     </message>
     <message>
         <source>No one cast yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Nog niemand gecast</translation>
     </message>
     <message>
         <source>Not saved</source>
-        <translation type="unfinished"></translation>
+        <translation>Niet opgeslagen</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Script</translation>
+        <translation>Script</translation>
     </message>
     <message>
         <source>Nothing written yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Nog niets geschreven</translation>
     </message>
     <message>
         <source>%1 s spoken</source>
         <extracomment>%1 is a duration in seconds, e.g. &quot;13.5 s&quot;</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 s gesproken</translation>
     </message>
     <message>
         <source>The estimate appears once the three steps are filled in.</source>
-        <translation type="unfinished"></translation>
+        <translation>De schatting verschijnt zodra de drie stappen zijn ingevuld.</translation>
     </message>
 </context>
 <context>
@@ -915,7 +915,7 @@
     </message>
     <message>
         <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
-        <translation type="unfinished"></translation>
+        <translation>Lipgesynchroniseerde sprekende shots. De clip duurt precies zo lang als de zin.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -964,55 +964,55 @@
     <name>SceneCard</name>
     <message>
         <source>Talking</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprekend</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Product</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished">%1 s</translation>
+        <translation>%1 s</translation>
     </message>
     <message>
         <source>Hide the visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Beeld verbergen</translation>
     </message>
     <message>
         <source>Visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Beeld</translation>
     </message>
     <message>
         <source>Not directed yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Nog niet geregisseerd</translation>
     </message>
     <message>
         <source>What the camera sees</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat de camera ziet</translation>
     </message>
     <message>
         <source>Press Direct the shots, or write it yourself.</source>
-        <translation type="unfinished"></translation>
+        <translation>Druk op Regisseer de shots, of schrijf het zelf.</translation>
     </message>
     <message>
         <source>How it moves</source>
-        <translation type="unfinished"></translation>
+        <translation>Hoe het beweegt</translation>
     </message>
     <message>
         <source>One small gesture, one small camera movement.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eén klein gebaar, één kleine camerabeweging.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>Directing the shots with %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>De shots regisseren met %1...</translation>
     </message>
     <message>
         <source>Writing the script with %1...</source>
-        <translation type="unfinished">Script schrijven met %1...</translation>
+        <translation>Script schrijven met %1...</translation>
     </message>
     <message>
         <source>The model returned an empty answer.</source>
@@ -1151,7 +1151,7 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
+        <translation>Studio</translation>
     </message>
     <message>
         <source>Library</source>
@@ -1219,509 +1219,509 @@ Er wordt niets naar ons gestuurd.</translation>
     <name>StepActor</name>
     <message>
         <source>Who says it?</source>
-        <translation type="unfinished"></translation>
+        <translation>Wie zegt het?</translation>
     </message>
     <message>
         <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation type="unfinished"></translation>
+        <translation>Een geloofwaardig persoon wint het van een perfecte. Gewoon gezicht, gewone kamer.</translation>
     </message>
     <message>
         <source>Where they are</source>
-        <translation type="unfinished"></translation>
+        <translation>Waar ze is</translation>
     </message>
     <message>
         <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation type="unfinished"></translation>
+        <translation>bijv. een kleine badkamer, handdoeken op de grond, ochtendlicht door de jaloezieën</translation>
     </message>
     <message>
         <source>Describe them</source>
-        <translation type="unfinished"></translation>
+        <translation>Beschrijf haar</translation>
     </message>
     <message>
         <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gewone woorden werken het best. De kenmerken hieronder vullen alleen aan wat je wegliet.</translation>
     </message>
     <message>
         <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation type="unfinished"></translation>
+        <translation>bijv. moe maar vriendelijk, zonder make-up, slordige knot, licht scheve glimlach</translation>
     </message>
     <message>
         <source>Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>Geslacht</translation>
     </message>
     <message>
         <source>a woman</source>
-        <translation type="unfinished"></translation>
+        <translation>een vrouw</translation>
     </message>
     <message>
         <source>a man</source>
-        <translation type="unfinished"></translation>
+        <translation>een man</translation>
     </message>
     <message>
         <source>a non-binary person</source>
-        <translation type="unfinished"></translation>
+        <translation>een non-binair persoon</translation>
     </message>
     <message>
         <source>Age</source>
-        <translation type="unfinished"></translation>
+        <translation>Leeftijd</translation>
     </message>
     <message>
         <source>early twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>begin twintig</translation>
     </message>
     <message>
         <source>late twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>eind twintig</translation>
     </message>
     <message>
         <source>thirties</source>
-        <translation type="unfinished"></translation>
+        <translation>midden dertig</translation>
     </message>
     <message>
         <source>forties</source>
-        <translation type="unfinished"></translation>
+        <translation>midden veertig</translation>
     </message>
     <message>
         <source>fifties or older</source>
-        <translation type="unfinished"></translation>
+        <translation>vijftig of ouder</translation>
     </message>
     <message>
         <source>Dress</source>
-        <translation type="unfinished"></translation>
+        <translation>Kleding</translation>
     </message>
     <message>
         <source>casual</source>
-        <translation type="unfinished"></translation>
+        <translation>casual</translation>
     </message>
     <message>
         <source>sportswear</source>
-        <translation type="unfinished"></translation>
+        <translation>sportkleding</translation>
     </message>
     <message>
         <source>office</source>
-        <translation type="unfinished"></translation>
+        <translation>kantoor</translation>
     </message>
     <message>
         <source>streetwear</source>
-        <translation type="unfinished"></translation>
+        <translation>streetwear</translation>
     </message>
     <message>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>Energie</translation>
     </message>
     <message>
         <source>calm</source>
-        <translation type="unfinished"></translation>
+        <translation>kalm</translation>
     </message>
     <message>
         <source>upbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>opgewekt</translation>
     </message>
     <message>
         <source>just woke up</source>
-        <translation type="unfinished"></translation>
+        <translation>net wakker</translation>
     </message>
     <message>
         <source>warm</source>
-        <translation type="unfinished"></translation>
+        <translation>warm</translation>
     </message>
     <message>
         <source>Someone real</source>
-        <translation type="unfinished"></translation>
+        <translation>Iemand echt</translation>
     </message>
     <message>
         <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Optioneel. Een foto van een echt persoon houdt hetzelfde gezicht in elk shot.</translation>
     </message>
     <message>
         <source>Use this photo as the actor, without generating</source>
-        <translation type="unfinished"></translation>
+        <translation>Deze foto als acteur gebruiken, zonder te genereren</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Casting</translation>
     </message>
     <message>
         <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vier gezichten tegelijk. Houd degene die de selfie van een echt persoon kon zijn.</translation>
     </message>
     <message>
         <source>Casting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Casten...</translation>
     </message>
     <message>
         <source>Cast 1 portrait</source>
-        <translation type="unfinished"></translation>
+        <translation>1 portret casten</translation>
     </message>
     <message>
         <source>Cast %1 portraits</source>
         <extracomment>%1 is a number of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 portretten casten</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Annuleren</translation>
+        <translation>Annuleren</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>prijs onbekend</translation>
     </message>
     <message>
         <source>Their voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Haar stem</translation>
     </message>
     <message>
         <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation type="unfinished"></translation>
+        <translation>Beluister haar voor een fractie van een cent voordat je video koopt.</translation>
     </message>
     <message>
         <source>Keep this actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Deze acteur bewaren</translation>
     </message>
     <message>
         <source>Saved actors are one click away in every ad after this one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Bewaarde acteurs zijn in elke volgende advertentie één klik weg.</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Bijwerken</translation>
     </message>
     <message>
         <source>Save actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Acteur opslaan</translation>
     </message>
     <message>
         <source>What gets sent</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat er verstuurd wordt</translation>
     </message>
     <message>
         <source>Hide the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Prompt verbergen</translation>
     </message>
     <message>
         <source>Show the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Prompt tonen</translation>
     </message>
     <message>
         <source>Built from your own %1.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Gebouwd vanuit je eigen %1.</translation>
     </message>
     <message>
         <source>Drop a casting.json at %1 to change how this is written.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Zet een casting.json in %1 om te wijzigen hoe dit geschreven wordt.</translation>
     </message>
     <message>
         <source>Portrait model</source>
-        <translation type="unfinished"></translation>
+        <translation>Portretmodel</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Terug</translation>
     </message>
     <message>
         <source>Cast someone to continue</source>
-        <translation type="unfinished"></translation>
+        <translation>Cast iemand om verder te gaan</translation>
     </message>
     <message>
         <source>Next: write the script</source>
-        <translation type="unfinished"></translation>
+        <translation>Volgende: het script schrijven</translation>
     </message>
 </context>
 <context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat verkoop je?</translation>
     </message>
     <message>
         <source>Everything the actor says and everything on screen is built from this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alles wat de acteur zegt en alles in beeld komt hiervandaan.</translation>
     </message>
     <message>
         <source>Product or service</source>
-        <translation type="unfinished"></translation>
+        <translation>Product of dienst</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation type="unfinished">bv. Lumen glow serum</translation>
+        <translation>bv. Lumen glow serum</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation type="unfinished">Wat het is</translation>
+        <translation>Wat het is</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation type="unfinished">Een vitamine C-serum dat een doffe huid in twee weken opfleurt. Parfumvrij, 30 ml.</translation>
+        <translation>Een vitamine C-serum dat een doffe huid in twee weken opfleurt. Parfumvrij, 30 ml.</translation>
     </message>
     <message>
         <source>Who it is for</source>
-        <translation type="unfinished"></translation>
+        <translation>Voor wie het is</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation type="unfinished">bv. vrouwen van 25 tot 35 die om clean beauty geven</translation>
+        <translation>bv. vrouwen van 25 tot 35 die om clean beauty geven</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Referentiefoto's</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Een foto van het echte product houdt het in elk shot herkenbaar.</translation>
     </message>
     <message>
         <source>Next: cast your actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Volgende: je acteur casten</translation>
     </message>
 </context>
 <context>
     <name>StepRail</name>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Product</translation>
     </message>
     <message>
         <source>What you are selling</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat je verkoopt</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Acteur</translation>
     </message>
     <message>
         <source>Who says it</source>
-        <translation type="unfinished"></translation>
+        <translation>Wie spreekt</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Script</translation>
+        <translation>Script</translation>
     </message>
     <message>
         <source>What they say</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat er gezegd wordt</translation>
     </message>
     <message>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>Samenvatting</translation>
     </message>
     <message>
         <source>Check and generate</source>
-        <translation type="unfinished"></translation>
+        <translation>Controleren en genereren</translation>
     </message>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>JOUW ADVERTENTIE</translation>
     </message>
     <message>
         <source>Start over</source>
-        <translation type="unfinished"></translation>
+        <translation>Opnieuw beginnen</translation>
     </message>
 </context>
 <context>
     <name>StepScript</name>
     <message>
         <source>What do they say?</source>
-        <translation type="unfinished"></translation>
+        <translation>Wat zegt de persoon?</translation>
     </message>
     <message>
         <source>15 to 30 s converts best</source>
-        <translation type="unfinished"></translation>
+        <translation>15 tot 30 s converteert het best</translation>
     </message>
     <message>
         <source>Hook</source>
-        <translation type="unfinished"></translation>
+        <translation>Hook</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Benoem de frustratie in één zin. Je hebt drie seconden.</translation>
     </message>
     <message>
         <source>Problem</source>
-        <translation type="unfinished"></translation>
+        <translation>Probleem</translation>
     </message>
     <message>
         <source>Make it concrete. What did you try that failed?</source>
-        <translation type="unfinished"></translation>
+        <translation>Maak het concreet. Wat probeerde je dat niet werkte?</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Product</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
-        <translation type="unfinished"></translation>
+        <translation>Introduceer het als wat eindelijk wel werkte, niet als een product.</translation>
     </message>
     <message>
         <source>Proof</source>
-        <translation type="unfinished"></translation>
+        <translation>Bewijs</translation>
     </message>
     <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eén concreet detail. Een getal, een termijn, een moment.</translation>
     </message>
     <message>
         <source>Ask</source>
-        <translation type="unfinished"></translation>
+        <translation>Oproep</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zeg terloops wat er nu te doen staat.</translation>
     </message>
     <message>
         <source>Keep going, or leave it here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ga door, of laat het hierbij.</translation>
     </message>
     <message>
         <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eén zin per scène, in je eigen woorden. Geen duur te kiezen: de advertentie duurt zo lang als de woorden.</translation>
     </message>
     <message>
         <source>Add a scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Een scène toevoegen</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
         <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 scène(s) · %2 s</translation>
     </message>
     <message>
         <source>Direct the shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Regisseer de shots</translation>
     </message>
     <message>
         <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Maakt van je zinnen wat de camera ziet. Je woorden worden nooit veranderd.</translation>
     </message>
     <message>
         <source>Directing...</source>
-        <translation type="unfinished"></translation>
+        <translation>Regisseren...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Annuleren</translation>
+        <translation>Annuleren</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>prijs onbekend</translation>
     </message>
     <message>
         <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation type="unfinished"></translation>
+        <translation>Optioneel: een ongeregisseerde scène wordt ook gerenderd, vanuit een generieke prompt. Het is de regie die dezelfde persoon in dezelfde kamer houdt van snede tot snede.</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Terug</translation>
     </message>
     <message>
         <source>Next: review</source>
-        <translation type="unfinished"></translation>
+        <translation>Volgende: nakijken</translation>
     </message>
 </context>
 <context>
     <name>StepSummary</name>
     <message>
         <source>Ready to shoot</source>
-        <translation type="unfinished"></translation>
+        <translation>Klaar om te draaien</translation>
     </message>
     <message>
         <source>Output</source>
-        <translation type="unfinished"></translation>
+        <translation>Uitvoer</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">Formaat</translation>
+        <translation>Formaat</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation type="unfinished">Ondertitels inbranden (gebruikt OpenAI Whisper)</translation>
+        <translation>Ondertitels inbranden (gebruikt OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Geavanceerd</translation>
     </message>
     <message>
         <source>Which models do the work. The defaults are sensible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Welke modellen het werk doen. De standaardwaarden zijn prima.</translation>
     </message>
     <message>
         <source>Hide models</source>
-        <translation type="unfinished"></translation>
+        <translation>Modellen verbergen</translation>
     </message>
     <message>
         <source>Choose models manually</source>
-        <translation type="unfinished"></translation>
+        <translation>Modellen zelf kiezen</translation>
     </message>
     <message>
         <source>Frames</source>
-        <translation type="unfinished">Beelden</translation>
+        <translation>Beelden</translation>
     </message>
     <message>
         <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Kosten tot nu toe %1. Eén scène herstellen kost een fractie van opnieuw beginnen.</translation>
     </message>
     <message>
         <source>Fixing one scene costs a fraction of starting over.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eén scène herstellen kost een fractie van opnieuw beginnen.</translation>
     </message>
     <message>
         <source>Open in my player</source>
-        <translation type="unfinished"></translation>
+        <translation>Openen in mijn speler</translation>
     </message>
     <message>
         <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Ongeveer %1 s video, gesynchroniseerd op je zinnen. Er wordt niets in rekening gebracht tot je op genereren drukt.</translation>
     </message>
     <message>
         <source>Talking shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprekende shots</translation>
     </message>
     <message>
         <source>Product shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Productshots</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Stem</translation>
+        <translation>Stem</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Terug</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Annuleren</translation>
+        <translation>Annuleren</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation type="unfinished">Bezig met genereren...</translation>
+        <translation>Bezig met genereren...</translation>
     </message>
     <message>
         <source>Generate the ad</source>
-        <translation type="unfinished"></translation>
+        <translation>De advertentie genereren</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation type="unfinished">Je advertentie is klaar</translation>
+        <translation>Je advertentie is klaar</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation type="unfinished">Bestand tonen</translation>
+        <translation>Bestand tonen</translation>
     </message>
     <message>
         <source>Start a new ad</source>
-        <translation type="unfinished"></translation>
+        <translation>Nieuwe advertentie</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished">Activiteit</translation>
+        <translation>Activiteit</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished">Wissen</translation>
+        <translation>Wissen</translation>
     </message>
 </context>
 <context>
@@ -1729,36 +1729,36 @@ Er wordt niets naar ons gestuurd.</translation>
     <message>
         <source>%1 · %2s</source>
         <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2 s</translation>
     </message>
     <message>
         <source>Scene %1</source>
         <extracomment>%1 is a shot number</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Scène %1</translation>
     </message>
     <message>
         <source>Re-shooting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Opnieuw opnemen...</translation>
     </message>
     <message>
         <source>Re-shoot this scene — %1</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Deze scène opnieuw opnemen — %1</translation>
     </message>
     <message>
         <source>Re-shoot this scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Deze scène opnieuw opnemen</translation>
     </message>
     <message>
         <source>The voice-over is kept, so it is not paid for again.</source>
-        <translation type="unfinished"></translation>
+        <translation>De voice-over blijft behouden en wordt niet opnieuw betaald.</translation>
     </message>
 </context>
 <context>
     <name>TraitPicker</name>
     <message>
         <source>doesn&apos;t matter</source>
-        <translation type="unfinished"></translation>
+        <translation>maakt niet uit</translation>
     </message>
 </context>
 <context>
@@ -1780,179 +1780,179 @@ Er wordt niets naar ons gestuurd.</translation>
     <name>VoiceBooth</name>
     <message>
         <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eerlijk gezegd geloofde ik er niet in. Twee weken later gebruik ik het nog steeds.</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Stem</translation>
+        <translation>Stem</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation type="unfinished">Andere stem-id...</translation>
+        <translation>Andere stem-id...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation type="unfinished">Plak een stem-id</translation>
+        <translation>Plak een stem-id</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation type="unfinished">Laad de stemmen van je account om er een te kiezen.</translation>
+        <translation>Laad de stemmen van je account om er een te kiezen.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation type="unfinished">Stemmen laden</translation>
+        <translation>Stemmen laden</translation>
     </message>
     <message>
         <source>Stability</source>
-        <translation type="unfinished"></translation>
+        <translation>Stabiliteit</translation>
     </message>
     <message>
         <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>Laag varieert en klinkt levend. Hoog is gelijkmatig en veilig.</translation>
     </message>
     <message>
         <source>Similarity</source>
-        <translation type="unfinished"></translation>
+        <translation>Gelijkenis</translation>
     </message>
     <message>
         <source>How closely it holds to the original voice.</source>
-        <translation type="unfinished"></translation>
+        <translation>Hoe dicht ze bij de originele stem blijft.</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Stijl</translation>
     </message>
     <message>
         <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation type="unfinished"></translation>
+        <translation>Duwt de voordracht. Voorbij de helft gaat het acteren.</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>Snelheid</translation>
     </message>
     <message>
         <source>Leave at 1.00 unless the read drags.</source>
-        <translation type="unfinished"></translation>
+        <translation>Laat op 1,00 staan, tenzij de voordracht sleept.</translation>
     </message>
     <message>
         <source>Audition line</source>
-        <translation type="unfinished"></translation>
+        <translation>Testzin</translation>
     </message>
     <message>
         <source>Recording...</source>
-        <translation type="unfinished"></translation>
+        <translation>Opnemen...</translation>
     </message>
     <message>
         <source>Hear them</source>
-        <translation type="unfinished"></translation>
+        <translation>Beluister haar</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>Stop</translation>
     </message>
     <message>
         <source>Play again</source>
-        <translation type="unfinished"></translation>
+        <translation>Opnieuw afspelen</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>prijs onbekend</translation>
     </message>
     <message>
         <source>Hide voice cloning</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen verbergen</translation>
     </message>
     <message>
         <source>Clone a voice from a recording</source>
-        <translation type="unfinished"></translation>
+        <translation>Een stem klonen uit een opname</translation>
     </message>
     <message>
         <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sleep één of meer schone opnames van de stem hierheen. Een minuut spraak is ruim genoeg.</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished">Verwijderen</translation>
+        <translation>Verwijderen</translation>
     </message>
     <message>
         <source>Add recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Opnames toevoegen</translation>
     </message>
     <message>
         <source>Name for the cloned voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Naam voor de gekloonde stem</translation>
     </message>
     <message>
         <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Dit uploadt je opnames naar ElevenLabs en voegt een permanente stem toe aan je account. Kloon alleen een stem die je mag gebruiken.</translation>
     </message>
     <message>
         <source>Cloning...</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen...</translation>
     </message>
     <message>
         <source>Clone onto my ElevenLabs account</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen naar mijn ElevenLabs-account</translation>
     </message>
     <message>
         <source>Choose voice recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Stemopnames kiezen</translation>
     </message>
     <message>
         <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio (*.mp3 *.wav *.m4a *.ogg)</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation type="unfinished">%1 stemmen geladen.</translation>
+        <translation>%1 stemmen geladen.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation type="unfinished">Stemmen konden niet worden geladen: %1</translation>
+        <translation>Stemmen konden niet worden geladen: %1</translation>
     </message>
     <message>
         <source>Write a line for them to say.</source>
-        <translation type="unfinished"></translation>
+        <translation>Schrijf een zin die ze moet zeggen.</translation>
     </message>
     <message>
         <source>Could not create the auditions folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kon de map met proeven niet aanmaken.</translation>
     </message>
     <message>
         <source>No voice provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Geen stemaanbieder met de naam %1.</translation>
     </message>
     <message>
         <source>Audition failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Proef mislukt: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">%1 kon niet worden weggeschreven.</translation>
+        <translation>%1 kon niet worden weggeschreven.</translation>
     </message>
     <message>
         <source>Add at least one recording first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voeg eerst minstens één opname toe.</translation>
     </message>
     <message>
         <source>Market Queen voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Market Queen-stem</translation>
     </message>
     <message>
         <source>Cloned with Market Queen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gekloond met Market Queen.</translation>
     </message>
     <message>
         <source>Cloning a voice from %1 recording(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Een stem klonen uit %1 opname(s).</translation>
     </message>
     <message>
         <source>Cloning failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen mislukt: %1</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation type="unfinished"></translation>
+        <translation>De stem '%1' staat op je account.</translation>
     </message>
 </context>
 <context>

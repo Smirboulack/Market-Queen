@@ -5,14 +5,14 @@
     <name>ActorLibrary</name>
     <message>
         <source>Actor %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Darsteller %1</translation>
     </message>
 </context>
 <context>
     <name>ActorStrip</name>
     <message>
         <source>Your actors</source>
-        <translation type="unfinished"></translation>
+        <translation>Deine Darsteller</translation>
     </message>
 </context>
 <context>
@@ -34,92 +34,92 @@
     <name>AvatarTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation type="unfinished">Der Anbieter hat kein Video geliefert.</translation>
+        <translation>Der Anbieter hat kein Video geliefert.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation type="unfinished">Clip wird heruntergeladen...</translation>
+        <translation>Clip wird heruntergeladen...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation type="unfinished">Der heruntergeladene Clip war leer.</translation>
+        <translation>Der heruntergeladene Clip war leer.</translation>
     </message>
 </context>
 <context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>Es kam kein Porträt zurück. Sieh ins Protokoll.</translation>
     </message>
     <message>
         <source>Could not create the casting folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Der Casting-Ordner konnte nicht angelegt werden.</translation>
     </message>
     <message>
         <source>Casting %1 portrait(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Casting von %1 Porträt(s) mit %2.</translation>
     </message>
     <message>
         <source>No image provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Bildanbieter namens %1.</translation>
     </message>
     <message>
         <source>Portrait failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Porträt fehlgeschlagen: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">%1 konnte nicht geschrieben werden.</translation>
+        <translation>%1 konnte nicht geschrieben werden.</translation>
     </message>
 </context>
 <context>
     <name>Director</name>
     <message>
         <source>Write at least one line first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Schreib zuerst mindestens einen Satz.</translation>
     </message>
     <message>
         <source>No text provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Textanbieter namens %1.</translation>
     </message>
     <message>
         <source>Directing %1 scene(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Inszeniere %1 Szene(n) mit %2.</translation>
     </message>
     <message>
         <source>Direction failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Inszenierung fehlgeschlagen: %1</translation>
     </message>
     <message>
         <source>The model returned no shots.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Modell hat keine Einstellungen geliefert.</translation>
     </message>
     <message>
         <source>Only %1 of %2 scenes came back directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Nur %1 von %2 Szenen kamen inszeniert zurück.</translation>
     </message>
     <message>
         <source>%1 scene(s) directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Szene(n) inszeniert.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceCloneTask</name>
     <message>
         <source>Add at least one audio sample to clone from.</source>
-        <translation type="unfinished"></translation>
+        <translation>Füge mindestens eine Audioprobe zum Klonen hinzu.</translation>
     </message>
     <message>
         <source>Uploading the samples...</source>
-        <translation type="unfinished"></translation>
+        <translation>Proben werden hochgeladen...</translation>
     </message>
     <message>
         <source>None of the samples could be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Keine der Proben war lesbar.</translation>
     </message>
     <message>
         <source>ElevenLabs did not return a voice id.</source>
-        <translation type="unfinished"></translation>
+        <translation>ElevenLabs hat keine Stimmen-ID geliefert.</translation>
     </message>
 </context>
 <context>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>?</source>
-        <translation type="unfinished"></translation>
+        <translation>?</translation>
     </message>
     <message>
         <source>Total</source>
@@ -177,11 +177,11 @@
     <name>FalAvatarTask</name>
     <message>
         <source>No frame to animate.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Bild zum Animieren.</translation>
     </message>
     <message>
         <source>No audio for this shot, so there is nothing to lip-sync to.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Ton für diese Einstellung, also nichts zum Lippensynchronisieren.</translation>
     </message>
 </context>
 <context>
@@ -233,7 +233,7 @@
     <message>
         <source>~%1</source>
         <extracomment>Prefix meaning &quot;approximately&quot;. %1 is a price like $1.10</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>~%1</translation>
     </message>
     <message>
         <source>Script</source>
@@ -385,32 +385,32 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation type="unfinished"></translation>
+        <translation>Zieh deine Produktfotos hierher</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
-        <translation type="unfinished"></translation>
+        <translation>So viele du willst. Packshot, im Gebrauch, Nahaufnahme des Etiketts.</translation>
     </message>
     <message>
         <source>1 picture. It is the reference.</source>
-        <translation type="unfinished"></translation>
+        <translation>1 Foto. Es ist die Referenz.</translation>
     </message>
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 Fotos. Das markierte ist die Hauptreferenz.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation type="unfinished">Durchsuchen</translation>
+        <translation>Durchsuchen</translation>
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Produktfotos auswählen</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation type="unfinished">Bilder (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Bilder (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
@@ -590,15 +590,15 @@
     </message>
     <message>
         <source>Could not read the actor portrait.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Porträt des Darstellers konnte nicht gelesen werden.</translation>
     </message>
     <message>
         <source>unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>unverändert</translation>
     </message>
     <message>
         <source>Re-shooting scene %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Szene %1 wird neu gedreht.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
@@ -622,11 +622,11 @@
     </message>
     <message>
         <source>Using your %1 scene(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Deine %1 Szene(n) werden verwendet.</translation>
     </message>
     <message>
         <source>your own scenes</source>
-        <translation type="unfinished"></translation>
+        <translation>deine eigenen Szenen</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -654,23 +654,23 @@
     </message>
     <message>
         <source>Recording line %1 of %2...</source>
-        <translation type="unfinished"></translation>
+        <translation>Nehme Satz %1 von %2 auf...</translation>
     </message>
     <message>
         <source>No voice-over was recorded.</source>
-        <translation type="unfinished"></translation>
+        <translation>Es wurde kein Voice-over aufgenommen.</translation>
     </message>
     <message>
         <source>Could not join the voice-over: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Voice-over konnte nicht zusammengefügt werden: %1</translation>
     </message>
     <message>
         <source>Voice-over ready: %1 line(s), %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>Voice-over fertig: %1 Satz/Sätze, %2 s.</translation>
     </message>
     <message>
         <source>%1 shot(s) over %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>%1 Einstellung(en) über %2 s.</translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -686,7 +686,7 @@
     </message>
     <message>
         <source>Filming the product for shot %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Filme das Produkt für Einstellung %1...</translation>
     </message>
     <message>
         <source>Shot %1 saved (%2 MB).</source>
@@ -694,11 +694,11 @@
     </message>
     <message>
         <source>No avatar provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Avatar-Anbieter namens %1.</translation>
     </message>
     <message>
         <source>Slow handheld move around the product, natural light, nobody on screen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Langsame Handkamerabewegung um das Produkt, natürliches Licht, niemand im Bild.</translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -766,7 +766,7 @@
     </message>
     <message>
         <source>The clips are %1s short in total; those shots hold their last frame.</source>
-        <translation type="unfinished"></translation>
+        <translation>Insgesamt fehlen %1 s Clip; diese Einstellungen halten ihr letztes Bild.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -786,19 +786,19 @@
     <message>
         <source>Casting... %1 of %2</source>
         <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Casting... %1 von %2</translation>
     </message>
     <message>
         <source>Pick the one that looks real</source>
-        <translation type="unfinished"></translation>
+        <translation>Wähle das, das echt wirkt</translation>
     </message>
     <message>
         <source>None of them? Cast again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Keins davon? Nochmal casten.</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Gewählt</translation>
     </message>
 </context>
 <context>
@@ -816,51 +816,51 @@
     <name>RecapBlock</name>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Bearbeiten</translation>
     </message>
 </context>
 <context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>DEINE WERBUNG</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkt</translation>
     </message>
     <message>
         <source>Not set yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch nicht gesetzt</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Darsteller</translation>
     </message>
     <message>
         <source>No one cast yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch niemand gecastet</translation>
     </message>
     <message>
         <source>Not saved</source>
-        <translation type="unfinished"></translation>
+        <translation>Nicht gespeichert</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Skript</translation>
+        <translation>Skript</translation>
     </message>
     <message>
         <source>Nothing written yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch nichts geschrieben</translation>
     </message>
     <message>
         <source>%1 s spoken</source>
         <extracomment>%1 is a duration in seconds, e.g. &quot;13.5 s&quot;</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 s gesprochen</translation>
     </message>
     <message>
         <source>The estimate appears once the three steps are filled in.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Schätzung erscheint, sobald die drei Schritte ausgefüllt sind.</translation>
     </message>
 </context>
 <context>
@@ -915,7 +915,7 @@
     </message>
     <message>
         <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
-        <translation type="unfinished"></translation>
+        <translation>Lippensynchrone Sprecheinstellungen. Der Clip dauert genau so lang wie der Satz.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -964,55 +964,55 @@
     <name>SceneCard</name>
     <message>
         <source>Talking</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprechend</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkt</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished">%1 s</translation>
+        <translation>%1 s</translation>
     </message>
     <message>
         <source>Hide the visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Visuelles ausblenden</translation>
     </message>
     <message>
         <source>Visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Visuelles</translation>
     </message>
     <message>
         <source>Not directed yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Noch nicht inszeniert</translation>
     </message>
     <message>
         <source>What the camera sees</source>
-        <translation type="unfinished"></translation>
+        <translation>Was die Kamera sieht</translation>
     </message>
     <message>
         <source>Press Direct the shots, or write it yourself.</source>
-        <translation type="unfinished"></translation>
+        <translation>Drück auf Einstellungen inszenieren, oder schreib es selbst.</translation>
     </message>
     <message>
         <source>How it moves</source>
-        <translation type="unfinished"></translation>
+        <translation>Wie es sich bewegt</translation>
     </message>
     <message>
         <source>One small gesture, one small camera movement.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine kleine Geste, eine kleine Kamerabewegung.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>Directing the shots with %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Inszeniere die Einstellungen mit %1...</translation>
     </message>
     <message>
         <source>Writing the script with %1...</source>
-        <translation type="unfinished">Skript wird mit %1 geschrieben...</translation>
+        <translation>Skript wird mit %1 geschrieben...</translation>
     </message>
     <message>
         <source>The model returned an empty answer.</source>
@@ -1151,7 +1151,7 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
+        <translation>Studio</translation>
     </message>
     <message>
         <source>Library</source>
@@ -1219,509 +1219,509 @@ An uns wird nichts gesendet.</translation>
     <name>StepActor</name>
     <message>
         <source>Who says it?</source>
-        <translation type="unfinished"></translation>
+        <translation>Wer sagt es?</translation>
     </message>
     <message>
         <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine glaubwürdige Person schlägt eine perfekte. Gewöhnliches Gesicht, gewöhnlicher Raum.</translation>
     </message>
     <message>
         <source>Where they are</source>
-        <translation type="unfinished"></translation>
+        <translation>Wo sie ist</translation>
     </message>
     <message>
         <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation type="unfinished"></translation>
+        <translation>z. B. ein kleines Bad, Handtücher auf dem Boden, Morgenlicht durch die Jalousien</translation>
     </message>
     <message>
         <source>Describe them</source>
-        <translation type="unfinished"></translation>
+        <translation>Beschreib sie</translation>
     </message>
     <message>
         <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation type="unfinished"></translation>
+        <translation>Einfache Worte wirken am besten. Die Merkmale unten füllen nur, was du ausgelassen hast.</translation>
     </message>
     <message>
         <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation type="unfinished"></translation>
+        <translation>z. B. müde, aber freundlich, ungeschminkt, unordentlicher Dutt, leicht schiefes Lächeln</translation>
     </message>
     <message>
         <source>Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>Geschlecht</translation>
     </message>
     <message>
         <source>a woman</source>
-        <translation type="unfinished"></translation>
+        <translation>eine Frau</translation>
     </message>
     <message>
         <source>a man</source>
-        <translation type="unfinished"></translation>
+        <translation>ein Mann</translation>
     </message>
     <message>
         <source>a non-binary person</source>
-        <translation type="unfinished"></translation>
+        <translation>eine nicht-binäre Person</translation>
     </message>
     <message>
         <source>Age</source>
-        <translation type="unfinished"></translation>
+        <translation>Alter</translation>
     </message>
     <message>
         <source>early twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>Anfang zwanzig</translation>
     </message>
     <message>
         <source>late twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>Ende zwanzig</translation>
     </message>
     <message>
         <source>thirties</source>
-        <translation type="unfinished"></translation>
+        <translation>Anfang dreißig</translation>
     </message>
     <message>
         <source>forties</source>
-        <translation type="unfinished"></translation>
+        <translation>Mitte vierzig</translation>
     </message>
     <message>
         <source>fifties or older</source>
-        <translation type="unfinished"></translation>
+        <translation>fünfzig oder älter</translation>
     </message>
     <message>
         <source>Dress</source>
-        <translation type="unfinished"></translation>
+        <translation>Kleidung</translation>
     </message>
     <message>
         <source>casual</source>
-        <translation type="unfinished"></translation>
+        <translation>leger</translation>
     </message>
     <message>
         <source>sportswear</source>
-        <translation type="unfinished"></translation>
+        <translation>Sportkleidung</translation>
     </message>
     <message>
         <source>office</source>
-        <translation type="unfinished"></translation>
+        <translation>Büro</translation>
     </message>
     <message>
         <source>streetwear</source>
-        <translation type="unfinished"></translation>
+        <translation>Streetwear</translation>
     </message>
     <message>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>Energie</translation>
     </message>
     <message>
         <source>calm</source>
-        <translation type="unfinished"></translation>
+        <translation>ruhig</translation>
     </message>
     <message>
         <source>upbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>aufgedreht</translation>
     </message>
     <message>
         <source>just woke up</source>
-        <translation type="unfinished"></translation>
+        <translation>gerade aufgewacht</translation>
     </message>
     <message>
         <source>warm</source>
-        <translation type="unfinished"></translation>
+        <translation>herzlich</translation>
     </message>
     <message>
         <source>Someone real</source>
-        <translation type="unfinished"></translation>
+        <translation>Jemand Echtes</translation>
     </message>
     <message>
         <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional. Ein Foto einer echten Person hält das Gesicht über alle Einstellungen gleich.</translation>
     </message>
     <message>
         <source>Use this photo as the actor, without generating</source>
-        <translation type="unfinished"></translation>
+        <translation>Dieses Foto ohne Generieren als Darsteller nehmen</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Casting</translation>
     </message>
     <message>
         <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation type="unfinished"></translation>
+        <translation>Vier Gesichter auf einmal. Behalte das, das ein echtes Selfie sein könnte.</translation>
     </message>
     <message>
         <source>Casting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Casting läuft...</translation>
     </message>
     <message>
         <source>Cast 1 portrait</source>
-        <translation type="unfinished"></translation>
+        <translation>1 Porträt casten</translation>
     </message>
     <message>
         <source>Cast %1 portraits</source>
         <extracomment>%1 is a number of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 Porträts casten</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Preis unbekannt</translation>
     </message>
     <message>
         <source>Their voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Ihre Stimme</translation>
     </message>
     <message>
         <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation type="unfinished"></translation>
+        <translation>Hör sie für einen Bruchteil eines Cents, bevor du Video kaufst.</translation>
     </message>
     <message>
         <source>Keep this actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Diesen Darsteller behalten</translation>
     </message>
     <message>
         <source>Saved actors are one click away in every ad after this one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Gespeicherte Darsteller sind in jeder weiteren Werbung einen Klick entfernt.</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Aktualisieren</translation>
     </message>
     <message>
         <source>Save actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Darsteller speichern</translation>
     </message>
     <message>
         <source>What gets sent</source>
-        <translation type="unfinished"></translation>
+        <translation>Was gesendet wird</translation>
     </message>
     <message>
         <source>Hide the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Prompt ausblenden</translation>
     </message>
     <message>
         <source>Show the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Prompt anzeigen</translation>
     </message>
     <message>
         <source>Built from your own %1.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Aus deiner eigenen %1 gebaut.</translation>
     </message>
     <message>
         <source>Drop a casting.json at %1 to change how this is written.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Leg eine casting.json in %1 ab, um die Formulierung zu ändern.</translation>
     </message>
     <message>
         <source>Portrait model</source>
-        <translation type="unfinished"></translation>
+        <translation>Porträtmodell</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Zurück</translation>
     </message>
     <message>
         <source>Cast someone to continue</source>
-        <translation type="unfinished"></translation>
+        <translation>Caste jemanden, um fortzufahren</translation>
     </message>
     <message>
         <source>Next: write the script</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiter: das Skript schreiben</translation>
     </message>
 </context>
 <context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
-        <translation type="unfinished"></translation>
+        <translation>Was verkaufst du?</translation>
     </message>
     <message>
         <source>Everything the actor says and everything on screen is built from this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Alles, was der Darsteller sagt, und alles im Bild entsteht daraus.</translation>
     </message>
     <message>
         <source>Product or service</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkt oder Dienstleistung</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation type="unfinished">z. B. Lumen Glow Serum</translation>
+        <translation>z. B. Lumen Glow Serum</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation type="unfinished">Worum es geht</translation>
+        <translation>Worum es geht</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation type="unfinished">Ein Vitamin-C-Serum, das fahle Haut in zwei Wochen aufhellt. Ohne Duftstoffe, 30 ml.</translation>
+        <translation>Ein Vitamin-C-Serum, das fahle Haut in zwei Wochen aufhellt. Ohne Duftstoffe, 30 ml.</translation>
     </message>
     <message>
         <source>Who it is for</source>
-        <translation type="unfinished"></translation>
+        <translation>Für wen es ist</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation type="unfinished">z. B. Frauen zwischen 25 und 35 mit Interesse an Clean Beauty</translation>
+        <translation>z. B. Frauen zwischen 25 und 35 mit Interesse an Clean Beauty</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Referenzfotos</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Foto des echten Produkts hält es in jeder Einstellung erkennbar.</translation>
     </message>
     <message>
         <source>Next: cast your actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiter: Darsteller casten</translation>
     </message>
 </context>
 <context>
     <name>StepRail</name>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkt</translation>
     </message>
     <message>
         <source>What you are selling</source>
-        <translation type="unfinished"></translation>
+        <translation>Was du verkaufst</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Darsteller</translation>
     </message>
     <message>
         <source>Who says it</source>
-        <translation type="unfinished"></translation>
+        <translation>Wer spricht</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Skript</translation>
+        <translation>Skript</translation>
     </message>
     <message>
         <source>What they say</source>
-        <translation type="unfinished"></translation>
+        <translation>Was gesagt wird</translation>
     </message>
     <message>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>Zusammenfassung</translation>
     </message>
     <message>
         <source>Check and generate</source>
-        <translation type="unfinished"></translation>
+        <translation>Prüfen und generieren</translation>
     </message>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>DEINE WERBUNG</translation>
     </message>
     <message>
         <source>Start over</source>
-        <translation type="unfinished"></translation>
+        <translation>Neu anfangen</translation>
     </message>
 </context>
 <context>
     <name>StepScript</name>
     <message>
         <source>What do they say?</source>
-        <translation type="unfinished"></translation>
+        <translation>Was sagt die Person?</translation>
     </message>
     <message>
         <source>15 to 30 s converts best</source>
-        <translation type="unfinished"></translation>
+        <translation>15 bis 30 s konvertieren am besten</translation>
     </message>
     <message>
         <source>Hook</source>
-        <translation type="unfinished"></translation>
+        <translation>Aufhänger</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Benenne den Frust in einem Satz. Du hast drei Sekunden.</translation>
     </message>
     <message>
         <source>Problem</source>
-        <translation type="unfinished"></translation>
+        <translation>Problem</translation>
     </message>
     <message>
         <source>Make it concrete. What did you try that failed?</source>
-        <translation type="unfinished"></translation>
+        <translation>Mach es konkret. Was hast du versucht, das nicht half?</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkt</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
-        <translation type="unfinished"></translation>
+        <translation>Führ es als das ein, was endlich half, nicht als Produkt.</translation>
     </message>
     <message>
         <source>Proof</source>
-        <translation type="unfinished"></translation>
+        <translation>Beleg</translation>
     </message>
     <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein konkretes Detail. Eine Zahl, eine Frist, ein Moment.</translation>
     </message>
     <message>
         <source>Ask</source>
-        <translation type="unfinished"></translation>
+        <translation>Aufforderung</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
-        <translation type="unfinished"></translation>
+        <translation>Sag beiläufig, was als Nächstes zu tun ist.</translation>
     </message>
     <message>
         <source>Keep going, or leave it here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Mach weiter, oder lass es hier.</translation>
     </message>
     <message>
         <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ein Satz pro Szene, in deinen Worten. Keine Dauer zu wählen: die Werbung dauert so lang wie die Worte.</translation>
     </message>
     <message>
         <source>Add a scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Szene hinzufügen</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
         <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 Szene(n) · %2 s</translation>
     </message>
     <message>
         <source>Direct the shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Einstellungen inszenieren</translation>
     </message>
     <message>
         <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Macht aus deinen Sätzen das, was die Kamera sieht. Deine Worte bleiben unverändert.</translation>
     </message>
     <message>
         <source>Directing...</source>
-        <translation type="unfinished"></translation>
+        <translation>Inszeniere...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Preis unbekannt</translation>
     </message>
     <message>
         <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation type="unfinished"></translation>
+        <translation>Optional: eine nicht inszenierte Szene wird trotzdem gerendert, aus einem generischen Prompt. Die Inszenierung hält dieselbe Person im selben Raum über jeden Schnitt hinweg.</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Zurück</translation>
     </message>
     <message>
         <source>Next: review</source>
-        <translation type="unfinished"></translation>
+        <translation>Weiter: prüfen</translation>
     </message>
 </context>
 <context>
     <name>StepSummary</name>
     <message>
         <source>Ready to shoot</source>
-        <translation type="unfinished"></translation>
+        <translation>Bereit zum Dreh</translation>
     </message>
     <message>
         <source>Output</source>
-        <translation type="unfinished"></translation>
+        <translation>Ausgabe</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">Format</translation>
+        <translation>Format</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation type="unfinished">Untertitel einbrennen (nutzt OpenAI Whisper)</translation>
+        <translation>Untertitel einbrennen (nutzt OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Erweitert</translation>
     </message>
     <message>
         <source>Which models do the work. The defaults are sensible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Welche Modelle die Arbeit machen. Die Voreinstellungen sind sinnvoll.</translation>
     </message>
     <message>
         <source>Hide models</source>
-        <translation type="unfinished"></translation>
+        <translation>Modelle ausblenden</translation>
     </message>
     <message>
         <source>Choose models manually</source>
-        <translation type="unfinished"></translation>
+        <translation>Modelle selbst wählen</translation>
     </message>
     <message>
         <source>Frames</source>
-        <translation type="unfinished">Bilder</translation>
+        <translation>Bilder</translation>
     </message>
     <message>
         <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Kosten bisher %1. Eine Szene zu reparieren kostet einen Bruchteil eines Neuanfangs.</translation>
     </message>
     <message>
         <source>Fixing one scene costs a fraction of starting over.</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Szene zu reparieren kostet einen Bruchteil eines Neuanfangs.</translation>
     </message>
     <message>
         <source>Open in my player</source>
-        <translation type="unfinished"></translation>
+        <translation>In meinem Player öffnen</translation>
     </message>
     <message>
         <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Etwa %1 s Video, lippensynchron zu deinen Sätzen. Es wird nichts berechnet, bis du auf Generieren drückst.</translation>
     </message>
     <message>
         <source>Talking shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprecheinstellungen</translation>
     </message>
     <message>
         <source>Product shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Produkteinstellungen</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Stimme</translation>
+        <translation>Stimme</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Zurück</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Abbrechen</translation>
+        <translation>Abbrechen</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation type="unfinished">Wird generiert...</translation>
+        <translation>Wird generiert...</translation>
     </message>
     <message>
         <source>Generate the ad</source>
-        <translation type="unfinished"></translation>
+        <translation>Werbung generieren</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation type="unfinished">Deine Werbung ist fertig</translation>
+        <translation>Deine Werbung ist fertig</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation type="unfinished">Datei anzeigen</translation>
+        <translation>Datei anzeigen</translation>
     </message>
     <message>
         <source>Start a new ad</source>
-        <translation type="unfinished"></translation>
+        <translation>Neue Werbung</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished">Aktivität</translation>
+        <translation>Aktivität</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished">Leeren</translation>
+        <translation>Leeren</translation>
     </message>
 </context>
 <context>
@@ -1729,36 +1729,36 @@ An uns wird nichts gesendet.</translation>
     <message>
         <source>%1 · %2s</source>
         <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2 s</translation>
     </message>
     <message>
         <source>Scene %1</source>
         <extracomment>%1 is a shot number</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Szene %1</translation>
     </message>
     <message>
         <source>Re-shooting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Drehe neu...</translation>
     </message>
     <message>
         <source>Re-shoot this scene — %1</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Diese Szene neu drehen — %1</translation>
     </message>
     <message>
         <source>Re-shoot this scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Diese Szene neu drehen</translation>
     </message>
     <message>
         <source>The voice-over is kept, so it is not paid for again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das Voice-over bleibt erhalten und wird nicht erneut bezahlt.</translation>
     </message>
 </context>
 <context>
     <name>TraitPicker</name>
     <message>
         <source>doesn&apos;t matter</source>
-        <translation type="unfinished"></translation>
+        <translation>egal</translation>
     </message>
 </context>
 <context>
@@ -1780,179 +1780,179 @@ An uns wird nichts gesendet.</translation>
     <name>VoiceBooth</name>
     <message>
         <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ehrlich gesagt habe ich nicht daran geglaubt. Zwei Wochen später benutze ich es immer noch.</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Stimme</translation>
+        <translation>Stimme</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation type="unfinished">Andere Stimmen-ID...</translation>
+        <translation>Andere Stimmen-ID...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation type="unfinished">Stimmen-ID einfügen</translation>
+        <translation>Stimmen-ID einfügen</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation type="unfinished">Lade die Stimmen deines Kontos, um eine auszuwählen.</translation>
+        <translation>Lade die Stimmen deines Kontos, um eine auszuwählen.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation type="unfinished">Stimmen laden</translation>
+        <translation>Stimmen laden</translation>
     </message>
     <message>
         <source>Stability</source>
-        <translation type="unfinished"></translation>
+        <translation>Stabilität</translation>
     </message>
     <message>
         <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>Niedrig schwankt und klingt lebendig. Hoch ist gleichmäßig und sicher.</translation>
     </message>
     <message>
         <source>Similarity</source>
-        <translation type="unfinished"></translation>
+        <translation>Ähnlichkeit</translation>
     </message>
     <message>
         <source>How closely it holds to the original voice.</source>
-        <translation type="unfinished"></translation>
+        <translation>Wie eng sie an der Originalstimme bleibt.</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Stil</translation>
     </message>
     <message>
         <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation type="unfinished"></translation>
+        <translation>Treibt den Vortrag. Über der Hälfte wird es Schauspiel.</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>Tempo</translation>
     </message>
     <message>
         <source>Leave at 1.00 unless the read drags.</source>
-        <translation type="unfinished"></translation>
+        <translation>Lass es auf 1,00, außer die Lesung schleppt.</translation>
     </message>
     <message>
         <source>Audition line</source>
-        <translation type="unfinished"></translation>
+        <translation>Probesatz</translation>
     </message>
     <message>
         <source>Recording...</source>
-        <translation type="unfinished"></translation>
+        <translation>Nehme auf...</translation>
     </message>
     <message>
         <source>Hear them</source>
-        <translation type="unfinished"></translation>
+        <translation>Anhören</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>Stopp</translation>
     </message>
     <message>
         <source>Play again</source>
-        <translation type="unfinished"></translation>
+        <translation>Nochmal abspielen</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>Preis unbekannt</translation>
     </message>
     <message>
         <source>Hide voice cloning</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen ausblenden</translation>
     </message>
     <message>
         <source>Clone a voice from a recording</source>
-        <translation type="unfinished"></translation>
+        <translation>Eine Stimme aus einer Aufnahme klonen</translation>
     </message>
     <message>
         <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Zieh eine oder mehrere saubere Aufnahmen der Stimme her. Eine Minute Sprache reicht völlig.</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished">Entfernen</translation>
+        <translation>Entfernen</translation>
     </message>
     <message>
         <source>Add recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Aufnahmen hinzufügen</translation>
     </message>
     <message>
         <source>Name for the cloned voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Name der geklonten Stimme</translation>
     </message>
     <message>
         <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Das lädt deine Aufnahmen zu ElevenLabs hoch und fügt deinem Konto eine dauerhafte Stimme hinzu. Klone nur eine Stimme, die du verwenden darfst.</translation>
     </message>
     <message>
         <source>Cloning...</source>
-        <translation type="unfinished"></translation>
+        <translation>Klone...</translation>
     </message>
     <message>
         <source>Clone onto my ElevenLabs account</source>
-        <translation type="unfinished"></translation>
+        <translation>In mein ElevenLabs-Konto klonen</translation>
     </message>
     <message>
         <source>Choose voice recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Sprachaufnahmen auswählen</translation>
     </message>
     <message>
         <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation type="unfinished"></translation>
+        <translation>Audio (*.mp3 *.wav *.m4a *.ogg)</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation type="unfinished">%1 Stimmen geladen.</translation>
+        <translation>%1 Stimmen geladen.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation type="unfinished">Stimmen konnten nicht geladen werden: %1</translation>
+        <translation>Stimmen konnten nicht geladen werden: %1</translation>
     </message>
     <message>
         <source>Write a line for them to say.</source>
-        <translation type="unfinished"></translation>
+        <translation>Schreib einen Satz, den sie sagen soll.</translation>
     </message>
     <message>
         <source>Could not create the auditions folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Der Proben-Ordner konnte nicht angelegt werden.</translation>
     </message>
     <message>
         <source>No voice provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Kein Sprachanbieter namens %1.</translation>
     </message>
     <message>
         <source>Audition failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Probe fehlgeschlagen: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">%1 konnte nicht geschrieben werden.</translation>
+        <translation>%1 konnte nicht geschrieben werden.</translation>
     </message>
     <message>
         <source>Add at least one recording first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Füge zuerst mindestens eine Aufnahme hinzu.</translation>
     </message>
     <message>
         <source>Market Queen voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Market-Queen-Stimme</translation>
     </message>
     <message>
         <source>Cloned with Market Queen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Mit Market Queen geklont.</translation>
     </message>
     <message>
         <source>Cloning a voice from %1 recording(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Klone eine Stimme aus %1 Aufnahme(n).</translation>
     </message>
     <message>
         <source>Cloning failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Klonen fehlgeschlagen: %1</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation type="unfinished"></translation>
+        <translation>Die Stimme „%1“ ist in deinem Konto.</translation>
     </message>
 </context>
 <context>

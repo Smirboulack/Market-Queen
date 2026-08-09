@@ -5,14 +5,14 @@
     <name>ActorLibrary</name>
     <message>
         <source>Actor %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Актёр %1</translation>
     </message>
 </context>
 <context>
     <name>ActorStrip</name>
     <message>
         <source>Your actors</source>
-        <translation type="unfinished"></translation>
+        <translation>Ваши актёры</translation>
     </message>
 </context>
 <context>
@@ -34,92 +34,92 @@
     <name>AvatarTask</name>
     <message>
         <source>The provider returned no video.</source>
-        <translation type="unfinished">Провайдер не вернул видео.</translation>
+        <translation>Провайдер не вернул видео.</translation>
     </message>
     <message>
         <source>Downloading the clip...</source>
-        <translation type="unfinished">Загружаем клип...</translation>
+        <translation>Загружаем клип...</translation>
     </message>
     <message>
         <source>The downloaded clip was empty.</source>
-        <translation type="unfinished">Загруженный клип оказался пустым.</translation>
+        <translation>Загруженный клип оказался пустым.</translation>
     </message>
 </context>
 <context>
     <name>Casting</name>
     <message>
         <source>No portrait came back. Check the log.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ни одного портрета не вернулось. Посмотрите журнал.</translation>
     </message>
     <message>
         <source>Could not create the casting folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать папку кастинга.</translation>
     </message>
     <message>
         <source>Casting %1 portrait(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Кастинг %1 портрета(ов) с помощью %2.</translation>
     </message>
     <message>
         <source>No image provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет поставщика изображений с именем %1.</translation>
     </message>
     <message>
         <source>Portrait failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Портрет не удался: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">Не удалось записать %1.</translation>
+        <translation>Не удалось записать %1.</translation>
     </message>
 </context>
 <context>
     <name>Director</name>
     <message>
         <source>Write at least one line first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сначала напишите хотя бы одну реплику.</translation>
     </message>
     <message>
         <source>No text provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет поставщика текста с именем %1.</translation>
     </message>
     <message>
         <source>Directing %1 scene(s) with %2.</source>
-        <translation type="unfinished"></translation>
+        <translation>Режиссура %1 сцены(сцен) с помощью %2.</translation>
     </message>
     <message>
         <source>Direction failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Режиссура не удалась: %1</translation>
     </message>
     <message>
         <source>The model returned no shots.</source>
-        <translation type="unfinished"></translation>
+        <translation>Модель не вернула ни одного кадра.</translation>
     </message>
     <message>
         <source>Only %1 of %2 scenes came back directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Только %1 из %2 сцен вернулись с режиссурой.</translation>
     </message>
     <message>
         <source>%1 scene(s) directed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Отрежиссировано сцен: %1.</translation>
     </message>
 </context>
 <context>
     <name>ElevenLabsVoiceCloneTask</name>
     <message>
         <source>Add at least one audio sample to clone from.</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавьте хотя бы один аудиофрагмент для клонирования.</translation>
     </message>
     <message>
         <source>Uploading the samples...</source>
-        <translation type="unfinished"></translation>
+        <translation>Загрузка образцов...</translation>
     </message>
     <message>
         <source>None of the samples could be read.</source>
-        <translation type="unfinished"></translation>
+        <translation>Ни один из образцов не удалось прочитать.</translation>
     </message>
     <message>
         <source>ElevenLabs did not return a voice id.</source>
-        <translation type="unfinished"></translation>
+        <translation>ElevenLabs не вернул идентификатор голоса.</translation>
     </message>
 </context>
 <context>
@@ -157,7 +157,7 @@
     </message>
     <message>
         <source>?</source>
-        <translation type="unfinished"></translation>
+        <translation>?</translation>
     </message>
     <message>
         <source>Total</source>
@@ -177,11 +177,11 @@
     <name>FalAvatarTask</name>
     <message>
         <source>No frame to animate.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет кадра для анимации.</translation>
     </message>
     <message>
         <source>No audio for this shot, so there is nothing to lip-sync to.</source>
-        <translation type="unfinished"></translation>
+        <translation>Для этого кадра нет звука, значит нечего синхронизировать.</translation>
     </message>
 </context>
 <context>
@@ -233,7 +233,7 @@
     <message>
         <source>~%1</source>
         <extracomment>Prefix meaning &quot;approximately&quot;. %1 is a price like $1.10</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>~%1</translation>
     </message>
     <message>
         <source>Script</source>
@@ -385,32 +385,32 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation type="unfinished"></translation>
+        <translation>Перетащите сюда фотографии продукта</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сколько угодно. Пэкшот, в использовании, крупный план этикетки.</translation>
     </message>
     <message>
         <source>1 picture. It is the reference.</source>
-        <translation type="unfinished"></translation>
+        <translation>1 фотография. Это референс.</translation>
     </message>
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Фотографий: %1. Отмеченная звездой — основной референс.</translation>
     </message>
     <message>
         <source>Browse</source>
-        <translation type="unfinished">Обзор</translation>
+        <translation>Обзор</translation>
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать фотографии продукта</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
-        <translation type="unfinished">Изображения (*.png *.jpg *.jpeg *.webp)</translation>
+        <translation>Изображения (*.png *.jpg *.jpeg *.webp)</translation>
     </message>
 </context>
 <context>
@@ -590,15 +590,15 @@
     </message>
     <message>
         <source>Could not read the actor portrait.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось прочитать портрет актёра.</translation>
     </message>
     <message>
         <source>unchanged</source>
-        <translation type="unfinished"></translation>
+        <translation>без изменений</translation>
     </message>
     <message>
         <source>Re-shooting scene %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Пересъёмка сцены %1.</translation>
     </message>
     <message>
         <source>Cancelling...</source>
@@ -622,11 +622,11 @@
     </message>
     <message>
         <source>Using your %1 scene(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Используются ваши сцены: %1.</translation>
     </message>
     <message>
         <source>your own scenes</source>
-        <translation type="unfinished"></translation>
+        <translation>ваши собственные сцены</translation>
     </message>
     <message>
         <source>Using the script you wrote, cut into %1 shot(s).</source>
@@ -654,23 +654,23 @@
     </message>
     <message>
         <source>Recording line %1 of %2...</source>
-        <translation type="unfinished"></translation>
+        <translation>Запись реплики %1 из %2...</translation>
     </message>
     <message>
         <source>No voice-over was recorded.</source>
-        <translation type="unfinished"></translation>
+        <translation>Закадровый голос не был записан.</translation>
     </message>
     <message>
         <source>Could not join the voice-over: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось склеить закадровый голос: %1</translation>
     </message>
     <message>
         <source>Voice-over ready: %1 line(s), %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>Закадровый голос готов: реплик %1, %2 с.</translation>
     </message>
     <message>
         <source>%1 shot(s) over %2s.</source>
-        <translation type="unfinished"></translation>
+        <translation>Кадров: %1, длительность %2 с.</translation>
     </message>
     <message>
         <source>Drawing shot %1 of %2...</source>
@@ -686,7 +686,7 @@
     </message>
     <message>
         <source>Filming the product for shot %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Съёмка продукта для кадра %1...</translation>
     </message>
     <message>
         <source>Shot %1 saved (%2 MB).</source>
@@ -694,11 +694,11 @@
     </message>
     <message>
         <source>No avatar provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет поставщика аватаров с именем %1.</translation>
     </message>
     <message>
         <source>Slow handheld move around the product, natural light, nobody on screen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Медленное движение с рук вокруг продукта, естественный свет, никого в кадре.</translation>
     </message>
     <message>
         <source>%1 shot(s)</source>
@@ -766,7 +766,7 @@
     </message>
     <message>
         <source>The clips are %1s short in total; those shots hold their last frame.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всего не хватает %1 с материала; эти кадры удерживают последний кадр.</translation>
     </message>
     <message>
         <source>FFmpeg finished but produced no file.</source>
@@ -786,19 +786,19 @@
     <message>
         <source>Casting... %1 of %2</source>
         <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Кастинг... %1 из %2</translation>
     </message>
     <message>
         <source>Pick the one that looks real</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите того, кто выглядит настоящим</translation>
     </message>
     <message>
         <source>None of them? Cast again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Никто не подходит? Повторите кастинг.</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбран</translation>
     </message>
 </context>
 <context>
@@ -816,51 +816,51 @@
     <name>RecapBlock</name>
     <message>
         <source>Edit</source>
-        <translation type="unfinished"></translation>
+        <translation>Изменить</translation>
     </message>
 </context>
 <context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>ВАША РЕКЛАМА</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Продукт</translation>
     </message>
     <message>
         <source>Not set yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё не задано</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Актёр</translation>
     </message>
     <message>
         <source>No one cast yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё никто не выбран</translation>
     </message>
     <message>
         <source>Not saved</source>
-        <translation type="unfinished"></translation>
+        <translation>Не сохранён</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Сценарий</translation>
+        <translation>Сценарий</translation>
     </message>
     <message>
         <source>Nothing written yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё ничего не написано</translation>
     </message>
     <message>
         <source>%1 s spoken</source>
         <extracomment>%1 is a duration in seconds, e.g. &quot;13.5 s&quot;</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 с речи</translation>
     </message>
     <message>
         <source>The estimate appears once the three steps are filled in.</source>
-        <translation type="unfinished"></translation>
+        <translation>Оценка появится, когда три шага будут заполнены.</translation>
     </message>
 </context>
 <context>
@@ -915,7 +915,7 @@
     </message>
     <message>
         <source>Lip-synced talking shots. The clip lasts exactly as long as the line.</source>
-        <translation type="unfinished"></translation>
+        <translation>Говорящие кадры с синхронизацией губ. Клип длится ровно столько, сколько реплика.</translation>
     </message>
     <message>
         <source>Best UGC-sounding voices. Load your voice list below.</source>
@@ -964,55 +964,55 @@
     <name>SceneCard</name>
     <message>
         <source>Talking</source>
-        <translation type="unfinished"></translation>
+        <translation>Говорит</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Продукт</translation>
     </message>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished">%1 с</translation>
+        <translation>%1 с</translation>
     </message>
     <message>
         <source>Hide the visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть визуал</translation>
     </message>
     <message>
         <source>Visual</source>
-        <translation type="unfinished"></translation>
+        <translation>Визуал</translation>
     </message>
     <message>
         <source>Not directed yet</source>
-        <translation type="unfinished"></translation>
+        <translation>Ещё без режиссуры</translation>
     </message>
     <message>
         <source>What the camera sees</source>
-        <translation type="unfinished"></translation>
+        <translation>Что видит камера</translation>
     </message>
     <message>
         <source>Press Direct the shots, or write it yourself.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нажмите «Срежиссировать кадры» или напишите сами.</translation>
     </message>
     <message>
         <source>How it moves</source>
-        <translation type="unfinished"></translation>
+        <translation>Как это движется</translation>
     </message>
     <message>
         <source>One small gesture, one small camera movement.</source>
-        <translation type="unfinished"></translation>
+        <translation>Один небольшой жест, одно небольшое движение камеры.</translation>
     </message>
 </context>
 <context>
     <name>ScriptTask</name>
     <message>
         <source>Directing the shots with %1...</source>
-        <translation type="unfinished"></translation>
+        <translation>Режиссура кадров с помощью %1...</translation>
     </message>
     <message>
         <source>Writing the script with %1...</source>
-        <translation type="unfinished">Пишем сценарий с помощью %1...</translation>
+        <translation>Пишем сценарий с помощью %1...</translation>
     </message>
     <message>
         <source>The model returned an empty answer.</source>
@@ -1151,7 +1151,7 @@
     <name>SideNav</name>
     <message>
         <source>Studio</source>
-        <translation type="unfinished"></translation>
+        <translation>Студия</translation>
     </message>
     <message>
         <source>Library</source>
@@ -1219,509 +1219,509 @@ Nothing is uploaded to us.</source>
     <name>StepActor</name>
     <message>
         <source>Who says it?</source>
-        <translation type="unfinished"></translation>
+        <translation>Кто это говорит?</translation>
     </message>
     <message>
         <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation type="unfinished"></translation>
+        <translation>Правдоподобный человек лучше безупречного. Обычное лицо, обычная комната.</translation>
     </message>
     <message>
         <source>Where they are</source>
-        <translation type="unfinished"></translation>
+        <translation>Где она находится</translation>
     </message>
     <message>
         <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation type="unfinished"></translation>
+        <translation>напр. маленькая ванная, полотенца на полу, утренний свет сквозь жалюзи</translation>
     </message>
     <message>
         <source>Describe them</source>
-        <translation type="unfinished"></translation>
+        <translation>Опишите её</translation>
     </message>
     <message>
         <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation type="unfinished"></translation>
+        <translation>Простые слова работают лучше всего. Признаки ниже лишь дополняют то, что вы не указали.</translation>
     </message>
     <message>
         <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation type="unfinished"></translation>
+        <translation>напр. усталая, но приветливая, без макияжа, растрёпанный пучок, чуть кривая улыбка</translation>
     </message>
     <message>
         <source>Gender</source>
-        <translation type="unfinished"></translation>
+        <translation>Пол</translation>
     </message>
     <message>
         <source>a woman</source>
-        <translation type="unfinished"></translation>
+        <translation>женщина</translation>
     </message>
     <message>
         <source>a man</source>
-        <translation type="unfinished"></translation>
+        <translation>мужчина</translation>
     </message>
     <message>
         <source>a non-binary person</source>
-        <translation type="unfinished"></translation>
+        <translation>небинарный человек</translation>
     </message>
     <message>
         <source>Age</source>
-        <translation type="unfinished"></translation>
+        <translation>Возраст</translation>
     </message>
     <message>
         <source>early twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>чуть за двадцать</translation>
     </message>
     <message>
         <source>late twenties</source>
-        <translation type="unfinished"></translation>
+        <translation>под тридцать</translation>
     </message>
     <message>
         <source>thirties</source>
-        <translation type="unfinished"></translation>
+        <translation>около тридцати пяти</translation>
     </message>
     <message>
         <source>forties</source>
-        <translation type="unfinished"></translation>
+        <translation>около сорока пяти</translation>
     </message>
     <message>
         <source>fifties or older</source>
-        <translation type="unfinished"></translation>
+        <translation>пятьдесят и старше</translation>
     </message>
     <message>
         <source>Dress</source>
-        <translation type="unfinished"></translation>
+        <translation>Одежда</translation>
     </message>
     <message>
         <source>casual</source>
-        <translation type="unfinished"></translation>
+        <translation>повседневная</translation>
     </message>
     <message>
         <source>sportswear</source>
-        <translation type="unfinished"></translation>
+        <translation>спортивная</translation>
     </message>
     <message>
         <source>office</source>
-        <translation type="unfinished"></translation>
+        <translation>офисная</translation>
     </message>
     <message>
         <source>streetwear</source>
-        <translation type="unfinished"></translation>
+        <translation>стритвир</translation>
     </message>
     <message>
         <source>Energy</source>
-        <translation type="unfinished"></translation>
+        <translation>Энергия</translation>
     </message>
     <message>
         <source>calm</source>
-        <translation type="unfinished"></translation>
+        <translation>спокойная</translation>
     </message>
     <message>
         <source>upbeat</source>
-        <translation type="unfinished"></translation>
+        <translation>бодрая</translation>
     </message>
     <message>
         <source>just woke up</source>
-        <translation type="unfinished"></translation>
+        <translation>только проснулась</translation>
     </message>
     <message>
         <source>warm</source>
-        <translation type="unfinished"></translation>
+        <translation>тёплая</translation>
     </message>
     <message>
         <source>Someone real</source>
-        <translation type="unfinished"></translation>
+        <translation>Кто-то настоящий</translation>
     </message>
     <message>
         <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Необязательно. Фотография реального человека сохраняет одно лицо во всех кадрах.</translation>
     </message>
     <message>
         <source>Use this photo as the actor, without generating</source>
-        <translation type="unfinished"></translation>
+        <translation>Использовать это фото как актёра, без генерации</translation>
     </message>
     <message>
         <source>Cast</source>
-        <translation type="unfinished"></translation>
+        <translation>Кастинг</translation>
     </message>
     <message>
         <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation type="unfinished"></translation>
+        <translation>Четыре лица за раз. Оставьте то, что могло бы быть селфи реального человека.</translation>
     </message>
     <message>
         <source>Casting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Кастинг...</translation>
     </message>
     <message>
         <source>Cast 1 portrait</source>
-        <translation type="unfinished"></translation>
+        <translation>Сгенерировать 1 портрет</translation>
     </message>
     <message>
         <source>Cast %1 portraits</source>
         <extracomment>%1 is a number of portraits</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Сгенерировать %1 портретов</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>цена неизвестна</translation>
     </message>
     <message>
         <source>Their voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Её голос</translation>
     </message>
     <message>
         <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation type="unfinished"></translation>
+        <translation>Послушайте её за доли цента, прежде чем покупать видео.</translation>
     </message>
     <message>
         <source>Keep this actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить этого актёра</translation>
     </message>
     <message>
         <source>Saved actors are one click away in every ad after this one.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранённые актёры — в одном клике в каждой следующей рекламе.</translation>
     </message>
     <message>
         <source>Update</source>
-        <translation type="unfinished"></translation>
+        <translation>Обновить</translation>
     </message>
     <message>
         <source>Save actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Сохранить актёра</translation>
     </message>
     <message>
         <source>What gets sent</source>
-        <translation type="unfinished"></translation>
+        <translation>Что отправляется</translation>
     </message>
     <message>
         <source>Hide the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть промпт</translation>
     </message>
     <message>
         <source>Show the prompt</source>
-        <translation type="unfinished"></translation>
+        <translation>Показать промпт</translation>
     </message>
     <message>
         <source>Built from your own %1.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Построено из вашего %1.</translation>
     </message>
     <message>
         <source>Drop a casting.json at %1 to change how this is written.</source>
         <extracomment>%1 is a file path</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Положите casting.json в %1, чтобы изменить формулировку.</translation>
     </message>
     <message>
         <source>Portrait model</source>
-        <translation type="unfinished"></translation>
+        <translation>Модель портрета</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <source>Cast someone to continue</source>
-        <translation type="unfinished"></translation>
+        <translation>Выберите кого-нибудь, чтобы продолжить</translation>
     </message>
     <message>
         <source>Next: write the script</source>
-        <translation type="unfinished"></translation>
+        <translation>Далее: написать сценарий</translation>
     </message>
 </context>
 <context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
-        <translation type="unfinished"></translation>
+        <translation>Что вы продаёте?</translation>
     </message>
     <message>
         <source>Everything the actor says and everything on screen is built from this.</source>
-        <translation type="unfinished"></translation>
+        <translation>Всё, что говорит актёр, и всё на экране строится отсюда.</translation>
     </message>
     <message>
         <source>Product or service</source>
-        <translation type="unfinished"></translation>
+        <translation>Продукт или услуга</translation>
     </message>
     <message>
         <source>e.g. Lumen glow serum</source>
-        <translation type="unfinished">напр. сыворотка Lumen glow</translation>
+        <translation>напр. сыворотка Lumen glow</translation>
     </message>
     <message>
         <source>What it is</source>
-        <translation type="unfinished">Что это</translation>
+        <translation>Что это</translation>
     </message>
     <message>
         <source>A vitamin C serum that clears dull skin in two weeks. Fragrance free, 30 ml.</source>
-        <translation type="unfinished">Сыворотка с витамином C, которая освежает тусклую кожу за две недели. Без отдушек, 30 мл.</translation>
+        <translation>Сыворотка с витамином C, которая освежает тусклую кожу за две недели. Без отдушек, 30 мл.</translation>
     </message>
     <message>
         <source>Who it is for</source>
-        <translation type="unfinished"></translation>
+        <translation>Для кого это</translation>
     </message>
     <message>
         <source>e.g. women 25-35 who care about clean beauty</source>
-        <translation type="unfinished">напр. женщины 25-35 лет, которым важна чистая косметика</translation>
+        <translation>напр. женщины 25-35 лет, которым важна чистая косметика</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation type="unfinished"></translation>
+        <translation>Референсные фотографии</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
-        <translation type="unfinished"></translation>
+        <translation>Фотография настоящего продукта сохраняет его узнаваемым в каждом кадре.</translation>
     </message>
     <message>
         <source>Next: cast your actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Далее: выбрать актёра</translation>
     </message>
 </context>
 <context>
     <name>StepRail</name>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Продукт</translation>
     </message>
     <message>
         <source>What you are selling</source>
-        <translation type="unfinished"></translation>
+        <translation>Что вы продаёте</translation>
     </message>
     <message>
         <source>Actor</source>
-        <translation type="unfinished"></translation>
+        <translation>Актёр</translation>
     </message>
     <message>
         <source>Who says it</source>
-        <translation type="unfinished"></translation>
+        <translation>Кто говорит</translation>
     </message>
     <message>
         <source>Script</source>
-        <translation type="unfinished">Сценарий</translation>
+        <translation>Сценарий</translation>
     </message>
     <message>
         <source>What they say</source>
-        <translation type="unfinished"></translation>
+        <translation>Что говорится</translation>
     </message>
     <message>
         <source>Summary</source>
-        <translation type="unfinished"></translation>
+        <translation>Итог</translation>
     </message>
     <message>
         <source>Check and generate</source>
-        <translation type="unfinished"></translation>
+        <translation>Проверить и сгенерировать</translation>
     </message>
     <message>
         <source>YOUR AD</source>
-        <translation type="unfinished"></translation>
+        <translation>ВАША РЕКЛАМА</translation>
     </message>
     <message>
         <source>Start over</source>
-        <translation type="unfinished"></translation>
+        <translation>Начать заново</translation>
     </message>
 </context>
 <context>
     <name>StepScript</name>
     <message>
         <source>What do they say?</source>
-        <translation type="unfinished"></translation>
+        <translation>Что говорит этот человек?</translation>
     </message>
     <message>
         <source>15 to 30 s converts best</source>
-        <translation type="unfinished"></translation>
+        <translation>От 15 до 30 с конвертирует лучше всего</translation>
     </message>
     <message>
         <source>Hook</source>
-        <translation type="unfinished"></translation>
+        <translation>Зацепка</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
-        <translation type="unfinished"></translation>
+        <translation>Назовите проблему одной фразой. У вас три секунды.</translation>
     </message>
     <message>
         <source>Problem</source>
-        <translation type="unfinished"></translation>
+        <translation>Проблема</translation>
     </message>
     <message>
         <source>Make it concrete. What did you try that failed?</source>
-        <translation type="unfinished"></translation>
+        <translation>Сделайте это конкретным. Что вы пробовали, и что не сработало?</translation>
     </message>
     <message>
         <source>Product</source>
-        <translation type="unfinished"></translation>
+        <translation>Продукт</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
-        <translation type="unfinished"></translation>
+        <translation>Представьте его как то, что наконец сработало, а не как товар.</translation>
     </message>
     <message>
         <source>Proof</source>
-        <translation type="unfinished"></translation>
+        <translation>Доказательство</translation>
     </message>
     <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
-        <translation type="unfinished"></translation>
+        <translation>Одна конкретная деталь. Цифра, срок, момент.</translation>
     </message>
     <message>
         <source>Ask</source>
-        <translation type="unfinished"></translation>
+        <translation>Призыв</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
-        <translation type="unfinished"></translation>
+        <translation>Скажите, что делать дальше, без нажима.</translation>
     </message>
     <message>
         <source>Keep going, or leave it here.</source>
-        <translation type="unfinished"></translation>
+        <translation>Продолжайте или остановитесь здесь.</translation>
     </message>
     <message>
         <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation type="unfinished"></translation>
+        <translation>Одна реплика на сцену, вашими словами. Длительность выбирать не нужно: реклама длится столько, сколько слова.</translation>
     </message>
     <message>
         <source>Add a scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить сцену</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
         <extracomment>%1 is a count of scenes, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Сцен: %1 · %2 с</translation>
     </message>
     <message>
         <source>Direct the shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Срежиссировать кадры</translation>
     </message>
     <message>
         <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation type="unfinished"></translation>
+        <translation>Превращает ваши реплики в то, что видит камера. Ваши слова никогда не меняются.</translation>
     </message>
     <message>
         <source>Directing...</source>
-        <translation type="unfinished"></translation>
+        <translation>Режиссура...</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>цена неизвестна</translation>
     </message>
     <message>
         <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation type="unfinished"></translation>
+        <translation>Необязательно: сцена без режиссуры всё равно отрисуется, из общего промпта. Именно режиссура удерживает одного человека в одной комнате от склейки к склейке.</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <source>Next: review</source>
-        <translation type="unfinished"></translation>
+        <translation>Далее: проверить</translation>
     </message>
 </context>
 <context>
     <name>StepSummary</name>
     <message>
         <source>Ready to shoot</source>
-        <translation type="unfinished"></translation>
+        <translation>Готово к съёмке</translation>
     </message>
     <message>
         <source>Output</source>
-        <translation type="unfinished"></translation>
+        <translation>Вывод</translation>
     </message>
     <message>
         <source>Format</source>
-        <translation type="unfinished">Формат</translation>
+        <translation>Формат</translation>
     </message>
     <message>
         <source>Burn in subtitles (uses OpenAI Whisper)</source>
-        <translation type="unfinished">Вшить субтитры (через OpenAI Whisper)</translation>
+        <translation>Вшить субтитры (через OpenAI Whisper)</translation>
     </message>
     <message>
         <source>Advanced</source>
-        <translation type="unfinished"></translation>
+        <translation>Дополнительно</translation>
     </message>
     <message>
         <source>Which models do the work. The defaults are sensible.</source>
-        <translation type="unfinished"></translation>
+        <translation>Какие модели делают работу. Значения по умолчанию разумны.</translation>
     </message>
     <message>
         <source>Hide models</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть модели</translation>
     </message>
     <message>
         <source>Choose models manually</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать модели вручную</translation>
     </message>
     <message>
         <source>Frames</source>
-        <translation type="unfinished">Кадры</translation>
+        <translation>Кадры</translation>
     </message>
     <message>
         <source>Cost so far %1. Fixing one scene costs a fraction of starting over.</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Затраты на данный момент %1. Исправить одну сцену стоит доли того, чтобы начать заново.</translation>
     </message>
     <message>
         <source>Fixing one scene costs a fraction of starting over.</source>
-        <translation type="unfinished"></translation>
+        <translation>Исправить одну сцену стоит доли того, чтобы начать заново.</translation>
     </message>
     <message>
         <source>Open in my player</source>
-        <translation type="unfinished"></translation>
+        <translation>Открыть в моём плеере</translation>
     </message>
     <message>
         <source>About %1 s of video, lip-synced to your lines. Nothing is charged until you press generate.</source>
         <extracomment>%1 is a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Около %1 с видео, синхронизированного с вашими репликами. Ничего не списывается, пока вы не нажмёте «Сгенерировать».</translation>
     </message>
     <message>
         <source>Talking shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Говорящие кадры</translation>
     </message>
     <message>
         <source>Product shots</source>
-        <translation type="unfinished"></translation>
+        <translation>Кадры продукта</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Голос</translation>
+        <translation>Голос</translation>
     </message>
     <message>
         <source>Back</source>
-        <translation type="unfinished"></translation>
+        <translation>Назад</translation>
     </message>
     <message>
         <source>Cancel</source>
-        <translation type="unfinished">Отмена</translation>
+        <translation>Отмена</translation>
     </message>
     <message>
         <source>Generating...</source>
-        <translation type="unfinished">Генерация...</translation>
+        <translation>Генерация...</translation>
     </message>
     <message>
         <source>Generate the ad</source>
-        <translation type="unfinished"></translation>
+        <translation>Сгенерировать рекламу</translation>
     </message>
     <message>
         <source>Your ad is ready</source>
-        <translation type="unfinished">Ваша реклама готова</translation>
+        <translation>Ваша реклама готова</translation>
     </message>
     <message>
         <source>Show file</source>
-        <translation type="unfinished">Показать файл</translation>
+        <translation>Показать файл</translation>
     </message>
     <message>
         <source>Start a new ad</source>
-        <translation type="unfinished"></translation>
+        <translation>Новая реклама</translation>
     </message>
     <message>
         <source>Activity</source>
-        <translation type="unfinished">Журнал</translation>
+        <translation>Журнал</translation>
     </message>
     <message>
         <source>Clear</source>
-        <translation type="unfinished">Очистить</translation>
+        <translation>Очистить</translation>
     </message>
 </context>
 <context>
@@ -1729,36 +1729,36 @@ Nothing is uploaded to us.</source>
     <message>
         <source>%1 · %2s</source>
         <extracomment>%1 is a shot number, %2 a duration in seconds</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>%1 · %2 с</translation>
     </message>
     <message>
         <source>Scene %1</source>
         <extracomment>%1 is a shot number</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Сцена %1</translation>
     </message>
     <message>
         <source>Re-shooting...</source>
-        <translation type="unfinished"></translation>
+        <translation>Пересъёмка...</translation>
     </message>
     <message>
         <source>Re-shoot this scene — %1</source>
         <extracomment>%1 is a price</extracomment>
-        <translation type="unfinished"></translation>
+        <translation>Переснять эту сцену — %1</translation>
     </message>
     <message>
         <source>Re-shoot this scene</source>
-        <translation type="unfinished"></translation>
+        <translation>Переснять эту сцену</translation>
     </message>
     <message>
         <source>The voice-over is kept, so it is not paid for again.</source>
-        <translation type="unfinished"></translation>
+        <translation>Закадровый голос сохраняется, поэтому за него не платят снова.</translation>
     </message>
 </context>
 <context>
     <name>TraitPicker</name>
     <message>
         <source>doesn&apos;t matter</source>
-        <translation type="unfinished"></translation>
+        <translation>неважно</translation>
     </message>
 </context>
 <context>
@@ -1780,179 +1780,179 @@ Nothing is uploaded to us.</source>
     <name>VoiceBooth</name>
     <message>
         <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation type="unfinished"></translation>
+        <translation>Честно, я не верила, что это сработает. Через две недели всё ещё пользуюсь.</translation>
     </message>
     <message>
         <source>Voice</source>
-        <translation type="unfinished">Голос</translation>
+        <translation>Голос</translation>
     </message>
     <message>
         <source>Other voice id...</source>
-        <translation type="unfinished">Другой id голоса...</translation>
+        <translation>Другой id голоса...</translation>
     </message>
     <message>
         <source>Paste a voice id</source>
-        <translation type="unfinished">Вставьте id голоса</translation>
+        <translation>Вставьте id голоса</translation>
     </message>
     <message>
         <source>Load the voices on your account to pick one.</source>
-        <translation type="unfinished">Загрузите голоса своего аккаунта, чтобы выбрать один.</translation>
+        <translation>Загрузите голоса своего аккаунта, чтобы выбрать один.</translation>
     </message>
     <message>
         <source>Load voices</source>
-        <translation type="unfinished">Загрузить голоса</translation>
+        <translation>Загрузить голоса</translation>
     </message>
     <message>
         <source>Stability</source>
-        <translation type="unfinished"></translation>
+        <translation>Стабильность</translation>
     </message>
     <message>
         <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation type="unfinished"></translation>
+        <translation>Низкая гуляет и звучит живо. Высокая ровная и безопасная.</translation>
     </message>
     <message>
         <source>Similarity</source>
-        <translation type="unfinished"></translation>
+        <translation>Схожесть</translation>
     </message>
     <message>
         <source>How closely it holds to the original voice.</source>
-        <translation type="unfinished"></translation>
+        <translation>Насколько близко держится оригинального голоса.</translation>
     </message>
     <message>
         <source>Style</source>
-        <translation type="unfinished"></translation>
+        <translation>Стиль</translation>
     </message>
     <message>
         <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation type="unfinished"></translation>
+        <translation>Усиливает подачу. За серединой начинается игра.</translation>
     </message>
     <message>
         <source>Speed</source>
-        <translation type="unfinished"></translation>
+        <translation>Скорость</translation>
     </message>
     <message>
         <source>Leave at 1.00 unless the read drags.</source>
-        <translation type="unfinished"></translation>
+        <translation>Оставьте 1,00, если только чтение не затянуто.</translation>
     </message>
     <message>
         <source>Audition line</source>
-        <translation type="unfinished"></translation>
+        <translation>Пробная фраза</translation>
     </message>
     <message>
         <source>Recording...</source>
-        <translation type="unfinished"></translation>
+        <translation>Запись...</translation>
     </message>
     <message>
         <source>Hear them</source>
-        <translation type="unfinished"></translation>
+        <translation>Послушать её</translation>
     </message>
     <message>
         <source>Stop</source>
-        <translation type="unfinished"></translation>
+        <translation>Стоп</translation>
     </message>
     <message>
         <source>Play again</source>
-        <translation type="unfinished"></translation>
+        <translation>Прослушать снова</translation>
     </message>
     <message>
         <source>price unknown</source>
-        <translation type="unfinished"></translation>
+        <translation>цена неизвестна</translation>
     </message>
     <message>
         <source>Hide voice cloning</source>
-        <translation type="unfinished"></translation>
+        <translation>Скрыть клонирование</translation>
     </message>
     <message>
         <source>Clone a voice from a recording</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонировать голос из записи</translation>
     </message>
     <message>
         <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation type="unfinished"></translation>
+        <translation>Перетащите одну или несколько чистых записей голоса. Минуты речи вполне достаточно.</translation>
     </message>
     <message>
         <source>Remove</source>
-        <translation type="unfinished">Убрать</translation>
+        <translation>Убрать</translation>
     </message>
     <message>
         <source>Add recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Добавить записи</translation>
     </message>
     <message>
         <source>Name for the cloned voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Имя клонированного голоса</translation>
     </message>
     <message>
         <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation type="unfinished"></translation>
+        <translation>Это загрузит ваши записи в ElevenLabs и добавит постоянный голос в вашу учётную запись. Клонируйте только тот голос, который вы вправе использовать.</translation>
     </message>
     <message>
         <source>Cloning...</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонирование...</translation>
     </message>
     <message>
         <source>Clone onto my ElevenLabs account</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонировать в мою учётную запись ElevenLabs</translation>
     </message>
     <message>
         <source>Choose voice recordings</source>
-        <translation type="unfinished"></translation>
+        <translation>Выбрать записи голоса</translation>
     </message>
     <message>
         <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation type="unfinished"></translation>
+        <translation>Аудио (*.mp3 *.wav *.m4a *.ogg)</translation>
     </message>
     <message>
         <source>%1 voices loaded.</source>
-        <translation type="unfinished">Загружено голосов: %1.</translation>
+        <translation>Загружено голосов: %1.</translation>
     </message>
     <message>
         <source>Could not load voices: %1</source>
-        <translation type="unfinished">Не удалось загрузить голоса: %1</translation>
+        <translation>Не удалось загрузить голоса: %1</translation>
     </message>
     <message>
         <source>Write a line for them to say.</source>
-        <translation type="unfinished"></translation>
+        <translation>Напишите фразу, которую она произнесёт.</translation>
     </message>
     <message>
         <source>Could not create the auditions folder.</source>
-        <translation type="unfinished"></translation>
+        <translation>Не удалось создать папку проб.</translation>
     </message>
     <message>
         <source>No voice provider called %1.</source>
-        <translation type="unfinished"></translation>
+        <translation>Нет поставщика голоса с именем %1.</translation>
     </message>
     <message>
         <source>Audition failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Проба не удалась: %1</translation>
     </message>
     <message>
         <source>Could not write %1.</source>
-        <translation type="unfinished">Не удалось записать %1.</translation>
+        <translation>Не удалось записать %1.</translation>
     </message>
     <message>
         <source>Add at least one recording first.</source>
-        <translation type="unfinished"></translation>
+        <translation>Сначала добавьте хотя бы одну запись.</translation>
     </message>
     <message>
         <source>Market Queen voice</source>
-        <translation type="unfinished"></translation>
+        <translation>Голос Market Queen</translation>
     </message>
     <message>
         <source>Cloned with Market Queen.</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонирован с помощью Market Queen.</translation>
     </message>
     <message>
         <source>Cloning a voice from %1 recording(s).</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонирование голоса из %1 записи(ей).</translation>
     </message>
     <message>
         <source>Cloning failed: %1</source>
-        <translation type="unfinished"></translation>
+        <translation>Клонирование не удалось: %1</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation type="unfinished"></translation>
+        <translation>Голос «%1» есть в вашей учётной записи.</translation>
     </message>
 </context>
 <context>
