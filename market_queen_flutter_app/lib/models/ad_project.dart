@@ -10,30 +10,16 @@ import '../core/http_util.dart';
 import '../core/paths.dart';
 import '../core/settings_store.dart';
 import '../core/signal.dart';
+import '../i18n/translator.dart';
 import '../providers/registry.dart';
 import 'scene_model.dart';
 
-/// Casting and writing are one step: you cannot write for someone who does not
-/// exist yet, and you rewrite the moment you recast.
-enum AdStep { product, scenario, summary }
-
-/// Whether a wizard step holds together, and whether the user may go there.
-///
-/// Named apart from the pipeline's own `StepState`, which is about a running
-/// job rather than a form.
-class StepStatus {
-  const StepStatus(this.valid, this.reachable);
-
-  final bool valid;
-  final bool reachable;
-}
-
 /// The ad being built.
 ///
-/// Every studio step reads and writes this one object, so the recap panel, the
-/// cost estimate and the Generate button always describe the same thing rather
-/// than three snapshots of a form. It autosaves to the config directory, so
-/// closing the app halfway through a build loses nothing.
+/// Every panel of the studio reads and writes this one object, so the actor
+/// rail, the cost estimate and the Generate button always describe the same
+/// thing rather than three snapshots of a form. It autosaves to the config
+/// directory, so closing the app halfway through a build loses nothing.
 ///
 /// There is deliberately no duration field: an ad lasts exactly as long as its
 /// words take to say. [spokenSeconds] derives it from the script.
@@ -85,7 +71,14 @@ class AdProject extends ChangeNotifier {
   String script = '';
   String aspectRatio = '9:16';
   bool captions = true;
-  int _currentStep = 0;
+
+  /// The length the ad is *aiming* for, in seconds, or 0 for "as long as the
+  /// words take".
+  ///
+  /// It never truncates anything: an ad lasts exactly as long as its script, and
+  /// this only gives the editor something to say when the script has run past
+  /// what the format wants.
+  int targetSeconds = 0;
 
   @override
   void dispose() {
@@ -133,6 +126,13 @@ class AdProject extends ChangeNotifier {
     captions = value;
     notifyListeners();
     requestChanged.emit();
+    _touch();
+  }
+
+  void setTargetSeconds(int value) {
+    if (targetSeconds == value) return;
+    targetSeconds = value;
+    notifyListeners();
     _touch();
   }
 
@@ -202,6 +202,16 @@ class AdProject extends ChangeNotifier {
     _touch();
   }
 
+  /// Starts casting again from nothing, leaving the product and the script
+  /// alone. What "New actor" does.
+  void newActor() {
+    actor = {};
+    notifyListeners();
+    requestChanged.emit();
+    actorReset.emit();
+    _touch();
+  }
+
   void clear() {
     product = {};
     actor = {};
@@ -209,7 +219,7 @@ class AdProject extends ChangeNotifier {
     script = '';
     aspectRatio = '9:16';
     captions = true;
-    _currentStep = 0;
+    targetSeconds = 0;
 
     notifyListeners();
     requestChanged.emit();
@@ -225,55 +235,30 @@ class AdProject extends ChangeNotifier {
   String spokenScript() =>
       scenes.count > 0 ? scenes.spokenScript : script.trim();
 
-  // ---- Steps ------------------------------------------------------------
+  // ---- Readiness ---------------------------------------------------------
+  //
+  // There is no wizard any more: everything is on one screen and can be filled
+  // in in any order. What used to be "which step are you allowed to reach" is
+  // now just "what is still missing before Generate means anything".
 
-  bool stepValid(int step) {
-    switch (step) {
-      case 0: // product
-        return '${product['name'] ?? ''}'.trim().isNotEmpty;
-      case 1: // scenario
-        // Both halves have to hold: a description is not an actor -- the step
-        // wants a picture, cast or promoted from the user's own photos -- and
-        // an actor with nothing to say is not a scenario. (A draft written
-        // before scenes existed still counts as having words.)
-        return '${actor['portraitPath'] ?? ''}'.trim().isNotEmpty &&
-            (scenes.hasSpokenLine || script.trim().isNotEmpty);
-      case 2: // summary
-        return stepValid(0) && stepValid(1);
-      default:
-        return false;
-    }
-  }
+  bool get hasProduct => '${product['name'] ?? ''}'.trim().isNotEmpty;
 
-  /// Walk forward while each step is satisfied: the first unsatisfied step is
-  /// as far as the user may go, which makes the first pass linear and every
-  /// pass after it free.
-  int get furthestStep {
-    for (var step = 0; step < AdStep.values.length; ++step) {
-      if (!stepValid(step)) return step;
-    }
-    return AdStep.values.length - 1;
-  }
+  /// A description is not an actor: the ad needs a picture, cast or promoted
+  /// from the user's own photos.
+  bool get hasActor => '${actor['portraitPath'] ?? ''}'.trim().isNotEmpty;
 
-  List<StepStatus> get stepStates {
-    final furthest = furthestStep;
-    return [
-      for (var step = 0; step < AdStep.values.length; ++step)
-        StepStatus(stepValid(step), step <= furthest),
-    ];
-  }
+  /// A draft written before scenes existed still counts as having words.
+  bool get hasScript => scenes.hasSpokenLine || script.trim().isNotEmpty;
 
-  bool get complete => stepValid(2);
+  bool get complete => hasProduct && hasActor && hasScript;
 
-  int get currentStep => _currentStep;
-
-  set currentStep(int step) {
-    final wanted = step.clamp(0, AdStep.values.length - 1);
-    if (wanted > furthestStep || _currentStep == wanted) return;
-    _currentStep = wanted;
-    notifyListeners();
-    _touch();
-  }
+  /// What is still missing, in the order it reads best. Shown on the Generate
+  /// button so a disabled button always says why.
+  List<String> get missing => [
+        if (!hasProduct) tr('a product'),
+        if (!hasActor) tr('an actor'),
+        if (!hasScript) tr('a line to say'),
+      ];
 
   double get spokenSeconds {
     if (scenes.count > 0) return scenes.totalSeconds;
@@ -373,14 +358,14 @@ class AdProject extends ChangeNotifier {
     if (Paths.ensureDir(Paths.configDir).isEmpty) return;
 
     final root = {
-      'schemaVersion': 3,
+      'schemaVersion': 4,
       'product': product,
       'actor': actor,
       'scenes': scenes.toList(),
       'script': script,
       'aspectRatio': aspectRatio,
       'captions': captions,
-      'currentStep': _currentStep,
+      'targetSeconds': targetSeconds,
     };
 
     try {
@@ -417,11 +402,9 @@ class AdProject extends ChangeNotifier {
     script = '${decoded['script'] ?? ''}';
     aspectRatio = '${decoded['aspectRatio'] ?? '9:16'}';
     captions = decoded['captions'] != false;
-    _currentStep = (decoded['currentStep'] as num?)?.toInt() ?? 0;
-
-    // A draft saved on a step that is no longer satisfied would otherwise open
-    // on a panel the rail says is unreachable.
-    _currentStep = _currentStep.clamp(0, furthestStep);
+    // Drafts written by the wizard build carry a `currentStep` there is nowhere
+    // to put any more; it is simply dropped on the next save.
+    targetSeconds = (decoded['targetSeconds'] as num?)?.toInt() ?? 0;
 
     _loading = false;
     notifyListeners();

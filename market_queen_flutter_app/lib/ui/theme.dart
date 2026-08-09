@@ -146,11 +146,21 @@ class MqTheme {
   // ------------------------------------------------------------------ metrics
   static const double radius = 10;
   static const double radiusSmall = 6;
+
+  /// Cards that hold other cards: the script sheet, the composer.
+  static const double radiusLarge = 14;
   static const double radiusPill = 999;
   static const double gap = 12;
   static const double gapLarge = 20;
   static const double pagePadding = 28;
   static const double fieldHeight = 40;
+
+  // The three columns of the window. Fixed, because all three carry labels that
+  // must not wrap: the nav's own entries, the crumb trail, and the rail's
+  // two-across trait pickers.
+  static const double navWidth = 240;
+  static const double railWidth = 400;
+  static const double topBarHeight = 64;
 
   /// Interaction spec, applied by every clickable in the app:
   ///  - entering hover or pressed is instant, so the item under the pointer is

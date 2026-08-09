@@ -51,6 +51,10 @@ flutter:
     # scaffold and the translation maps are data, not code.
     - assets/resources/
     - assets/i18n/
+    # The app's own mark. Declared as a directory so dropping logo.png in is the
+    # whole install step -- see assets/brand/README.md. The folder is allowed to
+    # hold nothing but that README: BrandMark falls back to a drawn tile.
+    - assets/brand/
 
   # Inter, shipped rather than fetched: an app that promises nothing leaves the
   # machine cannot pull a webfont at startup, and a bundled face renders the

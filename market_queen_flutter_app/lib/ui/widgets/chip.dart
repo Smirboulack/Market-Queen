@@ -25,6 +25,7 @@ class MqChip extends StatelessWidget {
     this.detail = '',
     this.icon = '',
     this.portrait = '',
+    this.leading,
     this.opensMenu = false,
     this.accent = false,
     this.enabled = true,
@@ -44,6 +45,11 @@ class MqChip extends StatelessWidget {
 
   /// A round thumbnail on the left -- used by the actor chip.
   final String portrait;
+
+  /// Anything else in the glyph slot, outranking [icon] and [portrait]. It
+  /// exists for the one thing a glyph name cannot express: a spinner.
+  final Widget? leading;
+
   final bool opensMenu;
 
   /// The one chip on screen that is really a call to action.
@@ -110,7 +116,10 @@ class MqChip extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (portrait.isNotEmpty) ...[
+              if (leading != null) ...[
+                leading!,
+                const SizedBox(width: 6),
+              ] else if (portrait.isNotEmpty) ...[
                 ClipOval(
                   child: SizedBox(
                     width: 20,

@@ -14,8 +14,11 @@ Future<void> main() async {
   await windowManager.ensureInitialized();
   await windowManager.waitUntilReadyToShow(
     const WindowOptions(
-      size: Size(1280, 840),
-      minimumSize: Size(1040, 680),
+      // Three fixed-ish columns now: a 240 nav, a 400 rail, and the script in
+      // between. Below about 1180 the script column stops being wide enough to
+      // read a sentence in, so that is the floor rather than a guess.
+      size: Size(1480, 920),
+      minimumSize: Size(1180, 720),
       center: true,
       // Product and company name: neither is translated.
       title: 'Market Queen - SegfaultLabs',

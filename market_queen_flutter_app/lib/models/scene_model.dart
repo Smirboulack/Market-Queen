@@ -10,6 +10,7 @@ class Scene {
     required this.id,
     this.line = '',
     this.kind = 'talking',
+    this.beat = '',
     this.imagePrompt = '',
     this.videoPrompt = '',
   });
@@ -18,6 +19,7 @@ class Scene {
         id: '${json['id'] ?? _newId()}',
         line: '${json['line'] ?? ''}',
         kind: '${json['kind'] ?? 'talking'}',
+        beat: '${json['beat'] ?? ''}',
         imagePrompt: '${json['imagePrompt'] ?? ''}',
         videoPrompt: '${json['videoPrompt'] ?? ''}',
       );
@@ -27,6 +29,14 @@ class Scene {
 
   /// "talking" | "broll".
   String kind;
+
+  /// Which beat of the ad this line is: "hook", "problem", "solution",
+  /// "benefit", "cta", or empty when it was written without one.
+  ///
+  /// It is what the composer's tabs set, and it is the difference between
+  /// "make it punchier" sharpening a hook and sharpening a sign-off.
+  String beat;
+
   String imagePrompt;
   String videoPrompt;
 
@@ -37,6 +47,7 @@ class Scene {
         'id': id,
         'line': line,
         'kind': kind,
+        'beat': beat,
         'imagePrompt': imagePrompt,
         'videoPrompt': videoPrompt,
       };
@@ -72,8 +83,8 @@ class SceneModel extends ChangeNotifier {
   static int _wordCount(String text) =>
       text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
 
-  void add([String line = '']) {
-    _scenes.add(Scene(id: Scene._newId(), line: line));
+  void add([String line = '', String beat = '']) {
+    _scenes.add(Scene(id: Scene._newId(), line: line, beat: beat));
     notifyListeners();
     dirtied.emit();
   }
@@ -104,6 +115,9 @@ class SceneModel extends ChangeNotifier {
       case 'kind':
         if (scene.kind == value) return;
         scene.kind = '$value';
+      case 'beat':
+        if (scene.beat == value) return;
+        scene.beat = '$value';
       case 'imagePrompt':
         if (scene.imagePrompt == value) return;
         scene.imagePrompt = '$value';

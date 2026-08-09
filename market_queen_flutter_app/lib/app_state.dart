@@ -11,6 +11,7 @@ import 'models/ad_project.dart';
 import 'models/casting.dart';
 import 'models/director.dart';
 import 'models/library_model.dart';
+import 'models/line_doctor.dart';
 import 'models/voice_booth.dart';
 import 'pipeline/pipeline.dart';
 import 'providers/registry.dart';
@@ -32,6 +33,7 @@ class AppState {
     // One casting instance: the director works from the same house rules the
     // portraits were cast against.
     director = Director(settings, registry, pricing, casting, log);
+    lineDoctor = LineDoctor(settings, registry, pricing, log);
   }
 
   /// Builds everything and loads the data files the models need before the
@@ -67,6 +69,7 @@ class AppState {
   late final ActorLibrary actors;
   late final VoiceBooth voiceBooth;
   late final Director director;
+  late final LineDoctor lineDoctor;
   late final LibraryModel library;
 
   /// Raised when the resolved ffmpeg path may have changed.
@@ -147,6 +150,7 @@ class AppState {
     actors.dispose();
     voiceBooth.dispose();
     director.dispose();
+    lineDoctor.dispose();
     library.dispose();
     registry.dispose();
     settings.dispose();

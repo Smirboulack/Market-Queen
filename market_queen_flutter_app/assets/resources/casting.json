@@ -21,7 +21,7 @@
   "direction": "Every shot is filmed by the speaker on their own phone. Write like an amateur photo, never like a commercial. Rules, all of them mandatory: keep the same person, the same clothes and the same room in every shot -- only the angle, the distance and what is in frame may change. Name the framing concretely (selfie at arm's length, held low, propped against something, over the shoulder). Keep the light motivated by the room, never added. Include at least one imperfection per shot: a slightly crooked horizon, a hand entering frame, something out of focus, an overexposed window. Never write: studio lighting, softbox, ring light, rim light, bokeh, shallow depth of field, colour grading, retouching, hero shot, product beauty shot, cinematic, or epic. Movement must stay small and human: a hand adjusting the phone, a step forward, a turn towards the light. Never describe a camera move a person holding a phone could not make.",
 
   "//traitOrder": "How the optional traits are strung together before the free description. Alphabetical order reads like a form; this reads like a sentence.",
-  "traitOrder": ["gender", "age", "style", "energy"],
+  "traitOrder": ["gender", "age", "ethnicity", "look", "style", "energy"],
 
   "fallbacks": {
     "subject": "an ordinary-looking person, the kind you would pass in the street, not conventionally beautiful",

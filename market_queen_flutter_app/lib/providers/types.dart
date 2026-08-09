@@ -2,15 +2,18 @@
 /// providers never read settings or touch the filesystem themselves.
 library;
 
-/// Two jobs, one transport. Writing a script and directing one the user already
-/// wrote differ only in the prompt and are otherwise the same call to the same
-/// three providers, returning the same `shots` shape.
+/// Three jobs, one transport. Writing a script, directing one the user already
+/// wrote and rewriting a single line differ only in the prompt and are otherwise
+/// the same call to the same three providers, returning the same `shots` shape.
 enum ScriptMode {
   /// The model writes the words and the visuals.
   writeScript,
 
   /// The words are the user's; the model only frames them.
   directVisuals,
+
+  /// One line in, one line out. The composer's Enhance / Shorten / Punchier.
+  rewriteLine,
 }
 
 class ScriptRequest {
@@ -21,9 +24,12 @@ class ScriptRequest {
     this.mode = ScriptMode.writeScript,
     this.lines = const [],
     this.kinds = const [],
+    this.beats = const [],
     this.actorBrief = '',
     this.actorDecor = '',
     this.directionRules = '',
+    this.rewriteInstruction = '',
+    this.beat = '',
     this.productName = '',
     this.productDescription = '',
     this.audience = '',
@@ -49,11 +55,22 @@ class ScriptRequest {
   /// "talking" or "broll".
   final List<String> kinds;
 
+  /// directVisuals only: the beat each line plays ("hook", "cta"...), or empty
+  /// where the line was written without one. Same order as [lines].
+  final List<String> beats;
+
   final String actorBrief;
   final String actorDecor;
 
   /// The house style, from casting.json.
   final String directionRules;
+
+  /// rewriteLine only: what to do to the line ("make it shorter", "punchier").
+  final String rewriteInstruction;
+
+  /// rewriteLine only: which beat of the ad the line is ("hook", "cta"...), so
+  /// the rewrite knows what the line is *for* and not only how it should read.
+  final String beat;
 
   final String productName;
   final String productDescription;

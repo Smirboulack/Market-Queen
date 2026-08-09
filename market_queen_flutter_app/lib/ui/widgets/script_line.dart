@@ -6,22 +6,83 @@ import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
 
-/// One line, already written.
+/// The five beats a UGC ad is built from, in the order they are written.
 ///
-/// At rest it is text: a number, the words, how long they take. Everything else
-/// -- reordering, the type, the visual, deleting -- only exists while the
-/// pointer is on it. A row of six always-visible buttons per scene is what made
-/// the old editor look like a spreadsheet.
-class SceneBubble extends StatefulWidget {
-  const SceneBubble({
+/// One list, used by the composer's tabs, by the line's own badge and by the
+/// prompt the rewrite buttons send -- so the label on screen and the word the
+/// model is given can never drift apart.
+class Beat {
+  const Beat(this.id, this.label, this.placeholder, this.advice);
+
+  final String id;
+  final String label;
+
+  /// What the composer says while this tab is selected.
+  final String placeholder;
+
+  /// One line of why the beat exists, for the tips popup.
+  final String advice;
+
+  static List<Beat> get all => [
+    Beat(
+      'hook',
+      tr('Hook'),
+      tr('Describe the hook of your ad in one powerful sentence…'),
+      tr('The first three seconds. Name the frustration, not the product.'),
+    ),
+    Beat(
+      'problem',
+      tr('Problem'),
+      tr('What did they try that did not work?'),
+      tr('Make it concrete. One thing that failed, not a category of things.'),
+    ),
+    Beat(
+      'solution',
+      tr('Solution'),
+      tr('How does it come in? Casually, not as an advert.'),
+      tr('Introduce it as what finally worked, not as a product launch.'),
+    ),
+    Beat(
+      'benefit',
+      tr('Benefit'),
+      tr('One specific result. A number, a timeframe, a moment.'),
+      tr('One detail beats three adjectives. "Two weeks", not "fast".'),
+    ),
+    Beat(
+      'cta',
+      tr('CTA'),
+      tr('Say what to do next, casually.'),
+      tr('Casual and singular. One action, said the way a friend would.'),
+    ),
+  ];
+
+  static Beat? find(String id) {
+    for (final beat in all) {
+      if (beat.id == id) return beat;
+    }
+    return null;
+  }
+}
+
+/// One line of the script, in the sheet.
+///
+/// At rest it is text: a number, the beat it plays, the words, how long they
+/// take. Everything else -- reordering, the shot type, deleting -- only exists
+/// while the pointer is on it. A row of five always-visible buttons per line is
+/// what made the old editor look like a spreadsheet.
+class ScriptLine extends StatefulWidget {
+  const ScriptLine({
     super.key,
     required this.position,
     required this.total,
     required this.line,
     required this.kind,
+    required this.beat,
     required this.imagePrompt,
     required this.seconds,
     required this.directed,
+    required this.selected,
+    required this.onSelected,
     required this.onLineEdited,
     required this.onKindToggled,
     required this.onMoveRequested,
@@ -32,20 +93,25 @@ class SceneBubble extends StatefulWidget {
   final int total;
   final String line;
   final String kind;
+  final String beat;
   final String imagePrompt;
   final double seconds;
   final bool directed;
 
+  /// The line the scene picker is pointing at.
+  final bool selected;
+
+  final VoidCallback onSelected;
   final ValueChanged<String> onLineEdited;
   final VoidCallback onKindToggled;
   final ValueChanged<int> onMoveRequested;
   final VoidCallback onRemoveRequested;
 
   @override
-  State<SceneBubble> createState() => _SceneBubbleState();
+  State<ScriptLine> createState() => _ScriptLineState();
 }
 
-class _SceneBubbleState extends State<SceneBubble> {
+class _ScriptLineState extends State<ScriptLine> {
   final TextEditingController _editor = TextEditingController();
   final FocusNode _focus = FocusNode();
 
@@ -99,63 +165,57 @@ class _SceneBubbleState extends State<SceneBubble> {
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
+    final beat = Beat.find(widget.beat);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
+        onTap: _editing ? null : widget.onSelected,
         onDoubleTap: _editing ? null : _beginEdit,
         child: AnimatedContainer(
           duration: _hovered || _editing
               ? Duration.zero
               : MqTheme.hoverDuration,
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
           decoration: BoxDecoration(
-            color: _hovered || _editing
+            color: _editing
                 ? mq.surfaceSecondary
+                : _hovered
+                ? mq.surfaceHover
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(MqTheme.radius),
             border: Border.all(
               color: _editing
                   ? mq.primary
-                  : _hovered
-                  ? mq.borderStrong
+                  : widget.selected
+                  ? mq.primaryMuted
                   : Colors.transparent,
             ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Number, or the b-roll marker: the one thing about a scene worth
-              // seeing without hovering.
-              // Neutral: a list of eight scenes numbered in pink would spend
-              // the whole colour budget on counting.
-              Container(
-                width: 26,
-                height: 26,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _isBroll ? Colors.transparent : mq.surfaceTertiary,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: _isBroll ? mq.borderStrong : Colors.transparent,
-                  ),
-                ),
+              // The gutter. A plain number, like a script: a list of eight lines
+              // numbered in pink would spend the whole colour budget on
+              // counting.
+              SizedBox(
+                width: 22,
                 child: _isBroll
-                    ? MqIcon('image-line', size: 14, color: mq.textTertiary)
+                    ? MqIcon('image-line', size: 15, color: mq.textTertiary)
                     : Text(
-                        '${widget.position + 1}'.padLeft(2, '0'),
+                        '${widget.position + 1}',
+                        textAlign: TextAlign.right,
                         style: TextStyle(
-                          color: mq.textSecondary,
-                          fontSize: MqTheme.fontSmall,
-                          fontWeight: FontWeight.w600,
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontLabel,
                           fontFeatures: const [FontFeature.tabularFigures()],
-                          height: 1,
+                          height: 1.5,
                         ),
                       ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,19 +261,33 @@ class _SceneBubbleState extends State<SceneBubble> {
                         ),
                       )
                     else
-                      Text(
-                        widget.line,
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            if (beat != null)
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.only(
+                                    end: 8,
+                                  ),
+                                  child: _BeatTag(label: beat.label),
+                                ),
+                              ),
+                            TextSpan(text: widget.line),
+                          ],
+                        ),
                         style: TextStyle(
                           color: mq.textPrimary,
                           fontSize: MqTheme.fontBody,
                         ),
                       ),
-                    // On screen whether or not the pointer is here. Revealing
-                    // it on hover grew the row, which shoved every scene below
-                    // it down the page -- under a pointer that was, by
-                    // definition, aiming at one of them.
+                    // On screen whether or not the pointer is here. Revealing it
+                    // on hover grew the row, which shoved every line below it
+                    // down the page -- under a pointer that was, by definition,
+                    // aiming at one of them.
                     if (widget.directed && !_editing) ...[
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         widget.imagePrompt,
                         maxLines: 1,
@@ -230,9 +304,9 @@ class _SceneBubbleState extends State<SceneBubble> {
               const SizedBox(width: 10),
               // The controls and the duration share one fixed slot and cross-
               // fade inside it. Swapping a 30px label for a 130px toolbar --
-              // which is what this used to do -- resized the row the instant
-              // the pointer arrived, so the text next to it jumped sideways
-              // and the button you were reaching for was somewhere else.
+              // which is what this used to do -- resized the row the instant the
+              // pointer arrived, so the text next to it jumped sideways and the
+              // button you were reaching for was somewhere else.
               SizedBox(
                 width: _controlsWidth,
                 height: 26,
@@ -299,6 +373,37 @@ class _SceneBubbleState extends State<SceneBubble> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Which beat a line plays, on the line itself. Grey, not pink: there can be
+/// eight of these on screen at once.
+class _BeatTag extends StatelessWidget {
+  const _BeatTag({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: mq.surfaceTertiary,
+        borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          color: mq.textSecondary,
+          fontSize: MqTheme.fontMicro - 1,
+          fontWeight: FontWeight.w600,
+          letterSpacing: MqTheme.trackOverline,
+          height: 1.2,
         ),
       ),
     );

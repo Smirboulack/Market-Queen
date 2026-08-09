@@ -2,162 +2,148 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../i18n/translator.dart';
+import 'brand.dart';
 import 'icons.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 
+/// One entry in the nav, whether or not there is a page behind it yet.
+class NavEntry {
+  const NavEntry({
+    required this.label,
+    required this.icon,
+    this.page = -1,
+    this.soon = false,
+  });
+
+  final String label;
+  final String icon;
+
+  /// Index into the window's page stack, or -1 for an entry with no page.
+  final int page;
+
+  /// Drawn but inert, with a "coming soon" tip. Kept visible on purpose: the
+  /// shape of the app should be readable before all of it exists.
+  final bool soon;
+}
+
+/// The left column: the mark, the pages, and the one status line that matters
+/// before anything is generated.
+///
+/// There is no account, plan or credit block here and there never will be while
+/// the app is bring-your-own-keys: there is nothing to sign into and nothing to
+/// meter. The only thing worth reserving the bottom corner for is whether the
+/// machine can actually render a video.
 class SideNav extends StatelessWidget {
   const SideNav({
     super.key,
     required this.app,
-    required this.currentIndex,
+    required this.entries,
+    required this.currentPage,
     required this.onPicked,
   });
 
   final AppState app;
-  final int currentIndex;
+  final List<NavEntry> entries;
+  final int currentPage;
   final ValueChanged<int> onPicked;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    final entries = [
-      (label: tr('Studio'), icon: 'clapperboard-line'),
-      (label: tr('Library'), icon: 'movie-2-line'),
-      (label: tr('Settings'), icon: 'settings-3-line'),
-    ];
-
     return Container(
-      width: 208,
+      width: MqTheme.navWidth,
       decoration: BoxDecoration(
         color: mq.surface,
         border: Border(right: BorderSide(color: mq.border)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              // The one piece of pure brand on the page, and the size of a
-              // thumbnail.
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: mq.primary,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Text(
-                  'MQ',
-                  style: TextStyle(
-                    color: mq.onPrimary,
-                    fontSize: MqTheme.fontSmall,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    // Product name: never translated.
-                    'Market Queen',
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontBody,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: MqTheme.trackTitle,
-                      height: MqTheme.lineTight,
-                    ),
-                  ),
-                  Text(
-                    // Company name: never translated.
-                    'SegfaultLabs',
-                    style: TextStyle(
-                      color: mq.textTertiary,
-                      fontSize: MqTheme.fontSmall,
-                      height: MqTheme.lineTight,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          for (var i = 0; i < entries.length; ++i)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 3),
-              child: _NavEntry(
-                label: entries[i].label,
-                icon: entries[i].icon,
-                selected: currentIndex == i,
-                onTap: () => onPicked(i),
-              ),
-            ),
-          const Spacer(),
-          // Bring-your-own-keys means no account, no quota, no subscription.
-          ListenableBuilder(
-            listenable: app.ffmpegPathChanged,
-            builder: (context, _) {
-              final ready = app.ffmpegPath.isNotEmpty;
-              return Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: mq.surfaceSecondary,
-                  borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                  border: Border.all(color: mq.border),
-                ),
-                child: Column(
+          Padding(
+            padding: const EdgeInsets.only(left: 6),
+            child: Row(
+              children: [
+                const BrandMark(size: 34),
+                const SizedBox(width: 11),
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: ready ? mq.success : mq.warning,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 7),
-                        Text(
-                          ready ? tr('FFmpeg ready') : tr('FFmpeg missing'),
-                          style: TextStyle(
-                            color: mq.textSecondary,
-                            fontSize: MqTheme.fontSmall,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
                     Text(
-                      tr('Your keys, your files.\nNothing is uploaded to us.'),
+                      // Product name: never translated.
+                      'Market Queen',
+                      style: TextStyle(
+                        color: mq.textPrimary,
+                        fontSize: MqTheme.fontTitle,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: MqTheme.trackTitle,
+                        height: MqTheme.lineTight,
+                      ),
+                    ),
+                    Text(
+                      tr('studio'),
                       style: TextStyle(
                         color: mq.textTertiary,
                         fontSize: MqTheme.fontSmall,
+                        height: MqTheme.lineTight,
                       ),
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 26),
+          for (final entry in entries)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: _NavRow(
+                entry: entry,
+                selected: entry.page >= 0 && entry.page == currentPage,
+                onTap: entry.soon || entry.page < 0
+                    ? null
+                    : () => onPicked(entry.page),
+              ),
+            ),
+          const Spacer(),
+          ListenableBuilder(
+            listenable: app.ffmpegPathChanged,
+            builder: (context, _) {
+              final ready = app.ffmpegPath.isNotEmpty;
+              return Row(
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: ready ? mq.success : mq.warning,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      ready ? tr('FFmpeg ready') : tr('FFmpeg missing'),
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: ready ? mq.textTertiary : mq.warningText,
+                        fontSize: MqTheme.fontSmall,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'v${app.version}',
+                    style: TextStyle(
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontMicro,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ],
               );
             },
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'v${app.version}',
-            style: TextStyle(
-              color: mq.textTertiary,
-              fontSize: MqTheme.fontMicro,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
           ),
         ],
       ),
@@ -165,64 +151,73 @@ class SideNav extends StatelessWidget {
   }
 }
 
-class _NavEntry extends StatelessWidget {
-  const _NavEntry({
-    required this.label,
-    required this.icon,
+class _NavRow extends StatelessWidget {
+  const _NavRow({
+    required this.entry,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
-  final String icon;
+  final NavEntry entry;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
     return Pressable(
+      enabled: onTap != null,
       onTap: onTap,
+      tooltip: entry.soon ? tr('Coming soon') : '',
+      focusRadius: MqTheme.radius,
       // Adjacent rows: hover snaps both ways, so sweeping the list never tints
       // two entries at once.
       snap: true,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        height: 36,
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+        height: 44,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          // A selected page is a place, not an action: it is marked by a step
-          // up the grey ladder, and the pink is left to the icon.
+          // The page you are on is the one place in the nav that is worth
+          // spending brand colour on -- a faint tint, not a fill, so it still
+          // reads as a place rather than as a button waiting to be pressed.
           color: selected
-              ? mq.surfaceActive
+              ? mq.primarySubtle
               : states.pressed
               ? mq.surfaceActive
               : states.hovered
               ? mq.surfaceHover
               : Colors.transparent,
-          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          borderRadius: BorderRadius.circular(MqTheme.radius),
         ),
         child: Row(
           children: [
             MqIcon(
-              icon,
-              size: 18,
-              color: selected
+              entry.icon,
+              size: 19,
+              color: !states.enabled && !selected
+                  ? mq.textDisabled
+                  : selected
                   ? mq.primary
                   : states.active
                   ? mq.textSecondary
                   : mq.textTertiary,
             ),
-            const SizedBox(width: 10),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected || states.active
-                    ? mq.textPrimary
-                    : mq.textSecondary,
-                fontSize: MqTheme.fontBody,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                entry.label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: !states.enabled && !selected
+                      ? mq.textDisabled
+                      : selected || states.active
+                      ? mq.textPrimary
+                      : mq.textSecondary,
+                  fontSize: MqTheme.fontBody,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
               ),
             ),
           ],

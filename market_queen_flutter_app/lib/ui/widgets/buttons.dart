@@ -235,12 +235,21 @@ class PrimaryButton extends StatelessWidget {
     this.onPressed,
     this.loading = false,
     this.enabled = true,
+    this.icon = '',
+    this.tooltip = '',
   });
 
   final String text;
   final VoidCallback? onPressed;
   final bool loading;
   final bool enabled;
+
+  /// A glyph before the label. Reserved for the button that starts the run.
+  final String icon;
+
+  /// Mostly for the disabled state: a button that cannot be pressed should say
+  /// what would make it pressable.
+  final String tooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -250,6 +259,7 @@ class PrimaryButton extends StatelessWidget {
     return Pressable(
       enabled: active,
       onTap: onPressed,
+      tooltip: tooltip,
       focusRadius: MqTheme.radius,
       builder: (context, states) {
         final fill = !states.enabled
@@ -285,6 +295,9 @@ class PrimaryButton extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 9),
+              ] else if (icon.isNotEmpty) ...[
+                MqIcon(icon, size: 16, color: ink),
+                const SizedBox(width: 8),
               ],
               Text(
                 text,

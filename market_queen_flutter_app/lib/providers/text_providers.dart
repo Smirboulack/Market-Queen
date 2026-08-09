@@ -67,11 +67,35 @@ abstract class ScriptTask extends HttpTask {
 
   final ScriptRequest request;
 
-  String get progressLabel => request.mode == ScriptMode.directVisuals
-      ? tr('Directing the shots with %1...').arg(request.model)
-      : tr('Writing the script with %1...').arg(request.model);
+  String get progressLabel => switch (request.mode) {
+    ScriptMode.directVisuals =>
+      tr('Directing the shots with %1...').arg(request.model),
+    ScriptMode.rewriteLine => tr('Rewriting the line with %1...').arg(
+      request.model,
+    ),
+    ScriptMode.writeScript => tr('Writing the script with %1...').arg(
+      request.model,
+    ),
+  };
 
   String get systemPrompt {
+    if (request.mode == ScriptMode.rewriteLine) {
+      return 'You are a senior UGC (user generated content) ad writer. You are handed '
+          'one spoken line from a short vertical video ad and one instruction. Rewrite '
+          'that line and nothing else.\n'
+          '\n'
+          'Rules:\n'
+          '- Only words that will be spoken out loud. No stage directions, no emojis, '
+          'no hashtags, no markdown, no quotation marks.\n'
+          '- Sound like a real person talking to a friend: contractions, short '
+          'sentences, one idea per sentence.\n'
+          '- Keep the meaning and the language of the original line.\n'
+          '- Return one line, not several. It has to fit in a single shot.\n'
+          '\n'
+          'Answer with a single JSON object and nothing else:\n'
+          '{"shots": [{"line": "the rewritten line"}]}';
+    }
+
     if (request.mode == ScriptMode.directVisuals) {
       return 'You are the director of a vertical UGC video ad. The spoken lines are '
           'already written and are not yours to change: your only job is to say what '
@@ -128,6 +152,34 @@ abstract class ScriptTask extends HttpTask {
   }
 
   String get userPrompt {
+    if (request.mode == ScriptMode.rewriteLine) {
+      // The beat is what the line is *for*; without it "make it punchier" has
+      // no idea whether it is sharpening a hook or a call to action.
+      const beatBriefs = <String, String>{
+        'hook': 'the hook -- the first three seconds, the line that has to stop '
+            'the scroll',
+        'problem': 'the problem -- the frustration the viewer recognises',
+        'solution': 'the solution -- how the product enters, casually, not as an '
+            'advert',
+        'benefit': 'the benefit -- one specific, concrete result',
+        'cta': 'the call to action -- what to do next, said casually',
+      };
+
+      final prompt = StringBuffer()
+        ..write(_sectionIfSet('Product', request.productName))
+        ..write(_sectionIfSet('What it is', request.productDescription))
+        ..write(_sectionIfSet('Target audience', request.audience))
+        ..write(_sectionIfSet('The person on camera', request.avatarBrief))
+        ..write(
+          _sectionIfSet('This line is', beatBriefs[request.beat] ?? ''),
+        )
+        ..write('\nThe line:\n"${request.lines.isEmpty ? '' : request.lines.first}"\n')
+        ..write('\nInstruction: ${request.rewriteInstruction}\n')
+        ..write('\nRewrite it now. JSON only.');
+
+      return prompt.toString();
+    }
+
     if (request.mode == ScriptMode.directVisuals) {
       final prompt = StringBuffer()
         ..write(_sectionIfSet('Product', request.productName))
@@ -143,7 +195,12 @@ abstract class ScriptTask extends HttpTask {
         final kind = (i < request.kinds.length && request.kinds[i] == 'broll')
             ? ' [no face on screen, show the product being used or held instead]'
             : '';
-        prompt.write('${i + 1}. "${request.lines[i]}"$kind\n');
+        // The beat tells the model what the line is doing, which is what stops
+        // a hook and a sign-off being framed identically.
+        final beat = (i < request.beats.length && request.beats[i].isNotEmpty)
+            ? ' [${request.beats[i]}]'
+            : '';
+        prompt.write('${i + 1}. "${request.lines[i]}"$beat$kind\n');
       }
 
       if (request.referenceImageDataUri.isNotEmpty) {

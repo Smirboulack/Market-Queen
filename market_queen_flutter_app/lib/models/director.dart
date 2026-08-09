@@ -89,12 +89,14 @@ class Director extends ChangeNotifier {
     // answer out of step with the editor.
     final lines = <String>[];
     final kinds = <String>[];
+    final beats = <String>[];
     for (final entry in scenes) {
       if (entry is! Map) continue;
       final line = '${entry['line'] ?? ''}'.trim();
       if (line.isEmpty) continue;
       lines.add(line);
       kinds.add('${entry['kind'] ?? 'talking'}');
+      beats.add('${entry['beat'] ?? ''}');
     }
 
     if (lines.isEmpty) {
@@ -130,6 +132,7 @@ class Director extends ChangeNotifier {
         directionRules: _casting.directionRules,
         lines: lines,
         kinds: kinds,
+        beats: beats,
         referenceImageDataUri: referenceUri,
       ),
     );
