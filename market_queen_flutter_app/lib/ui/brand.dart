@@ -13,25 +13,27 @@ import 'theme.dart';
 class BrandMark extends StatelessWidget {
   const BrandMark({super.key, this.size = 34});
 
+  /// How tall the mark is drawn. The width follows the artwork's own
+  /// proportions rather than being forced square, because forcing it square
+  /// would mean cropping -- and the mark is a picture, not a glyph.
   final double size;
 
-  /// The in-app and taskbar artwork. The crown is the *window* icon and lives in
-  /// the platform folders, not here.
+  /// The one piece of artwork the app carries. Every platform icon is generated
+  /// from this same file.
   static const String logoAsset = 'assets/brand/logo.png';
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(size * 0.26),
-      child: SizedBox(
-        width: size,
+      borderRadius: BorderRadius.circular(size * 0.18),
+      child: Image.asset(
+        logoAsset,
         height: size,
-        child: Image.asset(
-          logoAsset,
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.medium,
-          errorBuilder: (context, _, _) => _Fallback(size: size),
-        ),
+        // Never `cover`: it fills the box by cutting the edges off, which on a
+        // 1362x1155 picture takes the phone out of frame.
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (context, _, _) => _Fallback(size: size),
       ),
     );
   }
@@ -46,19 +48,22 @@ class _Fallback extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return ColoredBox(
+    // Sized here rather than by the parent: the real mark carries its own
+    // proportions, so there is no box around this one to inherit.
+    return Container(
+      width: size,
+      height: size,
       color: mq.primary,
-      child: Center(
-        child: Text(
-          // Not translated: it is the product's initials.
-          'MQ',
-          style: TextStyle(
-            color: mq.onPrimary,
-            fontSize: size * 0.35,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.3,
-            height: 1,
-          ),
+      alignment: Alignment.center,
+      child: Text(
+        // Not translated: it is the product's initials.
+        'MQ',
+        style: TextStyle(
+          color: mq.onPrimary,
+          fontSize: size * 0.35,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.3,
+          height: 1,
         ),
       ),
     );

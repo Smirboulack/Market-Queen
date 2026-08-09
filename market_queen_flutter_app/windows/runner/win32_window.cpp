@@ -144,18 +144,6 @@ bool Win32Window::Create(const std::wstring& title,
     return false;
   }
 
-  // Two marks, two jobs. The window class already carries the character, which
-  // is what the taskbar button and Alt+Tab show; the title bar asks for
-  // ICON_SMALL separately, and that one is the crown.
-  HANDLE title_bar_icon =
-      LoadImage(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDI_WINDOW_ICON),
-                IMAGE_ICON, GetSystemMetrics(SM_CXSMICON),
-                GetSystemMetrics(SM_CYSMICON), LR_DEFAULTCOLOR);
-  if (title_bar_icon) {
-    SendMessage(window, WM_SETICON, ICON_SMALL,
-                reinterpret_cast<LPARAM>(title_bar_icon));
-  }
-
   UpdateTheme(window);
 
   return OnCreate();
