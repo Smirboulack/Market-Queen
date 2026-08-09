@@ -15,10 +15,13 @@ Rectangle {
     property string label: ""
     // Set once chosen; the chip then shows this instead of the label.
     property string value: ""
-    property string glyph: ""
+    // Shown *after* the label rather than in place of it -- for a chip that
+    // keeps its name and carries a figure, like an action and its price.
+    property string detail: ""
+    property string icon: ""
     // A round thumbnail on the left -- used by the actor chip.
     property string portrait: ""
-    property bool active: value !== ""
+    property bool active: value !== "" || detail !== ""
     property bool opensMenu: false
     property bool accent: false
 
@@ -64,12 +67,12 @@ Rectangle {
             }
         }
 
-        Text {
-            text: root.glyph
-            visible: root.glyph !== "" && root.portrait === ""
+        Icon {
+            name: root.icon
+            size: 15
+            visible: root.icon !== "" && root.portrait === ""
             color: root.accent ? "white"
                  : root.active ? Theme.accent : Theme.textFaint
-            font.pixelSize: Theme.fontSmall
         }
 
         Text {
@@ -81,10 +84,17 @@ Rectangle {
         }
 
         Text {
-            text: "⌄"
+            text: root.detail
+            visible: root.detail !== ""
+            color: root.accent ? Qt.alpha("white", 0.75) : Theme.textFaint
+            font.pixelSize: Theme.fontSmall
+        }
+
+        Icon {
+            name: "arrow-down-s-line"
+            size: 14
             visible: root.opensMenu
             color: root.accent ? "white" : Theme.textFaint
-            font.pixelSize: Theme.fontSmall
         }
     }
 

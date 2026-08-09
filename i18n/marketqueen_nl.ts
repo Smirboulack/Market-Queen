@@ -113,7 +113,7 @@
     <message>
         <source>%1 photo(s)</source>
         <extracomment>%1 is a count of photos</extracomment>
-        <translation>%1 foto('s)</translation>
+        <translation>%1 foto(&apos;s)</translation>
     </message>
     <message>
         <source>Casting... %1 of %2</source>
@@ -203,7 +203,7 @@
     </message>
     <message>
         <source>Choose reference photos</source>
-        <translation>Referentiefoto's kiezen</translation>
+        <translation>Referentiefoto&apos;s kiezen</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
@@ -999,13 +999,6 @@
     </message>
 </context>
 <context>
-    <name>RecapBlock</name>
-    <message>
-        <source>Edit</source>
-        <translation>Bewerken</translation>
-    </message>
-</context>
-<context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
@@ -1160,6 +1153,14 @@
     <message>
         <source>Talking</source>
         <translation>Sprekend</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Bewerken</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Verwijderen</translation>
     </message>
 </context>
 <context>
@@ -1435,8 +1436,8 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation>Scenario</translation>
     </message>
     <message>
-        <source>Who says it, and what</source>
-        <translation>Wie spreekt, en waarover</translation>
+        <source>Who speaks, and what</source>
+        <translation>Wie spreekt, en wat</translation>
     </message>
     <message>
         <source>Summary</source>

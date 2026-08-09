@@ -95,8 +95,6 @@ Item {
                     width: parent.width
                     spacing: 2
 
-                    Item { Layout.fillHeight: true; Layout.minimumHeight: 0 }
-
                     Repeater {
                         model: root.scenes
 
@@ -155,7 +153,7 @@ Item {
 
                 Chip {
                     portrait: root.portrait
-                    glyph: root.portrait === "" ? "＋" : ""
+                    icon: root.portrait === "" ? "user-add-line" : ""
                     label: qsTr("Pick an actor")
                     value: root.portrait !== "" ? root.actorName : ""
                     accent: root.portrait === ""
@@ -166,12 +164,17 @@ Item {
                 Chip {
                     label: qsTr("Talking")
                     value: root.nextKind === "broll" ? qsTr("Product shot") : ""
-                    glyph: root.nextKind === "broll" ? "▣" : "☺"
+                    icon: root.nextKind === "broll" ? "image-line" : "user-smile-line"
                     onClicked: root.nextKind = root.nextKind === "broll" ? "talking" : "broll"
                 }
             }
 
             // ------------------------------------------------------- footer
+            //
+            // One elastic cell in the middle: without it the row's implicit
+            // width wins over the column's and the whole panel slides under the
+            // recap. It carries the error when there is one, the advice when
+            // there is not, and shrinks to nothing before anything else moves.
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 10
@@ -186,26 +189,20 @@ Item {
                 }
 
                 Text {
-                    text: qsTr("15 to 30 s converts best")
-                    color: Theme.textFaint
-                    font.pixelSize: Theme.fontSmall
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Text {
-                    text: App.director.error
-                    visible: text !== ""
-                    color: Theme.danger
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    text: App.director.error !== "" ? App.director.error
+                                                    : qsTr("15 to 30 s converts best")
+                    color: App.director.error !== "" ? Theme.danger : Theme.textFaint
                     font.pixelSize: Theme.fontSmall
                     elide: Text.ElideRight
                 }
 
                 Chip {
                     label: App.director.running ? qsTr("Directing…") : qsTr("Direct the shots")
-                    value: !App.director.running && root.directCost.known
-                           ? Format.estimated(root.directCost.amount) : ""
-                    glyph: "✦"
+                    detail: !App.director.running && root.directCost.known
+                            ? Format.estimated(root.directCost.amount) : ""
+                    icon: "magic-line"
                     enabled: !App.director.running && root.scenes.count > 0
                     opacity: enabled ? 1.0 : 0.4
                     onClicked: App.director.direct(root.project.request)

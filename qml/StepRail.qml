@@ -20,9 +20,12 @@ Rectangle {
     color: Theme.surface
 
     readonly property var labels: [
-        { title: qsTr("Product"),  hint: qsTr("What you are selling") },
-        { title: qsTr("Scenario"), hint: qsTr("Who says it, and what") },
-        { title: qsTr("Summary"),  hint: qsTr("Check and generate") }
+        { title: qsTr("Product"),  hint: qsTr("What you are selling"),
+          icon: "shopping-bag-3-line" },
+        { title: qsTr("Scenario"), hint: qsTr("Who speaks, and what"),
+          icon: "draft-line" },
+        { title: qsTr("Summary"),  hint: qsTr("Check and generate"),
+          icon: "check-double-line" }
     ]
 
     Rectangle {
@@ -87,13 +90,12 @@ Rectangle {
                         border.color: row.stepState.valid || row.current
                                       ? Theme.accent : Theme.borderStrong
 
-                        Text {
+                        Icon {
                             anchors.centerIn: parent
-                            text: row.stepState.valid ? "✓" : (row.index + 1)
+                            name: row.stepState.valid ? "check-line" : row.modelData.icon
+                            size: 14
                             color: row.stepState.valid ? "white"
                                  : row.current ? Theme.accent : Theme.textFaint
-                            font.pixelSize: Theme.fontSmall
-                            font.weight: Font.Bold
                         }
                     }
 

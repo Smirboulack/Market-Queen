@@ -70,10 +70,19 @@ Rectangle {
             border.width: 1
             border.color: root.kind === "broll" ? Theme.borderStrong : Theme.accent
 
+            Icon {
+                anchors.centerIn: parent
+                name: "image-line"
+                size: 14
+                visible: root.kind === "broll"
+                color: Theme.textFaint
+            }
+
             Text {
                 anchors.centerIn: parent
-                text: root.kind === "broll" ? "▣" : String(root.position + 1).padStart(2, "0")
-                color: root.kind === "broll" ? Theme.textFaint : Theme.accent
+                text: String(root.position + 1).padStart(2, "0")
+                visible: root.kind !== "broll"
+                color: Theme.accent
                 font.pixelSize: Theme.fontSmall
                 font.weight: Font.Bold
             }
@@ -147,31 +156,33 @@ Rectangle {
             visible: hover.hovered && !root.editing
 
             IconButton {
-                glyph: root.kind === "broll" ? "▣" : "☺"
+                icon: root.kind === "broll" ? "image-line" : "user-smile-line"
                 tip: root.kind === "broll" ? qsTr("Product shot") : qsTr("Talking")
                 onClicked: root.kindToggled()
             }
 
             IconButton {
-                glyph: "↑"
+                icon: "arrow-up-s-line"
                 enabled: root.position > 0
                 onClicked: root.moveRequested(root.position - 1)
             }
 
             IconButton {
-                glyph: "↓"
+                icon: "arrow-down-s-line"
                 enabled: root.position < root.total - 1
                 onClicked: root.moveRequested(root.position + 1)
             }
 
             IconButton {
-                glyph: "✎"
+                icon: "edit-line"
+                tip: qsTr("Edit")
                 onClicked: root.beginEdit()
             }
 
             IconButton {
-                glyph: "×"
+                icon: "delete-bin-line"
                 destructive: true
+                tip: qsTr("Delete")
                 onClicked: root.removeRequested()
             }
         }

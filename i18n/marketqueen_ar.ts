@@ -999,13 +999,6 @@
     </message>
 </context>
 <context>
-    <name>RecapBlock</name>
-    <message>
-        <source>Edit</source>
-        <translation>تعديل</translation>
-    </message>
-</context>
-<context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
@@ -1160,6 +1153,14 @@
     <message>
         <source>Talking</source>
         <translation>متكلّم</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>تعديل</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>حذف</translation>
     </message>
 </context>
 <context>
@@ -1435,8 +1436,8 @@ Nothing is uploaded to us.</source>
         <translation>السيناريو</translation>
     </message>
     <message>
-        <source>Who says it, and what</source>
-        <translation>من يتكلم، وعمَّ يتكلم</translation>
+        <source>Who speaks, and what</source>
+        <translation>من يتكلم، وماذا يقول</translation>
     </message>
     <message>
         <source>Summary</source>

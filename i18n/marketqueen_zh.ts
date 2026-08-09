@@ -999,13 +999,6 @@
     </message>
 </context>
 <context>
-    <name>RecapBlock</name>
-    <message>
-        <source>Edit</source>
-        <translation>编辑</translation>
-    </message>
-</context>
-<context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
@@ -1160,6 +1153,14 @@
     <message>
         <source>Talking</source>
         <translation>说话</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>编辑</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>删除</translation>
     </message>
 </context>
 <context>
@@ -1435,7 +1436,7 @@ Nothing is uploaded to us.</source>
         <translation>脚本</translation>
     </message>
     <message>
-        <source>Who says it, and what</source>
+        <source>Who speaks, and what</source>
         <translation>谁在说，说什么</translation>
     </message>
     <message>

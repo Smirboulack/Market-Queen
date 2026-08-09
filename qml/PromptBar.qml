@@ -19,7 +19,7 @@ Rectangle {
     property int maxHeight: 160
     property bool busy: false
     property bool canSubmit: field.text.trim() !== ""
-    property string submitGlyph: "↵"
+    property string submitIcon: "send-plane-fill"
     // Chips go here.
     default property alias chips: chipRow.data
 
@@ -108,12 +108,21 @@ Rectangle {
                 opacity: enabled ? 1.0 : 0.35
                 color: sendHover.hovered && enabled ? Theme.accentHover : Theme.accent
 
-                Text {
+                Icon {
+                    id: sendIcon
                     anchors.centerIn: parent
-                    text: root.busy ? "…" : root.submitGlyph
+                    name: root.busy ? "loader-4-line" : root.submitIcon
+                    size: 16
                     color: "white"
-                    font.pixelSize: Theme.fontBody
-                    font.weight: Font.Bold
+
+                    RotationAnimation on rotation {
+                        running: root.busy
+                        loops: Animation.Infinite
+                        from: 0
+                        to: 360
+                        duration: 900
+                        onRunningChanged: if (!running) sendIcon.rotation = 0
+                    }
                 }
 
                 HoverHandler {

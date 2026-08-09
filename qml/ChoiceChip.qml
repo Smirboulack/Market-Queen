@@ -33,7 +33,7 @@ Item {
         id: chip
         label: root.label
         value: root.currentLabel
-        glyph: root.value === "" ? "⊕" : ""
+        icon: root.value === "" ? "add-line" : ""
         opensMenu: true
         onClicked: menu.open()
     }

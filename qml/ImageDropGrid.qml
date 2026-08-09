@@ -63,12 +63,12 @@ Rectangle {
             spacing: 4
             visible: root.images.length === 0
 
-            Text {
+            Icon {
                 Layout.alignment: Qt.AlignHCenter
                 Layout.topMargin: 10
-                text: "＋"
+                name: "image-add-line"
+                size: 30
                 color: Theme.textFaint
-                font.pixelSize: 30
             }
 
             Text {
@@ -139,11 +139,11 @@ Rectangle {
                         border.width: 1
                         border.color: tile.primary ? Theme.accent : Theme.borderStrong
 
-                        Text {
+                        Icon {
                             anchors.centerIn: parent
-                            text: tile.primary ? "★" : "☆"
+                            name: tile.primary ? "star-fill" : "star-line"
+                            size: 12
                             color: tile.primary ? "white" : Theme.text
-                            font.pixelSize: 11
                         }
 
                         TapHandler {
@@ -165,11 +165,11 @@ Rectangle {
                         border.width: 1
                         border.color: Theme.borderStrong
 
-                        Text {
+                        Icon {
                             anchors.centerIn: parent
-                            text: "×"
+                            name: "close-line"
+                            size: 12
                             color: Theme.danger
-                            font.pixelSize: 13
                         }
 
                         TapHandler {
@@ -193,11 +193,11 @@ Rectangle {
                 border.width: 1
                 border.color: addHover.hovered ? Theme.borderStrong : Theme.border
 
-                Text {
+                Icon {
                     anchors.centerIn: parent
-                    text: "＋"
+                    name: "add-line"
+                    size: 20
                     color: Theme.textFaint
-                    font.pixelSize: 22
                 }
 
                 HoverHandler {

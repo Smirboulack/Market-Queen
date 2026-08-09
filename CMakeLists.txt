@@ -70,6 +70,7 @@ set(APP_QML_FILES
     qml/ChoiceChip.qml
     qml/SceneBubble.qml
     qml/IconButton.qml
+    qml/Icon.qml
     qml/LabeledSlider.qml
     qml/Storyboard.qml
     qml/StepSummary.qml
@@ -100,6 +101,100 @@ foreach(qml_file IN LISTS APP_QML_FILES)
     set_source_files_properties(${qml_file} PROPERTIES QT_RESOURCE_ALIAS ${qml_name})
 endforeach()
 
+# Only the glyphs the interface actually uses are embedded: the set ships
+# 3229 of them. Each is aliased to a flat icons/<name>.svg so no QML has to
+# know which category a glyph came from.
+set(APP_ICONS
+    "assets/icons/Media/clapperboard-line.svg"
+    "assets/icons/Media/movie-2-line.svg"
+    "assets/icons/System/settings-3-line.svg"
+    "assets/icons/Finance/shopping-bag-3-line.svg"
+    "assets/icons/Document/draft-line.svg"
+    "assets/icons/System/check-double-line.svg"
+    "assets/icons/System/check-line.svg"
+    "assets/icons/System/add-line.svg"
+    "assets/icons/System/close-line.svg"
+    "assets/icons/System/delete-bin-line.svg"
+    "assets/icons/System/refresh-line.svg"
+    "assets/icons/System/star-fill.svg"
+    "assets/icons/System/star-line.svg"
+    "assets/icons/System/eye-line.svg"
+    "assets/icons/System/eye-off-line.svg"
+    "assets/icons/Design/edit-line.svg"
+    "assets/icons/Design/magic-line.svg"
+    "assets/icons/Arrows/arrow-up-s-line.svg"
+    "assets/icons/Arrows/arrow-down-s-line.svg"
+    "assets/icons/Business/send-plane-fill.svg"
+    "assets/icons/Media/image-line.svg"
+    "assets/icons/Media/image-add-line.svg"
+    "assets/icons/Media/mic-line.svg"
+    "assets/icons/Media/play-fill.svg"
+    "assets/icons/Media/pause-fill.svg"
+    "assets/icons/System/loader-4-line.svg"
+    "assets/icons/User & Faces/user-smile-line.svg"
+    "assets/icons/User & Faces/user-add-line.svg"
+    "assets/icons/User & Faces/user-voice-line.svg"
+)
+
+set_source_files_properties("assets/icons/Media/clapperboard-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/clapperboard-line.svg")
+set_source_files_properties("assets/icons/Media/movie-2-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/movie-2-line.svg")
+set_source_files_properties("assets/icons/System/settings-3-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/settings-3-line.svg")
+set_source_files_properties("assets/icons/Finance/shopping-bag-3-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/shopping-bag-3-line.svg")
+set_source_files_properties("assets/icons/Document/draft-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/draft-line.svg")
+set_source_files_properties("assets/icons/System/check-double-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/check-double-line.svg")
+set_source_files_properties("assets/icons/System/check-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/check-line.svg")
+set_source_files_properties("assets/icons/System/add-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/add-line.svg")
+set_source_files_properties("assets/icons/System/close-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/close-line.svg")
+set_source_files_properties("assets/icons/System/delete-bin-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/delete-bin-line.svg")
+set_source_files_properties("assets/icons/System/refresh-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/refresh-line.svg")
+set_source_files_properties("assets/icons/System/star-fill.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/star-fill.svg")
+set_source_files_properties("assets/icons/System/star-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/star-line.svg")
+set_source_files_properties("assets/icons/System/eye-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/eye-line.svg")
+set_source_files_properties("assets/icons/System/eye-off-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/eye-off-line.svg")
+set_source_files_properties("assets/icons/Design/edit-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/edit-line.svg")
+set_source_files_properties("assets/icons/Design/magic-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/magic-line.svg")
+set_source_files_properties("assets/icons/Arrows/arrow-up-s-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/arrow-up-s-line.svg")
+set_source_files_properties("assets/icons/Arrows/arrow-down-s-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/arrow-down-s-line.svg")
+set_source_files_properties("assets/icons/Business/send-plane-fill.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/send-plane-fill.svg")
+set_source_files_properties("assets/icons/Media/image-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/image-line.svg")
+set_source_files_properties("assets/icons/Media/image-add-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/image-add-line.svg")
+set_source_files_properties("assets/icons/Media/mic-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/mic-line.svg")
+set_source_files_properties("assets/icons/Media/play-fill.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/play-fill.svg")
+set_source_files_properties("assets/icons/Media/pause-fill.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/pause-fill.svg")
+set_source_files_properties("assets/icons/System/loader-4-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/loader-4-line.svg")
+set_source_files_properties("assets/icons/User & Faces/user-smile-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/user-smile-line.svg")
+set_source_files_properties("assets/icons/User & Faces/user-add-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/user-add-line.svg")
+set_source_files_properties("assets/icons/User & Faces/user-voice-line.svg"
+    PROPERTIES QT_RESOURCE_ALIAS "icons/user-voice-line.svg")
+
 set_source_files_properties(qml/Theme.qml qml/Format.qml
                             PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 
@@ -112,6 +207,7 @@ qt_add_qml_module(MarketQueen
         assets/icon-head.png
         resources/pricing.json
         resources/casting.json
+        ${APP_ICONS}
 )
 
 # The per-directory entries are what the generated QML type registration file

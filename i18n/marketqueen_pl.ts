@@ -999,13 +999,6 @@
     </message>
 </context>
 <context>
-    <name>RecapBlock</name>
-    <message>
-        <source>Edit</source>
-        <translation>Edytuj</translation>
-    </message>
-</context>
-<context>
     <name>RecapPanel</name>
     <message>
         <source>YOUR AD</source>
@@ -1160,6 +1153,14 @@
     <message>
         <source>Talking</source>
         <translation>Mówi</translation>
+    </message>
+    <message>
+        <source>Edit</source>
+        <translation>Edytuj</translation>
+    </message>
+    <message>
+        <source>Delete</source>
+        <translation>Usuń</translation>
     </message>
 </context>
 <context>
@@ -1435,8 +1436,8 @@ Nic nie trafia do nas.</translation>
         <translation>Scenariusz</translation>
     </message>
     <message>
-        <source>Who says it, and what</source>
-        <translation>Kto mówi i o czym</translation>
+        <source>Who speaks, and what</source>
+        <translation>Kto mówi i co mówi</translation>
     </message>
     <message>
         <source>Summary</source>

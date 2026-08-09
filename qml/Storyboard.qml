@@ -67,11 +67,12 @@ ColumnLayout {
             border.color: Qt.alpha("white", 0.4)
             visible: playerHover.hovered || player.playbackState !== MediaPlayer.PlayingState
 
-            Text {
+            Icon {
                 anchors.centerIn: parent
-                text: player.playbackState === MediaPlayer.PlayingState ? "❚❚" : "▶"
+                name: player.playbackState === MediaPlayer.PlayingState
+                      ? "pause-fill" : "play-fill"
+                size: 22
                 color: "white"
-                font.pixelSize: 20
             }
         }
 

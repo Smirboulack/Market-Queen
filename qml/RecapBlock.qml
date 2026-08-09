@@ -43,11 +43,11 @@ Rectangle {
 
             Item { Layout.fillWidth: true }
 
-            Text {
-                text: qsTr("Edit")
+            Icon {
+                name: "edit-line"
+                size: 14
                 visible: hover.hovered
                 color: Theme.accent
-                font.pixelSize: Theme.fontSmall
             }
         }
 

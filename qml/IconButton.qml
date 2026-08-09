@@ -7,7 +7,7 @@ import MarketQueen
 Rectangle {
     id: root
 
-    property string glyph: ""
+    property string icon: ""
     property string tip: ""
     property bool destructive: false
 
@@ -19,11 +19,11 @@ Rectangle {
     opacity: enabled ? 1.0 : 0.3
     color: hover.hovered && root.enabled ? Theme.surfaceHover : "transparent"
 
-    Text {
+    Icon {
         anchors.centerIn: parent
-        text: root.glyph
+        name: root.icon
+        size: 16
         color: root.destructive && hover.hovered ? Theme.danger : Theme.textDim
-        font.pixelSize: Theme.fontBody
     }
 
     ToolTip.visible: root.tip !== "" && hover.hovered

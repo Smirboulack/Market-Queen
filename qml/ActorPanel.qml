@@ -85,7 +85,7 @@ Rectangle {
             Item { Layout.fillWidth: true }
 
             IconButton {
-                glyph: "✕"
+                icon: "close-line"
                 onClicked: root.closeRequested()
             }
         }
@@ -156,7 +156,7 @@ Rectangle {
                                 anchors.right: parent.right
                                 anchors.top: parent.top
                                 anchors.margins: 1
-                                glyph: "×"
+                                icon: "close-line"
                                 destructive: true
                                 visible: savedHover.hovered
                                 onClicked: App.actors.remove(saved.actorId)
@@ -182,7 +182,7 @@ Rectangle {
                     placeholder: qsTr("Describe the person. Ordinary face, ordinary room.")
                     minHeight: 56
                     busy: App.casting.running
-                    submitGlyph: "✦"
+                    submitIcon: "magic-line"
                     onSubmitted: function (text) {
                         root.project.setActorField("brief", text);
                         App.casting.generate(root.project.actor, 4);
@@ -242,7 +242,7 @@ Rectangle {
                         //: %1 is a count of photos
                         value: root.references.length > 0
                                ? qsTr("%1 photo(s)").arg(root.references.length) : ""
-                        glyph: root.references.length === 0 ? "⊕" : "▣"
+                        icon: root.references.length === 0 ? "image-add-line" : "image-line"
                         onClicked: referenceDialog.open()
                     }
                 }
@@ -381,7 +381,7 @@ Rectangle {
 
                     placeholder: qsTr("Where they are. A small bathroom, towels on the floor…")
                     minHeight: 40
-                    submitGlyph: "✓"
+                    submitIcon: "check-line"
                     onSubmitted: function (text) { root.project.setActorField("decor", text); }
                     onTextChanged: root.project.setActorField("decor", text)
                 }
@@ -393,7 +393,7 @@ Rectangle {
                     placeholder: qsTr("A line to hear them say…")
                     minHeight: 40
                     busy: App.voiceBooth.auditioning
-                    submitGlyph: "▶"
+                    submitIcon: "play-fill"
                     text: root.auditionLine
                     onSubmitted: function (text) {
                         root.auditionLine = text;
@@ -408,14 +408,14 @@ Rectangle {
                         id: voiceChip
                         label: qsTr("Voice")
                         value: voiceBox.value !== "" ? voiceBox.label : ""
-                        glyph: "◉"
+                        icon: "mic-line"
                         opensMenu: true
                         onClicked: voiceMenu.open()
                     }
 
                     Chip {
                         label: qsTr("Load voices")
-                        glyph: "⟳"
+                        icon: "refresh-line"
                         onClicked: App.loadVoices(App.settings.pref("voiceProvider", "elevenlabs"))
                     }
                 }

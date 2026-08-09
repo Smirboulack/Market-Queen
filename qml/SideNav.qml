@@ -69,9 +69,9 @@ Rectangle {
 
             Repeater {
                 model: [
-                    { label: qsTr("Studio"), glyph: "✦" },
-                    { label: qsTr("Library"), glyph: "▦" },
-                    { label: qsTr("Settings"), glyph: "⚙" }
+                    { label: qsTr("Studio"), icon: "clapperboard-line" },
+                    { label: qsTr("Library"), icon: "movie-2-line" },
+                    { label: qsTr("Settings"), icon: "settings-3-line" }
                 ]
 
                 Rectangle {
@@ -93,10 +93,10 @@ Rectangle {
                         anchors.rightMargin: 10
                         spacing: 10
 
-                        Text {
-                            text: modelData.glyph
+                        Icon {
+                            name: modelData.icon
+                            size: 18
                             color: root.currentIndex === index ? Theme.accent : Theme.textFaint
-                            font.pixelSize: Theme.fontBody
                         }
 
                         Text {
