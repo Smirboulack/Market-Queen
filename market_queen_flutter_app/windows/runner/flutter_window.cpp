@@ -1,8 +1,23 @@
 #include "flutter_window.h"
 
+#include <dwmapi.h>
+#include <flutter/method_channel.h>
+#include <flutter/standard_method_codec.h>
+
+#include <memory>
 #include <optional>
 
 #include "flutter/generated_plugin_registrant.h"
+
+namespace {
+
+// Windows keeps the title bar light unless the window opts in, and the default
+// runner only follows the *system* setting. Market Queen has its own light/dark
+// switch, so the bar has to follow that instead -- otherwise a dark interface
+// sits under a white caption.
+constexpr const char kTitleBarChannel[] = "marketqueen/titlebar";
+
+}  // namespace
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
     : project_(project) {}
@@ -27,6 +42,29 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
+  title_bar_channel_ =
+      std::make_unique<flutter::MethodChannel<flutter::EncodableValue>>(
+          flutter_controller_->engine()->messenger(), kTitleBarChannel,
+          &flutter::StandardMethodCodec::GetInstance());
+
+  title_bar_channel_->SetMethodCallHandler(
+      [this](const auto& call, auto result) {
+        if (call.method_name() != "setDark") {
+          result->NotImplemented();
+          return;
+        }
+        const auto* dark = std::get_if<bool>(call.arguments());
+        BOOL enable = (dark != nullptr && *dark) ? TRUE : FALSE;
+        // DWMWA_USE_IMMERSIVE_DARK_MODE. The attribute only repaints on the
+        // next frame change, so nudge the window afterwards.
+        DwmSetWindowAttribute(GetHandle(), DWMWA_USE_IMMERSIVE_DARK_MODE,
+                              &enable, sizeof(enable));
+        ::SetWindowPos(GetHandle(), nullptr, 0, 0, 0, 0,
+                       SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+                           SWP_FRAMECHANGED);
+        result->Success();
+      });
+
   flutter_controller_->engine()->SetNextFrameCallback([&]() {
     this->Show();
   });
@@ -40,6 +78,10 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  if (title_bar_channel_) {
+    title_bar_channel_->SetMethodCallHandler(nullptr);
+    title_bar_channel_ = nullptr;
+  }
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
   }

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "market_queen_flutter_app" "\0"
+            VALUE "CompanyName", "SegfaultLabs" "\0"
+            VALUE "FileDescription", "Market Queen" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "market_queen_flutter_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "market_queen_flutter_app.exe" "\0"
-            VALUE "ProductName", "market_queen_flutter_app" "\0"
+            VALUE "InternalName", "MarketQueen" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 SegfaultLabs. MIT licensed." "\0"
+            VALUE "OriginalFilename", "MarketQueen.exe" "\0"
+            VALUE "ProductName", "Market Queen" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

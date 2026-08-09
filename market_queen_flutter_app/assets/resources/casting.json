@@ -1,0 +1,30 @@
+{
+  "//": "How an actor portrait is asked for. Editable: drop a copy of this file in the config directory to override it.",
+  "//realism": "Image models default to advertising photography. Asking for a 'UGC look' does not move them - they comply in words and still render a campaign shot. What works is naming the camera, imposing concrete flaws, and forbidding the commercial vocabulary by name.",
+
+  "schemaVersion": 1,
+  "updated": "2026-08-08",
+
+  "portrait": {
+    "lead": "An ordinary photo taken on a phone. Not an advertisement, not a portrait session.",
+    "camera": "Front-facing phone camera, 26mm equivalent, f/1.8, held at arm's length, very slight motion blur.",
+    "subject": "The person in frame: {subject}.",
+    "location": "Shot in {location}.",
+    "flaws": "Visible skin texture and pores, uneven skin tone, a few flyaway hairs, the window behind slightly blown out, mixed daylight and indoor light, no retouching whatsoever.",
+    "framing": "Framed slightly off-centre and a little too close, the top of the head cropped by the edge of the frame, the arm holding the phone just visible.",
+    "forbid": "Do not produce any of the following: studio lighting, softbox, ring light, rim light, creamy bokeh, shallow depth of field, colour grading, beauty retouching, smoothed skin, a model-agency face, symmetrical advertising composition, a magazine interior, or a product hero shot."
+  },
+
+  "order": ["lead", "camera", "subject", "location", "flaws", "framing", "forbid"],
+
+  "//direction": "Handed to the LLM that turns the user's lines into shot prompts. Same fight as the portrait: without these rules it writes commercial storyboard directions, and the ad comes back looking like a TV spot again.",
+  "direction": "Every shot is filmed by the speaker on their own phone. Write like an amateur photo, never like a commercial. Rules, all of them mandatory: keep the same person, the same clothes and the same room in every shot -- only the angle, the distance and what is in frame may change. Name the framing concretely (selfie at arm's length, held low, propped against something, over the shoulder). Keep the light motivated by the room, never added. Include at least one imperfection per shot: a slightly crooked horizon, a hand entering frame, something out of focus, an overexposed window. Never write: studio lighting, softbox, ring light, rim light, bokeh, shallow depth of field, colour grading, retouching, hero shot, product beauty shot, cinematic, or epic. Movement must stay small and human: a hand adjusting the phone, a step forward, a turn towards the light. Never describe a camera move a person holding a phone could not make.",
+
+  "//traitOrder": "How the optional traits are strung together before the free description. Alphabetical order reads like a form; this reads like a sentence.",
+  "traitOrder": ["gender", "age", "style", "energy"],
+
+  "fallbacks": {
+    "subject": "an ordinary-looking person, the kind you would pass in the street, not conventionally beautiful",
+    "location": "an ordinary lived-in room, everyday clutter on the surfaces"
+  }
+}
