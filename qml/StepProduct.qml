@@ -81,7 +81,7 @@ ColumnLayout {
         Item { Layout.fillWidth: true }
 
         PrimaryButton {
-            text: qsTr("Next: cast your actor")
+            text: qsTr("Next: the scenario")
             enabled: root.project.stepStates[0] !== undefined
                      && root.project.stepStates[0].valid
             onClicked: root.project.currentStep = 1

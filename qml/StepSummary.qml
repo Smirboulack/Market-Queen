@@ -109,7 +109,7 @@ ColumnLayout {
         GhostButton {
             text: qsTr("Back")
             enabled: !root.busy
-            onClicked: root.project.currentStep = 2
+            onClicked: root.project.currentStep = 1
         }
 
         Item { Layout.fillWidth: true }

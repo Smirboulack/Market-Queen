@@ -6,10 +6,10 @@ import MarketQueen
 // The studio: steps on the left, the step being edited in the middle, a live
 // recap on the right.
 //
-// The centre is deliberately the widest column. The form it replaces put six
-// controls side by side and asked the user to judge the result afterwards;
-// here every step gets the whole panel, and the recap is what carries the
-// context between them.
+// The centre fills the window rather than scrolling as a whole, because the
+// scenario step owns its own scroll region: the written lines scroll, the
+// prompt bar stays put at the bottom, and the actor drawer needs the full
+// height. The steps that are just content bring their own ScrollView.
 Item {
     id: root
 
@@ -28,31 +28,51 @@ Item {
         }
 
         // ------------------------------------------------------------ panel
-        ScrollView {
+        StackLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            contentWidth: availableWidth
-            clip: true
+            currentIndex: root.project.currentStep
 
-            ColumnLayout {
-                width: parent.width
-                spacing: Theme.gapLarge
+            ScrollView {
+                contentWidth: availableWidth
+                clip: true
 
-                Item { implicitHeight: 4 }
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
 
-                StackLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: Theme.pagePadding
-                    Layout.rightMargin: Theme.gapLarge
-                    currentIndex: root.project.currentStep
+                    Item { implicitHeight: 4 }
 
-                    StepProduct {}
-                    StepActor {}
-                    StepScript {}
-                    StepSummary {}
+                    StepProduct {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.pagePadding
+                        Layout.rightMargin: Theme.gapLarge
+                    }
+
+                    Item { implicitHeight: Theme.gapLarge }
                 }
+            }
 
-                Item { implicitHeight: Theme.gapLarge }
+            StepScenario {}
+
+            ScrollView {
+                contentWidth: availableWidth
+                clip: true
+
+                ColumnLayout {
+                    width: parent.width
+                    spacing: 0
+
+                    Item { implicitHeight: 4 }
+
+                    StepSummary {
+                        Layout.fillWidth: true
+                        Layout.leftMargin: Theme.pagePadding
+                        Layout.rightMargin: Theme.gapLarge
+                    }
+
+                    Item { implicitHeight: Theme.gapLarge }
+                }
             }
         }
 

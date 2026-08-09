@@ -9,10 +9,209 @@
     </message>
 </context>
 <context>
-    <name>ActorStrip</name>
+    <name>ActorPanel</name>
+    <message>
+        <source>Honestly, I did not think this would work.</source>
+        <translation>بصراحة، لم أظن أن هذا سينجح.</translation>
+    </message>
+    <message>
+        <source>Actor</source>
+        <translation>الممثل</translation>
+    </message>
     <message>
         <source>Your actors</source>
         <translation>ممثلوك</translation>
+    </message>
+    <message>
+        <source>Describe the person. Ordinary face, ordinary room.</source>
+        <translation>صِف الشخص. وجه عادي، غرفة عادية.</translation>
+    </message>
+    <message>
+        <source>Gender</source>
+        <translation>النوع</translation>
+    </message>
+    <message>
+        <source>a woman</source>
+        <translation>امرأة</translation>
+    </message>
+    <message>
+        <source>a man</source>
+        <translation>رجل</translation>
+    </message>
+    <message>
+        <source>a non-binary person</source>
+        <translation>شخص غير ثنائي النوع</translation>
+    </message>
+    <message>
+        <source>Age</source>
+        <translation>العمر</translation>
+    </message>
+    <message>
+        <source>early twenties</source>
+        <translation>في أوائل العشرينات</translation>
+    </message>
+    <message>
+        <source>late twenties</source>
+        <translation>في أواخر العشرينات</translation>
+    </message>
+    <message>
+        <source>thirties</source>
+        <translation>في منتصف الثلاثينات</translation>
+    </message>
+    <message>
+        <source>forties</source>
+        <translation>في منتصف الأربعينات</translation>
+    </message>
+    <message>
+        <source>fifties or older</source>
+        <translation>في الخمسينات أو أكثر</translation>
+    </message>
+    <message>
+        <source>Dress</source>
+        <translation>الملابس</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>عادية</translation>
+    </message>
+    <message>
+        <source>sportswear</source>
+        <translation>رياضية</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>مكتبية</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>ستريت وير</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>الطاقة</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>هادئة</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>مفعمة بالحيوية</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>استيقظت للتو</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>دافئة</translation>
+    </message>
+    <message>
+        <source>Reference</source>
+        <translation>مرجع</translation>
+    </message>
+    <message>
+        <source>%1 photo(s)</source>
+        <extracomment>%1 is a count of photos</extracomment>
+        <translation>%1 صورة</translation>
+    </message>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>جارٍ الاختيار... %1 من %2</translation>
+    </message>
+    <message>
+        <source>Four faces for %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>أربعة وجوه مقابل %1</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>السعر غير معروف</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>إلغاء</translation>
+    </message>
+    <message>
+        <source>Use my photo</source>
+        <translation>استخدام صورتي</translation>
+    </message>
+    <message>
+        <source>Where they are. A small bathroom, towels on the floor…</source>
+        <translation>أين توجد. حمّام صغير، مناشف على الأرض…</translation>
+    </message>
+    <message>
+        <source>A line to hear them say…</source>
+        <translation>جملة تقولها…</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>الصوت</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>تحميل الأصوات</translation>
+    </message>
+    <message>
+        <source>Natural</source>
+        <translation>طبيعية</translation>
+    </message>
+    <message>
+        <source>Composed</source>
+        <translation>رزينة</translation>
+    </message>
+    <message>
+        <source>Lively</source>
+        <translation>حيوية</translation>
+    </message>
+    <message>
+        <source>Intense</source>
+        <translation>مكثّفة</translation>
+    </message>
+    <message>
+        <source>Hide the sliders</source>
+        <translation>إخفاء المؤشرات</translation>
+    </message>
+    <message>
+        <source>Fine-tune</source>
+        <translation>ضبط دقيق</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>الثبات</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>التشابه</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>الأسلوب</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>السرعة</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>تحديث</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>احتفظ بهذا الممثل</translation>
+    </message>
+    <message>
+        <source>Choose reference photos</source>
+        <translation>اختيار صور مرجعية</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>الصور (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>تعذّر تحميل الأصوات: %1</translation>
     </message>
 </context>
 <context>
@@ -70,6 +269,13 @@
     <message>
         <source>Could not write %1.</source>
         <translation>تعذّرت كتابة %1.</translation>
+    </message>
+</context>
+<context>
+    <name>ChoiceChip</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>لا يهم</translation>
     </message>
 </context>
 <context>
@@ -782,26 +988,6 @@
     </message>
 </context>
 <context>
-    <name>PortraitGrid</name>
-    <message>
-        <source>Casting... %1 of %2</source>
-        <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation>جارٍ الاختيار... %1 من %2</translation>
-    </message>
-    <message>
-        <source>Pick the one that looks real</source>
-        <translation>اختر من يبدو حقيقيًا</translation>
-    </message>
-    <message>
-        <source>None of them? Cast again.</source>
-        <translation>لا أحد منهم يناسب؟ أعد الاختيار.</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>مُختار</translation>
-    </message>
-</context>
-<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -961,47 +1147,19 @@
     </message>
 </context>
 <context>
-    <name>SceneCard</name>
-    <message>
-        <source>Talking</source>
-        <translation>متكلّم</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>المنتج</translation>
-    </message>
+    <name>SceneBubble</name>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
         <translation>%1 ث</translation>
     </message>
     <message>
-        <source>Hide the visual</source>
-        <translation>إخفاء الوصف البصري</translation>
+        <source>Product shot</source>
+        <translation>لقطة منتج</translation>
     </message>
     <message>
-        <source>Visual</source>
-        <translation>الوصف البصري</translation>
-    </message>
-    <message>
-        <source>Not directed yet</source>
-        <translation>لم يُخرَج بعد</translation>
-    </message>
-    <message>
-        <source>What the camera sees</source>
-        <translation>ما تراه الكاميرا</translation>
-    </message>
-    <message>
-        <source>Press Direct the shots, or write it yourself.</source>
-        <translation>اضغط «أخرِج اللقطات»، أو اكتبها بنفسك.</translation>
-    </message>
-    <message>
-        <source>How it moves</source>
-        <translation>كيف يتحرك</translation>
-    </message>
-    <message>
-        <source>One small gesture, one small camera movement.</source>
-        <translation>إيماءة صغيرة واحدة، وحركة كاميرا صغيرة واحدة.</translation>
+        <source>Talking</source>
+        <translation>متكلّم</translation>
     </message>
 </context>
 <context>
@@ -1216,220 +1374,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepActor</name>
-    <message>
-        <source>Who says it?</source>
-        <translation>من يقولها؟</translation>
-    </message>
-    <message>
-        <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation>الشخص المقنع أفضل من الشخص المثالي. وجه عادي، غرفة عادية.</translation>
-    </message>
-    <message>
-        <source>Where they are</source>
-        <translation>أين توجد</translation>
-    </message>
-    <message>
-        <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation>مثلاً: حمّام صغير، مناشف على الأرض، ضوء الصباح عبر الستائر</translation>
-    </message>
-    <message>
-        <source>Describe them</source>
-        <translation>صِفها</translation>
-    </message>
-    <message>
-        <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation>الكلمات البسيطة تعمل أفضل. السمات أدناه تكمل فقط ما لم تذكره.</translation>
-    </message>
-    <message>
-        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation>مثلاً: متعبة لكن ودودة، بلا مكياج، شعر مجموع بإهمال، ابتسامة مائلة قليلاً</translation>
-    </message>
-    <message>
-        <source>Gender</source>
-        <translation>النوع</translation>
-    </message>
-    <message>
-        <source>a woman</source>
-        <translation>امرأة</translation>
-    </message>
-    <message>
-        <source>a man</source>
-        <translation>رجل</translation>
-    </message>
-    <message>
-        <source>a non-binary person</source>
-        <translation>شخص غير ثنائي النوع</translation>
-    </message>
-    <message>
-        <source>Age</source>
-        <translation>العمر</translation>
-    </message>
-    <message>
-        <source>early twenties</source>
-        <translation>في أوائل العشرينات</translation>
-    </message>
-    <message>
-        <source>late twenties</source>
-        <translation>في أواخر العشرينات</translation>
-    </message>
-    <message>
-        <source>thirties</source>
-        <translation>في منتصف الثلاثينات</translation>
-    </message>
-    <message>
-        <source>forties</source>
-        <translation>في منتصف الأربعينات</translation>
-    </message>
-    <message>
-        <source>fifties or older</source>
-        <translation>في الخمسينات أو أكثر</translation>
-    </message>
-    <message>
-        <source>Dress</source>
-        <translation>الملابس</translation>
-    </message>
-    <message>
-        <source>casual</source>
-        <translation>عادية</translation>
-    </message>
-    <message>
-        <source>sportswear</source>
-        <translation>رياضية</translation>
-    </message>
-    <message>
-        <source>office</source>
-        <translation>مكتبية</translation>
-    </message>
-    <message>
-        <source>streetwear</source>
-        <translation>ستريت وير</translation>
-    </message>
-    <message>
-        <source>Energy</source>
-        <translation>الطاقة</translation>
-    </message>
-    <message>
-        <source>calm</source>
-        <translation>هادئة</translation>
-    </message>
-    <message>
-        <source>upbeat</source>
-        <translation>مفعمة بالحيوية</translation>
-    </message>
-    <message>
-        <source>just woke up</source>
-        <translation>استيقظت للتو</translation>
-    </message>
-    <message>
-        <source>warm</source>
-        <translation>دافئة</translation>
-    </message>
-    <message>
-        <source>Someone real</source>
-        <translation>شخص حقيقي</translation>
-    </message>
-    <message>
-        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation>اختياري. صورة شخص حقيقي تحافظ على الوجه نفسه في كل لقطة.</translation>
-    </message>
-    <message>
-        <source>Use this photo as the actor, without generating</source>
-        <translation>استخدام هذه الصورة كممثل، دون توليد</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>الاختيار</translation>
-    </message>
-    <message>
-        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation>أربعة وجوه في المرة. احتفظ بمن يمكن أن يكون سيلفي شخص حقيقي.</translation>
-    </message>
-    <message>
-        <source>Casting...</source>
-        <translation>جارٍ الاختيار...</translation>
-    </message>
-    <message>
-        <source>Cast 1 portrait</source>
-        <translation>توليد بورتريه واحد</translation>
-    </message>
-    <message>
-        <source>Cast %1 portraits</source>
-        <extracomment>%1 is a number of portraits</extracomment>
-        <translation>توليد %1 بورتريه</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>إلغاء</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>السعر غير معروف</translation>
-    </message>
-    <message>
-        <source>Their voice</source>
-        <translation>صوتها</translation>
-    </message>
-    <message>
-        <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation>استمع إليها مقابل جزء من السنت قبل أن تشتري أي فيديو.</translation>
-    </message>
-    <message>
-        <source>Keep this actor</source>
-        <translation>احتفظ بهذا الممثل</translation>
-    </message>
-    <message>
-        <source>Saved actors are one click away in every ad after this one.</source>
-        <translation>الممثلون المحفوظون على بُعد نقرة في كل إعلان تالٍ.</translation>
-    </message>
-    <message>
-        <source>Update</source>
-        <translation>تحديث</translation>
-    </message>
-    <message>
-        <source>Save actor</source>
-        <translation>حفظ الممثل</translation>
-    </message>
-    <message>
-        <source>What gets sent</source>
-        <translation>ما يُرسَل فعليًا</translation>
-    </message>
-    <message>
-        <source>Hide the prompt</source>
-        <translation>إخفاء الموجّه</translation>
-    </message>
-    <message>
-        <source>Show the prompt</source>
-        <translation>إظهار الموجّه</translation>
-    </message>
-    <message>
-        <source>Built from your own %1.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>مبني من ملفك %1.</translation>
-    </message>
-    <message>
-        <source>Drop a casting.json at %1 to change how this is written.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>ضع ملف casting.json في %1 لتغيير طريقة صياغته.</translation>
-    </message>
-    <message>
-        <source>Portrait model</source>
-        <translation>نموذج البورتريه</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>رجوع</translation>
-    </message>
-    <message>
-        <source>Cast someone to continue</source>
-        <translation>اختر شخصًا للمتابعة</translation>
-    </message>
-    <message>
-        <source>Next: write the script</source>
-        <translation>التالي: كتابة النص</translation>
-    </message>
-</context>
-<context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
@@ -1472,8 +1416,8 @@ Nothing is uploaded to us.</source>
         <translation>صورة المنتج الحقيقي تُبقيه مميَّزًا في كل لقطة.</translation>
     </message>
     <message>
-        <source>Next: cast your actor</source>
-        <translation>التالي: اختيار الممثل</translation>
+        <source>Next: the scenario</source>
+        <translation>التالي: السيناريو</translation>
     </message>
 </context>
 <context>
@@ -1487,20 +1431,12 @@ Nothing is uploaded to us.</source>
         <translation>ما تبيعه</translation>
     </message>
     <message>
-        <source>Actor</source>
-        <translation>الممثل</translation>
+        <source>Scenario</source>
+        <translation>السيناريو</translation>
     </message>
     <message>
-        <source>Who says it</source>
-        <translation>من يتكلم</translation>
-    </message>
-    <message>
-        <source>Script</source>
-        <translation>النص</translation>
-    </message>
-    <message>
-        <source>What they say</source>
-        <translation>ما يُقال</translation>
+        <source>Who says it, and what</source>
+        <translation>من يتكلم، وعمَّ يتكلم</translation>
     </message>
     <message>
         <source>Summary</source>
@@ -1520,50 +1456,26 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepScript</name>
+    <name>StepScenario</name>
     <message>
-        <source>What do they say?</source>
-        <translation>ماذا يقول هذا الشخص؟</translation>
-    </message>
-    <message>
-        <source>15 to 30 s converts best</source>
-        <translation>من 15 إلى 30 ثانية هو الأفضل للتحويل</translation>
-    </message>
-    <message>
-        <source>Hook</source>
-        <translation>الخطّاف</translation>
+        <source>Actor</source>
+        <translation>الممثل</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
         <translation>سمِّ الإحباط في جملة واحدة. لديك ثلاث ثوانٍ.</translation>
     </message>
     <message>
-        <source>Problem</source>
-        <translation>المشكلة</translation>
-    </message>
-    <message>
         <source>Make it concrete. What did you try that failed?</source>
         <translation>اجعلها ملموسة. ما الذي جرّبته ولم ينجح؟</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>المنتج</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
         <translation>قدّمه بوصفه ما نجح أخيرًا، لا بوصفه منتجًا.</translation>
     </message>
     <message>
-        <source>Proof</source>
-        <translation>الدليل</translation>
-    </message>
-    <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
         <translation>تفصيلة محددة واحدة. رقم، أو مدة، أو لحظة.</translation>
-    </message>
-    <message>
-        <source>Ask</source>
-        <translation>الدعوة</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
@@ -1574,12 +1486,28 @@ Nothing is uploaded to us.</source>
         <translation>تابع، أو توقّف هنا.</translation>
     </message>
     <message>
-        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>جملة واحدة لكل مشهد، بكلماتك. لا مدة تختارها: يدوم الإعلان بقدر ما تدوم الكلمات.</translation>
+        <source>Scenario</source>
+        <translation>السيناريو</translation>
     </message>
     <message>
-        <source>Add a scene</source>
-        <translation>إضافة مشهد</translation>
+        <source>Write what they say. One line, one scene.</source>
+        <translation>اكتب ما تقوله. سطر واحد، مشهد واحد.</translation>
+    </message>
+    <message>
+        <source>Nothing written yet. The first line is the hook — you have three seconds.</source>
+        <translation>لم يُكتب شيء بعد. السطر الأول هو الخطّاف — لديك ثلاث ثوانٍ.</translation>
+    </message>
+    <message>
+        <source>Pick an actor</source>
+        <translation>اختيار ممثل</translation>
+    </message>
+    <message>
+        <source>Talking</source>
+        <translation>متكلّم</translation>
+    </message>
+    <message>
+        <source>Product shot</source>
+        <translation>لقطة منتج</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
@@ -1587,32 +1515,16 @@ Nothing is uploaded to us.</source>
         <translation>%1 مشهد · %2 ثانية</translation>
     </message>
     <message>
+        <source>15 to 30 s converts best</source>
+        <translation>من 15 إلى 30 ثانية هو الأفضل للتحويل</translation>
+    </message>
+    <message>
+        <source>Directing…</source>
+        <translation>جارٍ الإخراج…</translation>
+    </message>
+    <message>
         <source>Direct the shots</source>
         <translation>أخرِج اللقطات</translation>
-    </message>
-    <message>
-        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation>يحوّل جملك إلى ما تراه الكاميرا. كلماتك لا تُغيَّر أبدًا.</translation>
-    </message>
-    <message>
-        <source>Directing...</source>
-        <translation>جارٍ الإخراج...</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>إلغاء</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>السعر غير معروف</translation>
-    </message>
-    <message>
-        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation>اختياري: المشهد غير المُخرَج يُولَّد أيضًا، من موجّه عام. الإخراج هو ما يُبقي الشخص نفسه في الغرفة نفسها من قطع إلى آخر.</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>رجوع</translation>
     </message>
     <message>
         <source>Next: review</source>
@@ -1755,13 +1667,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>TraitPicker</name>
-    <message>
-        <source>doesn&apos;t matter</source>
-        <translation>لا يهم</translation>
-    </message>
-</context>
-<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1778,138 +1683,6 @@ Nothing is uploaded to us.</source>
 </context>
 <context>
     <name>VoiceBooth</name>
-    <message>
-        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation>بصراحة، لم أظن أن هذا سينجح. بعد أسبوعين ما زلت أستخدمه.</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>الصوت</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>معرّف صوت آخر...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>الصق معرّف صوت</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>حمّل أصوات حسابك لاختيار أحدها.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>تحميل الأصوات</translation>
-    </message>
-    <message>
-        <source>Stability</source>
-        <translation>الثبات</translation>
-    </message>
-    <message>
-        <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation>المنخفض يتنوّع ويبدو حيًّا. المرتفع منتظم وآمن.</translation>
-    </message>
-    <message>
-        <source>Similarity</source>
-        <translation>التشابه</translation>
-    </message>
-    <message>
-        <source>How closely it holds to the original voice.</source>
-        <translation>إلى أي مدى يلتزم بالصوت الأصلي.</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>الأسلوب</translation>
-    </message>
-    <message>
-        <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation>يدفع الأداء. بعد المنتصف يبدأ التمثيل.</translation>
-    </message>
-    <message>
-        <source>Speed</source>
-        <translation>السرعة</translation>
-    </message>
-    <message>
-        <source>Leave at 1.00 unless the read drags.</source>
-        <translation>اتركها على 1٫00 إلا إذا كانت القراءة بطيئة.</translation>
-    </message>
-    <message>
-        <source>Audition line</source>
-        <translation>جملة التجربة</translation>
-    </message>
-    <message>
-        <source>Recording...</source>
-        <translation>جارٍ التسجيل...</translation>
-    </message>
-    <message>
-        <source>Hear them</source>
-        <translation>استمع إليها</translation>
-    </message>
-    <message>
-        <source>Stop</source>
-        <translation>إيقاف</translation>
-    </message>
-    <message>
-        <source>Play again</source>
-        <translation>تشغيل مرة أخرى</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>السعر غير معروف</translation>
-    </message>
-    <message>
-        <source>Hide voice cloning</source>
-        <translation>إخفاء استنساخ الصوت</translation>
-    </message>
-    <message>
-        <source>Clone a voice from a recording</source>
-        <translation>استنساخ صوت من تسجيل</translation>
-    </message>
-    <message>
-        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation>أفلِت تسجيلاً نظيفًا واحدًا أو أكثر للصوت. دقيقة من الكلام تكفي تمامًا.</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>إزالة</translation>
-    </message>
-    <message>
-        <source>Add recordings</source>
-        <translation>إضافة تسجيلات</translation>
-    </message>
-    <message>
-        <source>Name for the cloned voice</source>
-        <translation>اسم الصوت المستنسَخ</translation>
-    </message>
-    <message>
-        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation>سيرفع هذا تسجيلاتك إلى ElevenLabs ويضيف صوتًا دائمًا إلى حسابك. لا تستنسخ إلا صوتًا يحق لك استخدامه.</translation>
-    </message>
-    <message>
-        <source>Cloning...</source>
-        <translation>جارٍ الاستنساخ...</translation>
-    </message>
-    <message>
-        <source>Clone onto my ElevenLabs account</source>
-        <translation>الاستنساخ إلى حسابي على ElevenLabs</translation>
-    </message>
-    <message>
-        <source>Choose voice recordings</source>
-        <translation>اختيار تسجيلات صوتية</translation>
-    </message>
-    <message>
-        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation>صوت (*.mp3 *.wav *.m4a *.ogg)</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>تم تحميل %1 صوتًا.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>تعذّر تحميل الأصوات: %1</translation>
-    </message>
     <message>
         <source>Write a line for them to say.</source>
         <translation>اكتب جملة لتقولها.</translation>

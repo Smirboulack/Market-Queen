@@ -9,10 +9,209 @@
     </message>
 </context>
 <context>
-    <name>ActorStrip</name>
+    <name>ActorPanel</name>
+    <message>
+        <source>Honestly, I did not think this would work.</source>
+        <translation>Честно, я не верила, что это сработает.</translation>
+    </message>
+    <message>
+        <source>Actor</source>
+        <translation>Актёр</translation>
+    </message>
     <message>
         <source>Your actors</source>
         <translation>Ваши актёры</translation>
+    </message>
+    <message>
+        <source>Describe the person. Ordinary face, ordinary room.</source>
+        <translation>Опишите человека. Обычное лицо, обычная комната.</translation>
+    </message>
+    <message>
+        <source>Gender</source>
+        <translation>Пол</translation>
+    </message>
+    <message>
+        <source>a woman</source>
+        <translation>женщина</translation>
+    </message>
+    <message>
+        <source>a man</source>
+        <translation>мужчина</translation>
+    </message>
+    <message>
+        <source>a non-binary person</source>
+        <translation>небинарный человек</translation>
+    </message>
+    <message>
+        <source>Age</source>
+        <translation>Возраст</translation>
+    </message>
+    <message>
+        <source>early twenties</source>
+        <translation>чуть за двадцать</translation>
+    </message>
+    <message>
+        <source>late twenties</source>
+        <translation>под тридцать</translation>
+    </message>
+    <message>
+        <source>thirties</source>
+        <translation>около тридцати пяти</translation>
+    </message>
+    <message>
+        <source>forties</source>
+        <translation>около сорока пяти</translation>
+    </message>
+    <message>
+        <source>fifties or older</source>
+        <translation>пятьдесят и старше</translation>
+    </message>
+    <message>
+        <source>Dress</source>
+        <translation>Одежда</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>повседневная</translation>
+    </message>
+    <message>
+        <source>sportswear</source>
+        <translation>спортивная</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>офисная</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>стритвир</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>Энергия</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>спокойная</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>бодрая</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>только проснулась</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>тёплая</translation>
+    </message>
+    <message>
+        <source>Reference</source>
+        <translation>Референс</translation>
+    </message>
+    <message>
+        <source>%1 photo(s)</source>
+        <extracomment>%1 is a count of photos</extracomment>
+        <translation>%1 фото</translation>
+    </message>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>Кастинг... %1 из %2</translation>
+    </message>
+    <message>
+        <source>Four faces for %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Четыре лица за %1</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>цена неизвестна</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Use my photo</source>
+        <translation>Взять мою фотографию</translation>
+    </message>
+    <message>
+        <source>Where they are. A small bathroom, towels on the floor…</source>
+        <translation>Где она находится. Маленькая ванная, полотенца на полу…</translation>
+    </message>
+    <message>
+        <source>A line to hear them say…</source>
+        <translation>Фраза, которую она произнесёт…</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>Голос</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>Загрузить голоса</translation>
+    </message>
+    <message>
+        <source>Natural</source>
+        <translation>Естественная</translation>
+    </message>
+    <message>
+        <source>Composed</source>
+        <translation>Сдержанная</translation>
+    </message>
+    <message>
+        <source>Lively</source>
+        <translation>Живая</translation>
+    </message>
+    <message>
+        <source>Intense</source>
+        <translation>Интенсивная</translation>
+    </message>
+    <message>
+        <source>Hide the sliders</source>
+        <translation>Скрыть ползунки</translation>
+    </message>
+    <message>
+        <source>Fine-tune</source>
+        <translation>Тонкая настройка</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>Стабильность</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>Схожесть</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>Стиль</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Скорость</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Обновить</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>Сохранить этого актёра</translation>
+    </message>
+    <message>
+        <source>Choose reference photos</source>
+        <translation>Выбрать референсные фото</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>Изображения (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>Не удалось загрузить голоса: %1</translation>
     </message>
 </context>
 <context>
@@ -70,6 +269,13 @@
     <message>
         <source>Could not write %1.</source>
         <translation>Не удалось записать %1.</translation>
+    </message>
+</context>
+<context>
+    <name>ChoiceChip</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>неважно</translation>
     </message>
 </context>
 <context>
@@ -782,26 +988,6 @@
     </message>
 </context>
 <context>
-    <name>PortraitGrid</name>
-    <message>
-        <source>Casting... %1 of %2</source>
-        <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation>Кастинг... %1 из %2</translation>
-    </message>
-    <message>
-        <source>Pick the one that looks real</source>
-        <translation>Выберите того, кто выглядит настоящим</translation>
-    </message>
-    <message>
-        <source>None of them? Cast again.</source>
-        <translation>Никто не подходит? Повторите кастинг.</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Выбран</translation>
-    </message>
-</context>
-<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -961,47 +1147,19 @@
     </message>
 </context>
 <context>
-    <name>SceneCard</name>
-    <message>
-        <source>Talking</source>
-        <translation>Говорит</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Продукт</translation>
-    </message>
+    <name>SceneBubble</name>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
         <translation>%1 с</translation>
     </message>
     <message>
-        <source>Hide the visual</source>
-        <translation>Скрыть визуал</translation>
+        <source>Product shot</source>
+        <translation>Кадр продукта</translation>
     </message>
     <message>
-        <source>Visual</source>
-        <translation>Визуал</translation>
-    </message>
-    <message>
-        <source>Not directed yet</source>
-        <translation>Ещё без режиссуры</translation>
-    </message>
-    <message>
-        <source>What the camera sees</source>
-        <translation>Что видит камера</translation>
-    </message>
-    <message>
-        <source>Press Direct the shots, or write it yourself.</source>
-        <translation>Нажмите «Срежиссировать кадры» или напишите сами.</translation>
-    </message>
-    <message>
-        <source>How it moves</source>
-        <translation>Как это движется</translation>
-    </message>
-    <message>
-        <source>One small gesture, one small camera movement.</source>
-        <translation>Один небольшой жест, одно небольшое движение камеры.</translation>
+        <source>Talking</source>
+        <translation>Говорит</translation>
     </message>
 </context>
 <context>
@@ -1216,220 +1374,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepActor</name>
-    <message>
-        <source>Who says it?</source>
-        <translation>Кто это говорит?</translation>
-    </message>
-    <message>
-        <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation>Правдоподобный человек лучше безупречного. Обычное лицо, обычная комната.</translation>
-    </message>
-    <message>
-        <source>Where they are</source>
-        <translation>Где она находится</translation>
-    </message>
-    <message>
-        <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation>напр. маленькая ванная, полотенца на полу, утренний свет сквозь жалюзи</translation>
-    </message>
-    <message>
-        <source>Describe them</source>
-        <translation>Опишите её</translation>
-    </message>
-    <message>
-        <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation>Простые слова работают лучше всего. Признаки ниже лишь дополняют то, что вы не указали.</translation>
-    </message>
-    <message>
-        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation>напр. усталая, но приветливая, без макияжа, растрёпанный пучок, чуть кривая улыбка</translation>
-    </message>
-    <message>
-        <source>Gender</source>
-        <translation>Пол</translation>
-    </message>
-    <message>
-        <source>a woman</source>
-        <translation>женщина</translation>
-    </message>
-    <message>
-        <source>a man</source>
-        <translation>мужчина</translation>
-    </message>
-    <message>
-        <source>a non-binary person</source>
-        <translation>небинарный человек</translation>
-    </message>
-    <message>
-        <source>Age</source>
-        <translation>Возраст</translation>
-    </message>
-    <message>
-        <source>early twenties</source>
-        <translation>чуть за двадцать</translation>
-    </message>
-    <message>
-        <source>late twenties</source>
-        <translation>под тридцать</translation>
-    </message>
-    <message>
-        <source>thirties</source>
-        <translation>около тридцати пяти</translation>
-    </message>
-    <message>
-        <source>forties</source>
-        <translation>около сорока пяти</translation>
-    </message>
-    <message>
-        <source>fifties or older</source>
-        <translation>пятьдесят и старше</translation>
-    </message>
-    <message>
-        <source>Dress</source>
-        <translation>Одежда</translation>
-    </message>
-    <message>
-        <source>casual</source>
-        <translation>повседневная</translation>
-    </message>
-    <message>
-        <source>sportswear</source>
-        <translation>спортивная</translation>
-    </message>
-    <message>
-        <source>office</source>
-        <translation>офисная</translation>
-    </message>
-    <message>
-        <source>streetwear</source>
-        <translation>стритвир</translation>
-    </message>
-    <message>
-        <source>Energy</source>
-        <translation>Энергия</translation>
-    </message>
-    <message>
-        <source>calm</source>
-        <translation>спокойная</translation>
-    </message>
-    <message>
-        <source>upbeat</source>
-        <translation>бодрая</translation>
-    </message>
-    <message>
-        <source>just woke up</source>
-        <translation>только проснулась</translation>
-    </message>
-    <message>
-        <source>warm</source>
-        <translation>тёплая</translation>
-    </message>
-    <message>
-        <source>Someone real</source>
-        <translation>Кто-то настоящий</translation>
-    </message>
-    <message>
-        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation>Необязательно. Фотография реального человека сохраняет одно лицо во всех кадрах.</translation>
-    </message>
-    <message>
-        <source>Use this photo as the actor, without generating</source>
-        <translation>Использовать это фото как актёра, без генерации</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Кастинг</translation>
-    </message>
-    <message>
-        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation>Четыре лица за раз. Оставьте то, что могло бы быть селфи реального человека.</translation>
-    </message>
-    <message>
-        <source>Casting...</source>
-        <translation>Кастинг...</translation>
-    </message>
-    <message>
-        <source>Cast 1 portrait</source>
-        <translation>Сгенерировать 1 портрет</translation>
-    </message>
-    <message>
-        <source>Cast %1 portraits</source>
-        <extracomment>%1 is a number of portraits</extracomment>
-        <translation>Сгенерировать %1 портретов</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Отмена</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>цена неизвестна</translation>
-    </message>
-    <message>
-        <source>Their voice</source>
-        <translation>Её голос</translation>
-    </message>
-    <message>
-        <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation>Послушайте её за доли цента, прежде чем покупать видео.</translation>
-    </message>
-    <message>
-        <source>Keep this actor</source>
-        <translation>Сохранить этого актёра</translation>
-    </message>
-    <message>
-        <source>Saved actors are one click away in every ad after this one.</source>
-        <translation>Сохранённые актёры — в одном клике в каждой следующей рекламе.</translation>
-    </message>
-    <message>
-        <source>Update</source>
-        <translation>Обновить</translation>
-    </message>
-    <message>
-        <source>Save actor</source>
-        <translation>Сохранить актёра</translation>
-    </message>
-    <message>
-        <source>What gets sent</source>
-        <translation>Что отправляется</translation>
-    </message>
-    <message>
-        <source>Hide the prompt</source>
-        <translation>Скрыть промпт</translation>
-    </message>
-    <message>
-        <source>Show the prompt</source>
-        <translation>Показать промпт</translation>
-    </message>
-    <message>
-        <source>Built from your own %1.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Построено из вашего %1.</translation>
-    </message>
-    <message>
-        <source>Drop a casting.json at %1 to change how this is written.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Положите casting.json в %1, чтобы изменить формулировку.</translation>
-    </message>
-    <message>
-        <source>Portrait model</source>
-        <translation>Модель портрета</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Назад</translation>
-    </message>
-    <message>
-        <source>Cast someone to continue</source>
-        <translation>Выберите кого-нибудь, чтобы продолжить</translation>
-    </message>
-    <message>
-        <source>Next: write the script</source>
-        <translation>Далее: написать сценарий</translation>
-    </message>
-</context>
-<context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
@@ -1472,8 +1416,8 @@ Nothing is uploaded to us.</source>
         <translation>Фотография настоящего продукта сохраняет его узнаваемым в каждом кадре.</translation>
     </message>
     <message>
-        <source>Next: cast your actor</source>
-        <translation>Далее: выбрать актёра</translation>
+        <source>Next: the scenario</source>
+        <translation>Далее: сценарий</translation>
     </message>
 </context>
 <context>
@@ -1487,20 +1431,12 @@ Nothing is uploaded to us.</source>
         <translation>Что вы продаёте</translation>
     </message>
     <message>
-        <source>Actor</source>
-        <translation>Актёр</translation>
-    </message>
-    <message>
-        <source>Who says it</source>
-        <translation>Кто говорит</translation>
-    </message>
-    <message>
-        <source>Script</source>
+        <source>Scenario</source>
         <translation>Сценарий</translation>
     </message>
     <message>
-        <source>What they say</source>
-        <translation>Что говорится</translation>
+        <source>Who says it, and what</source>
+        <translation>Кто говорит и о чём</translation>
     </message>
     <message>
         <source>Summary</source>
@@ -1520,50 +1456,26 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepScript</name>
+    <name>StepScenario</name>
     <message>
-        <source>What do they say?</source>
-        <translation>Что говорит этот человек?</translation>
-    </message>
-    <message>
-        <source>15 to 30 s converts best</source>
-        <translation>От 15 до 30 с конвертирует лучше всего</translation>
-    </message>
-    <message>
-        <source>Hook</source>
-        <translation>Зацепка</translation>
+        <source>Actor</source>
+        <translation>Актёр</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
         <translation>Назовите проблему одной фразой. У вас три секунды.</translation>
     </message>
     <message>
-        <source>Problem</source>
-        <translation>Проблема</translation>
-    </message>
-    <message>
         <source>Make it concrete. What did you try that failed?</source>
         <translation>Сделайте это конкретным. Что вы пробовали, и что не сработало?</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Продукт</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
         <translation>Представьте его как то, что наконец сработало, а не как товар.</translation>
     </message>
     <message>
-        <source>Proof</source>
-        <translation>Доказательство</translation>
-    </message>
-    <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
         <translation>Одна конкретная деталь. Цифра, срок, момент.</translation>
-    </message>
-    <message>
-        <source>Ask</source>
-        <translation>Призыв</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
@@ -1574,12 +1486,28 @@ Nothing is uploaded to us.</source>
         <translation>Продолжайте или остановитесь здесь.</translation>
     </message>
     <message>
-        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>Одна реплика на сцену, вашими словами. Длительность выбирать не нужно: реклама длится столько, сколько слова.</translation>
+        <source>Scenario</source>
+        <translation>Сценарий</translation>
     </message>
     <message>
-        <source>Add a scene</source>
-        <translation>Добавить сцену</translation>
+        <source>Write what they say. One line, one scene.</source>
+        <translation>Напишите, что она говорит. Одна строка — одна сцена.</translation>
+    </message>
+    <message>
+        <source>Nothing written yet. The first line is the hook — you have three seconds.</source>
+        <translation>Ничего не написано. Первая строка — зацепка, у вас три секунды.</translation>
+    </message>
+    <message>
+        <source>Pick an actor</source>
+        <translation>Выбрать актёра</translation>
+    </message>
+    <message>
+        <source>Talking</source>
+        <translation>Говорит</translation>
+    </message>
+    <message>
+        <source>Product shot</source>
+        <translation>Кадр продукта</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
@@ -1587,32 +1515,16 @@ Nothing is uploaded to us.</source>
         <translation>Сцен: %1 · %2 с</translation>
     </message>
     <message>
+        <source>15 to 30 s converts best</source>
+        <translation>От 15 до 30 с конвертирует лучше всего</translation>
+    </message>
+    <message>
+        <source>Directing…</source>
+        <translation>Режиссура…</translation>
+    </message>
+    <message>
         <source>Direct the shots</source>
         <translation>Срежиссировать кадры</translation>
-    </message>
-    <message>
-        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation>Превращает ваши реплики в то, что видит камера. Ваши слова никогда не меняются.</translation>
-    </message>
-    <message>
-        <source>Directing...</source>
-        <translation>Режиссура...</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Отмена</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>цена неизвестна</translation>
-    </message>
-    <message>
-        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation>Необязательно: сцена без режиссуры всё равно отрисуется, из общего промпта. Именно режиссура удерживает одного человека в одной комнате от склейки к склейке.</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Назад</translation>
     </message>
     <message>
         <source>Next: review</source>
@@ -1755,13 +1667,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>TraitPicker</name>
-    <message>
-        <source>doesn&apos;t matter</source>
-        <translation>неважно</translation>
-    </message>
-</context>
-<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1778,138 +1683,6 @@ Nothing is uploaded to us.</source>
 </context>
 <context>
     <name>VoiceBooth</name>
-    <message>
-        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation>Честно, я не верила, что это сработает. Через две недели всё ещё пользуюсь.</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>Голос</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>Другой id голоса...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>Вставьте id голоса</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>Загрузите голоса своего аккаунта, чтобы выбрать один.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>Загрузить голоса</translation>
-    </message>
-    <message>
-        <source>Stability</source>
-        <translation>Стабильность</translation>
-    </message>
-    <message>
-        <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation>Низкая гуляет и звучит живо. Высокая ровная и безопасная.</translation>
-    </message>
-    <message>
-        <source>Similarity</source>
-        <translation>Схожесть</translation>
-    </message>
-    <message>
-        <source>How closely it holds to the original voice.</source>
-        <translation>Насколько близко держится оригинального голоса.</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>Стиль</translation>
-    </message>
-    <message>
-        <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation>Усиливает подачу. За серединой начинается игра.</translation>
-    </message>
-    <message>
-        <source>Speed</source>
-        <translation>Скорость</translation>
-    </message>
-    <message>
-        <source>Leave at 1.00 unless the read drags.</source>
-        <translation>Оставьте 1,00, если только чтение не затянуто.</translation>
-    </message>
-    <message>
-        <source>Audition line</source>
-        <translation>Пробная фраза</translation>
-    </message>
-    <message>
-        <source>Recording...</source>
-        <translation>Запись...</translation>
-    </message>
-    <message>
-        <source>Hear them</source>
-        <translation>Послушать её</translation>
-    </message>
-    <message>
-        <source>Stop</source>
-        <translation>Стоп</translation>
-    </message>
-    <message>
-        <source>Play again</source>
-        <translation>Прослушать снова</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>цена неизвестна</translation>
-    </message>
-    <message>
-        <source>Hide voice cloning</source>
-        <translation>Скрыть клонирование</translation>
-    </message>
-    <message>
-        <source>Clone a voice from a recording</source>
-        <translation>Клонировать голос из записи</translation>
-    </message>
-    <message>
-        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation>Перетащите одну или несколько чистых записей голоса. Минуты речи вполне достаточно.</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Убрать</translation>
-    </message>
-    <message>
-        <source>Add recordings</source>
-        <translation>Добавить записи</translation>
-    </message>
-    <message>
-        <source>Name for the cloned voice</source>
-        <translation>Имя клонированного голоса</translation>
-    </message>
-    <message>
-        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation>Это загрузит ваши записи в ElevenLabs и добавит постоянный голос в вашу учётную запись. Клонируйте только тот голос, который вы вправе использовать.</translation>
-    </message>
-    <message>
-        <source>Cloning...</source>
-        <translation>Клонирование...</translation>
-    </message>
-    <message>
-        <source>Clone onto my ElevenLabs account</source>
-        <translation>Клонировать в мою учётную запись ElevenLabs</translation>
-    </message>
-    <message>
-        <source>Choose voice recordings</source>
-        <translation>Выбрать записи голоса</translation>
-    </message>
-    <message>
-        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation>Аудио (*.mp3 *.wav *.m4a *.ogg)</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>Загружено голосов: %1.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>Не удалось загрузить голоса: %1</translation>
-    </message>
     <message>
         <source>Write a line for them to say.</source>
         <translation>Напишите фразу, которую она произнесёт.</translation>

@@ -9,10 +9,209 @@
     </message>
 </context>
 <context>
-    <name>ActorStrip</name>
+    <name>ActorPanel</name>
+    <message>
+        <source>Honestly, I did not think this would work.</source>
+        <translation>老实说，我本来没抱希望。</translation>
+    </message>
+    <message>
+        <source>Actor</source>
+        <translation>演员</translation>
+    </message>
     <message>
         <source>Your actors</source>
         <translation>你的演员</translation>
+    </message>
+    <message>
+        <source>Describe the person. Ordinary face, ordinary room.</source>
+        <translation>描述这个人。普通的脸，普通的房间。</translation>
+    </message>
+    <message>
+        <source>Gender</source>
+        <translation>性别</translation>
+    </message>
+    <message>
+        <source>a woman</source>
+        <translation>一位女性</translation>
+    </message>
+    <message>
+        <source>a man</source>
+        <translation>一位男性</translation>
+    </message>
+    <message>
+        <source>a non-binary person</source>
+        <translation>一位非二元性别者</translation>
+    </message>
+    <message>
+        <source>Age</source>
+        <translation>年龄</translation>
+    </message>
+    <message>
+        <source>early twenties</source>
+        <translation>二十出头</translation>
+    </message>
+    <message>
+        <source>late twenties</source>
+        <translation>接近三十</translation>
+    </message>
+    <message>
+        <source>thirties</source>
+        <translation>三十五岁上下</translation>
+    </message>
+    <message>
+        <source>forties</source>
+        <translation>四十五岁上下</translation>
+    </message>
+    <message>
+        <source>fifties or older</source>
+        <translation>五十岁及以上</translation>
+    </message>
+    <message>
+        <source>Dress</source>
+        <translation>着装</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>休闲</translation>
+    </message>
+    <message>
+        <source>sportswear</source>
+        <translation>运动装</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>职业装</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>街头风</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>气质</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>平静</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>活泼</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>刚睡醒</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>温暖</translation>
+    </message>
+    <message>
+        <source>Reference</source>
+        <translation>参考</translation>
+    </message>
+    <message>
+        <source>%1 photo(s)</source>
+        <extracomment>%1 is a count of photos</extracomment>
+        <translation>%1 张照片</translation>
+    </message>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>选角中… %1 / %2</translation>
+    </message>
+    <message>
+        <source>Four faces for %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>四张脸 %1</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>价格未知</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <source>Use my photo</source>
+        <translation>用我的照片</translation>
+    </message>
+    <message>
+        <source>Where they are. A small bathroom, towels on the floor…</source>
+        <translation>她在哪里。小浴室，地上放着毛巾…</translation>
+    </message>
+    <message>
+        <source>A line to hear them say…</source>
+        <translation>写一句让她说的话…</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>配音</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>加载语音</translation>
+    </message>
+    <message>
+        <source>Natural</source>
+        <translation>自然</translation>
+    </message>
+    <message>
+        <source>Composed</source>
+        <translation>沉稳</translation>
+    </message>
+    <message>
+        <source>Lively</source>
+        <translation>轻快</translation>
+    </message>
+    <message>
+        <source>Intense</source>
+        <translation>强烈</translation>
+    </message>
+    <message>
+        <source>Hide the sliders</source>
+        <translation>隐藏滑块</translation>
+    </message>
+    <message>
+        <source>Fine-tune</source>
+        <translation>精细调整</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>稳定度</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>相似度</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>风格</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>语速</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>更新</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>保留这位演员</translation>
+    </message>
+    <message>
+        <source>Choose reference photos</source>
+        <translation>选择参考照片</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>图像 (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>无法加载语音：%1</translation>
     </message>
 </context>
 <context>
@@ -70,6 +269,13 @@
     <message>
         <source>Could not write %1.</source>
         <translation>无法写入 %1。</translation>
+    </message>
+</context>
+<context>
+    <name>ChoiceChip</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>都可以</translation>
     </message>
 </context>
 <context>
@@ -782,26 +988,6 @@
     </message>
 </context>
 <context>
-    <name>PortraitGrid</name>
-    <message>
-        <source>Casting... %1 of %2</source>
-        <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation>选角中… %1 / %2</translation>
-    </message>
-    <message>
-        <source>Pick the one that looks real</source>
-        <translation>选一个看起来真实的</translation>
-    </message>
-    <message>
-        <source>None of them? Cast again.</source>
-        <translation>都不合适？再选一次角。</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>已选定</translation>
-    </message>
-</context>
-<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -961,47 +1147,19 @@
     </message>
 </context>
 <context>
-    <name>SceneCard</name>
-    <message>
-        <source>Talking</source>
-        <translation>说话</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>产品</translation>
-    </message>
+    <name>SceneBubble</name>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
         <translation>%1 秒</translation>
     </message>
     <message>
-        <source>Hide the visual</source>
-        <translation>隐藏画面描述</translation>
+        <source>Product shot</source>
+        <translation>产品镜头</translation>
     </message>
     <message>
-        <source>Visual</source>
-        <translation>画面</translation>
-    </message>
-    <message>
-        <source>Not directed yet</source>
-        <translation>尚未导演</translation>
-    </message>
-    <message>
-        <source>What the camera sees</source>
-        <translation>镜头里看到什么</translation>
-    </message>
-    <message>
-        <source>Press Direct the shots, or write it yourself.</source>
-        <translation>点击“导演镜头”，或者自己写。</translation>
-    </message>
-    <message>
-        <source>How it moves</source>
-        <translation>如何运动</translation>
-    </message>
-    <message>
-        <source>One small gesture, one small camera movement.</source>
-        <translation>一个小动作，一个小的镜头移动。</translation>
+        <source>Talking</source>
+        <translation>说话</translation>
     </message>
 </context>
 <context>
@@ -1216,220 +1374,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepActor</name>
-    <message>
-        <source>Who says it?</source>
-        <translation>谁来说？</translation>
-    </message>
-    <message>
-        <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation>可信的人胜过完美的人。普通的脸，普通的房间。</translation>
-    </message>
-    <message>
-        <source>Where they are</source>
-        <translation>她在哪里</translation>
-    </message>
-    <message>
-        <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation>例如：小浴室，地上放着毛巾，晨光透过百叶窗</translation>
-    </message>
-    <message>
-        <source>Describe them</source>
-        <translation>描述她</translation>
-    </message>
-    <message>
-        <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation>朴素的措辞最有效。下面的特征只补充你没写到的部分。</translation>
-    </message>
-    <message>
-        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation>例如：疲惫但亲切，没化妆，随手挽的发髻，笑起来有点歪</translation>
-    </message>
-    <message>
-        <source>Gender</source>
-        <translation>性别</translation>
-    </message>
-    <message>
-        <source>a woman</source>
-        <translation>一位女性</translation>
-    </message>
-    <message>
-        <source>a man</source>
-        <translation>一位男性</translation>
-    </message>
-    <message>
-        <source>a non-binary person</source>
-        <translation>一位非二元性别者</translation>
-    </message>
-    <message>
-        <source>Age</source>
-        <translation>年龄</translation>
-    </message>
-    <message>
-        <source>early twenties</source>
-        <translation>二十出头</translation>
-    </message>
-    <message>
-        <source>late twenties</source>
-        <translation>接近三十</translation>
-    </message>
-    <message>
-        <source>thirties</source>
-        <translation>三十五岁上下</translation>
-    </message>
-    <message>
-        <source>forties</source>
-        <translation>四十五岁上下</translation>
-    </message>
-    <message>
-        <source>fifties or older</source>
-        <translation>五十岁及以上</translation>
-    </message>
-    <message>
-        <source>Dress</source>
-        <translation>着装</translation>
-    </message>
-    <message>
-        <source>casual</source>
-        <translation>休闲</translation>
-    </message>
-    <message>
-        <source>sportswear</source>
-        <translation>运动装</translation>
-    </message>
-    <message>
-        <source>office</source>
-        <translation>职业装</translation>
-    </message>
-    <message>
-        <source>streetwear</source>
-        <translation>街头风</translation>
-    </message>
-    <message>
-        <source>Energy</source>
-        <translation>气质</translation>
-    </message>
-    <message>
-        <source>calm</source>
-        <translation>平静</translation>
-    </message>
-    <message>
-        <source>upbeat</source>
-        <translation>活泼</translation>
-    </message>
-    <message>
-        <source>just woke up</source>
-        <translation>刚睡醒</translation>
-    </message>
-    <message>
-        <source>warm</source>
-        <translation>温暖</translation>
-    </message>
-    <message>
-        <source>Someone real</source>
-        <translation>真实的人</translation>
-    </message>
-    <message>
-        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation>可选。真人照片能让每个镜头保持同一张脸。</translation>
-    </message>
-    <message>
-        <source>Use this photo as the actor, without generating</source>
-        <translation>直接用这张照片作为演员，不生成</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>选角</translation>
-    </message>
-    <message>
-        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation>一次四张脸。留下那张看起来像真人自拍的。</translation>
-    </message>
-    <message>
-        <source>Casting...</source>
-        <translation>选角中…</translation>
-    </message>
-    <message>
-        <source>Cast 1 portrait</source>
-        <translation>生成 1 张肖像</translation>
-    </message>
-    <message>
-        <source>Cast %1 portraits</source>
-        <extracomment>%1 is a number of portraits</extracomment>
-        <translation>生成 %1 张肖像</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>取消</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>价格未知</translation>
-    </message>
-    <message>
-        <source>Their voice</source>
-        <translation>她的声音</translation>
-    </message>
-    <message>
-        <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation>花不到一分钱先听听她，再去买视频。</translation>
-    </message>
-    <message>
-        <source>Keep this actor</source>
-        <translation>保留这位演员</translation>
-    </message>
-    <message>
-        <source>Saved actors are one click away in every ad after this one.</source>
-        <translation>保存过的演员，在之后的每支广告里都只需一次点击。</translation>
-    </message>
-    <message>
-        <source>Update</source>
-        <translation>更新</translation>
-    </message>
-    <message>
-        <source>Save actor</source>
-        <translation>保存演员</translation>
-    </message>
-    <message>
-        <source>What gets sent</source>
-        <translation>实际发送的内容</translation>
-    </message>
-    <message>
-        <source>Hide the prompt</source>
-        <translation>隐藏提示词</translation>
-    </message>
-    <message>
-        <source>Show the prompt</source>
-        <translation>查看提示词</translation>
-    </message>
-    <message>
-        <source>Built from your own %1.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>来自你自己的 %1。</translation>
-    </message>
-    <message>
-        <source>Drop a casting.json at %1 to change how this is written.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>把 casting.json 放到 %1 即可改写它的写法。</translation>
-    </message>
-    <message>
-        <source>Portrait model</source>
-        <translation>肖像模型</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>返回</translation>
-    </message>
-    <message>
-        <source>Cast someone to continue</source>
-        <translation>先选定一个人才能继续</translation>
-    </message>
-    <message>
-        <source>Next: write the script</source>
-        <translation>下一步：写脚本</translation>
-    </message>
-</context>
-<context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
@@ -1472,8 +1416,8 @@ Nothing is uploaded to us.</source>
         <translation>真实产品的照片能让它在每个镜头里都认得出来。</translation>
     </message>
     <message>
-        <source>Next: cast your actor</source>
-        <translation>下一步：选角</translation>
+        <source>Next: the scenario</source>
+        <translation>下一步：脚本</translation>
     </message>
 </context>
 <context>
@@ -1487,20 +1431,12 @@ Nothing is uploaded to us.</source>
         <translation>你卖的东西</translation>
     </message>
     <message>
-        <source>Actor</source>
-        <translation>演员</translation>
-    </message>
-    <message>
-        <source>Who says it</source>
-        <translation>谁在说</translation>
-    </message>
-    <message>
-        <source>Script</source>
+        <source>Scenario</source>
         <translation>脚本</translation>
     </message>
     <message>
-        <source>What they say</source>
-        <translation>说了什么</translation>
+        <source>Who says it, and what</source>
+        <translation>谁在说，说什么</translation>
     </message>
     <message>
         <source>Summary</source>
@@ -1520,50 +1456,26 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>StepScript</name>
+    <name>StepScenario</name>
     <message>
-        <source>What do they say?</source>
-        <translation>这个人说什么？</translation>
-    </message>
-    <message>
-        <source>15 to 30 s converts best</source>
-        <translation>15 到 30 秒转化最好</translation>
-    </message>
-    <message>
-        <source>Hook</source>
-        <translation>钩子</translation>
+        <source>Actor</source>
+        <translation>演员</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
         <translation>用一句话点出那个烦恼。你只有三秒。</translation>
     </message>
     <message>
-        <source>Problem</source>
-        <translation>问题</translation>
-    </message>
-    <message>
         <source>Make it concrete. What did you try that failed?</source>
         <translation>讲具体。你试过什么，结果没用？</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>产品</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
         <translation>把它当作终于奏效的东西介绍，而不是当作商品。</translation>
     </message>
     <message>
-        <source>Proof</source>
-        <translation>证据</translation>
-    </message>
-    <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
         <translation>一个具体细节。一个数字、一段时间、一个瞬间。</translation>
-    </message>
-    <message>
-        <source>Ask</source>
-        <translation>行动</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
@@ -1574,12 +1486,28 @@ Nothing is uploaded to us.</source>
         <translation>继续写，或者就到这里。</translation>
     </message>
     <message>
-        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>一个场景一句台词，用你自己的话。不需要选时长：广告有多长，取决于这些话有多长。</translation>
+        <source>Scenario</source>
+        <translation>脚本</translation>
     </message>
     <message>
-        <source>Add a scene</source>
-        <translation>添加场景</translation>
+        <source>Write what they say. One line, one scene.</source>
+        <translation>写下她说的话。一行一个场景。</translation>
+    </message>
+    <message>
+        <source>Nothing written yet. The first line is the hook — you have three seconds.</source>
+        <translation>还没有内容。第一句就是钩子——你只有三秒。</translation>
+    </message>
+    <message>
+        <source>Pick an actor</source>
+        <translation>选择演员</translation>
+    </message>
+    <message>
+        <source>Talking</source>
+        <translation>说话</translation>
+    </message>
+    <message>
+        <source>Product shot</source>
+        <translation>产品镜头</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
@@ -1587,32 +1515,16 @@ Nothing is uploaded to us.</source>
         <translation>%1 个场景 · %2 秒</translation>
     </message>
     <message>
-        <source>Direct the shots</source>
-        <translation>导演镜头</translation>
+        <source>15 to 30 s converts best</source>
+        <translation>15 到 30 秒转化最好</translation>
     </message>
     <message>
-        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation>把你的台词变成镜头里看到的画面。你的措辞永远不会被改动。</translation>
-    </message>
-    <message>
-        <source>Directing...</source>
+        <source>Directing…</source>
         <translation>导演中…</translation>
     </message>
     <message>
-        <source>Cancel</source>
-        <translation>取消</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>价格未知</translation>
-    </message>
-    <message>
-        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation>可选：没有导演的场景也能生成，只是用通用提示词。导演的作用，是让同一个人从这一刀到下一刀都待在同一个房间里。</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>返回</translation>
+        <source>Direct the shots</source>
+        <translation>导演镜头</translation>
     </message>
     <message>
         <source>Next: review</source>
@@ -1755,13 +1667,6 @@ Nothing is uploaded to us.</source>
     </message>
 </context>
 <context>
-    <name>TraitPicker</name>
-    <message>
-        <source>doesn&apos;t matter</source>
-        <translation>都可以</translation>
-    </message>
-</context>
-<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1778,138 +1683,6 @@ Nothing is uploaded to us.</source>
 </context>
 <context>
     <name>VoiceBooth</name>
-    <message>
-        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation>老实说，我本来没抱希望。两周后我还在用。</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>配音</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>其他语音 ID…</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>粘贴语音 ID</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>加载账号下的语音后即可选择。</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>加载语音</translation>
-    </message>
-    <message>
-        <source>Stability</source>
-        <translation>稳定度</translation>
-    </message>
-    <message>
-        <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation>低则起伏、听起来有生气。高则平稳、保险。</translation>
-    </message>
-    <message>
-        <source>Similarity</source>
-        <translation>相似度</translation>
-    </message>
-    <message>
-        <source>How closely it holds to the original voice.</source>
-        <translation>与原声贴合的程度。</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>风格</translation>
-    </message>
-    <message>
-        <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation>加强表现力。过了一半就开始表演了。</translation>
-    </message>
-    <message>
-        <source>Speed</source>
-        <translation>语速</translation>
-    </message>
-    <message>
-        <source>Leave at 1.00 unless the read drags.</source>
-        <translation>除非念得拖沓，否则保持 1.00。</translation>
-    </message>
-    <message>
-        <source>Audition line</source>
-        <translation>试听台词</translation>
-    </message>
-    <message>
-        <source>Recording...</source>
-        <translation>录制中…</translation>
-    </message>
-    <message>
-        <source>Hear them</source>
-        <translation>听听她</translation>
-    </message>
-    <message>
-        <source>Stop</source>
-        <translation>停止</translation>
-    </message>
-    <message>
-        <source>Play again</source>
-        <translation>再听一遍</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>价格未知</translation>
-    </message>
-    <message>
-        <source>Hide voice cloning</source>
-        <translation>隐藏声音克隆</translation>
-    </message>
-    <message>
-        <source>Clone a voice from a recording</source>
-        <translation>从录音克隆一个声音</translation>
-    </message>
-    <message>
-        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation>拖入一段或多段干净的人声录音。一分钟语音就足够了。</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>移除</translation>
-    </message>
-    <message>
-        <source>Add recordings</source>
-        <translation>添加录音</translation>
-    </message>
-    <message>
-        <source>Name for the cloned voice</source>
-        <translation>克隆声音的名称</translation>
-    </message>
-    <message>
-        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation>这会把你的录音上传到 ElevenLabs，并在你的账户中添加一个永久声音。请只克隆你有权使用的声音。</translation>
-    </message>
-    <message>
-        <source>Cloning...</source>
-        <translation>克隆中…</translation>
-    </message>
-    <message>
-        <source>Clone onto my ElevenLabs account</source>
-        <translation>克隆到我的 ElevenLabs 账户</translation>
-    </message>
-    <message>
-        <source>Choose voice recordings</source>
-        <translation>选择声音录音</translation>
-    </message>
-    <message>
-        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation>音频 (*.mp3 *.wav *.m4a *.ogg)</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>已加载 %1 个语音。</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>无法加载语音：%1</translation>
-    </message>
     <message>
         <source>Write a line for them to say.</source>
         <translation>写一句让她说的话。</translation>

@@ -21,8 +21,7 @@ Rectangle {
 
     readonly property var labels: [
         { title: qsTr("Product"),  hint: qsTr("What you are selling") },
-        { title: qsTr("Actor"),    hint: qsTr("Who says it") },
-        { title: qsTr("Script"),   hint: qsTr("What they say") },
+        { title: qsTr("Scenario"), hint: qsTr("Who says it, and what") },
         { title: qsTr("Summary"),  hint: qsTr("Check and generate") }
     ]
 

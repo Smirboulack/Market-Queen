@@ -49,7 +49,9 @@ class AdProject : public QObject
     Q_PROPERTY(QVariantMap request READ toRequest NOTIFY requestChanged)
 
 public:
-    enum Step { StepProduct = 0, StepActor, StepScript, StepSummary, StepCount };
+    // Casting and writing are one step: you cannot write for someone who
+    // does not exist yet, and you rewrite the moment you recast.
+    enum Step { StepProduct = 0, StepScenario, StepSummary, StepCount };
     Q_ENUM(Step)
 
     AdProject(SettingsStore *settings, Registry *registry, QObject *parent = nullptr);

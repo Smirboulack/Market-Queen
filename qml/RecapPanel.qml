@@ -123,8 +123,8 @@ Rectangle {
                 RecapBlock {
                     title: qsTr("Actor")
                     stepIndex: 1
-                    filled: root.project.stepStates[1] !== undefined
-                            && root.project.stepStates[1].valid
+                    filled: root.project.actor.portraitPath !== undefined
+                            && root.project.actor.portraitPath !== ""
                     placeholder: qsTr("No one cast yet")
 
                     RowLayout {
@@ -196,9 +196,8 @@ Rectangle {
                 // -------------------------------------------------- script
                 RecapBlock {
                     title: qsTr("Script")
-                    stepIndex: 2
-                    filled: root.project.stepStates[2] !== undefined
-                            && root.project.stepStates[2].valid
+                    stepIndex: 1
+                    filled: root.project.scenes.count > 0
                     placeholder: qsTr("Nothing written yet")
 
                     Text {
@@ -212,7 +211,7 @@ Rectangle {
 
                     Text {
                         Layout.fillWidth: true
-                        text: root.project.script
+                        text: root.project.spokenScript()
                         color: Theme.textDim
                         font.pixelSize: Theme.fontSmall
                         wrapMode: Text.WordWrap

@@ -9,10 +9,209 @@
     </message>
 </context>
 <context>
-    <name>ActorStrip</name>
+    <name>ActorPanel</name>
+    <message>
+        <source>Honestly, I did not think this would work.</source>
+        <translation>Eerlijk gezegd geloofde ik er niet in.</translation>
+    </message>
+    <message>
+        <source>Actor</source>
+        <translation>Acteur</translation>
+    </message>
     <message>
         <source>Your actors</source>
         <translation>Jouw acteurs</translation>
+    </message>
+    <message>
+        <source>Describe the person. Ordinary face, ordinary room.</source>
+        <translation>Beschrijf de persoon. Gewoon gezicht, gewone kamer.</translation>
+    </message>
+    <message>
+        <source>Gender</source>
+        <translation>Geslacht</translation>
+    </message>
+    <message>
+        <source>a woman</source>
+        <translation>een vrouw</translation>
+    </message>
+    <message>
+        <source>a man</source>
+        <translation>een man</translation>
+    </message>
+    <message>
+        <source>a non-binary person</source>
+        <translation>een non-binair persoon</translation>
+    </message>
+    <message>
+        <source>Age</source>
+        <translation>Leeftijd</translation>
+    </message>
+    <message>
+        <source>early twenties</source>
+        <translation>begin twintig</translation>
+    </message>
+    <message>
+        <source>late twenties</source>
+        <translation>eind twintig</translation>
+    </message>
+    <message>
+        <source>thirties</source>
+        <translation>midden dertig</translation>
+    </message>
+    <message>
+        <source>forties</source>
+        <translation>midden veertig</translation>
+    </message>
+    <message>
+        <source>fifties or older</source>
+        <translation>vijftig of ouder</translation>
+    </message>
+    <message>
+        <source>Dress</source>
+        <translation>Kleding</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>casual</translation>
+    </message>
+    <message>
+        <source>sportswear</source>
+        <translation>sportkleding</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>kantoor</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>streetwear</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>Energie</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>kalm</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>opgewekt</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>net wakker</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>warm</translation>
+    </message>
+    <message>
+        <source>Reference</source>
+        <translation>Referentie</translation>
+    </message>
+    <message>
+        <source>%1 photo(s)</source>
+        <extracomment>%1 is a count of photos</extracomment>
+        <translation>%1 foto('s)</translation>
+    </message>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>Casting... %1 van %2</translation>
+    </message>
+    <message>
+        <source>Four faces for %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Vier gezichten voor %1</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>prijs onbekend</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Annuleren</translation>
+    </message>
+    <message>
+        <source>Use my photo</source>
+        <translation>Mijn foto gebruiken</translation>
+    </message>
+    <message>
+        <source>Where they are. A small bathroom, towels on the floor…</source>
+        <translation>Waar ze is. Een kleine badkamer, handdoeken op de grond…</translation>
+    </message>
+    <message>
+        <source>A line to hear them say…</source>
+        <translation>Een zin die ze moet zeggen…</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>Stem</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>Stemmen laden</translation>
+    </message>
+    <message>
+        <source>Natural</source>
+        <translation>Natuurlijk</translation>
+    </message>
+    <message>
+        <source>Composed</source>
+        <translation>Bedaard</translation>
+    </message>
+    <message>
+        <source>Lively</source>
+        <translation>Levendig</translation>
+    </message>
+    <message>
+        <source>Intense</source>
+        <translation>Intens</translation>
+    </message>
+    <message>
+        <source>Hide the sliders</source>
+        <translation>Schuifregelaars verbergen</translation>
+    </message>
+    <message>
+        <source>Fine-tune</source>
+        <translation>Fijnafstemming</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>Stabiliteit</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>Gelijkenis</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>Stijl</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Snelheid</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Bijwerken</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>Deze acteur bewaren</translation>
+    </message>
+    <message>
+        <source>Choose reference photos</source>
+        <translation>Referentiefoto's kiezen</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>Afbeeldingen (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>Stemmen konden niet worden geladen: %1</translation>
     </message>
 </context>
 <context>
@@ -70,6 +269,13 @@
     <message>
         <source>Could not write %1.</source>
         <translation>%1 kon niet worden weggeschreven.</translation>
+    </message>
+</context>
+<context>
+    <name>ChoiceChip</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>maakt niet uit</translation>
     </message>
 </context>
 <context>
@@ -385,7 +591,7 @@
     <name>ImageDropGrid</name>
     <message>
         <source>Drop your product pictures here</source>
-        <translation>Sleep hier je productfoto's naartoe</translation>
+        <translation>Sleep hier je productfoto&apos;s naartoe</translation>
     </message>
     <message>
         <source>As many as you like. Packshot, in use, close-up on the label.</source>
@@ -398,7 +604,7 @@
     <message>
         <source>%1 pictures. The starred one is the main reference.</source>
         <extracomment>%1 is a number of pictures</extracomment>
-        <translation>%1 foto's. Die met de ster is de hoofdreferentie.</translation>
+        <translation>%1 foto&apos;s. Die met de ster is de hoofdreferentie.</translation>
     </message>
     <message>
         <source>Browse</source>
@@ -406,7 +612,7 @@
     </message>
     <message>
         <source>Choose product pictures</source>
-        <translation>Productfoto's kiezen</translation>
+        <translation>Productfoto&apos;s kiezen</translation>
     </message>
     <message>
         <source>Images (*.png *.jpg *.jpeg *.webp)</source>
@@ -782,26 +988,6 @@
     </message>
 </context>
 <context>
-    <name>PortraitGrid</name>
-    <message>
-        <source>Casting... %1 of %2</source>
-        <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation>Casting... %1 van %2</translation>
-    </message>
-    <message>
-        <source>Pick the one that looks real</source>
-        <translation>Kies degene die echt lijkt</translation>
-    </message>
-    <message>
-        <source>None of them? Cast again.</source>
-        <translation>Geen enkele goed? Cast opnieuw.</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Gekozen</translation>
-    </message>
-</context>
-<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -961,47 +1147,19 @@
     </message>
 </context>
 <context>
-    <name>SceneCard</name>
-    <message>
-        <source>Talking</source>
-        <translation>Sprekend</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Product</translation>
-    </message>
+    <name>SceneBubble</name>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
         <translation>%1 s</translation>
     </message>
     <message>
-        <source>Hide the visual</source>
-        <translation>Beeld verbergen</translation>
+        <source>Product shot</source>
+        <translation>Productshot</translation>
     </message>
     <message>
-        <source>Visual</source>
-        <translation>Beeld</translation>
-    </message>
-    <message>
-        <source>Not directed yet</source>
-        <translation>Nog niet geregisseerd</translation>
-    </message>
-    <message>
-        <source>What the camera sees</source>
-        <translation>Wat de camera ziet</translation>
-    </message>
-    <message>
-        <source>Press Direct the shots, or write it yourself.</source>
-        <translation>Druk op Regisseer de shots, of schrijf het zelf.</translation>
-    </message>
-    <message>
-        <source>How it moves</source>
-        <translation>Hoe het beweegt</translation>
-    </message>
-    <message>
-        <source>One small gesture, one small camera movement.</source>
-        <translation>Eén klein gebaar, één kleine camerabeweging.</translation>
+        <source>Talking</source>
+        <translation>Sprekend</translation>
     </message>
 </context>
 <context>
@@ -1216,220 +1374,6 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
 </context>
 <context>
-    <name>StepActor</name>
-    <message>
-        <source>Who says it?</source>
-        <translation>Wie zegt het?</translation>
-    </message>
-    <message>
-        <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation>Een geloofwaardig persoon wint het van een perfecte. Gewoon gezicht, gewone kamer.</translation>
-    </message>
-    <message>
-        <source>Where they are</source>
-        <translation>Waar ze is</translation>
-    </message>
-    <message>
-        <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation>bijv. een kleine badkamer, handdoeken op de grond, ochtendlicht door de jaloezieën</translation>
-    </message>
-    <message>
-        <source>Describe them</source>
-        <translation>Beschrijf haar</translation>
-    </message>
-    <message>
-        <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation>Gewone woorden werken het best. De kenmerken hieronder vullen alleen aan wat je wegliet.</translation>
-    </message>
-    <message>
-        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation>bijv. moe maar vriendelijk, zonder make-up, slordige knot, licht scheve glimlach</translation>
-    </message>
-    <message>
-        <source>Gender</source>
-        <translation>Geslacht</translation>
-    </message>
-    <message>
-        <source>a woman</source>
-        <translation>een vrouw</translation>
-    </message>
-    <message>
-        <source>a man</source>
-        <translation>een man</translation>
-    </message>
-    <message>
-        <source>a non-binary person</source>
-        <translation>een non-binair persoon</translation>
-    </message>
-    <message>
-        <source>Age</source>
-        <translation>Leeftijd</translation>
-    </message>
-    <message>
-        <source>early twenties</source>
-        <translation>begin twintig</translation>
-    </message>
-    <message>
-        <source>late twenties</source>
-        <translation>eind twintig</translation>
-    </message>
-    <message>
-        <source>thirties</source>
-        <translation>midden dertig</translation>
-    </message>
-    <message>
-        <source>forties</source>
-        <translation>midden veertig</translation>
-    </message>
-    <message>
-        <source>fifties or older</source>
-        <translation>vijftig of ouder</translation>
-    </message>
-    <message>
-        <source>Dress</source>
-        <translation>Kleding</translation>
-    </message>
-    <message>
-        <source>casual</source>
-        <translation>casual</translation>
-    </message>
-    <message>
-        <source>sportswear</source>
-        <translation>sportkleding</translation>
-    </message>
-    <message>
-        <source>office</source>
-        <translation>kantoor</translation>
-    </message>
-    <message>
-        <source>streetwear</source>
-        <translation>streetwear</translation>
-    </message>
-    <message>
-        <source>Energy</source>
-        <translation>Energie</translation>
-    </message>
-    <message>
-        <source>calm</source>
-        <translation>kalm</translation>
-    </message>
-    <message>
-        <source>upbeat</source>
-        <translation>opgewekt</translation>
-    </message>
-    <message>
-        <source>just woke up</source>
-        <translation>net wakker</translation>
-    </message>
-    <message>
-        <source>warm</source>
-        <translation>warm</translation>
-    </message>
-    <message>
-        <source>Someone real</source>
-        <translation>Iemand echt</translation>
-    </message>
-    <message>
-        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation>Optioneel. Een foto van een echt persoon houdt hetzelfde gezicht in elk shot.</translation>
-    </message>
-    <message>
-        <source>Use this photo as the actor, without generating</source>
-        <translation>Deze foto als acteur gebruiken, zonder te genereren</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Casting</translation>
-    </message>
-    <message>
-        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation>Vier gezichten tegelijk. Houd degene die de selfie van een echt persoon kon zijn.</translation>
-    </message>
-    <message>
-        <source>Casting...</source>
-        <translation>Casten...</translation>
-    </message>
-    <message>
-        <source>Cast 1 portrait</source>
-        <translation>1 portret casten</translation>
-    </message>
-    <message>
-        <source>Cast %1 portraits</source>
-        <extracomment>%1 is a number of portraits</extracomment>
-        <translation>%1 portretten casten</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuleren</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>prijs onbekend</translation>
-    </message>
-    <message>
-        <source>Their voice</source>
-        <translation>Haar stem</translation>
-    </message>
-    <message>
-        <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation>Beluister haar voor een fractie van een cent voordat je video koopt.</translation>
-    </message>
-    <message>
-        <source>Keep this actor</source>
-        <translation>Deze acteur bewaren</translation>
-    </message>
-    <message>
-        <source>Saved actors are one click away in every ad after this one.</source>
-        <translation>Bewaarde acteurs zijn in elke volgende advertentie één klik weg.</translation>
-    </message>
-    <message>
-        <source>Update</source>
-        <translation>Bijwerken</translation>
-    </message>
-    <message>
-        <source>Save actor</source>
-        <translation>Acteur opslaan</translation>
-    </message>
-    <message>
-        <source>What gets sent</source>
-        <translation>Wat er verstuurd wordt</translation>
-    </message>
-    <message>
-        <source>Hide the prompt</source>
-        <translation>Prompt verbergen</translation>
-    </message>
-    <message>
-        <source>Show the prompt</source>
-        <translation>Prompt tonen</translation>
-    </message>
-    <message>
-        <source>Built from your own %1.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Gebouwd vanuit je eigen %1.</translation>
-    </message>
-    <message>
-        <source>Drop a casting.json at %1 to change how this is written.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Zet een casting.json in %1 om te wijzigen hoe dit geschreven wordt.</translation>
-    </message>
-    <message>
-        <source>Portrait model</source>
-        <translation>Portretmodel</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Terug</translation>
-    </message>
-    <message>
-        <source>Cast someone to continue</source>
-        <translation>Cast iemand om verder te gaan</translation>
-    </message>
-    <message>
-        <source>Next: write the script</source>
-        <translation>Volgende: het script schrijven</translation>
-    </message>
-</context>
-<context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
@@ -1465,15 +1409,15 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
     <message>
         <source>Reference pictures</source>
-        <translation>Referentiefoto's</translation>
+        <translation>Referentiefoto&apos;s</translation>
     </message>
     <message>
         <source>A picture of the real product keeps it recognisable in every shot.</source>
         <translation>Een foto van het echte product houdt het in elk shot herkenbaar.</translation>
     </message>
     <message>
-        <source>Next: cast your actor</source>
-        <translation>Volgende: je acteur casten</translation>
+        <source>Next: the scenario</source>
+        <translation>Volgende: het scenario</translation>
     </message>
 </context>
 <context>
@@ -1487,20 +1431,12 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation>Wat je verkoopt</translation>
     </message>
     <message>
-        <source>Actor</source>
-        <translation>Acteur</translation>
+        <source>Scenario</source>
+        <translation>Scenario</translation>
     </message>
     <message>
-        <source>Who says it</source>
-        <translation>Wie spreekt</translation>
-    </message>
-    <message>
-        <source>Script</source>
-        <translation>Script</translation>
-    </message>
-    <message>
-        <source>What they say</source>
-        <translation>Wat er gezegd wordt</translation>
+        <source>Who says it, and what</source>
+        <translation>Wie spreekt, en waarover</translation>
     </message>
     <message>
         <source>Summary</source>
@@ -1520,50 +1456,26 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
 </context>
 <context>
-    <name>StepScript</name>
+    <name>StepScenario</name>
     <message>
-        <source>What do they say?</source>
-        <translation>Wat zegt de persoon?</translation>
-    </message>
-    <message>
-        <source>15 to 30 s converts best</source>
-        <translation>15 tot 30 s converteert het best</translation>
-    </message>
-    <message>
-        <source>Hook</source>
-        <translation>Hook</translation>
+        <source>Actor</source>
+        <translation>Acteur</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
         <translation>Benoem de frustratie in één zin. Je hebt drie seconden.</translation>
     </message>
     <message>
-        <source>Problem</source>
-        <translation>Probleem</translation>
-    </message>
-    <message>
         <source>Make it concrete. What did you try that failed?</source>
         <translation>Maak het concreet. Wat probeerde je dat niet werkte?</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Product</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
         <translation>Introduceer het als wat eindelijk wel werkte, niet als een product.</translation>
     </message>
     <message>
-        <source>Proof</source>
-        <translation>Bewijs</translation>
-    </message>
-    <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
         <translation>Eén concreet detail. Een getal, een termijn, een moment.</translation>
-    </message>
-    <message>
-        <source>Ask</source>
-        <translation>Oproep</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
@@ -1574,12 +1486,28 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation>Ga door, of laat het hierbij.</translation>
     </message>
     <message>
-        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>Eén zin per scène, in je eigen woorden. Geen duur te kiezen: de advertentie duurt zo lang als de woorden.</translation>
+        <source>Scenario</source>
+        <translation>Scenario</translation>
     </message>
     <message>
-        <source>Add a scene</source>
-        <translation>Een scène toevoegen</translation>
+        <source>Write what they say. One line, one scene.</source>
+        <translation>Schrijf wat ze zegt. Eén regel, één scène.</translation>
+    </message>
+    <message>
+        <source>Nothing written yet. The first line is the hook — you have three seconds.</source>
+        <translation>Nog niets geschreven. De eerste regel is de hook — je hebt drie seconden.</translation>
+    </message>
+    <message>
+        <source>Pick an actor</source>
+        <translation>Kies een acteur</translation>
+    </message>
+    <message>
+        <source>Talking</source>
+        <translation>Sprekend</translation>
+    </message>
+    <message>
+        <source>Product shot</source>
+        <translation>Productshot</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
@@ -1587,32 +1515,16 @@ Er wordt niets naar ons gestuurd.</translation>
         <translation>%1 scène(s) · %2 s</translation>
     </message>
     <message>
+        <source>15 to 30 s converts best</source>
+        <translation>15 tot 30 s converteert het best</translation>
+    </message>
+    <message>
+        <source>Directing…</source>
+        <translation>Regisseren…</translation>
+    </message>
+    <message>
         <source>Direct the shots</source>
         <translation>Regisseer de shots</translation>
-    </message>
-    <message>
-        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation>Maakt van je zinnen wat de camera ziet. Je woorden worden nooit veranderd.</translation>
-    </message>
-    <message>
-        <source>Directing...</source>
-        <translation>Regisseren...</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Annuleren</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>prijs onbekend</translation>
-    </message>
-    <message>
-        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation>Optioneel: een ongeregisseerde scène wordt ook gerenderd, vanuit een generieke prompt. Het is de regie die dezelfde persoon in dezelfde kamer houdt van snede tot snede.</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Terug</translation>
     </message>
     <message>
         <source>Next: review</source>
@@ -1755,13 +1667,6 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
 </context>
 <context>
-    <name>TraitPicker</name>
-    <message>
-        <source>doesn&apos;t matter</source>
-        <translation>maakt niet uit</translation>
-    </message>
-</context>
-<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1778,138 +1683,6 @@ Er wordt niets naar ons gestuurd.</translation>
 </context>
 <context>
     <name>VoiceBooth</name>
-    <message>
-        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation>Eerlijk gezegd geloofde ik er niet in. Twee weken later gebruik ik het nog steeds.</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>Stem</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>Andere stem-id...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>Plak een stem-id</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>Laad de stemmen van je account om er een te kiezen.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>Stemmen laden</translation>
-    </message>
-    <message>
-        <source>Stability</source>
-        <translation>Stabiliteit</translation>
-    </message>
-    <message>
-        <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation>Laag varieert en klinkt levend. Hoog is gelijkmatig en veilig.</translation>
-    </message>
-    <message>
-        <source>Similarity</source>
-        <translation>Gelijkenis</translation>
-    </message>
-    <message>
-        <source>How closely it holds to the original voice.</source>
-        <translation>Hoe dicht ze bij de originele stem blijft.</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>Stijl</translation>
-    </message>
-    <message>
-        <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation>Duwt de voordracht. Voorbij de helft gaat het acteren.</translation>
-    </message>
-    <message>
-        <source>Speed</source>
-        <translation>Snelheid</translation>
-    </message>
-    <message>
-        <source>Leave at 1.00 unless the read drags.</source>
-        <translation>Laat op 1,00 staan, tenzij de voordracht sleept.</translation>
-    </message>
-    <message>
-        <source>Audition line</source>
-        <translation>Testzin</translation>
-    </message>
-    <message>
-        <source>Recording...</source>
-        <translation>Opnemen...</translation>
-    </message>
-    <message>
-        <source>Hear them</source>
-        <translation>Beluister haar</translation>
-    </message>
-    <message>
-        <source>Stop</source>
-        <translation>Stop</translation>
-    </message>
-    <message>
-        <source>Play again</source>
-        <translation>Opnieuw afspelen</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>prijs onbekend</translation>
-    </message>
-    <message>
-        <source>Hide voice cloning</source>
-        <translation>Klonen verbergen</translation>
-    </message>
-    <message>
-        <source>Clone a voice from a recording</source>
-        <translation>Een stem klonen uit een opname</translation>
-    </message>
-    <message>
-        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation>Sleep één of meer schone opnames van de stem hierheen. Een minuut spraak is ruim genoeg.</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Verwijderen</translation>
-    </message>
-    <message>
-        <source>Add recordings</source>
-        <translation>Opnames toevoegen</translation>
-    </message>
-    <message>
-        <source>Name for the cloned voice</source>
-        <translation>Naam voor de gekloonde stem</translation>
-    </message>
-    <message>
-        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation>Dit uploadt je opnames naar ElevenLabs en voegt een permanente stem toe aan je account. Kloon alleen een stem die je mag gebruiken.</translation>
-    </message>
-    <message>
-        <source>Cloning...</source>
-        <translation>Klonen...</translation>
-    </message>
-    <message>
-        <source>Clone onto my ElevenLabs account</source>
-        <translation>Klonen naar mijn ElevenLabs-account</translation>
-    </message>
-    <message>
-        <source>Choose voice recordings</source>
-        <translation>Stemopnames kiezen</translation>
-    </message>
-    <message>
-        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation>Audio (*.mp3 *.wav *.m4a *.ogg)</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>%1 stemmen geladen.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>Stemmen konden niet worden geladen: %1</translation>
-    </message>
     <message>
         <source>Write a line for them to say.</source>
         <translation>Schrijf een zin die ze moet zeggen.</translation>
@@ -1952,7 +1725,7 @@ Er wordt niets naar ons gestuurd.</translation>
     </message>
     <message>
         <source>Voice &quot;%1&quot; is on your account.</source>
-        <translation>De stem '%1' staat op je account.</translation>
+        <translation>De stem &apos;%1&apos; staat op je account.</translation>
     </message>
 </context>
 <context>

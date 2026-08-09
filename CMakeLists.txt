@@ -63,14 +63,14 @@ set(APP_QML_FILES
     qml/RecapPanel.qml
     qml/RecapBlock.qml
     qml/StepProduct.qml
-    qml/StepActor.qml
-    qml/PortraitGrid.qml
-    qml/ActorStrip.qml
-    qml/TraitPicker.qml
-    qml/VoiceBooth.qml
+    qml/StepScenario.qml
+    qml/ActorPanel.qml
+    qml/PromptBar.qml
+    qml/Chip.qml
+    qml/ChoiceChip.qml
+    qml/SceneBubble.qml
+    qml/IconButton.qml
     qml/LabeledSlider.qml
-    qml/StepScript.qml
-    qml/SceneCard.qml
     qml/Storyboard.qml
     qml/StepSummary.qml
     qml/LibraryPage.qml

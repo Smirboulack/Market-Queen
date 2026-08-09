@@ -241,15 +241,15 @@ bool AdProject::stepValid(int step) const
     switch (step) {
     case StepProduct:
         return !m_product.value(QStringLiteral("name")).toString().trimmed().isEmpty();
-    case StepActor:
-        // A description is not an actor. The step is satisfied by a picture --
-        // cast here, or one of the user's own promoted to the part.
-        return !m_actor.value(QStringLiteral("portraitPath")).toString().trimmed().isEmpty();
-    case StepScript:
-        // A draft written before scenes existed still counts.
-        return m_scenes->hasSpokenLine() || !m_script.trimmed().isEmpty();
+    case StepScenario:
+        // Both halves have to hold: a description is not an actor -- the step
+        // wants a picture, cast or promoted from the user's own photos -- and
+        // an actor with nothing to say is not a scenario. (A draft written
+        // before scenes existed still counts as having words.)
+        return !m_actor.value(QStringLiteral("portraitPath")).toString().trimmed().isEmpty()
+            && (m_scenes->hasSpokenLine() || !m_script.trimmed().isEmpty());
     case StepSummary:
-        return stepValid(StepProduct) && stepValid(StepActor) && stepValid(StepScript);
+        return stepValid(StepProduct) && stepValid(StepScenario);
     default:
         return false;
     }

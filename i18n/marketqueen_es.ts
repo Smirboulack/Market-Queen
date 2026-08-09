@@ -9,10 +9,209 @@
     </message>
 </context>
 <context>
-    <name>ActorStrip</name>
+    <name>ActorPanel</name>
+    <message>
+        <source>Honestly, I did not think this would work.</source>
+        <translation>Sinceramente, no creía que fuera a funcionar.</translation>
+    </message>
+    <message>
+        <source>Actor</source>
+        <translation>Actor</translation>
+    </message>
     <message>
         <source>Your actors</source>
         <translation>Tus actores</translation>
+    </message>
+    <message>
+        <source>Describe the person. Ordinary face, ordinary room.</source>
+        <translation>Describe a la persona. Cara corriente, habitación corriente.</translation>
+    </message>
+    <message>
+        <source>Gender</source>
+        <translation>Género</translation>
+    </message>
+    <message>
+        <source>a woman</source>
+        <translation>una mujer</translation>
+    </message>
+    <message>
+        <source>a man</source>
+        <translation>un hombre</translation>
+    </message>
+    <message>
+        <source>a non-binary person</source>
+        <translation>una persona no binaria</translation>
+    </message>
+    <message>
+        <source>Age</source>
+        <translation>Edad</translation>
+    </message>
+    <message>
+        <source>early twenties</source>
+        <translation>veintipocos</translation>
+    </message>
+    <message>
+        <source>late twenties</source>
+        <translation>veintimuchos</translation>
+    </message>
+    <message>
+        <source>thirties</source>
+        <translation>treinta y tantos</translation>
+    </message>
+    <message>
+        <source>forties</source>
+        <translation>cuarenta y tantos</translation>
+    </message>
+    <message>
+        <source>fifties or older</source>
+        <translation>cincuenta o más</translation>
+    </message>
+    <message>
+        <source>Dress</source>
+        <translation>Ropa</translation>
+    </message>
+    <message>
+        <source>casual</source>
+        <translation>informal</translation>
+    </message>
+    <message>
+        <source>sportswear</source>
+        <translation>deportiva</translation>
+    </message>
+    <message>
+        <source>office</source>
+        <translation>oficina</translation>
+    </message>
+    <message>
+        <source>streetwear</source>
+        <translation>streetwear</translation>
+    </message>
+    <message>
+        <source>Energy</source>
+        <translation>Energía</translation>
+    </message>
+    <message>
+        <source>calm</source>
+        <translation>tranquila</translation>
+    </message>
+    <message>
+        <source>upbeat</source>
+        <translation>animada</translation>
+    </message>
+    <message>
+        <source>just woke up</source>
+        <translation>recién levantada</translation>
+    </message>
+    <message>
+        <source>warm</source>
+        <translation>cercana</translation>
+    </message>
+    <message>
+        <source>Reference</source>
+        <translation>Referencia</translation>
+    </message>
+    <message>
+        <source>%1 photo(s)</source>
+        <extracomment>%1 is a count of photos</extracomment>
+        <translation>%1 foto(s)</translation>
+    </message>
+    <message>
+        <source>Casting... %1 of %2</source>
+        <extracomment>%1 and %2 are counts of portraits</extracomment>
+        <translation>Generando... %1 de %2</translation>
+    </message>
+    <message>
+        <source>Four faces for %1</source>
+        <extracomment>%1 is a price</extracomment>
+        <translation>Cuatro caras por %1</translation>
+    </message>
+    <message>
+        <source>price unknown</source>
+        <translation>precio desconocido</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Cancelar</translation>
+    </message>
+    <message>
+        <source>Use my photo</source>
+        <translation>Usar mi foto</translation>
+    </message>
+    <message>
+        <source>Where they are. A small bathroom, towels on the floor…</source>
+        <translation>Dónde está. Un baño pequeño, toallas por el suelo…</translation>
+    </message>
+    <message>
+        <source>A line to hear them say…</source>
+        <translation>Una frase para oírsela decir…</translation>
+    </message>
+    <message>
+        <source>Voice</source>
+        <translation>Voz</translation>
+    </message>
+    <message>
+        <source>Load voices</source>
+        <translation>Cargar voces</translation>
+    </message>
+    <message>
+        <source>Natural</source>
+        <translation>Natural</translation>
+    </message>
+    <message>
+        <source>Composed</source>
+        <translation>Serena</translation>
+    </message>
+    <message>
+        <source>Lively</source>
+        <translation>Animada</translation>
+    </message>
+    <message>
+        <source>Intense</source>
+        <translation>Intensa</translation>
+    </message>
+    <message>
+        <source>Hide the sliders</source>
+        <translation>Ocultar los deslizadores</translation>
+    </message>
+    <message>
+        <source>Fine-tune</source>
+        <translation>Ajuste fino</translation>
+    </message>
+    <message>
+        <source>Stability</source>
+        <translation>Estabilidad</translation>
+    </message>
+    <message>
+        <source>Similarity</source>
+        <translation>Similitud</translation>
+    </message>
+    <message>
+        <source>Style</source>
+        <translation>Estilo</translation>
+    </message>
+    <message>
+        <source>Speed</source>
+        <translation>Velocidad</translation>
+    </message>
+    <message>
+        <source>Update</source>
+        <translation>Actualizar</translation>
+    </message>
+    <message>
+        <source>Keep this actor</source>
+        <translation>Guardar este actor</translation>
+    </message>
+    <message>
+        <source>Choose reference photos</source>
+        <translation>Elegir fotos de referencia</translation>
+    </message>
+    <message>
+        <source>Images (*.png *.jpg *.jpeg *.webp)</source>
+        <translation>Imágenes (*.png *.jpg *.jpeg *.webp)</translation>
+    </message>
+    <message>
+        <source>Could not load voices: %1</source>
+        <translation>No se pudieron cargar las voces: %1</translation>
     </message>
 </context>
 <context>
@@ -70,6 +269,13 @@
     <message>
         <source>Could not write %1.</source>
         <translation>No se pudo escribir %1.</translation>
+    </message>
+</context>
+<context>
+    <name>ChoiceChip</name>
+    <message>
+        <source>doesn&apos;t matter</source>
+        <translation>da igual</translation>
     </message>
 </context>
 <context>
@@ -782,26 +988,6 @@
     </message>
 </context>
 <context>
-    <name>PortraitGrid</name>
-    <message>
-        <source>Casting... %1 of %2</source>
-        <extracomment>%1 and %2 are counts of portraits</extracomment>
-        <translation>Generando... %1 de %2</translation>
-    </message>
-    <message>
-        <source>Pick the one that looks real</source>
-        <translation>Elige el que parezca real</translation>
-    </message>
-    <message>
-        <source>None of them? Cast again.</source>
-        <translation>¿Ninguno vale? Vuelve a generar.</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Elegido</translation>
-    </message>
-</context>
-<context>
     <name>ProviderTask</name>
     <message>
         <source>No API key for %1. Add it in Settings.</source>
@@ -961,47 +1147,19 @@
     </message>
 </context>
 <context>
-    <name>SceneCard</name>
-    <message>
-        <source>Talking</source>
-        <translation>Habla</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Producto</translation>
-    </message>
+    <name>SceneBubble</name>
     <message>
         <source>%1 s</source>
         <extracomment>%1 is a duration in seconds</extracomment>
         <translation>%1 s</translation>
     </message>
     <message>
-        <source>Hide the visual</source>
-        <translation>Ocultar el visual</translation>
+        <source>Product shot</source>
+        <translation>Plano de producto</translation>
     </message>
     <message>
-        <source>Visual</source>
-        <translation>Visual</translation>
-    </message>
-    <message>
-        <source>Not directed yet</source>
-        <translation>Sin dirigir todavía</translation>
-    </message>
-    <message>
-        <source>What the camera sees</source>
-        <translation>Lo que ve la cámara</translation>
-    </message>
-    <message>
-        <source>Press Direct the shots, or write it yourself.</source>
-        <translation>Pulsa Dirigir los planos, o escríbelo tú.</translation>
-    </message>
-    <message>
-        <source>How it moves</source>
-        <translation>Cómo se mueve</translation>
-    </message>
-    <message>
-        <source>One small gesture, one small camera movement.</source>
-        <translation>Un pequeño gesto, un pequeño movimiento de cámara.</translation>
+        <source>Talking</source>
+        <translation>Habla</translation>
     </message>
 </context>
 <context>
@@ -1216,220 +1374,6 @@ No se nos envía nada.</translation>
     </message>
 </context>
 <context>
-    <name>StepActor</name>
-    <message>
-        <source>Who says it?</source>
-        <translation>¿Quién lo dice?</translation>
-    </message>
-    <message>
-        <source>A real-looking person beats a polished one. Ordinary face, ordinary room.</source>
-        <translation>Una persona creíble vale más que una perfecta. Cara corriente, habitación corriente.</translation>
-    </message>
-    <message>
-        <source>Where they are</source>
-        <translation>Dónde está</translation>
-    </message>
-    <message>
-        <source>e.g. a small bathroom, towels on the floor, morning light through blinds</source>
-        <translation>p. ej. un baño pequeño, toallas por el suelo, luz de la mañana entre las persianas</translation>
-    </message>
-    <message>
-        <source>Describe them</source>
-        <translation>Descríbela</translation>
-    </message>
-    <message>
-        <source>Plain words work best. The traits below only fill in what you left out.</source>
-        <translation>Las palabras sencillas funcionan mejor. Los rasgos de abajo solo rellenan lo que no dijiste.</translation>
-    </message>
-    <message>
-        <source>e.g. tired but friendly, no makeup, messy bun, slightly crooked smile</source>
-        <translation>p. ej. cansada pero amable, sin maquillaje, moño deshecho, sonrisa algo torcida</translation>
-    </message>
-    <message>
-        <source>Gender</source>
-        <translation>Género</translation>
-    </message>
-    <message>
-        <source>a woman</source>
-        <translation>una mujer</translation>
-    </message>
-    <message>
-        <source>a man</source>
-        <translation>un hombre</translation>
-    </message>
-    <message>
-        <source>a non-binary person</source>
-        <translation>una persona no binaria</translation>
-    </message>
-    <message>
-        <source>Age</source>
-        <translation>Edad</translation>
-    </message>
-    <message>
-        <source>early twenties</source>
-        <translation>veintipocos</translation>
-    </message>
-    <message>
-        <source>late twenties</source>
-        <translation>veintimuchos</translation>
-    </message>
-    <message>
-        <source>thirties</source>
-        <translation>treinta y tantos</translation>
-    </message>
-    <message>
-        <source>forties</source>
-        <translation>cuarenta y tantos</translation>
-    </message>
-    <message>
-        <source>fifties or older</source>
-        <translation>cincuenta o más</translation>
-    </message>
-    <message>
-        <source>Dress</source>
-        <translation>Ropa</translation>
-    </message>
-    <message>
-        <source>casual</source>
-        <translation>informal</translation>
-    </message>
-    <message>
-        <source>sportswear</source>
-        <translation>deportiva</translation>
-    </message>
-    <message>
-        <source>office</source>
-        <translation>oficina</translation>
-    </message>
-    <message>
-        <source>streetwear</source>
-        <translation>streetwear</translation>
-    </message>
-    <message>
-        <source>Energy</source>
-        <translation>Energía</translation>
-    </message>
-    <message>
-        <source>calm</source>
-        <translation>tranquila</translation>
-    </message>
-    <message>
-        <source>upbeat</source>
-        <translation>animada</translation>
-    </message>
-    <message>
-        <source>just woke up</source>
-        <translation>recién levantada</translation>
-    </message>
-    <message>
-        <source>warm</source>
-        <translation>cercana</translation>
-    </message>
-    <message>
-        <source>Someone real</source>
-        <translation>Alguien real</translation>
-    </message>
-    <message>
-        <source>Optional. A photo of an actual person keeps the same face across every shot.</source>
-        <translation>Opcional. La foto de una persona real mantiene la misma cara en todos los planos.</translation>
-    </message>
-    <message>
-        <source>Use this photo as the actor, without generating</source>
-        <translation>Usar esta foto como actor, sin generar</translation>
-    </message>
-    <message>
-        <source>Cast</source>
-        <translation>Casting</translation>
-    </message>
-    <message>
-        <source>Four faces at a time. Keep the one that could be a real person&apos;s selfie.</source>
-        <translation>Cuatro caras a la vez. Quédate con la que podría ser el selfie de una persona real.</translation>
-    </message>
-    <message>
-        <source>Casting...</source>
-        <translation>Generando...</translation>
-    </message>
-    <message>
-        <source>Cast 1 portrait</source>
-        <translation>Generar 1 retrato</translation>
-    </message>
-    <message>
-        <source>Cast %1 portraits</source>
-        <extracomment>%1 is a number of portraits</extracomment>
-        <translation>Generar %1 retratos</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Cancelar</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>precio desconocido</translation>
-    </message>
-    <message>
-        <source>Their voice</source>
-        <translation>Su voz</translation>
-    </message>
-    <message>
-        <source>Hear them for a fraction of a cent before you buy any video.</source>
-        <translation>Escúchala por una fracción de céntimo antes de comprar vídeo.</translation>
-    </message>
-    <message>
-        <source>Keep this actor</source>
-        <translation>Guardar este actor</translation>
-    </message>
-    <message>
-        <source>Saved actors are one click away in every ad after this one.</source>
-        <translation>Los actores guardados están a un clic en todos tus anuncios siguientes.</translation>
-    </message>
-    <message>
-        <source>Update</source>
-        <translation>Actualizar</translation>
-    </message>
-    <message>
-        <source>Save actor</source>
-        <translation>Guardar actor</translation>
-    </message>
-    <message>
-        <source>What gets sent</source>
-        <translation>Lo que se envía</translation>
-    </message>
-    <message>
-        <source>Hide the prompt</source>
-        <translation>Ocultar el prompt</translation>
-    </message>
-    <message>
-        <source>Show the prompt</source>
-        <translation>Ver el prompt</translation>
-    </message>
-    <message>
-        <source>Built from your own %1.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Construido desde tu %1.</translation>
-    </message>
-    <message>
-        <source>Drop a casting.json at %1 to change how this is written.</source>
-        <extracomment>%1 is a file path</extracomment>
-        <translation>Deja un casting.json en %1 para cambiar cómo se redacta.</translation>
-    </message>
-    <message>
-        <source>Portrait model</source>
-        <translation>Modelo de retrato</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Atrás</translation>
-    </message>
-    <message>
-        <source>Cast someone to continue</source>
-        <translation>Elige a alguien para continuar</translation>
-    </message>
-    <message>
-        <source>Next: write the script</source>
-        <translation>Siguiente: escribir el guion</translation>
-    </message>
-</context>
-<context>
     <name>StepProduct</name>
     <message>
         <source>What are you selling?</source>
@@ -1472,8 +1416,8 @@ No se nos envía nada.</translation>
         <translation>Una foto del producto real lo mantiene reconocible en cada plano.</translation>
     </message>
     <message>
-        <source>Next: cast your actor</source>
-        <translation>Siguiente: elegir actor</translation>
+        <source>Next: the scenario</source>
+        <translation>Siguiente: el guion</translation>
     </message>
 </context>
 <context>
@@ -1487,20 +1431,12 @@ No se nos envía nada.</translation>
         <translation>Lo que vendes</translation>
     </message>
     <message>
-        <source>Actor</source>
-        <translation>Actor</translation>
-    </message>
-    <message>
-        <source>Who says it</source>
-        <translation>Quién habla</translation>
-    </message>
-    <message>
-        <source>Script</source>
+        <source>Scenario</source>
         <translation>Guion</translation>
     </message>
     <message>
-        <source>What they say</source>
-        <translation>Lo que se dice</translation>
+        <source>Who says it, and what</source>
+        <translation>Quién habla, y para decir qué</translation>
     </message>
     <message>
         <source>Summary</source>
@@ -1520,50 +1456,26 @@ No se nos envía nada.</translation>
     </message>
 </context>
 <context>
-    <name>StepScript</name>
+    <name>StepScenario</name>
     <message>
-        <source>What do they say?</source>
-        <translation>¿Qué dice la persona?</translation>
-    </message>
-    <message>
-        <source>15 to 30 s converts best</source>
-        <translation>De 15 a 30 s convierte mejor</translation>
-    </message>
-    <message>
-        <source>Hook</source>
-        <translation>Gancho</translation>
+        <source>Actor</source>
+        <translation>Actor</translation>
     </message>
     <message>
         <source>Name the frustration in one sentence. You have three seconds.</source>
         <translation>Nombra la frustración en una frase. Tienes tres segundos.</translation>
     </message>
     <message>
-        <source>Problem</source>
-        <translation>Problema</translation>
-    </message>
-    <message>
         <source>Make it concrete. What did you try that failed?</source>
         <translation>Hazlo concreto. ¿Qué probaste que no funcionó?</translation>
-    </message>
-    <message>
-        <source>Product</source>
-        <translation>Producto</translation>
     </message>
     <message>
         <source>Introduce it as what finally worked, not as a product.</source>
         <translation>Preséntalo como lo que por fin funcionó, no como un producto.</translation>
     </message>
     <message>
-        <source>Proof</source>
-        <translation>Prueba</translation>
-    </message>
-    <message>
         <source>One specific detail. A number, a timeframe, a moment.</source>
         <translation>Un detalle concreto. Una cifra, un plazo, un momento.</translation>
-    </message>
-    <message>
-        <source>Ask</source>
-        <translation>Llamada</translation>
     </message>
     <message>
         <source>Say what to do next, casually.</source>
@@ -1574,12 +1486,28 @@ No se nos envía nada.</translation>
         <translation>Sigue, o déjalo aquí.</translation>
     </message>
     <message>
-        <source>One line per scene, in your own words. No duration to pick: the ad lasts as long as the words do.</source>
-        <translation>Una frase por escena, con tus palabras. Ninguna duración que elegir: el anuncio dura lo que duran las palabras.</translation>
+        <source>Scenario</source>
+        <translation>Guion</translation>
     </message>
     <message>
-        <source>Add a scene</source>
-        <translation>Añadir una escena</translation>
+        <source>Write what they say. One line, one scene.</source>
+        <translation>Escribe lo que dice. Una línea, una escena.</translation>
+    </message>
+    <message>
+        <source>Nothing written yet. The first line is the hook — you have three seconds.</source>
+        <translation>Nada escrito. La primera línea es el gancho: tienes tres segundos.</translation>
+    </message>
+    <message>
+        <source>Pick an actor</source>
+        <translation>Elegir un actor</translation>
+    </message>
+    <message>
+        <source>Talking</source>
+        <translation>Habla</translation>
+    </message>
+    <message>
+        <source>Product shot</source>
+        <translation>Plano de producto</translation>
     </message>
     <message>
         <source>%1 scene(s) · %2 s</source>
@@ -1587,32 +1515,16 @@ No se nos envía nada.</translation>
         <translation>%1 escena(s) · %2 s</translation>
     </message>
     <message>
+        <source>15 to 30 s converts best</source>
+        <translation>De 15 a 30 s convierte mejor</translation>
+    </message>
+    <message>
+        <source>Directing…</source>
+        <translation>Dirigiendo…</translation>
+    </message>
+    <message>
         <source>Direct the shots</source>
         <translation>Dirigir los planos</translation>
-    </message>
-    <message>
-        <source>Turns your lines into what the camera sees. Your words are never changed.</source>
-        <translation>Convierte tus frases en lo que ve la cámara. Tus palabras nunca se modifican.</translation>
-    </message>
-    <message>
-        <source>Directing...</source>
-        <translation>Dirigiendo...</translation>
-    </message>
-    <message>
-        <source>Cancel</source>
-        <translation>Cancelar</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>precio desconocido</translation>
-    </message>
-    <message>
-        <source>Optional: undirected scenes still render, from a generic prompt. Directing them is what keeps the same person in the same room across every cut.</source>
-        <translation>Opcional: una escena sin dirigir también se genera, con un prompt genérico. Dirigirla es lo que mantiene a la misma persona en la misma habitación de un corte a otro.</translation>
-    </message>
-    <message>
-        <source>Back</source>
-        <translation>Atrás</translation>
     </message>
     <message>
         <source>Next: review</source>
@@ -1755,13 +1667,6 @@ No se nos envía nada.</translation>
     </message>
 </context>
 <context>
-    <name>TraitPicker</name>
-    <message>
-        <source>doesn&apos;t matter</source>
-        <translation>da igual</translation>
-    </message>
-</context>
-<context>
     <name>VideoTask</name>
     <message>
         <source>The provider returned no video.</source>
@@ -1778,138 +1683,6 @@ No se nos envía nada.</translation>
 </context>
 <context>
     <name>VoiceBooth</name>
-    <message>
-        <source>Honestly, I did not think this would work. Two weeks later I am still using it.</source>
-        <translation>Sinceramente, no creía que fuera a funcionar. Dos semanas después lo sigo usando.</translation>
-    </message>
-    <message>
-        <source>Voice</source>
-        <translation>Voz</translation>
-    </message>
-    <message>
-        <source>Other voice id...</source>
-        <translation>Otro id de voz...</translation>
-    </message>
-    <message>
-        <source>Paste a voice id</source>
-        <translation>Pega un id de voz</translation>
-    </message>
-    <message>
-        <source>Load the voices on your account to pick one.</source>
-        <translation>Carga las voces de tu cuenta para elegir una.</translation>
-    </message>
-    <message>
-        <source>Load voices</source>
-        <translation>Cargar voces</translation>
-    </message>
-    <message>
-        <source>Stability</source>
-        <translation>Estabilidad</translation>
-    </message>
-    <message>
-        <source>Low wanders and sounds alive. High is even and safe.</source>
-        <translation>Baja, varía y suena viva. Alta, es regular y segura.</translation>
-    </message>
-    <message>
-        <source>Similarity</source>
-        <translation>Similitud</translation>
-    </message>
-    <message>
-        <source>How closely it holds to the original voice.</source>
-        <translation>Cuánto se ciñe a la voz original.</translation>
-    </message>
-    <message>
-        <source>Style</source>
-        <translation>Estilo</translation>
-    </message>
-    <message>
-        <source>Pushes the delivery. Past halfway it starts acting.</source>
-        <translation>Fuerza la interpretación. Pasada la mitad, sobreactúa.</translation>
-    </message>
-    <message>
-        <source>Speed</source>
-        <translation>Velocidad</translation>
-    </message>
-    <message>
-        <source>Leave at 1.00 unless the read drags.</source>
-        <translation>Déjalo en 1,00 salvo que la lectura se arrastre.</translation>
-    </message>
-    <message>
-        <source>Audition line</source>
-        <translation>Frase de prueba</translation>
-    </message>
-    <message>
-        <source>Recording...</source>
-        <translation>Grabando...</translation>
-    </message>
-    <message>
-        <source>Hear them</source>
-        <translation>Escucharla</translation>
-    </message>
-    <message>
-        <source>Stop</source>
-        <translation>Parar</translation>
-    </message>
-    <message>
-        <source>Play again</source>
-        <translation>Volver a escuchar</translation>
-    </message>
-    <message>
-        <source>price unknown</source>
-        <translation>precio desconocido</translation>
-    </message>
-    <message>
-        <source>Hide voice cloning</source>
-        <translation>Ocultar la clonación</translation>
-    </message>
-    <message>
-        <source>Clone a voice from a recording</source>
-        <translation>Clonar una voz desde una grabación</translation>
-    </message>
-    <message>
-        <source>Drop one or more clean recordings of the voice. A minute of speech is plenty.</source>
-        <translation>Suelta una o varias grabaciones limpias de la voz. Un minuto de habla sobra.</translation>
-    </message>
-    <message>
-        <source>Remove</source>
-        <translation>Quitar</translation>
-    </message>
-    <message>
-        <source>Add recordings</source>
-        <translation>Añadir grabaciones</translation>
-    </message>
-    <message>
-        <source>Name for the cloned voice</source>
-        <translation>Nombre de la voz clonada</translation>
-    </message>
-    <message>
-        <source>This uploads your recordings to ElevenLabs and adds a permanent voice to your account. Only clone a voice you have the right to use.</source>
-        <translation>Esto sube tus grabaciones a ElevenLabs y añade una voz permanente a tu cuenta. Clona solo una voz que tengas derecho a usar.</translation>
-    </message>
-    <message>
-        <source>Cloning...</source>
-        <translation>Clonando...</translation>
-    </message>
-    <message>
-        <source>Clone onto my ElevenLabs account</source>
-        <translation>Clonar en mi cuenta de ElevenLabs</translation>
-    </message>
-    <message>
-        <source>Choose voice recordings</source>
-        <translation>Elegir grabaciones de voz</translation>
-    </message>
-    <message>
-        <source>Audio (*.mp3 *.wav *.m4a *.ogg)</source>
-        <translation>Audio (*.mp3 *.wav *.m4a *.ogg)</translation>
-    </message>
-    <message>
-        <source>%1 voices loaded.</source>
-        <translation>%1 voces cargadas.</translation>
-    </message>
-    <message>
-        <source>Could not load voices: %1</source>
-        <translation>No se pudieron cargar las voces: %1</translation>
-    </message>
     <message>
         <source>Write a line for them to say.</source>
         <translation>Escribe una frase para que la diga.</translation>
