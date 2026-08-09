@@ -1,27 +1,41 @@
 # Brand artwork
 
-Two marks, two jobs. Drop the files here with exactly these names; nothing has
-to be rebuilt beyond the app itself.
+Two marks, two jobs.
 
-| File        | Where it shows                                     | Wanted            |
-| ----------- | -------------------------------------------------- | ----------------- |
-| `logo.png`  | The nav header, and the desktop taskbar/dock button | square, ≥ 512 px  |
-| `crown.png` | The window icon and the web favicon                 | square, ≥ 512 px, transparent background |
+| File        | Where it shows                                              |
+| ----------- | ----------------------------------------------------------- |
+| `logo.png`  | The nav header, the taskbar/dock button, and the exe icon    |
+| `crown.png` | The window's title bar, and the web favicon                  |
 
-`logo.png` is read at runtime by `BrandMark` (`lib/ui/brand.dart`). Until it
-exists the nav header falls back to the pink "MQ" tile, so a missing file is
-never a crash.
+`logo.png` is the only one read at runtime, by `BrandMark`
+(`lib/ui/brand.dart`). If it is ever missing the nav header falls back to a
+drawn pink "MQ" tile rather than crashing.
 
-`crown.png` is *not* read at runtime: the window icon and the favicon are
-platform files that have to be generated from it once.
+`crown.png` is never read at runtime. It is kept here as the artwork of record
+for the platform icon files, which are generated from these two and committed.
 
-- Windows — `windows/runner/resources/app_icon.ico` (multi-size .ico: 16, 32,
-  48, 64, 128, 256)
-- Web — `web/favicon.png`, plus `web/icons/Icon-{192,512}.png` and the two
-  maskable variants
-- macOS — `macos/Runner/Assets.xcassets/AppIcon.appiconset/`
-- Linux — no icon file; the window manager uses the `.desktop` entry
+## What was generated from them
 
-The crown is a wide, short shape on a transparent field, so it needs padding
-before it is squared off or it will be rendered as a two-pixel-tall smear at
-16 px.
+- `windows/runner/resources/app_icon.ico` — the character, at 16/24/32/48/64/128/256.
+  This is `IDI_APP_ICON`, so it is the exe icon and the window class icon, which
+  is what Explorer, Alt+Tab and the taskbar button use.
+- `windows/runner/resources/window_icon.ico` — the crown, at 16/20/24/32/48/64/128.
+  This is `IDI_WINDOW_ICON`; `Win32Window::Create` sets it as `ICON_SMALL`, which
+  is the title bar and nothing else. Its 16–24px entries are cropped to the
+  central pear gem: a whole tiara squeezed into 16px is a gold hairline.
+- `web/favicon.png`, `web/icons/Icon-{192,512}.png` — the crown, transparent.
+- `web/icons/Icon-maskable-{192,512}.png` — the crown inside the middle 80% of
+  an opaque white canvas, because a maskable icon is cropped to whatever shape
+  the platform likes.
+- `macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_*.png` — the
+  character, at every size the iconset declares.
+
+Linux has no icon file; the window manager reads the `.desktop` entry.
+
+## Regenerating
+
+There is no build step: the icons above are committed, and replacing either
+source means regenerating them. The generator was a throwaway Pillow script —
+crop the character to a square on its full height anchored right (the source is
+1362×1155 and the head sits right of centre), trim the crown to its alpha bounds
+and centre it on a square, then write each target size.
