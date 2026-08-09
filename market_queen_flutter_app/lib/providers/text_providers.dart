@@ -68,9 +68,7 @@ abstract class ScriptTask extends HttpTask {
   final ScriptRequest request;
 
   String get progressLabel => switch (request.mode) {
-    ScriptMode.directVisuals =>
-      tr('Directing the shots with %1...').arg(request.model),
-    ScriptMode.rewriteLine => tr('Rewriting the line with %1...').arg(
+    ScriptMode.rewriteScript => tr('Reworking the scenario with %1...').arg(
       request.model,
     ),
     ScriptMode.writeScript => tr('Writing the script with %1...').arg(
@@ -79,42 +77,23 @@ abstract class ScriptTask extends HttpTask {
   };
 
   String get systemPrompt {
-    if (request.mode == ScriptMode.rewriteLine) {
+    if (request.mode == ScriptMode.rewriteScript) {
       return 'You are a senior UGC (user generated content) ad writer. You are handed '
-          'one spoken line from a short vertical video ad and one instruction. Rewrite '
-          'that line and nothing else.\n'
+          'the scenario of a short vertical video ad and one instruction. Rewrite that '
+          'scenario and nothing else.\n'
           '\n'
           'Rules:\n'
-          '- Only words that will be spoken out loud. No stage directions, no emojis, '
-          'no hashtags, no markdown, no quotation marks.\n'
+          '- Only words that will be spoken out loud. No stage directions, no scene '
+          'headings, no emojis, no hashtags, no markdown, no quotation marks.\n'
           '- Sound like a real person talking to a friend: contractions, short '
           'sentences, one idea per sentence.\n'
-          '- Keep the meaning and the language of the original line.\n'
-          '- Return one line, not several. It has to fit in a single shot.\n'
+          '- Keep the meaning, the claims and the language of the original. Invent no '
+          'claim that is not already in it.\n'
+          '- It is one continuous take of one person talking. Never break it into '
+          'scenes, parts or numbered beats.\n'
           '\n'
           'Answer with a single JSON object and nothing else:\n'
-          '{"shots": [{"line": "the rewritten line"}]}';
-    }
-
-    if (request.mode == ScriptMode.directVisuals) {
-      return 'You are the director of a vertical UGC video ad. The spoken lines are '
-          'already written and are not yours to change: your only job is to say what '
-          'the camera sees while each one is said.\n'
-          '\n'
-          '${request.directionRules}'
-          '\n\n'
-          'Answer with a single JSON object and nothing else:\n'
-          '{\n'
-          '  "shots": [\n'
-          '    {\n'
-          '      "imagePrompt": "the still this shot starts from: the person, what '
-          'they are doing with their hands, the framing, the room, the light",\n'
-          '      "videoPrompt": "how it moves over its few seconds: one small human '
-          'gesture and one small camera movement"\n'
-          '    }\n'
-          '  ]\n'
-          '}\n'
-          'Return exactly one entry per line you were given, in the same order.';
+          '{"script": "the rewritten scenario"}';
     }
 
     return 'You are a senior UGC (user generated content) ad writer. You write short '
@@ -152,63 +131,20 @@ abstract class ScriptTask extends HttpTask {
   }
 
   String get userPrompt {
-    if (request.mode == ScriptMode.rewriteLine) {
-      // The beat is what the line is *for*; without it "make it punchier" has
-      // no idea whether it is sharpening a hook or a call to action.
-      const beatBriefs = <String, String>{
-        'hook': 'the hook -- the first three seconds, the line that has to stop '
-            'the scroll',
-        'problem': 'the problem -- the frustration the viewer recognises',
-        'solution': 'the solution -- how the product enters, casually, not as an '
-            'advert',
-        'benefit': 'the benefit -- one specific, concrete result',
-        'cta': 'the call to action -- what to do next, said casually',
-      };
-
+    if (request.mode == ScriptMode.rewriteScript) {
       final prompt = StringBuffer()
         ..write(_sectionIfSet('Product', request.productName))
         ..write(_sectionIfSet('What it is', request.productDescription))
         ..write(_sectionIfSet('Target audience', request.audience))
         ..write(_sectionIfSet('The person on camera', request.avatarBrief))
+        ..write(_sectionIfSet('Where they are', request.extraInstructions))
         ..write(
-          _sectionIfSet('This line is', beatBriefs[request.beat] ?? ''),
+          '\nThe scenario:\n"""\n'
+          '${request.lines.isEmpty ? '' : request.lines.first}\n"""\n',
         )
-        ..write('\nThe line:\n"${request.lines.isEmpty ? '' : request.lines.first}"\n')
         ..write('\nInstruction: ${request.rewriteInstruction}\n')
         ..write('\nRewrite it now. JSON only.');
 
-      return prompt.toString();
-    }
-
-    if (request.mode == ScriptMode.directVisuals) {
-      final prompt = StringBuffer()
-        ..write(_sectionIfSet('Product', request.productName))
-        ..write(_sectionIfSet('What it is', request.productDescription))
-        ..write(_sectionIfSet('The person on camera', request.actorBrief))
-        ..write(_sectionIfSet('Where they are', request.actorDecor))
-        ..write('\nThe lines, in order:\n');
-
-      for (var i = 0; i < request.lines.length; ++i) {
-        // A b-roll scene is the one place the person may leave the frame:
-        // saying so per line is what stops the model inventing cutaways
-        // everywhere else.
-        final kind = (i < request.kinds.length && request.kinds[i] == 'broll')
-            ? ' [no face on screen, show the product being used or held instead]'
-            : '';
-        // The beat tells the model what the line is doing, which is what stops
-        // a hook and a sign-off being framed identically.
-        final beat = (i < request.beats.length && request.beats[i].isNotEmpty)
-            ? ' [${request.beats[i]}]'
-            : '';
-        prompt.write('${i + 1}. "${request.lines[i]}"$beat$kind\n');
-      }
-
-      if (request.referenceImageDataUri.isNotEmpty) {
-        prompt.write('\nA photo of the product is attached. Describe the real product '
-            'accurately wherever it appears: same shape, same colours, same label.\n');
-      }
-
-      prompt.write('\nDirect these ${request.lines.length} shot(s) now. JSON only.');
       return prompt.toString();
     }
 

@@ -7,24 +7,19 @@ import 'icons.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 
-/// One entry in the nav, whether or not there is a page behind it yet.
+/// One entry in the nav.
 class NavEntry {
   const NavEntry({
     required this.label,
     required this.icon,
-    this.page = -1,
-    this.soon = false,
+    required this.page,
   });
 
   final String label;
   final String icon;
 
-  /// Index into the window's page stack, or -1 for an entry with no page.
+  /// Index into the window's page stack.
   final int page;
-
-  /// Drawn but inert, with a "coming soon" tip. Kept visible on purpose: the
-  /// shape of the app should be readable before all of it exists.
-  final bool soon;
 }
 
 /// The left column: the mark, the pages, and the one status line that matters
@@ -101,10 +96,8 @@ class SideNav extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: _NavRow(
                 entry: entry,
-                selected: entry.page >= 0 && entry.page == currentPage,
-                onTap: entry.soon || entry.page < 0
-                    ? null
-                    : () => onPicked(entry.page),
+                selected: entry.page == currentPage,
+                onTap: () => onPicked(entry.page),
               ),
             ),
           const Spacer(),
@@ -167,9 +160,7 @@ class _NavRow extends StatelessWidget {
     final mq = context.mq;
 
     return Pressable(
-      enabled: onTap != null,
       onTap: onTap,
-      tooltip: entry.soon ? tr('Coming soon') : '',
       focusRadius: MqTheme.radius,
       // Adjacent rows: hover snaps both ways, so sweeping the list never tints
       // two entries at once.

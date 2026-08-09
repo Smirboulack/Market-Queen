@@ -1,280 +1,215 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as p;
 
 import '../core/http_util.dart';
-import '../core/paths.dart';
 import '../core/settings_store.dart';
 import '../core/signal.dart';
 import '../i18n/translator.dart';
 import '../providers/registry.dart';
-import 'scene_model.dart';
+import 'asset_library.dart';
 
-/// The ad being built.
+/// The ad being edited: one UGC spot, inside one project.
 ///
-/// Every panel of the studio reads and writes this one object, so the actor
-/// rail, the cost estimate and the Generate button always describe the same
-/// thing rather than three snapshots of a form. It autosaves to the config
-/// directory, so closing the app halfway through a build loses nothing.
+/// There is exactly one of these alive at a time -- the [Workspace] loads an ad
+/// into it when you open one and reads it back out when it changes, the way an
+/// editor holds one open document. Everything on the canvas reads and writes
+/// this object, so the estimate and the Generate button always describe the
+/// same thing rather than two snapshots of a form.
 ///
-/// There is deliberately no duration field: an ad lasts exactly as long as its
-/// words take to say. [spokenSeconds] derives it from the script.
+/// It is deliberately flat. There are no scenes: a UGC ad is one continuous
+/// take of one person talking, and cutting it into beats on the way in only
+/// ever made it look like an advert.
 class AdProject extends ChangeNotifier {
-  AdProject(this._settings, this._registry) {
-    // The scene model owns its own edits; the project only has to notice them.
-    scenes.addListener(() {
-      notifyListeners();
-      requestChanged.emit();
-    });
-    scenes.dirtied.addListener(_touch);
+  AdProject(this._settings, this._registry);
 
-    _load();
-  }
-
-  // Same figure the script writer uses to size a script, so the duration shown
-  // while writing matches the one the pipeline plans against.
+  // Rough speaking pace, the same figure the pipeline plans against, so the
+  // duration shown while writing matches the one the ad runs to.
   static const _wordsPerSecond = 2.6;
-
-  // Long enough that a burst of keystrokes writes once, short enough that the
-  // draft on disk is never far behind what is on screen.
-  static const _autosaveDelay = Duration(milliseconds: 400);
 
   final SettingsStore _settings;
   final Registry _registry;
-
-  final SceneModel scenes = SceneModel();
 
   /// Anything that changes the ad changes what Generate would run, so the
   /// estimate re-prices itself without every setter having to remember.
   final Signal requestChanged = Signal();
 
-  // Text fields lose their binding the moment the user types in them, so any
-  // change made behind their back has to be announced rather than inferred.
-  final Signal cleared = Signal();
-  final Signal actorReset = Signal();
+  /// Raised when a different ad has been loaded in. Text fields hold their own
+  /// contents once the user is typing, so a change made behind their back has
+  /// to be announced rather than inferred.
+  final Signal reloaded = Signal();
 
-  Timer? _autosave;
-  bool _loading = false;
+  /// Which ad this is, so the workspace knows where to write it back.
+  String id = '';
+  String projectId = '';
+  String name = '';
 
-  /// name, description, audience, images (List&lt;String&gt;).
+  /// name, description, audience.
   Map<String, Object?> product = {};
 
-  /// name, brief, decor, traits, portraitPath, voice.
-  Map<String, Object?> actor = {};
+  /// Reference pictures and clips of the product, in the order they were
+  /// added. The first picture is the one handed to a model that takes a single
+  /// reference.
+  final List<String> media = [];
 
-  /// Kept only so a draft written before scenes existed still opens with its
-  /// words intact; the first edit turns it into scenes.
+  /// A list, though the interface only fills the first slot today: two actors
+  /// in one décor is the next thing this grows into, and a list costs nothing
+  /// now against a migration later.
+  final List<String> actorIds = [];
+
+  String decorId = '';
+
+  /// The whole ad, written by the user in their own words.
   String script = '';
+
   String aspectRatio = '9:16';
   bool captions = true;
 
-  /// The length the ad is *aiming* for, in seconds, or 0 for "as long as the
-  /// words take".
-  ///
-  /// It never truncates anything: an ad lasts exactly as long as its script, and
-  /// this only gives the editor something to say when the script has run past
-  /// what the format wants.
-  int targetSeconds = 0;
-
-  @override
-  void dispose() {
-    _autosave?.cancel();
-    scenes.dispose();
-    super.dispose();
-  }
+  /// The length the ad must not run past, in seconds, or 0 for "as long as the
+  /// words take". It is a ceiling for planning, never a cut.
+  int maxSeconds = 0;
 
   // ---- Fields -----------------------------------------------------------
+
+  void _touched() {
+    notifyListeners();
+    requestChanged.emit();
+  }
 
   void setProductField(String key, Object? value) {
     if (product[key] == value) return;
     product[key] = value;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
-  }
-
-  void setActorField(String key, Object? value) {
-    if (actor[key] == value) return;
-    actor[key] = value;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
+    _touched();
   }
 
   void setScript(String value) {
     if (script == value) return;
     script = value;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
+    _touched();
   }
 
   void setAspectRatio(String value) {
     if (aspectRatio == value) return;
     aspectRatio = value;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
+    _touched();
   }
 
   void setCaptions(bool value) {
     if (captions == value) return;
     captions = value;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
+    _touched();
   }
 
-  void setTargetSeconds(int value) {
-    if (targetSeconds == value) return;
-    targetSeconds = value;
-    notifyListeners();
-    _touch();
+  void setMaxSeconds(int value) {
+    if (maxSeconds == value) return;
+    maxSeconds = value;
+    _touched();
   }
 
-  // ---- Reference images -------------------------------------------------
+  void setActor(String actorId) {
+    if (actorIds.length == 1 && actorIds.first == actorId) return;
+    actorIds
+      ..clear()
+      ..add(actorId);
+    _touched();
+  }
+
+  void clearActor() {
+    if (actorIds.isEmpty) return;
+    actorIds.clear();
+    _touched();
+  }
+
+  void setDecor(String id) {
+    if (decorId == id) return;
+    decorId = id;
+    _touched();
+  }
+
+  void clearDecor() => setDecor('');
+
+  // ---- Reference media --------------------------------------------------
   //
-  // `target` is "product" or "actor" -- the two lists behave identically, so
-  // they share one implementation and one widget. Several are allowed: the user
-  // is billed by their own provider, so there is no reason for us to cap it.
-  // Index 0 is the primary, the one the models get when only a single reference
-  // can be passed.
+  // As many as the user likes: they are billed by their own provider, so there
+  // is no reason for us to cap it.
 
-  List<String> imagesFor(String target) {
-    final owner = target == 'actor' ? actor : product;
-    final key = target == 'actor' ? 'referenceImages' : 'images';
-    final value = owner[key];
-    return value is List ? [for (final entry in value) '$entry'] : <String>[];
-  }
+  /// The pictures among the references -- what a model can actually be handed.
+  List<String> get productImages => [
+    for (final path in media)
+      if (!isVideoPath(path)) path,
+  ];
 
-  void _setImages(String target, List<String> images) {
-    final owner = target == 'actor' ? actor : product;
-    final key = target == 'actor' ? 'referenceImages' : 'images';
-    owner[key] = images;
-    notifyListeners();
-    requestChanged.emit();
-    _touch();
-  }
-
-  void addImages(String target, List<String> paths) {
+  void addMedia(List<String> paths) {
     // A multi-select dialog or a multi-file drop arrives all at once; adding
     // them one notification at a time would rebuild the grid once per file.
-    final images = imagesFor(target);
-    final before = images.length;
+    final before = media.length;
 
     for (final raw in paths) {
       final path = Http.toLocalPath(raw);
-      if (path.isNotEmpty && !images.contains(path)) images.add(path);
+      if (path.isNotEmpty && !media.contains(path)) media.add(path);
     }
 
-    if (images.length == before) return;
-    _setImages(target, images);
+    if (media.length == before) return;
+    _touched();
   }
 
-  void removeImage(String target, int index) {
-    final images = imagesFor(target);
-    if (index < 0 || index >= images.length) return;
-    images.removeAt(index);
-    _setImages(target, images);
+  void removeMedia(int index) {
+    if (index < 0 || index >= media.length) return;
+    media.removeAt(index);
+    _touched();
   }
 
-  void setPrimaryImage(String target, int index) {
-    final images = imagesFor(target);
-    if (index <= 0 || index >= images.length) return;
-    images.insert(0, images.removeAt(index));
-    _setImages(target, images);
+  void setPrimaryMedia(int index) {
+    if (index <= 0 || index >= media.length) return;
+    media.insert(0, media.removeAt(index));
+    _touched();
   }
-
-  /// Loads a saved actor over the current one, portrait and voice included.
-  ///
-  /// Wholesale, not merged: loading a saved actor should give exactly the actor
-  /// that was saved, not a blend with whatever was half-typed before.
-  void applyActor(Map<String, Object?> saved) {
-    if (saved.isEmpty) return;
-    actor = Map<String, Object?>.of(saved);
-    notifyListeners();
-    requestChanged.emit();
-    actorReset.emit();
-    _touch();
-  }
-
-  /// Starts casting again from nothing, leaving the product and the script
-  /// alone. What "New actor" does.
-  void newActor() {
-    actor = {};
-    notifyListeners();
-    requestChanged.emit();
-    actorReset.emit();
-    _touch();
-  }
-
-  void clear() {
-    product = {};
-    actor = {};
-    scenes.setList(const []);
-    script = '';
-    aspectRatio = '9:16';
-    captions = true;
-    targetSeconds = 0;
-
-    notifyListeners();
-    requestChanged.emit();
-    cleared.emit();
-    _touch();
-  }
-
-  /// Applies a director's answer to the scenes, leaving every line alone.
-  void applyDirection(List<Map<String, Object?>> shots) =>
-      scenes.applyDirection(shots);
-
-  /// Every line, joined: what the voice-over says in one take.
-  String spokenScript() =>
-      scenes.count > 0 ? scenes.spokenScript : script.trim();
 
   // ---- Readiness ---------------------------------------------------------
   //
-  // There is no wizard any more: everything is on one screen and can be filled
-  // in in any order. What used to be "which step are you allowed to reach" is
-  // now just "what is still missing before Generate means anything".
+  // Every field is optional and can be filled in in any order. What used to be
+  // "which step are you allowed to reach" is now only "what is still missing
+  // before Generate means anything".
 
   bool get hasProduct => '${product['name'] ?? ''}'.trim().isNotEmpty;
 
-  /// A description is not an actor: the ad needs a picture, cast or promoted
-  /// from the user's own photos.
-  bool get hasActor => '${actor['portraitPath'] ?? ''}'.trim().isNotEmpty;
+  bool get hasScript => script.trim().isNotEmpty;
 
-  /// A draft written before scenes existed still counts as having words.
-  bool get hasScript => scenes.hasSpokenLine || script.trim().isNotEmpty;
+  bool get hasActor => actorIds.isNotEmpty;
 
-  bool get complete => hasProduct && hasActor && hasScript;
+  bool get complete => hasProduct && hasScript && hasActor;
 
   /// What is still missing, in the order it reads best. Shown on the Generate
-  /// button so a disabled button always says why.
+  /// button, so a disabled button always says why.
   List<String> get missing => [
-        if (!hasProduct) tr('a product'),
-        if (!hasActor) tr('an actor'),
-        if (!hasScript) tr('a line to say'),
-      ];
+    if (!hasProduct) tr('a product'),
+    if (!hasActor) tr('an actor'),
+    if (!hasScript) tr('a scenario'),
+  ];
 
+  /// How long the written ad takes to say.
   double get spokenSeconds {
-    if (scenes.count > 0) return scenes.totalSeconds;
-
-    // A draft written before scenes existed.
     final text = script.trim();
     if (text.isEmpty) return 0.0;
     return text.split(RegExp(r'\s+')).length / _wordsPerSecond;
   }
 
+  /// Whether the script has run past the ceiling the user set.
+  bool get overLength => maxSeconds > 0 && spokenSeconds > maxSeconds;
+
   // ---- Adapter onto the pipeline ----------------------------------------
 
-  /// The request shape the pipeline understands.
-  Map<String, Object?> toRequest() {
-    // Model choices still live in the preferences the pickers write, so the
-    // studio and the settings page agree on what "your usual models" means.
+  /// The request shape the pipeline, the pricer and the writing helpers all
+  /// understand.
+  ///
+  /// The actor and the décor are references into the libraries rather than
+  /// copies, so editing one from anywhere updates every ad that casts it.
+  Map<String, Object?> toRequest({
+    required ActorLibrary actors,
+    required DecorLibrary decors,
+  }) {
+    // Model choices live in the preferences the Models page writes, so the
+    // studio and that page agree on what "your usual models" means.
     String pickedProvider(String category) {
       final saved = _settings.prefString('${category}Provider');
       return saved.isEmpty ? _registry.defaultProvider(category) : saved;
@@ -292,35 +227,39 @@ class AdProject extends ChangeNotifier {
     final videoProvider = pickedProvider('video');
     final voiceProvider = pickedProvider('voice');
 
-    final images = imagesFor('product');
+    final actor = actorIds.isEmpty ? null : actors.byId(actorIds.first);
+    final decor = decorId.isEmpty ? null : decors.byId(decorId);
 
-    // The pipeline sizes its shot count from a duration. We no longer ask for
-    // one, so we hand it the length of the script instead -- which is the rule
-    // the whole studio is built on.
-    final duration = math.max(5, spokenSeconds.round());
+    final images = productImages;
 
-    double setting(String key, double fallback) {
-      final value = actor[key];
-      return value is num ? value.toDouble() : fallback;
-    }
+    // The pipeline sizes its shot count from a duration. The ceiling wins when
+    // there is one; otherwise the ad lasts exactly as long as its words take,
+    // which is the rule the whole studio is built on.
+    final duration = maxSeconds > 0
+        ? maxSeconds
+        : math.max(5, spokenSeconds.round());
+
+    double voice(String key, double fallback) =>
+        actor?.extraNumber(key, fallback) ?? fallback;
 
     return {
       'productName': '${product['name'] ?? ''}'.trim(),
       'productDescription': '${product['description'] ?? ''}'.trim(),
       'audience': '${product['audience'] ?? ''}'.trim(),
-      'tone': '${actor['tone'] ?? ''}',
-      'language': '${actor['language'] ?? ''}',
-      'avatarBrief': '${actor['brief'] ?? ''}'.trim(),
-      'extraInstructions': '${actor['decor'] ?? ''}'.trim(),
-      // Both: `scenes` is what the pipeline cuts on, `script` is the same words
-      // in one piece for the single voice-over take.
-      'scenes': scenes.toList(),
-      'script': spokenScript(),
+      'tone': '',
+      'language': '',
+      'avatarBrief': actor?.prompt.trim() ?? '',
+      'extraInstructions': decorBrief(decors),
+      // No scenes any more: the pipeline cuts the user's own script into shots
+      // itself, which is the only cutting an authentic UGC ad wants.
+      'scenes': const <Map<String, Object?>>[],
+      'script': script.trim(),
       'durationSeconds': duration,
       'aspectRatio': aspectRatio,
-      // One image for now: the pipeline takes a single reference.
+      // One image: the pipeline takes a single reference.
       'productImagePath': images.isEmpty ? '' : images.first,
-      'actorPortraitPath': '${actor['portraitPath'] ?? ''}',
+      'actorPortraitPath': actor?.thumbnail ?? '',
+      'decorImagePath': decor?.thumbnail ?? '',
       'useProductPhotoAsFrame': false,
       'textProvider': textProvider,
       'textModel': pickedModel('text', textProvider),
@@ -332,82 +271,128 @@ class AdProject extends ChangeNotifier {
       'videoModel': pickedModel('video', videoProvider),
       'voiceProvider': voiceProvider,
       'voiceModel': pickedModel('voice', voiceProvider),
-      'voiceId': '${actor['voiceId'] ?? ''}',
+      'voiceId': actor?.extraText('voiceId') ?? '',
       // What was auditioned has to be what is bought.
-      'voiceStability': setting('voiceStability', 0.45),
-      'voiceSimilarity': setting('voiceSimilarity', 0.8),
-      'voiceStyle': setting('voiceStyle', 0.35),
-      'voiceSpeed': setting('voiceSpeed', 1.0),
+      'voiceStability': voice('voiceStability', 0.45),
+      'voiceSimilarity': voice('voiceSimilarity', 0.8),
+      'voiceStyle': voice('voiceStyle', 0.35),
+      'voiceSpeed': voice('voiceSpeed', 1.0),
       'captionsEnabled': captions,
       'captionsProvider': 'openai-whisper',
       'captionsModel': 'whisper-1',
     };
   }
 
-  // ---- Draft persistence ------------------------------------------------
+  /// The décor in one sentence: what the user wrote, plus whichever dials they
+  /// set. Empty when no décor is cast.
+  String decorBrief(DecorLibrary decors) {
+    final decor = decorId.isEmpty ? null : decors.byId(decorId);
+    if (decor == null) return '';
 
-  String get _draftFile => p.join(Paths.configDir, 'draft.json');
+    final tweaks = decorTweakFragments(decor);
+    final description = decor.prompt.trim();
 
-  void _touch() {
-    if (_loading) return;
-    _autosave?.cancel();
-    _autosave = Timer(_autosaveDelay, _save);
+    if (description.isEmpty) return tweaks;
+    if (tweaks.isEmpty) return description;
+    return '$description, $tweaks';
   }
 
-  void _save() {
-    if (Paths.ensureDir(Paths.configDir).isEmpty) return;
-
-    final root = {
-      'schemaVersion': 4,
-      'product': product,
-      'actor': actor,
-      'scenes': scenes.toList(),
-      'script': script,
-      'aspectRatio': aspectRatio,
-      'captions': captions,
-      'targetSeconds': targetSeconds,
-    };
-
-    try {
-      File(_draftFile)
-          .writeAsStringSync(const JsonEncoder.withIndent('    ').convert(root));
-    } on FileSystemException {
-      // The next edit tries again.
+  /// The set dials of a décor, strung together in the order they are offered.
+  static String decorTweakFragments(LibraryAsset decor) {
+    final fragments = <String>[];
+    for (final tweak in DecorTweak.all) {
+      final value = decor.extraText(tweak.key);
+      if (value.isNotEmpty) fragments.add(value);
     }
+    return fragments.join(', ');
   }
 
-  void _load() {
-    final file = File(_draftFile);
-    if (!file.existsSync()) return;
+  // ---- Document ----------------------------------------------------------
 
-    Object? decoded;
-    try {
-      decoded = jsonDecode(file.readAsStringSync());
-    } on Exception {
-      return;
-    }
-    if (decoded is! Map<String, dynamic> || decoded.isEmpty) return;
+  Map<String, Object?> toJson() => {
+    'product': product,
+    'media': media,
+    'actorIds': actorIds,
+    'decorId': decorId,
+    'script': script,
+    'aspectRatio': aspectRatio,
+    'captions': captions,
+    'maxSeconds': maxSeconds,
+  };
 
-    _loading = true;
+  /// Opens a document. Wholesale, not merged: opening an ad has to give exactly
+  /// the ad that was saved.
+  void load({
+    required String id,
+    required String projectId,
+    required String name,
+    required Map<String, Object?> document,
+  }) {
+    this.id = id;
+    this.projectId = projectId;
+    this.name = name;
 
-    final savedProduct = decoded['product'];
-    if (savedProduct is Map) product = savedProduct.cast<String, Object?>();
+    final savedProduct = document['product'];
+    product = savedProduct is Map
+        ? savedProduct.cast<String, Object?>()
+        : <String, Object?>{};
 
-    final savedActor = decoded['actor'];
-    if (savedActor is Map) actor = savedActor.cast<String, Object?>();
+    final savedMedia = document['media'];
+    media
+      ..clear()
+      ..addAll([
+        if (savedMedia is List)
+          for (final entry in savedMedia) '$entry',
+      ]);
 
-    final savedScenes = decoded['scenes'];
-    if (savedScenes is List) scenes.setList(savedScenes);
+    final savedActors = document['actorIds'];
+    actorIds
+      ..clear()
+      ..addAll([
+        if (savedActors is List)
+          for (final entry in savedActors)
+            if ('$entry'.isNotEmpty) '$entry',
+      ]);
 
-    script = '${decoded['script'] ?? ''}';
-    aspectRatio = '${decoded['aspectRatio'] ?? '9:16'}';
-    captions = decoded['captions'] != false;
-    // Drafts written by the wizard build carry a `currentStep` there is nowhere
-    // to put any more; it is simply dropped on the next save.
-    targetSeconds = (decoded['targetSeconds'] as num?)?.toInt() ?? 0;
+    decorId = '${document['decorId'] ?? ''}';
+    script = '${document['script'] ?? ''}';
+    aspectRatio = '${document['aspectRatio'] ?? '9:16'}';
+    captions = document['captions'] != false;
+    maxSeconds = (document['maxSeconds'] as num?)?.toInt() ?? 0;
 
-    _loading = false;
     notifyListeners();
     requestChanged.emit();
+    reloaded.emit();
+  }
+
+  /// Nothing open. What the studio holds while you are picking a project.
+  void close() {
+    id = '';
+    projectId = '';
+    name = '';
+    product = {};
+    media.clear();
+    actorIds.clear();
+    decorId = '';
+    script = '';
+    aspectRatio = '9:16';
+    captions = true;
+    maxSeconds = 0;
+
+    notifyListeners();
+    requestChanged.emit();
+    reloaded.emit();
+  }
+
+  /// Drops an actor or a décor that has been deleted from its library, so an ad
+  /// never points at something that is gone.
+  void forget({String actorId = '', String decorId = ''}) {
+    var changed = false;
+    if (actorId.isNotEmpty && actorIds.remove(actorId)) changed = true;
+    if (decorId.isNotEmpty && this.decorId == decorId) {
+      this.decorId = '';
+      changed = true;
+    }
+    if (changed) _touched();
   }
 }

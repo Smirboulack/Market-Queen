@@ -8,7 +8,7 @@ import 'format.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 import 'widgets/cards.dart';
-import 'widgets/image_drop_grid.dart';
+import 'widgets/media_drop.dart';
 
 class LibraryPage extends StatelessWidget {
   const LibraryPage({super.key, required this.app});

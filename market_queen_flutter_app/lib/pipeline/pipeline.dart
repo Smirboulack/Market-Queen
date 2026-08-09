@@ -755,6 +755,37 @@ class Pipeline extends ChangeNotifier {
   // 3. Frames -- one still per shot
   // ---------------------------------------------------------------------
 
+  /// What a shot is drawn from when nothing wrote a prompt for it.
+  ///
+  /// Which is now the ordinary case: the studio no longer cuts the ad into
+  /// directed scenes, so the only description of the shot is the ad itself --
+  /// the actor as they were described, the room they are in, and the thing they
+  /// are holding. Composed rather than fixed, because a generic "a person
+  /// holding X" throws away the two fields the user spent the most time on.
+  String _defaultFramePrompt() {
+    final actor = _text('avatarBrief').trim();
+    final decor = _text('extraInstructions').trim();
+    final product = _text('productName').trim();
+
+    return [
+      tr('A vertical photo taken on a phone, held at arm\'s length.'),
+      if (actor.isEmpty)
+        tr('In frame: an ordinary person talking to the camera.')
+      //: %1 is how the user described their actor
+      else
+        tr('In frame: %1, talking to the camera.').arg(actor),
+      //: %1 is how the user described the room the ad is filmed in
+      if (decor.isNotEmpty) tr('Shot in %1.').arg(decor),
+      //: %1 is a product name
+      if (product.isNotEmpty) tr('They are holding %1.').arg(product),
+      tr(
+        'Ordinary room light, visible skin texture, no retouching, framed '
+        'slightly off-centre. Not an advertisement: no studio lighting, no '
+        'colour grading, no product hero shot.',
+      ),
+    ].join(' ');
+  }
+
   Future<void> _stepFrames() async {
     _setStep(PipelineStep.frames, StepPhase.running);
 
@@ -796,10 +827,7 @@ class Pipeline extends ChangeNotifier {
                 ? _run.productImageDataUri
                 : _run.actorPortraitDataUri,
             prompt: shot.imagePrompt.isEmpty
-                ? tr('Vertical selfie-style photo of a real person holding %1, '
-                        'natural window light, shot on a phone camera, authentic '
-                        'user generated content look.')
-                    .arg(_text('productName'))
+                ? _defaultFramePrompt()
                 : shot.imagePrompt,
           ),
         ),

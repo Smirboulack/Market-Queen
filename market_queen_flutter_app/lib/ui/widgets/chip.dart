@@ -179,6 +179,113 @@ class MenuOption<T> {
   final T value;
 }
 
+/// Opens [options] under [anchor] and returns what was picked.
+///
+/// One implementation for every chip menu in the app, so they cannot drift
+/// apart in width, offset or how the current value is marked.
+Future<T?> showChipMenu<T>(
+  BuildContext anchor, {
+  required List<MenuOption<T>> options,
+  required T current,
+  double width = 220,
+}) async {
+  final mq = anchor.mq;
+  final box = anchor.findRenderObject() as RenderBox?;
+  final overlay = Overlay.of(anchor).context.findRenderObject() as RenderBox?;
+  if (box == null || overlay == null) return null;
+
+  final origin = box.localToGlobal(
+    Offset(0, box.size.height + 4),
+    ancestor: overlay,
+  );
+  final left = origin.dx.clamp(0.0, overlay.size.width - width);
+
+  // Shape, colour and elevation come from `popupMenuTheme`.
+  return showMenu<T>(
+    context: anchor,
+    constraints: BoxConstraints(minWidth: width, maxHeight: 360),
+    position: RelativeRect.fromLTRB(
+      left,
+      origin.dy,
+      overlay.size.width - left - width,
+      0,
+    ),
+    items: [
+      for (final option in options)
+        PopupMenuItem<T>(
+          value: option.value,
+          height: 34,
+          child: Text(
+            option.label,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: option.value == current ? mq.primaryText : mq.textPrimary,
+              fontSize: MqTheme.fontLabel,
+              fontWeight: option.value == current
+                  ? FontWeight.w600
+                  : FontWeight.w400,
+            ),
+          ),
+        ),
+    ],
+  );
+}
+
+/// A chip that opens a fixed list of options, all of them real.
+///
+/// Unlike [MqChoiceChip] there is no "doesn't matter" entry: this is for the
+/// settings that always have a value -- the shape of the video, the ceiling on
+/// its length -- where an empty choice would mean nothing.
+class MqPickChip extends StatelessWidget {
+  const MqPickChip({
+    super.key,
+    required this.label,
+    required this.options,
+    required this.value,
+    required this.onPicked,
+    this.icon = '',
+    this.menuWidth = 220,
+  });
+
+  final String label;
+  final List<MenuOption<String>> options;
+  final String value;
+  final ValueChanged<String> onPicked;
+  final String icon;
+  final double menuWidth;
+
+  String get _currentLabel {
+    for (final option in options) {
+      if (option.value == value) return option.label;
+    }
+    return '';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = _currentLabel;
+
+    return Builder(
+      builder: (anchor) => MqChip(
+        //: %1 is a setting's name, %2 the value it currently holds
+        label: current.isEmpty ? label : tr('%1 · %2').arg(label).arg(current),
+        icon: icon,
+        opensMenu: true,
+        active: current.isNotEmpty,
+        onPressed: () async {
+          final picked = await showChipMenu<String>(
+            anchor,
+            options: options,
+            current: value,
+            width: menuWidth,
+          );
+          if (picked != null) onPicked(picked);
+        },
+      ),
+    );
+  }
+}
+
 /// A chip that opens its options underneath.
 ///
 /// This is what the four stacked dropdowns became. Unset, it is a faint

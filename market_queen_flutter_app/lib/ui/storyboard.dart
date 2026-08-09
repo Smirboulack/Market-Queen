@@ -8,7 +8,7 @@ import '../i18n/translator.dart';
 import 'format.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
-import 'widgets/image_drop_grid.dart';
+import 'widgets/media_drop.dart';
 
 /// The finished ad, and the one scene you want to redo.
 ///

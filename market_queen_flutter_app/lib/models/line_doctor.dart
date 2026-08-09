@@ -10,23 +10,18 @@ import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
 
-/// The three rewrite buttons under the composer.
+/// The three rewrite chips under the scenario bar.
 ///
-/// Deliberately separate from [Director]: the director never touches a spoken
-/// word, and this only ever touches one. Keeping them apart is what makes each
-/// prompt a page long instead of a page of conditionals, and it means a rewrite
-/// in flight cannot cancel a direction pass.
-///
-/// The result is handed back rather than applied: the line lives in a text field
-/// the user is in the middle of typing into, and the field is the only thing
-/// that knows where the caret was.
+/// The result is handed back rather than applied: the scenario lives in a text
+/// field the user is in the middle of typing into, and the field is the only
+/// thing that knows where the caret was.
 class LineDoctor extends ChangeNotifier {
   LineDoctor(this._settings, this._registry, this._pricing, this._log);
 
-  // One short line in, one short line out, plus the product context. Small
-  // enough that a rewrite is worth pricing but not worth a spinner-with-a-total.
-  static const _outputTokens = 120.0;
-  static const _overheadTokens = 500.0;
+  // A scenario in, a scenario out, plus the product context. Small enough that
+  // a rewrite is worth pricing but not worth a spinner-with-a-total.
+  static const _outputTokens = 320.0;
+  static const _overheadTokens = 700.0;
   static const _tokensPerMillion = 1000000.0;
 
   final SettingsStore _settings;
@@ -83,16 +78,14 @@ class LineDoctor extends ChangeNotifier {
     );
   }
 
-  /// [request] is AdProject's request map, for the product context.
+  /// [request] is the ad's request map, for the product context.
   ///
-  /// [action] is the button's own id; [instruction] is what the model is told.
-  /// [beat] is the composer tab the line was written under, or empty.
+  /// [action] is the chip's own id; [instruction] is what the model is told.
   Future<void> rewrite({
     required Map<String, Object?> request,
     required String action,
     required String instruction,
     required String text,
-    String beat = '',
   }) async {
     if (_running) return;
 
@@ -113,16 +106,16 @@ class LineDoctor extends ChangeNotifier {
     final task = ProviderFactory.script(
       providerId,
       ScriptRequest(
-        mode: ScriptMode.rewriteLine,
+        mode: ScriptMode.rewriteScript,
         apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
         model: model,
         productName: '${request['productName'] ?? ''}',
         productDescription: '${request['productDescription'] ?? ''}',
         audience: '${request['audience'] ?? ''}',
         avatarBrief: '${request['avatarBrief'] ?? ''}',
+        extraInstructions: '${request['extraInstructions'] ?? ''}',
         lines: [line],
         rewriteInstruction: instruction,
-        beat: beat,
       ),
     );
 

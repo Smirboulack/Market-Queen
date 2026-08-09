@@ -85,6 +85,7 @@ class LabeledField extends StatefulWidget {
     this.controller,
     this.readOnly = false,
     this.obscure = false,
+    this.autofocus = false,
     this.onChanged,
     this.onEditingComplete,
   });
@@ -95,6 +96,11 @@ class LabeledField extends StatefulWidget {
   final TextEditingController? controller;
   final bool readOnly;
   final bool obscure;
+
+  /// For the one field a modal opens onto: a dialog that asks for a name and
+  /// then makes you click into it is a dialog with an extra step.
+  final bool autofocus;
+
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onEditingComplete;
 
@@ -148,6 +154,7 @@ class _LabeledFieldState extends State<LabeledField> {
               child: TextField(
                 controller: _controller,
                 focusNode: _focus,
+                autofocus: widget.autofocus,
                 readOnly: widget.readOnly,
                 obscureText: widget.obscure,
                 onChanged: widget.onChanged,

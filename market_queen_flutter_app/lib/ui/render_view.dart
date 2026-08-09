@@ -16,13 +16,23 @@ import 'widgets/panels.dart';
 /// subtitles and the models all live on the rail now, so there is nothing left
 /// to check here. By the time you are looking at this, money is being spent.
 class RenderView extends StatelessWidget {
-  const RenderView({super.key, required this.app, required this.onBack});
+  const RenderView({
+    super.key,
+    required this.app,
+    required this.onBack,
+    this.onNewAd,
+  });
 
   final AppState app;
 
-  /// Back to the script. Available while a run is going: watching it is
-  /// optional, and the next ad's lines can be written while this one renders.
+  /// Back to the scenario. Available while a run is going: watching it is
+  /// optional, and the next ad can be written while this one renders.
   final VoidCallback onBack;
+
+  /// Starts a fresh ad in the same project. The most likely next move once one
+  /// has landed, and the reason the ad you just shot is not overwritten to do
+  /// it.
+  final VoidCallback? onNewAd;
 
   @override
   Widget build(BuildContext context) {
@@ -127,14 +137,12 @@ class RenderView extends StatelessWidget {
                           onPressed: () =>
                               PlatformUtil.revealPath(pipeline.outputFile),
                         ),
-                        GhostButton(
-                          text: tr('Start a new ad'),
-                          enabled: !busy,
-                          onPressed: () {
-                            app.project.clear();
-                            onBack();
-                          },
-                        ),
+                        if (onNewAd != null)
+                          GhostButton(
+                            text: tr('Start a new ad'),
+                            enabled: !busy,
+                            onPressed: onNewAd,
+                          ),
                       ],
                     ),
                   ],
