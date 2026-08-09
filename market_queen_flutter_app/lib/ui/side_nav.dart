@@ -66,7 +66,7 @@ class SideNav extends StatelessWidget {
             padding: const EdgeInsets.only(left: 6),
             child: Row(
               children: [
-                const BrandMark(size: 34),
+                const BrandMark(size: 70),
                 const SizedBox(width: 11),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
