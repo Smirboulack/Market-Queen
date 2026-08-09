@@ -101,17 +101,20 @@ void main() {
   });
 
   group('interaction spec', () {
-    test('lighting up is instant and going back to rest fades', () {
-      const rest = MqStates();
-      expect(rest.duration, MqTheme.hoverDuration);
-
-      expect(const MqStates(hovered: true).duration, Duration.zero);
-      expect(const MqStates(pressed: true).duration, Duration.zero);
-    });
-
-    test('grouped rows snap both ways', () {
-      expect(const MqStates(snap: true).duration, Duration.zero);
-      expect(const MqStates(snap: true, hovered: true).duration, Duration.zero);
+    test('a control changes state instantly, in both directions', () {
+      // Three looks and no more: at rest, under the pointer, held down. A fade
+      // back to rest is a fourth state trailing behind the pointer.
+      for (final states in const [
+        MqStates(),
+        MqStates(hovered: true),
+        MqStates(pressed: true),
+        MqStates(snap: true),
+        MqStates(snap: true, hovered: true),
+        MqStates(focused: true),
+        MqStates(enabled: false),
+      ]) {
+        expect(states.duration, Duration.zero);
+      }
     });
   });
 

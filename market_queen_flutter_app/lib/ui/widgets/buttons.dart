@@ -34,29 +34,30 @@ class MqStates {
   final bool enabled;
 
   /// Set on controls that touch their neighbours.
+  ///
+  /// It no longer changes the timing -- every control snaps now -- but it still
+  /// marks the grouped rows, so it is kept rather than swept out of forty call
+  /// sites.
   final bool snap;
 
   /// Lit: the pointer is on it or holding it down.
   bool get active => hovered || pressed;
 
-  /// How long a visual change should take, and the whole of the interaction
-  /// spec in one expression.
+  /// How long a visual change should take: no time at all, in either direction.
   ///
-  /// Lighting up is instant, so the item under the pointer is the only fully
-  /// lit one at any moment; going back to rest fades, so a pointer crossing the
-  /// screen leaves a trail that decays instead of a strobe. Grouped rows opt
-  /// out of the fade entirely -- adjacent items must never both be tinted, even
-  /// for 120ms.
-  Duration get duration =>
-      (snap || active) ? Duration.zero : MqTheme.hoverDuration;
+  /// A control has exactly three looks -- at rest, under the pointer, held down
+  /// -- and it is in exactly one of them at any instant. Fading back to rest
+  /// used to leave a tint trailing behind the pointer for 120ms, which reads as
+  /// a fourth, ghost state on the control you have just left.
+  Duration get duration => Duration.zero;
 }
 
 /// The one place hover, press and focus are tracked.
 ///
 /// Every clickable thing in the app is built on this, which is what makes the
-/// behaviour uniform: the same fade, the same pointer cursor, the same focus
-/// ring, and the same guarantee that a control which stops being clickable --
-/// mid-press, mid-hover -- goes dark instead of staying lit forever.
+/// behaviour uniform: the same three states, the same pointer cursor, the same
+/// focus ring, and the same guarantee that a control which stops being clickable
+/// -- mid-press, mid-hover -- goes dark instead of staying lit forever.
 ///
 /// It is keyboard-operable for free. Tab reaches it, Enter and Space fire it,
 /// and the ring only appears when the focus actually arrived from the keyboard.
@@ -107,6 +108,16 @@ class _PressableState extends State<Pressable> {
   bool _pressed = false;
   bool _focused = false;
 
+  /// Whether the focus this control currently holds arrived from a click.
+  ///
+  /// Clicking a button focuses it, and on a desktop the focus manager calls that
+  /// a "traditional" highlight and asks for the ring -- so every button you
+  /// pressed kept a pink outline after the pointer had gone, which is the fourth
+  /// state this widget is not supposed to have. The ring is for keyboard
+  /// navigation; a pointer press suppresses it until focus leaves and comes back
+  /// some other way.
+  bool _focusFromPointer = false;
+
   /// Keeps the flash from a keyboard activation on screen long enough to see.
   Timer? _flash;
 
@@ -133,6 +144,8 @@ class _PressableState extends State<Pressable> {
   /// pointer to release it.
   void _activate() {
     if (!_active) return;
+    // Reached from the keyboard, so the ring is wanted again.
+    _focusFromPointer = false;
     _flash?.cancel();
     _setPressed(true);
     _flash = Timer(const Duration(milliseconds: 110), () => _setPressed(false));
@@ -174,8 +187,13 @@ class _PressableState extends State<Pressable> {
       // whenever the focus manager believes the last input was a touch, which
       // would leave a mouse pointer moving over a dead interface.
       onShowFocusHighlight: (value) {
-        if (_focused == value || !mounted) return;
-        setState(() => _focused = value);
+        if (!mounted) return;
+        // Focus leaving clears the suppression, so tabbing back to this control
+        // lights the ring as it should.
+        if (!value) _focusFromPointer = false;
+        final next = value && !_focusFromPointer;
+        if (_focused == next) return;
+        setState(() => _focused = next);
       },
       actions: {
         ActivateIntent: CallbackAction<ActivateIntent>(
@@ -207,7 +225,13 @@ class _PressableState extends State<Pressable> {
         },
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTapDown: _active ? (_) => _setPressed(true) : null,
+          onTapDown: _active
+              ? (_) {
+                  _focusFromPointer = true;
+                  if (_focused) setState(() => _focused = false);
+                  _setPressed(true);
+                }
+              : null,
           onTapUp: _active ? (_) => _setPressed(false) : null,
           onTapCancel: _active ? () => _setPressed(false) : null,
           onTap: _active ? widget.onTap : null,

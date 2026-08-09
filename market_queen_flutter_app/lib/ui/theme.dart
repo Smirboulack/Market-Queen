@@ -163,17 +163,18 @@ class MqTheme {
   static const double topBarHeight = 64;
 
   /// Interaction spec, applied by every clickable in the app:
-  ///  - entering hover or pressed is instant, so the item under the pointer is
-  ///    always the only fully lit one; only the way back to rest fades, over
-  ///    [hoverDuration]. Grouped rows (nav entries, segments, menu options,
-  ///    library cards) snap both ways, like native menus, so a fast sweep never
-  ///    tints two of them at once;
+  ///  - three looks and no more: at rest, under the pointer, held down. Every
+  ///    change between them is instant in both directions, so the item under the
+  ///    pointer is the only tinted one at any instant and leaving a control
+  ///    leaves nothing behind;
   ///  - a fill and its border always change together;
   ///  - nothing moves. Hover changes colour, never size or position, and never
   ///    reveals a control that pushes its neighbours around.
   ///
-  /// [MqStates.duration] is what actually enforces the first rule -- pass it to
-  /// the `AnimatedContainer` and the asymmetry comes for free.
+  /// [MqStates.duration] is what enforces the first rule. This constant is only
+  /// for the few places that fade something *other* than a control's own state:
+  /// a field's focus ring, a drop zone taking a drag, a badge appearing on a
+  /// thumbnail.
   static const hoverDuration = Duration(milliseconds: 120);
 
   // -------------------------------------------------------------- typography
@@ -297,11 +298,17 @@ class MqTheme {
             // What `TextField` measures itself against.
             bodyLarge: body,
           ),
-      // The controls draw their own hover and press states, to one spec. Letting
-      // Material paint an ink ripple underneath would give half the app two.
+      // The hand-drawn controls paint their own hover and press states, so the
+      // ripple and the press highlight are turned off -- letting Material draw
+      // them underneath would give half the app two of each.
+      //
+      // Hover is the exception and must stay real: the one thing in here that
+      // Material still draws by itself is the popup menu, and its rows are
+      // `InkWell`s that take their hover tint from exactly this colour. Blanking
+      // it left every dropdown in the app with no rollover at all.
       splashFactory: NoSplash.splashFactory,
       highlightColor: Colors.transparent,
-      hoverColor: Colors.transparent,
+      hoverColor: surfaceHover,
       focusColor: Colors.transparent,
       splashColor: Colors.transparent,
       textSelectionTheme: TextSelectionThemeData(
