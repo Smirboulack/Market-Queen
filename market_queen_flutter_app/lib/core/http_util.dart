@@ -57,6 +57,15 @@ class Http {
         if (msg is String && msg.isNotEmpty) return msg;
       }
     }
+    // {"detail": {"message": "..."}} - ElevenLabs. Without this the whole JSON
+    // blob lands in the log, which is how a one-line "this model does not take
+    // that field" reads as a wall of nothing.
+    if (detail is Map) {
+      for (final key in ['message', 'msg', 'status', 'code']) {
+        final value = detail[key];
+        if (value is String && value.isNotEmpty) return value;
+      }
+    }
 
     for (final key in ['message', 'title']) {
       final value = decoded[key];

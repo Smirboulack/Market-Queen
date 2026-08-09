@@ -226,6 +226,19 @@ class _ScenarioBarState extends State<ScenarioBar> {
                 active: project.captions,
                 onPressed: () => project.setCaptions(!project.captions),
               ),
+              // The one setting that decides whether the ad is edited or is
+              // one long take of a face, so it belongs next to the other three
+              // rather than three pages away with the models.
+              MqChip(
+                label: tr('Product shots'),
+                icon: 'shopping-bag-3-line',
+                active: project.broll,
+                tooltip: project.broll
+                    ? tr('The lines about the product are filmed on the '
+                        'product, with your voice-over over them.')
+                    : tr('Every line is filmed on the actor.'),
+                onPressed: () => project.setBroll(!project.broll),
+              ),
             ],
           ),
         ),

@@ -30,6 +30,7 @@ class MqChip extends StatelessWidget {
     this.accent = false,
     this.enabled = true,
     this.active,
+    this.tooltip = '',
     this.onPressed,
   });
 
@@ -61,6 +62,9 @@ class MqChip extends StatelessWidget {
   /// which is what every chip but the voice presets wants.
   final bool? active;
 
+  /// For a chip whose two states are not self-evident from its label.
+  final String tooltip;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
@@ -69,6 +73,7 @@ class MqChip extends StatelessWidget {
     return Pressable(
       enabled: enabled,
       onTap: onPressed,
+      tooltip: tooltip,
       focusRadius: MqTheme.radiusPill,
       builder: (context, states) {
         final Color fill;

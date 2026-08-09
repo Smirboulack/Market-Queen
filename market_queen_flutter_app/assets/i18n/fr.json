@@ -656,5 +656,21 @@
   "Your library is empty for now.": "Votre bibliothèque est vide pour l'instant.",
   "a scenario": "un scénario",
   "about %1 s spoken": "environ %1 s de parole",
-  "e.g. Morning routine hook": "ex. Accroche routine du matin"
+  "e.g. Morning routine hook": "ex. Accroche routine du matin",
+  "Using the scenario you wrote, cut into %1 shot(s).": "Utilisation du scénario que vous avez écrit, découpé en %1 plan(s).",
+  "your own scenario": "votre propre scénario",
+  "Planning the shots...": "Découpage des plans...",
+  "Planning the shots with %1...": "Découpage des plans avec %1...",
+  "%1 talking shot(s), %2 product shot(s).": "%1 plan(s) parlant(s), %2 plan(s) produit.",
+  "Could not plan the shots (%1). Filming every line on camera.": "Impossible de découper les plans (%1). Toutes les répliques seront filmées face caméra.",
+  "The model returned no shot plan.": "Le modèle n'a renvoyé aucun découpage.",
+  "Eleven v3 records each line on its own: it takes no context from the neighbouring ones. Multilingual v2 does, if you would rather have one continuous read.": "Eleven v3 enregistre chaque réplique isolément : il ne prend aucun contexte des répliques voisines. Multilingual v2 le fait, si vous préférez une lecture continue.",
+  "A vertical close-up taken on a phone, held in one hand.": "Un gros plan vertical pris au téléphone, tenu d'une seule main.",
+  "In frame: %1, and nothing else.": "Dans le cadre : %1, et rien d'autre.",
+  "In frame: the product being used, held in someone's hands.": "Dans le cadre : le produit en cours d'utilisation, tenu dans des mains.",
+  "Nobody's face in the shot: hands only. Ordinary room light, visible texture, no retouching, slightly imperfect focus. Not an advertisement: no studio lighting, no colour grading, no product hero shot.": "Aucun visage dans le plan : les mains seulement. Lumière ordinaire de la pièce, texture visible, aucune retouche, mise au point légèrement imparfaite. Pas une publicité : pas d'éclairage de studio, pas d'étalonnage, pas de plan produit léché.",
+  "The lines about the product are filmed on the product, with your voice-over over them.": "Les répliques qui parlent du produit sont filmées sur le produit, avec votre voix off par-dessus.",
+  "Every line is filmed on the actor.": "Toutes les répliques sont filmées sur l'acteur.",
+  "Scene %1 · product shot": "Scène %1 · plan produit",
+  "Scene %1 · on camera": "Scène %1 · face caméra"
 }

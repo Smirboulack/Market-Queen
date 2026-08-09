@@ -65,6 +65,14 @@ class AdProject extends ChangeNotifier {
   String aspectRatio = '9:16';
   bool captions = true;
 
+  /// Whether the ad is allowed to cut away from the actor.
+  ///
+  /// On, the lines that describe the product are filmed on the product with the
+  /// read carrying over them, which is what a real UGC ad does and what stops
+  /// this one being thirty seconds of the same face. Off is for the people who
+  /// want exactly the take they wrote and nothing else.
+  bool broll = true;
+
   /// The length the ad must not run past, in seconds, or 0 for "as long as the
   /// words take". It is a ceiling for planning, never a cut.
   int maxSeconds = 0;
@@ -97,6 +105,12 @@ class AdProject extends ChangeNotifier {
   void setCaptions(bool value) {
     if (captions == value) return;
     captions = value;
+    _touched();
+  }
+
+  void setBroll(bool value) {
+    if (broll == value) return;
+    broll = value;
     _touched();
   }
 
@@ -247,12 +261,16 @@ class AdProject extends ChangeNotifier {
       'productDescription': '${product['description'] ?? ''}'.trim(),
       'audience': '${product['audience'] ?? ''}'.trim(),
       'tone': '',
-      'language': '',
+      // The language the app is being used in. A brief written entirely in
+      // French used to come back as an English ad, because "no language set"
+      // was read as "English".
+      'language': Translator.instance.currentLabel,
       'avatarBrief': actor?.prompt.trim() ?? '',
       'extraInstructions': decorBrief(decors),
       // No scenes any more: the pipeline cuts the user's own script into shots
       // itself, which is the only cutting an authentic UGC ad wants.
       'scenes': const <Map<String, Object?>>[],
+      'brollEnabled': broll,
       'script': script.trim(),
       'durationSeconds': duration,
       'aspectRatio': aspectRatio,
@@ -317,6 +335,7 @@ class AdProject extends ChangeNotifier {
     'script': script,
     'aspectRatio': aspectRatio,
     'captions': captions,
+    'broll': broll,
     'maxSeconds': maxSeconds,
   };
 
@@ -358,6 +377,9 @@ class AdProject extends ChangeNotifier {
     script = '${document['script'] ?? ''}';
     aspectRatio = '${document['aspectRatio'] ?? '9:16'}';
     captions = document['captions'] != false;
+    // Ads saved before product shots existed were all talking heads by
+    // accident, not by choice, so they open with them switched on.
+    broll = document['broll'] != false;
     maxSeconds = (document['maxSeconds'] as num?)?.toInt() ?? 0;
 
     notifyListeners();
@@ -377,6 +399,7 @@ class AdProject extends ChangeNotifier {
     script = '';
     aspectRatio = '9:16';
     captions = true;
+    broll = true;
     maxSeconds = 0;
 
     notifyListeners();

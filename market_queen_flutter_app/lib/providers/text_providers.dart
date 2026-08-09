@@ -71,12 +71,50 @@ abstract class ScriptTask extends HttpTask {
     ScriptMode.rewriteScript => tr('Reworking the scenario with %1...').arg(
       request.model,
     ),
+    ScriptMode.planShots => tr('Planning the shots with %1...').arg(
+      request.model,
+    ),
     ScriptMode.writeScript => tr('Writing the script with %1...').arg(
       request.model,
     ),
   };
 
   String get systemPrompt {
+    if (request.mode == ScriptMode.planShots) {
+      return 'You are the director of a UGC (user generated content) video ad. The '
+          'script is already written and already cut into shots. You may not change '
+          'a single word of it: you are deciding what the camera is on for each '
+          'shot, and describing the picture.\n'
+          '\n'
+          'A shot is one of two kinds:\n'
+          '- "talking": the actor is on camera saying that line, mouth lip-synced '
+          'to it.\n'
+          '- "broll": the line is still heard, as voice-over, but the camera is on '
+          'the product, the screen, the packaging or the actor\'s hands. No face '
+          'speaking to camera.\n'
+          '\n'
+          'Rules:\n'
+          '- Most shots are "talking". Make a shot "broll" when its line describes '
+          'the product, shows it, names what it does or lists a feature. Roughly '
+          'one shot in three, and never two in a row.\n'
+          '- The first shot and the last shot are always "talking": a hook has to '
+          'come from a face, and so does the call to action.\n'
+          '- Consecutive shots must look clearly different. Change the angle, the '
+          'distance or the framing -- never the person, the product or the room.\n'
+          '- imagePrompt: a photographic prompt for the still this shot opens on. '
+          'What is in frame, how it is framed, the light, the phone-camera look. A '
+          'broll shot has nobody\'s face in it.\n'
+          '- videoPrompt: how the shot moves over its few seconds. Small, '
+          'handheld, real.\n'
+          '- Write both prompts in English whatever language the script is in: '
+          'they are read by an image model, not by a viewer.\n'
+          '\n'
+          'Answer with a single JSON object and nothing else: one entry per shot, '
+          'in the order you were given them, the same number of entries.\n'
+          '{"shots": [{"kind": "talking", "imagePrompt": "...", '
+          '"videoPrompt": "..."}]}';
+    }
+
     if (request.mode == ScriptMode.rewriteScript) {
       return 'You are a senior UGC (user generated content) ad writer. You are handed '
           'the scenario of a short vertical video ad and one instruction. Rewrite that '
@@ -120,6 +158,9 @@ abstract class ScriptTask extends HttpTask {
         '  "shots": [\n'
         '    {\n'
         '      "line": "the words spoken while this shot is on screen",\n'
+        '      "kind": "talking if the actor is on camera saying the line, broll if '
+        'the line is voice-over over the product, the screen or their hands. Roughly '
+        'one shot in three is broll, never two in a row, never the first or the last",\n'
         '      "imagePrompt": "a photographic prompt for this shot: the person, their '
         'expression, how they hold the product, the framing, the room, the lighting and '
         'the phone-camera look",\n'
@@ -131,6 +172,30 @@ abstract class ScriptTask extends HttpTask {
   }
 
   String get userPrompt {
+    if (request.mode == ScriptMode.planShots) {
+      final prompt = StringBuffer()
+        ..write(_sectionIfSet('Product', request.productName))
+        ..write(_sectionIfSet('What it is', request.productDescription))
+        ..write(_sectionIfSet('Target audience', request.audience))
+        ..write(_sectionIfSet('The person on camera', request.avatarBrief))
+        ..write(_sectionIfSet('Where they are', request.extraInstructions))
+        ..write('\nThe ${request.lines.length} shots, in order:\n');
+
+      for (var i = 0; i < request.lines.length; ++i) {
+        prompt.write('${i + 1}. ${request.lines[i]}\n');
+      }
+
+      if (request.referenceImageDataUri.isNotEmpty) {
+        prompt.write('\nA photo of the product is attached. Describe the real '
+            'product accurately in every imagePrompt: same shape, same colours, '
+            'same label.\n');
+      }
+
+      prompt.write('\nGive me exactly ${request.lines.length} entries, in the same '
+          'order. JSON only.');
+      return prompt.toString();
+    }
+
     if (request.mode == ScriptMode.rewriteScript) {
       final prompt = StringBuffer()
         ..write(_sectionIfSet('Product', request.productName))
@@ -158,7 +223,11 @@ abstract class ScriptTask extends HttpTask {
       ..write(_sectionIfSet('Tone', request.tone))
       ..write(_sectionIfSet('Person on camera', request.avatarBrief))
       ..write(_sectionIfSet('Extra instructions', request.extraInstructions))
-      ..write('Language: ${request.language.isEmpty ? 'English' : request.language}\n')
+      // Defaulting to English wrote English ads for people who had just filled
+      // in the entire brief in their own language.
+      ..write(request.language.isEmpty
+          ? 'Write it in the same language as the brief above.\n'
+          : 'Language: ${request.language}\n')
       ..write('Target length: about ${request.durationSeconds} seconds, '
           'so roughly $words spoken words.\n')
       ..write('Write it as exactly ${request.shotCount} shots, so about $perShot words '
@@ -173,6 +242,51 @@ abstract class ScriptTask extends HttpTask {
     return prompt.toString();
   }
 
+  /// Anything that is not an explicit product shot is someone talking.
+  ///
+  /// A shot with no face in it is the exception, so a model that answered with
+  /// a word we do not recognise must not silently produce one -- a talking shot
+  /// that should have been b-roll is a dull ad, a b-roll shot that should have
+  /// been talking is an ad with nobody in it.
+  static String shotKind(Object? value) =>
+      '${value ?? ''}'.trim().toLowerCase() == 'broll' ? 'broll' : 'talking';
+
+  /// A camera on each shot of a scenario the user wrote.
+  ///
+  /// The lines are deliberately not read back. The model was handed them
+  /// numbered and answers by position, so taking only the kind and the two
+  /// prompts is what makes "it will not rewrite your words" a property of the
+  /// code rather than a line in a prompt.
+  Map<String, Object?> _deliverPlan(
+    Map<String, dynamic> object,
+    int inputTokens,
+    int outputTokens,
+  ) {
+    final plan = <Map<String, Object?>>[];
+
+    final rawShots = object['shots'];
+    if (rawShots is List) {
+      for (final value in rawShots) {
+        if (value is! Map) continue;
+        plan.add({
+          'kind': shotKind(value['kind']),
+          'imagePrompt': '${value['imagePrompt'] ?? ''}'.trim(),
+          'videoPrompt': '${value['videoPrompt'] ?? ''}'.trim(),
+        });
+      }
+    }
+
+    if (plan.isEmpty) {
+      throw ProviderException(tr('The model returned no shot plan.'));
+    }
+
+    return {
+      'plan': plan,
+      'inputTokens': inputTokens,
+      'outputTokens': outputTokens,
+    };
+  }
+
   /// Turns whatever the model said into the `shots` shape everything downstream
   /// expects.
   Map<String, Object?> deliver(String rawText, int inputTokens, int outputTokens) {
@@ -181,6 +295,10 @@ abstract class ScriptTask extends HttpTask {
     }
 
     final obj = _extractJsonObject(rawText);
+
+    if (request.mode == ScriptMode.planShots) {
+      return _deliverPlan(obj, inputTokens, outputTokens);
+    }
 
     final shots = <Map<String, Object?>>[];
     final lines = <String>[];
@@ -194,6 +312,7 @@ abstract class ScriptTask extends HttpTask {
         lines.add(line);
         shots.add({
           'line': line,
+          'kind': shotKind(value['kind']),
           'imagePrompt': '${value['imagePrompt'] ?? ''}'.trim(),
           'videoPrompt': '${value['videoPrompt'] ?? ''}'.trim(),
         });
@@ -212,6 +331,7 @@ abstract class ScriptTask extends HttpTask {
       if (script.isNotEmpty) {
         shots.add({
           'line': script,
+          'kind': 'talking',
           'imagePrompt': '${obj['imagePrompt'] ?? ''}'.trim(),
           'videoPrompt': '${obj['videoPrompt'] ?? ''}'.trim(),
         });

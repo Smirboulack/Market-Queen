@@ -19,6 +19,80 @@ abstract class VoiceTask extends HttpTask {
 // ---------------------------------------------------------------------------
 // ElevenLabs
 // ---------------------------------------------------------------------------
+
+/// What one ElevenLabs engine accepts.
+///
+/// They do not all take the same body. v3 is a different architecture: it
+/// rejects the continuity fields outright, takes no speed, and quantises its
+/// stability to three named settings. Sending it the v2 body is a 400 and a
+/// failed run, not a warning -- so what a model accepts is declared here, once,
+/// instead of being discovered in production.
+class ElevenLabsModel {
+  const ElevenLabsModel({
+    this.stitching = true,
+    this.speed = true,
+    this.stabilitySteps = const [],
+  });
+
+  /// previous_text / next_text: the context that keeps a scene-by-scene read
+  /// sounding like one performance.
+  final bool stitching;
+
+  final bool speed;
+
+  /// When set, the only stability values the engine will take. Anything else is
+  /// snapped to the nearest one.
+  final List<double> stabilitySteps;
+
+  /// Creative, Natural, Robust -- v3 has no continuum between them.
+  static const v3 = ElevenLabsModel(
+    stitching: false,
+    speed: false,
+    stabilitySteps: [0.0, 0.5, 1.0],
+  );
+
+  static const classic = ElevenLabsModel();
+
+  /// Matched on the id rather than looked up in a table, so a model typed into
+  /// "Other..." -- or a v3 variant we have not heard of yet -- still gets a body
+  /// it can accept.
+  static ElevenLabsModel of(String modelId) =>
+      modelId.toLowerCase().contains('v3') ? v3 : classic;
+
+  double snapStability(double value) {
+    if (stabilitySteps.isEmpty) return value;
+    var closest = stabilitySteps.first;
+    for (final step in stabilitySteps) {
+      if ((step - value).abs() < (closest - value).abs()) closest = step;
+    }
+    return closest;
+  }
+
+  /// The request body for one line, with everything this engine cannot take
+  /// left out.
+  Map<String, Object?> body(VoiceRequest request) {
+    final settings = <String, Object?>{
+      'stability': snapStability(request.stability),
+      'similarity_boost': request.similarity,
+      'style': request.style,
+      'use_speaker_boost': true,
+      // Only sent when it is actually asked for: a default of 1.0 changes
+      // nothing anyway.
+      if (speed && (request.speed - 1.0).abs() > 1e-9) 'speed': request.speed,
+    };
+
+    return <String, Object?>{
+      'text': request.text,
+      'model_id': request.model,
+      'voice_settings': settings,
+      if (stitching && request.previousText.isNotEmpty)
+        'previous_text': request.previousText,
+      if (stitching && request.nextText.isNotEmpty)
+        'next_text': request.nextText,
+    };
+  }
+}
+
 class ElevenLabsVoiceTask extends VoiceTask {
   ElevenLabsVoiceTask(super.request);
 
@@ -36,25 +110,7 @@ class ElevenLabsVoiceTask extends VoiceTask {
       '?output_format=mp3_44100_128',
     );
 
-    final settings = <String, Object?>{
-      'stability': request.stability,
-      'similarity_boost': request.similarity,
-      'style': request.style,
-      'use_speaker_boost': true,
-      // Only sent when it is actually asked for: not every model accepts a
-      // speed, and a default of 1.0 changes nothing anyway.
-      if ((request.speed - 1.0).abs() > 1e-9) 'speed': request.speed,
-    };
-
-    final body = <String, Object?>{
-      'text': request.text,
-      'model_id': request.model,
-      'voice_settings': settings,
-      // The neighbouring lines, so a scene-by-scene recording still sounds like
-      // one continuous read rather than a series of fresh takes.
-      if (request.previousText.isNotEmpty) 'previous_text': request.previousText,
-      if (request.nextText.isNotEmpty) 'next_text': request.nextText,
-    };
+    final body = ElevenLabsModel.of(request.model).body(request);
 
     final response = await postJsonForBytes(
       url,
@@ -191,7 +247,10 @@ class WhisperCaptionTask extends HttpTask {
       fields: {
         'model': request.model,
         'response_format': 'srt',
-        'language': request.language,
+        // Left out entirely when we do not know: an empty language is not the
+        // same request as no language, and Whisper detects it perfectly well
+        // from the audio we just had read aloud.
+        if (request.language.isNotEmpty) 'language': request.language,
       },
       files: [
         http.MultipartFile.fromBytes(

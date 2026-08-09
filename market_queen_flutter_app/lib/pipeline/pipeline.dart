@@ -16,7 +16,10 @@ import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
+import '../providers/text_providers.dart';
 import '../providers/types.dart';
+import '../providers/voice_providers.dart';
+import 'shot_planner.dart';
 
 /// The voice-over is recorded before anything is drawn, because how long each
 /// shot is on screen is what decides the clip we have to buy for it.
@@ -432,36 +435,99 @@ class Pipeline extends ChangeNotifier {
   // 1. Script
   // ---------------------------------------------------------------------
 
-  /// Splits the script into shots when the writer was skipped.
+  /// Cuts a scenario the user wrote into shots.
   ///
-  /// Cut on sentence boundaries, then pack sentences into shots so the shots
-  /// come out as even as the punctuation allows. Splitting mid-sentence would
-  /// put a cut in the middle of a thought.
-  void _splitOwnScript(int shotCount) {
-    final sentences = _run.script
-        .split(RegExp(r'(?<=[.!?])\s+'))
-        .where((s) => s.trim().isNotEmpty)
-        .toList();
-    if (sentences.isEmpty) sentences.add(_run.script);
+  /// The rules live in [ShotPlanner], where the pricer can reach them too: what
+  /// the estimate quotes and what the run buys have to be the same list.
+  void _splitOwnScript() {
+    _run.shots
+      ..clear()
+      ..addAll([for (final line in ShotPlanner.split(_run.script)) Shot(line: line)]);
+  }
 
-    final shots = math.min(shotCount, sentences.length).clamp(1, sentences.length);
-    final perShot = _run.script.length / shots;
+  /// Puts a camera on each shot of a scenario the user wrote.
+  ///
+  /// This is what stops an ad being one unbroken talking head. A UGC ad that
+  /// stays on the same face for its whole length reads as an advert, and the
+  /// product never gets seen -- so the lines that describe the thing are filmed
+  /// on the thing, with the read carrying over them.
+  ///
+  /// It never fails a run. Every shot already has a line and a default frame
+  /// prompt; a plan that could not be bought only costs the cutaways.
+  Future<void> _planShots() async {
+    if (_request['brollEnabled'] == false) return;
 
-    _run.shots.clear();
-    var current = '';
+    // Two shots is a cut, not a cut list. There is nothing to cut away to.
+    if (_run.shots.length < ShotPlanner.minShotsToDirect) return;
 
-    for (var i = 0; i < sentences.length; ++i) {
-      current += (current.isEmpty ? '' : ' ') + sentences[i];
-      final remaining = sentences.length - i - 1;
-      final full = current.length >= perShot && _run.shots.length < shots - 1;
-      // Never leave a later shot without a sentence to put in it.
-      final mustClose = remaining == shots - _run.shots.length - 1;
-      if (full || mustClose) {
-        _run.shots.add(Shot(line: current));
-        current = '';
+    final providerId = _text('textProvider');
+    final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
+    if (providerId.isEmpty || apiKey.isEmpty) return;
+
+    final model = _pickModel(providerId, _text('textModel'));
+
+    final task = ProviderFactory.script(
+      providerId,
+      ScriptRequest(
+        mode: ScriptMode.planShots,
+        apiKey: apiKey,
+        model: model,
+        productName: _text('productName'),
+        productDescription: _text('productDescription'),
+        audience: _text('audience'),
+        avatarBrief: _text('avatarBrief'),
+        extraInstructions: _text('extraInstructions'),
+        lines: [for (final shot in _run.shots) shot.line],
+        referenceImageDataUri: _run.productImageDataUri,
+      ),
+    );
+
+    // Cutaways are worth having, not worth failing a run over: an unknown
+    // writer leaves the ad exactly as the user wrote it.
+    if (task == null) return;
+
+    _setStatus(tr('Planning the shots...'));
+
+    try {
+      final result = await _await(task, PipelineStep.script);
+
+      _recordUsage(
+        'script',
+        providerId,
+        model,
+        (result['inputTokens'] as num?)?.toDouble() ?? 0,
+        (result['outputTokens'] as num?)?.toDouble() ?? 0,
+      );
+
+      // By position, and only ever the camera. A plan that came back short
+      // leaves the rest of the ad exactly as it was.
+      final plan = (result['plan'] as List?) ?? const [];
+
+      for (var index = 0; index < plan.length && index < _run.shots.length; ++index) {
+        final entry = plan[index];
+        if (entry is! Map) continue;
+
+        final shot = _run.shots[index];
+        shot.kind = ScriptTask.shotKind(entry['kind']);
+        shot.imagePrompt = '${entry['imagePrompt'] ?? ''}'.trim();
+        shot.videoPrompt = '${entry['videoPrompt'] ?? ''}'.trim();
       }
+
+      // A face has to open and close the ad: the hook is a person looking at
+      // you, and so is the call to action. Enforced here rather than trusted to
+      // the prompt, because it is the one arrangement that is always wrong.
+      _run.shots.first.kind = 'talking';
+      _run.shots.last.kind = 'talking';
+
+      final broll = _run.shots.where((shot) => shot.kind == 'broll').length;
+      _log.success(tr('%1 talking shot(s), %2 product shot(s).')
+          .arg(_run.shots.length - broll)
+          .arg(broll));
+    } on ProviderException catch (error) {
+      _throwIfCancelling();
+      _log.warning(tr('Could not plan the shots (%1). Filming every line on camera.')
+          .arg(error.message));
     }
-    if (current.isNotEmpty) _run.shots.add(Shot(line: current));
   }
 
   Future<void> _stepScript() async {
@@ -495,12 +561,19 @@ class Pipeline extends ChangeNotifier {
     }
 
     if (ownScript.isNotEmpty) {
+      _setStep(PipelineStep.script, StepPhase.running);
+
       _run.script = ownScript;
-      _run.hook = ownScript.split(RegExp(r'[.!?]')).first.trim();
-      _splitOwnScript(shotCount);
-      _log.info(tr('Using the script you wrote, cut into %1 shot(s).')
+      _splitOwnScript();
+      _run.hook = _run.shots.isEmpty ? ownScript : _run.shots.first.line;
+
+      _log.info(tr('Using the scenario you wrote, cut into %1 shot(s).')
           .arg(_run.shots.length));
-      _setStep(PipelineStep.script, StepPhase.skipped, tr('your own script'));
+
+      // Not a word of it changes; only where the camera points.
+      await _planShots();
+
+      _setStep(PipelineStep.script, StepPhase.done, tr('your own scenario'));
       return;
     }
 
@@ -546,15 +619,26 @@ class Pipeline extends ChangeNotifier {
     final shotsJson = <Map<String, Object?>>[];
     for (final entry in (result['shots'] as List?) ?? const []) {
       if (entry is! Map) continue;
-      final shot = Shot(line: '${entry['line'] ?? ''}')
+      final shot = Shot(
+        line: '${entry['line'] ?? ''}',
+        kind: ScriptTask.shotKind(entry['kind']),
+      )
         ..imagePrompt = '${entry['imagePrompt'] ?? ''}'
         ..videoPrompt = '${entry['videoPrompt'] ?? ''}';
       _run.shots.add(shot);
       shotsJson.add({
         'line': shot.line,
+        'kind': shot.kind,
         'imagePrompt': shot.imagePrompt,
         'videoPrompt': shot.videoPrompt,
       });
+    }
+
+    // Same rule as a scenario the user wrote: a face opens the ad and a face
+    // closes it, whatever the writer thought.
+    if (_run.shots.isNotEmpty) {
+      _run.shots.first.kind = 'talking';
+      _run.shots.last.kind = 'talking';
     }
 
     if (_run.shots.isEmpty) {
@@ -588,7 +672,9 @@ class Pipeline extends ChangeNotifier {
   // Recorded naively that would sound like a series of fresh takes, so each
   // request carries the neighbouring lines in previous_text/next_text. The
   // engine uses them for context only -- it never speaks them -- and the
-  // delivery carries across the joins.
+  // delivery carries across the joins. Not every engine takes them, though, and
+  // one that does not is sent a body without them rather than a 400: what each
+  // one accepts is declared in [ElevenLabsModel].
   //
   // The gain is that a scene's length stops being an estimate. It is however
   // long its audio turned out to be, measured, which is what finally removes
@@ -599,6 +685,18 @@ class Pipeline extends ChangeNotifier {
 
     final providerId = _text('voiceProvider');
     final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
+
+    // Said once, when it is actually true, because the alternative is one
+    // setting away: v3 is the expressive engine but takes no context fields, so
+    // on a multi-shot ad every line is a fresh take. Multilingual v2 carries the
+    // delivery across the joins instead.
+    if (_run.shots.length > 1 &&
+        providerId == 'elevenlabs' &&
+        !ElevenLabsModel.of(_pickModel(providerId, _text('voiceModel'))).stitching) {
+      _log.info(tr('Eleven v3 records each line on its own: it takes no context '
+          'from the neighbouring ones. Multilingual v2 does, if you would rather '
+          'have one continuous read.'));
+    }
 
     for (var index = 0; index < _run.shots.length; ++index) {
       _throwIfCancelling();
@@ -762,10 +860,32 @@ class Pipeline extends ChangeNotifier {
   /// the actor as they were described, the room they are in, and the thing they
   /// are holding. Composed rather than fixed, because a generic "a person
   /// holding X" throws away the two fields the user spent the most time on.
-  String _defaultFramePrompt() {
+  String _defaultFramePrompt(String kind) {
     final actor = _text('avatarBrief').trim();
     final decor = _text('extraInstructions').trim();
     final product = _text('productName').trim();
+
+    // A product shot has the same room and the same light -- it is the same
+    // person filming, a moment later -- but no face in it. That is the whole
+    // point of cutting to it.
+    if (kind == 'broll') {
+      return [
+        tr('A vertical close-up taken on a phone, held in one hand.'),
+        //: %1 is a product name
+        if (product.isNotEmpty)
+          tr('In frame: %1, and nothing else.').arg(product)
+        else
+          tr('In frame: the product being used, held in someone\'s hands.'),
+        //: %1 is how the user described the room the ad is filmed in
+        if (decor.isNotEmpty) tr('Shot in %1.').arg(decor),
+        tr(
+          'Nobody\'s face in the shot: hands only. Ordinary room light, visible '
+          'texture, no retouching, slightly imperfect focus. Not an '
+          'advertisement: no studio lighting, no colour grading, no product '
+          'hero shot.',
+        ),
+      ].join(' ');
+    }
 
     return [
       tr('A vertical photo taken on a phone, held at arm\'s length.'),
@@ -816,6 +936,18 @@ class Pipeline extends ChangeNotifier {
 
       final model = _pickModel(providerId, _text('imageModel'));
 
+      // One reference per model, so it has to be the one the shot is about: the
+      // face for a talking shot, the thing itself for a product shot. Handing a
+      // product shot the actor's portrait is how a cutaway comes back with her
+      // in it.
+      final reference = shot.kind == 'broll'
+          ? (_run.productImageDataUri.isEmpty
+              ? _run.actorPortraitDataUri
+              : _run.productImageDataUri)
+          : (_run.actorPortraitDataUri.isEmpty
+              ? _run.productImageDataUri
+              : _run.actorPortraitDataUri);
+
       final result = await _await(
         ProviderFactory.image(
           providerId,
@@ -823,11 +955,9 @@ class Pipeline extends ChangeNotifier {
             apiKey: apiKey,
             model: model,
             aspectRatio: _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio'),
-            referenceImageDataUri: _run.actorPortraitDataUri.isEmpty
-                ? _run.productImageDataUri
-                : _run.actorPortraitDataUri,
+            referenceImageDataUri: reference,
             prompt: shot.imagePrompt.isEmpty
-                ? _defaultFramePrompt()
+                ? _defaultFramePrompt(shot.kind)
                 : shot.imagePrompt,
           ),
         ),
@@ -1163,6 +1293,7 @@ class Pipeline extends ChangeNotifier {
         for (final shot in _run.shots)
           {
             'line': shot.line,
+            'kind': shot.kind,
             'imagePrompt': shot.imagePrompt,
             'videoPrompt': shot.videoPrompt,
             'frame': relative(shot.framePath),
@@ -1183,6 +1314,8 @@ class Pipeline extends ChangeNotifier {
         'textModel': _text('textModel'),
         'image': _text('imageProvider'),
         'imageModel': _text('imageModel'),
+        'avatar': _text('avatarProvider'),
+        'avatarModel': _text('avatarModel'),
         'video': _text('videoProvider'),
         'videoModel': _text('videoModel'),
         'voice': _text('voiceProvider'),

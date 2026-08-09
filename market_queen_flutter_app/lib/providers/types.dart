@@ -12,6 +12,11 @@ enum ScriptMode {
   /// The user's own scenario, handed back rewritten. The scenario bar's
   /// Enhance / Shorten / Punchier.
   rewriteScript,
+
+  /// The user's own scenario, already cut into shots, handed back with a camera
+  /// on each one. Not a word of it may change: the model answers by position
+  /// and only the kind and the two prompts are read back.
+  planShots,
 }
 
 class ScriptRequest {
@@ -41,7 +46,8 @@ class ScriptRequest {
   final String baseUrl;
   final ScriptMode mode;
 
-  /// rewriteScript only: the scenario to rework, as one entry.
+  /// rewriteScript: the scenario to rework, as one entry.
+  /// planShots: the shot lines, in order, one entry each.
   final List<String> lines;
 
   /// rewriteScript only: what to do to it ("make it shorter", "punchier").

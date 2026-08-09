@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as p;
 
+import '../pipeline/shot_planner.dart';
 import '../providers/registry.dart';
 import 'paths.dart';
 
@@ -153,6 +154,10 @@ class Pricing {
   // Hook, caption and each shot's line and two prompts come back in about this
   // much per shot, plus a little fixed overhead.
   static const _scriptOutputTokensPerShot = 220.0;
+
+  // The director pass answers with the same two prompts but none of the words,
+  // so it is a little cheaper per shot than writing one.
+  static const _planOutputTokensPerShot = 180.0;
 
   // Every shot is kept at or under this so its clip is bought at the
   // five-second floor every video model offers.
@@ -374,26 +379,50 @@ class Pricing {
 
     // The ad is cut into shots, and each one buys its own frame and its own
     // clip. This is what multiplies the bill, so it has to be in the estimate.
-    final shots = sceneCount > 0 ? sceneCount : shotCount(duration);
+    //
+    // A scenario the user wrote is cut by the same planner the pipeline uses,
+    // so the number quoted here is the number of shots that will actually be
+    // bought rather than one inferred from the length dial.
+    final shots = sceneCount > 0
+        ? sceneCount
+        : (ownScript.isEmpty
+            ? shotCount(duration)
+            : math.max(1, ShotPlanner.split(ownScript).length));
     final clip = clipSeconds(voiceSeconds / shots);
 
     final lines = <PriceLine>[];
 
     // ---- Script ---------------------------------------------------------
-    if (ownScript.isEmpty) {
-      final brief = text('productName') +
-          text('productDescription') +
-          text('audience') +
-          text('tone') +
-          text('language') +
-          text('avatarBrief') +
-          text('extraInstructions');
+    final brief = text('productName') +
+        text('productDescription') +
+        text('audience') +
+        text('tone') +
+        text('language') +
+        text('avatarBrief') +
+        text('extraInstructions');
 
+    if (ownScript.isEmpty) {
       var inputTokens = _scriptOverheadTokens + brief.length / _charsPerToken;
       if (hasPhoto) inputTokens += _imageTokens;
 
       lines.add(_line('script', text('textProvider'), text('textModel'), inputTokens,
           shots * _scriptOutputTokensPerShot));
+    } else if (request['brollEnabled'] != false &&
+        shots >= ShotPlanner.minShotsToDirect) {
+      // The director pass over a scenario the user wrote. It writes nothing --
+      // it only says where the camera points -- so it costs a fraction of
+      // writing the ad. Not nothing, though, and it is bought on every run.
+      var inputTokens = _scriptOverheadTokens +
+          (brief.length + ownScript.length) / _charsPerToken;
+      if (hasPhoto) inputTokens += _imageTokens;
+
+      lines.add(_line(
+        'script',
+        text('textProvider'),
+        _registry.resolveModel(text('textProvider'), text('textModel')),
+        inputTokens,
+        shots * _planOutputTokensPerShot,
+      ));
     }
 
     // ---- Voice-over -----------------------------------------------------
@@ -458,11 +487,16 @@ class Pricing {
         ));
       }
     } else {
+      // Every shot of a studio ad is filmed on the avatar model unless the
+      // director cuts away from it, and which lines it cuts away from is not
+      // known until the run. So the whole ad is quoted as talking: that is
+      // exactly right with product shots switched off, and an upper bound with
+      // them on, since a cutaway is the cheaper of the two.
       lines.add(_line(
         'video',
-        text('videoProvider'),
-        _registry.resolveModel(text('videoProvider'), text('videoModel'), clip),
-        shots.toDouble() * clip,
+        text('avatarProvider'),
+        _registry.resolveModel(text('avatarProvider'), text('avatarModel')),
+        voiceSeconds,
         shots.toDouble(),
       ));
     }
