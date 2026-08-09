@@ -98,7 +98,7 @@ class _ModelPickerState extends State<ModelPicker> {
               Text(
                 widget.label,
                 style: TextStyle(
-                  color: mq.textDim,
+                  color: mq.textSecondary,
                   fontSize: MqTheme.fontSmall,
                   fontWeight: FontWeight.w600,
                 ),
@@ -108,7 +108,7 @@ class _ModelPickerState extends State<ModelPicker> {
               Text(
                 tr('no API key'),
                 style:
-                    TextStyle(color: mq.warning, fontSize: MqTheme.fontSmall),
+                    TextStyle(color: mq.warningText, fontSize: MqTheme.fontSmall),
               ),
           ],
         ),
@@ -152,7 +152,7 @@ class _ModelPickerState extends State<ModelPicker> {
           const SizedBox(height: 5),
           Text(
             info!.note,
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
           ),
         ],
       ],

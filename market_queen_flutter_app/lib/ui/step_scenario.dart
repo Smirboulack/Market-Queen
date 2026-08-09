@@ -7,6 +7,7 @@ import 'actor_panel.dart';
 import 'format.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
+import 'widgets/cards.dart';
 import 'widgets/chip.dart';
 import 'widgets/prompt_bar.dart';
 import 'widgets/scene_bubble.dart';
@@ -103,18 +104,9 @@ class _StepScenarioState extends State<StepScenario> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  tr('Scenario'),
-                  style: TextStyle(
-                    color: mq.text,
-                    fontSize: MqTheme.fontHeading,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tr('Write what they say. One line, one scene.'),
-                  style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontBody),
+                PageHeader(
+                  title: tr('Scenario'),
+                  subtitle: tr('Write what they say. One line, one scene.'),
                 ),
                 const SizedBox(height: MqTheme.gap),
 
@@ -127,11 +119,13 @@ class _StepScenarioState extends State<StepScenario> {
                       if (scenes.count == 0) {
                         return Center(
                           child: Text(
-                            tr('Nothing written yet. The first line is the hook — '
-                                'you have three seconds.'),
+                            tr(
+                              'Nothing written yet. The first line is the hook — '
+                              'you have three seconds.',
+                            ),
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              color: mq.textFaint,
+                              color: mq.textTertiary,
                               fontSize: MqTheme.fontSmall,
                             ),
                           ),
@@ -201,8 +195,11 @@ class _StepScenarioState extends State<StepScenario> {
                         icon: _nextKind == 'broll'
                             ? 'image-line'
                             : 'user-smile-line',
-                        onPressed: () => setState(() =>
-                            _nextKind = _nextKind == 'broll' ? 'talking' : 'broll'),
+                        onPressed: () => setState(
+                          () => _nextKind = _nextKind == 'broll'
+                              ? 'talking'
+                              : 'broll',
+                        ),
                       ),
                     ],
                   ),
@@ -224,7 +221,7 @@ class _StepScenarioState extends State<StepScenario> {
                               .arg(scenes.count)
                               .arg(project.spokenSeconds.toStringAsFixed(1)),
                           style: TextStyle(
-                            color: mq.textDim,
+                            color: mq.textSecondary,
                             fontSize: MqTheme.fontSmall,
                           ),
                         ),
@@ -237,8 +234,8 @@ class _StepScenarioState extends State<StepScenario> {
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               color: director.error.isNotEmpty
-                                  ? mq.danger
-                                  : mq.textFaint,
+                                  ? mq.error
+                                  : mq.textTertiary,
                               fontSize: MqTheme.fontSmall,
                             ),
                           ),

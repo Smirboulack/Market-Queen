@@ -13,6 +13,10 @@ import 'buttons.dart';
 /// stack: a chip is off until you touch it, shows its value once you do, and
 /// takes exactly the room its own text needs. Ten of them read as a sentence;
 /// ten dropdowns read as a form.
+///
+/// A chip that carries a value is *not* filled with pink -- ten set chips would
+/// put more brand colour on screen than the Generate button. It goes one shade
+/// up the grey ladder, and the pink appears only in its icon.
 class MqChip extends StatelessWidget {
   const MqChip({
     super.key,
@@ -41,6 +45,8 @@ class MqChip extends StatelessWidget {
   /// A round thumbnail on the left -- used by the actor chip.
   final String portrait;
   final bool opensMenu;
+
+  /// The one chip on screen that is really a call to action.
   final bool accent;
   final bool enabled;
   final VoidCallback? onPressed;
@@ -54,100 +60,105 @@ class MqChip extends StatelessWidget {
     final mq = context.mq;
     final lit = active ?? (value.isNotEmpty || detail.isNotEmpty);
 
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.4,
-      child: Pressable(
-        enabled: enabled,
-        onTap: onPressed,
-        builder: (context, hovered, pressed) {
-          final fill = accent
-              ? mq.accent
-              : lit
-                  ? mq.accentSoft
-                  : hovered
-                      ? mq.surfaceHover
-                      : Colors.transparent;
-          final line = accent || lit
-              ? mq.accent
-              : hovered
-                  ? mq.borderStrong
-                  : mq.border;
+    return Pressable(
+      enabled: enabled,
+      onTap: onPressed,
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) {
+        final Color fill;
+        final Color line;
+        final Color ink;
+        final Color glyph;
 
-          final foreground = accent
-              ? Colors.white
+        if (!states.enabled) {
+          fill = Colors.transparent;
+          line = mq.borderSubtle;
+          ink = mq.textDisabled;
+          glyph = mq.textDisabled;
+        } else if (accent) {
+          fill = states.pressed
+              ? mq.primaryActive
+              : states.hovered
+              ? mq.primaryHover
+              : mq.primary;
+          line = fill;
+          ink = mq.onPrimary;
+          glyph = mq.onPrimary;
+        } else {
+          fill = states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
               : lit
-                  ? mq.text
-                  : mq.textDim;
+              ? mq.surfaceSecondary
+              : Colors.transparent;
+          line = (states.active || lit) ? mq.borderStrong : mq.border;
+          ink = lit ? mq.textPrimary : mq.textSecondary;
+          // The chip's whole allowance of brand colour.
+          glyph = lit ? mq.primary : mq.textTertiary;
+        }
 
-          return AnimatedContainer(
-            duration: MqTheme.hoverDuration,
-            height: 30,
-            padding: const EdgeInsets.symmetric(horizontal: 11),
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: line),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (portrait.isNotEmpty) ...[
-                  ClipOval(
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: File(portrait).existsSync()
-                          ? Image.file(File(portrait), fit: BoxFit.cover)
-                          : ColoredBox(color: mq.surfaceAlt),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                ] else if (icon.isNotEmpty) ...[
-                  MqIcon(
-                    icon,
-                    size: 15,
-                    color: accent
-                        ? Colors.white
-                        : lit
-                            ? mq.accent
-                            : mq.textFaint,
-                  ),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  value.isNotEmpty ? value : label,
-                  style: TextStyle(
-                    color: foreground,
-                    fontSize: MqTheme.fontSmall,
-                    fontWeight:
-                        lit || accent ? FontWeight.w600 : FontWeight.normal,
+        return AnimatedContainer(
+          duration: states.duration,
+          height: 30,
+          padding: const EdgeInsets.symmetric(horizontal: 11),
+          decoration: BoxDecoration(
+            color: fill,
+            borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+            border: Border.all(color: line),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (portrait.isNotEmpty) ...[
+                ClipOval(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: File(portrait).existsSync()
+                        ? Image.file(File(portrait), fit: BoxFit.cover)
+                        : ColoredBox(color: mq.surfaceTertiary),
                   ),
                 ),
-                if (detail.isNotEmpty) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    detail,
-                    style: TextStyle(
-                      color: accent
-                          ? Colors.white.withValues(alpha: 0.75)
-                          : mq.textFaint,
-                      fontSize: MqTheme.fontSmall,
-                    ),
-                  ),
-                ],
-                if (opensMenu) ...[
-                  const SizedBox(width: 6),
-                  MqIcon(
-                    'arrow-down-s-line',
-                    size: 14,
-                    color: accent ? Colors.white : mq.textFaint,
-                  ),
-                ],
+                const SizedBox(width: 6),
+              ] else if (icon.isNotEmpty) ...[
+                MqIcon(icon, size: 15, color: glyph),
+                const SizedBox(width: 6),
               ],
-            ),
-          );
-        },
-      ),
+              Text(
+                value.isNotEmpty ? value : label,
+                style: TextStyle(
+                  color: ink,
+                  fontSize: MqTheme.fontLabel,
+                  fontWeight: lit || accent ? FontWeight.w500 : FontWeight.w400,
+                  letterSpacing: MqTheme.trackSmall,
+                ),
+              ),
+              if (detail.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                Text(
+                  detail,
+                  style: TextStyle(
+                    color: accent
+                        ? mq.onPrimary.withValues(alpha: 0.7)
+                        : mq.textTertiary,
+                    fontSize: MqTheme.fontLabel,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+              if (opensMenu) ...[
+                const SizedBox(width: 5),
+                MqIcon(
+                  'arrow-down-s-line',
+                  size: 14,
+                  color: accent ? mq.onPrimary : mq.textTertiary,
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -200,17 +211,14 @@ class MqChoiceChip extends StatelessWidget {
             Overlay.of(context).context.findRenderObject() as RenderBox?;
         if (box == null || overlay == null) return;
 
-        final origin = box.localToGlobal(Offset(0, box.size.height + 4),
-            ancestor: overlay);
+        final origin = box.localToGlobal(
+          Offset(0, box.size.height + 4),
+          ancestor: overlay,
+        );
 
+        // Shape, colour and elevation come from `popupMenuTheme`.
         final picked = await showMenu<String>(
           context: context,
-          color: mq.surface,
-          surfaceTintColor: Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            side: BorderSide(color: mq.border),
-          ),
           position: RelativeRect.fromLTRB(
             origin.dx,
             origin.dy,
@@ -230,11 +238,13 @@ class MqChoiceChip extends StatelessWidget {
                 child: Text(
                   option.label,
                   style: TextStyle(
-                    color: option.value == value ? mq.accent : mq.text,
-                    fontSize: MqTheme.fontSmall,
+                    color: option.value == value
+                        ? mq.primaryText
+                        : mq.textPrimary,
+                    fontSize: MqTheme.fontLabel,
                     fontWeight: option.value == value
                         ? FontWeight.w600
-                        : FontWeight.normal,
+                        : FontWeight.w400,
                   ),
                 ),
               ),

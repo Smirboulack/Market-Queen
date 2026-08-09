@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../icons.dart';
 import '../theme.dart';
+import 'buttons.dart';
 
 /// A titled panel. The studio and settings pages are stacks of these.
 class SectionCard extends StatelessWidget {
@@ -45,16 +46,16 @@ class SectionCard extends StatelessWidget {
                     height: 22,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: mq.accentSoft,
+                      color: mq.primarySubtle,
                       shape: BoxShape.circle,
-                      border: Border.all(color: mq.accent),
+                      border: Border.all(color: mq.primaryMuted),
                     ),
                     child: Text(
                       '$step',
                       style: TextStyle(
-                        color: mq.accent,
-                        fontSize: MqTheme.fontSmall,
-                        fontWeight: FontWeight.bold,
+                        color: mq.primaryText,
+                        fontSize: MqTheme.fontMicro,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
@@ -67,18 +68,20 @@ class SectionCard extends StatelessWidget {
                       Text(
                         title,
                         style: TextStyle(
-                          color: mq.text,
+                          color: mq.textPrimary,
                           fontSize: MqTheme.fontTitle,
                           fontWeight: FontWeight.w600,
+                          letterSpacing: MqTheme.trackTitle,
+                          height: MqTheme.lineTight,
                         ),
                       ),
                       if (subtitle.isNotEmpty) ...[
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
                           subtitle,
                           style: TextStyle(
-                            color: mq.textDim,
-                            fontSize: MqTheme.fontSmall + 1,
+                            color: mq.textSecondary,
+                            fontSize: MqTheme.fontLabel,
                           ),
                         ),
                       ],
@@ -87,7 +90,7 @@ class SectionCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: MqTheme.gap),
+            const SizedBox(height: MqTheme.gap + 2),
           ],
           for (var i = 0; i < children.length; ++i) ...[
             if (i > 0) const SizedBox(height: MqTheme.gap),
@@ -99,12 +102,73 @@ class SectionCard extends StatelessWidget {
   }
 }
 
+/// The title of a page and the one line under it explaining what the page is
+/// for. One widget so the five pages cannot drift apart by a pixel of tracking.
+class PageHeader extends StatelessWidget {
+  const PageHeader({super.key, required this.title, this.subtitle = ''});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            color: mq.textPrimary,
+            fontSize: MqTheme.fontHeading,
+            fontWeight: FontWeight.w600,
+            letterSpacing: MqTheme.trackHeading,
+            height: MqTheme.lineTight,
+          ),
+        ),
+        if (subtitle.isNotEmpty) ...[
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: mq.textSecondary,
+              fontSize: MqTheme.fontBody,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A section heading that is not a title: small, spaced, upper case, and never
+/// competing with the text under it. The only place the interface sets caps.
+class Overline extends StatelessWidget {
+  const Overline(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: context.mq.textTertiary,
+        fontSize: MqTheme.fontMicro,
+        fontWeight: FontWeight.w600,
+        letterSpacing: MqTheme.trackOverline,
+      ),
+    );
+  }
+}
+
 /// One step's worth of recap, and the way back to that step.
 ///
 /// Empty blocks stay on screen rather than appearing as they fill: the shape of
 /// the whole ad should be readable from the first second, including the parts
 /// that are still missing.
-class RecapBlock extends StatefulWidget {
+class RecapBlock extends StatelessWidget {
   const RecapBlock({
     super.key,
     required this.title,
@@ -124,64 +188,63 @@ class RecapBlock extends StatefulWidget {
   final VoidCallback? stepIndexTap;
 
   @override
-  State<RecapBlock> createState() => _RecapBlockState();
-}
-
-class _RecapBlockState extends State<RecapBlock> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final clickable = widget.stepIndexTap != null;
 
-    return MouseRegion(
-      cursor: clickable ? SystemMouseCursors.click : MouseCursor.defer,
-      onEnter: clickable ? (_) => setState(() => _hovered = true) : null,
-      onExit: clickable ? (_) => setState(() => _hovered = false) : null,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.stepIndexTap,
-        child: AnimatedContainer(
-          duration: MqTheme.hoverDuration,
-          width: double.infinity,
-          padding: const EdgeInsets.all(MqTheme.gap),
-          decoration: BoxDecoration(
-            color: _hovered ? mq.surfaceAlt : Colors.transparent,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(color: mq.border),
+    return Pressable(
+      onTap: stepIndexTap,
+      cursor: SystemMouseCursors.click,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        width: double.infinity,
+        padding: const EdgeInsets.all(MqTheme.gap),
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          border: Border.all(
+            color: states.active ? mq.borderStrong : mq.border,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    widget.title,
-                    style: TextStyle(
-                      color: mq.textDim,
-                      fontSize: MqTheme.fontSmall,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (_hovered)
-                    MqIcon('edit-line', size: 14, color: mq.accent),
-                ],
-              ),
-              const SizedBox(height: 6),
-              if (widget.filled)
-                ...widget.children
-              else
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Text(
-                  widget.placeholder,
+                  title,
                   style: TextStyle(
-                    color: mq.textFaint,
-                    fontSize: MqTheme.fontSmall,
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontMicro,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: MqTheme.trackOverline,
                   ),
                 ),
-            ],
-          ),
+                const Spacer(),
+                // Always in the layout, only ever faded. Revealing it on hover
+                // reflowed the title line under the pointer.
+                AnimatedOpacity(
+                  opacity: states.active ? 1 : 0,
+                  duration: states.duration,
+                  child: MqIcon('edit-line', size: 14, color: mq.primaryText),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            if (filled)
+              ...children
+            else
+              Text(
+                placeholder,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                ),
+              ),
+          ],
         ),
       ),
     );

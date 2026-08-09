@@ -53,7 +53,9 @@ class _StoryboardState extends State<Storyboard> {
   }
 
   void _refreshCost() {
-    setState(() => _redoCost = widget.app.pipeline.regenerateEstimate(_selected));
+    setState(
+      () => _redoCost = widget.app.pipeline.regenerateEstimate(_selected),
+    );
   }
 
   void _syncSource() {
@@ -110,8 +112,9 @@ class _StoryboardState extends State<Storyboard> {
                   setState(() => _selected = i);
                   _refreshCost();
                   // Jump the player to where this scene starts.
-                  _player.seek(Duration(
-                      milliseconds: (shots[i].start * 1000).round()));
+                  _player.seek(
+                    Duration(milliseconds: (shots[i].start * 1000).round()),
+                  );
                 },
               ),
           ],
@@ -124,7 +127,7 @@ class _StoryboardState extends State<Storyboard> {
             width: double.infinity,
             padding: const EdgeInsets.all(MqTheme.gap),
             decoration: BoxDecoration(
-              color: mq.surfaceAlt,
+              color: mq.surfaceSecondary,
               borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
               border: Border.all(color: mq.border),
             ),
@@ -135,7 +138,7 @@ class _StoryboardState extends State<Storyboard> {
                   //: %1 is a shot number
                   tr('Scene %1').arg(_selected + 1),
                   style: TextStyle(
-                    color: mq.textDim,
+                    color: mq.textSecondary,
                     fontSize: MqTheme.fontSmall,
                     fontWeight: FontWeight.w600,
                   ),
@@ -143,8 +146,10 @@ class _StoryboardState extends State<Storyboard> {
                 const SizedBox(height: 6),
                 Text(
                   '« ${current.line} »',
-                  style:
-                      TextStyle(color: mq.text, fontSize: MqTheme.fontBody),
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontSize: MqTheme.fontBody,
+                  ),
                 ),
                 if (current.imagePrompt.isNotEmpty) ...[
                   const SizedBox(height: 6),
@@ -153,7 +158,9 @@ class _StoryboardState extends State<Storyboard> {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontSmall,
+                    ),
                   ),
                 ],
                 const SizedBox(height: 6),
@@ -163,20 +170,25 @@ class _StoryboardState extends State<Storyboard> {
                       text: pipeline.running
                           ? tr('Re-shooting...')
                           : _redoCost.known
-                              //: %1 is a price
-                              ? tr('Re-shoot this scene — %1')
-                                  .arg(Format.estimated(_redoCost.amount))
-                              : tr('Re-shoot this scene'),
+                          //: %1 is a price
+                          ? tr(
+                              'Re-shoot this scene — %1',
+                            ).arg(Format.estimated(_redoCost.amount))
+                          : tr('Re-shoot this scene'),
                       enabled: !pipeline.running,
                       onPressed: () => pipeline.regenerateShot(_selected),
                     ),
                     const Spacer(),
                     Flexible(
                       child: Text(
-                        tr('The voice-over is kept, so it is not paid for again.'),
+                        tr(
+                          'The voice-over is kept, so it is not paid for again.',
+                        ),
                         textAlign: TextAlign.right,
                         style: TextStyle(
-                            color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontSmall,
+                        ),
                       ),
                     ),
                   ],
@@ -189,7 +201,7 @@ class _StoryboardState extends State<Storyboard> {
   }
 }
 
-class _Cell extends StatefulWidget {
+class _Cell extends StatelessWidget {
   const _Cell({
     required this.path,
     required this.index,
@@ -205,63 +217,56 @@ class _Cell extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_Cell> createState() => _CellState();
-}
-
-class _CellState extends State<_Cell> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          width: 72,
-          height: 96,
-          decoration: BoxDecoration(
-            color: mq.surfaceAlt,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(
-              color: widget.current
-                  ? mq.accent
-                  : _hovered
-                      ? mq.borderStrong
-                      : mq.border,
-              width: widget.current ? 2 : 1,
-            ),
+    return Pressable(
+      onTap: onTap,
+      // A film strip: adjacent cells, so hover snaps both ways.
+      snap: true,
+      builder: (context, states) => Container(
+        width: 72,
+        height: 96,
+        decoration: BoxDecoration(
+          color: mq.surfaceSecondary,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          border: Border.all(
+            color: current
+                ? mq.primary
+                : states.active
+                ? mq.borderStrong
+                : mq.border,
+            width: current ? 2 : 1,
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              LocalImage(widget.path),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  height: 16,
-                  alignment: Alignment.center,
-                  color: mq.background.withValues(alpha: 0.85),
-                  child: Text(
-                    //: %1 is a shot number, %2 a duration in seconds
-                    tr('%1 · %2s')
-                        .arg(widget.index + 1)
-                        .arg(widget.duration.toStringAsFixed(1)),
-                    style: TextStyle(
-                        color: mq.textDim, fontSize: MqTheme.fontSmall),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            LocalImage(path),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                height: 18,
+                alignment: Alignment.center,
+                color: mq.background.withValues(alpha: 0.88),
+                child: Text(
+                  //: %1 is a shot number, %2 a duration in seconds
+                  tr(
+                    '%1 · %2s',
+                  ).arg(index + 1).arg(duration.toStringAsFixed(1)),
+                  style: TextStyle(
+                    color: mq.textSecondary,
+                    fontSize: MqTheme.fontMicro,
+                    height: 1.2,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

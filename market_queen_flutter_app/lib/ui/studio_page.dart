@@ -11,6 +11,7 @@ import 'step_scenario.dart';
 import 'step_summary.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
+import 'widgets/cards.dart';
 
 /// The studio: steps on the left, the step being edited in the middle, a live
 /// recap on the right.
@@ -110,22 +111,25 @@ class StepRail extends StatelessWidget {
       (
         title: tr('Product'),
         hint: tr('What you are selling'),
-        icon: 'shopping-bag-3-line'
+        icon: 'shopping-bag-3-line',
       ),
       (
         title: tr('Scenario'),
         hint: tr('Who speaks, and what'),
-        icon: 'draft-line'
+        icon: 'draft-line',
       ),
       (
         title: tr('Summary'),
         hint: tr('Check and generate'),
-        icon: 'check-double-line'
+        icon: 'check-double-line',
       ),
     ];
 
     return Container(
-      width: 200,
+      // Wide enough for the hints to be sentences. At 200 the type scale
+      // clipped every one of them ("What you are sell...", "Check and
+      // gener..."), which is worse than not having them.
+      width: 224,
       decoration: BoxDecoration(
         color: mq.surface,
         border: Border(right: BorderSide(color: mq.border)),
@@ -134,19 +138,11 @@ class StepRail extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            tr('YOUR AD'),
-            style: TextStyle(
-              color: mq.textFaint,
-              fontSize: MqTheme.fontSmall,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
+          Overline(tr('YOUR AD')),
           const SizedBox(height: 10),
           for (var i = 0; i < labels.length; ++i)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 3),
               child: _RailRow(
                 title: labels[i].title,
                 hint: labels[i].hint,
@@ -181,7 +177,7 @@ class StepRail extends StatelessWidget {
   }
 }
 
-class _RailRow extends StatefulWidget {
+class _RailRow extends StatelessWidget {
   const _RailRow({
     required this.title,
     required this.hint,
@@ -199,99 +195,102 @@ class _RailRow extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_RailRow> createState() => _RailRowState();
-}
-
-class _RailRowState extends State<_RailRow> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final reachable = widget.state.reachable;
+    final reachable = state.reachable;
 
-    return MouseRegion(
-      cursor: reachable ? SystemMouseCursors.click : MouseCursor.defer,
-      onEnter: reachable ? (_) => setState(() => _hovered = true) : null,
-      onExit: reachable ? (_) => setState(() => _hovered = false) : null,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: reachable ? widget.onTap : null,
-        child: Opacity(
-          opacity: reachable ? 1.0 : 0.4,
-          child: Container(
-            height: 52,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              // Grouped rows snap both ways, like the side nav.
-              color: widget.current
-                  ? mq.accentSoft
-                  : (_hovered && reachable)
-                      ? mq.surfaceAlt
-                      : Colors.transparent,
-              borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+    return Pressable(
+      enabled: reachable,
+      onTap: onTap,
+      // Grouped rows snap both ways, like the side nav.
+      snap: true,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: current
+              ? mq.surfaceActive
+              : states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        ),
+        child: Row(
+          children: [
+            // Number, or a tick once the step holds together. A finished step
+            // is the one thing on this rail worth spending pink on.
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: state.valid
+                    ? mq.primary
+                    : current
+                    ? mq.primarySubtle
+                    : Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: state.valid
+                      ? mq.primary
+                      : current
+                      ? mq.primaryMuted
+                      : reachable
+                      ? mq.borderStrong
+                      : mq.border,
+                ),
+              ),
+              child: MqIcon(
+                state.valid ? 'check-line' : icon,
+                size: 14,
+                color: state.valid
+                    ? mq.onPrimary
+                    : current
+                    ? mq.primaryText
+                    : reachable
+                    ? mq.textTertiary
+                    : mq.textDisabled,
+              ),
             ),
-            child: Row(
-              children: [
-                // Number, or a tick once the step holds together.
-                Container(
-                  width: 22,
-                  height: 22,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: widget.state.valid
-                        ? mq.accent
-                        : widget.current
-                            ? mq.accentSoft
-                            : Colors.transparent,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: widget.state.valid || widget.current
-                          ? mq.accent
-                          : mq.borderStrong,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      // Unreachable steps stay legible instead of being faded
+                      // out wholesale: seeing what comes next is the point of
+                      // a rail, and 40% opacity is not seeing it.
+                      color: !reachable
+                          ? mq.textDisabled
+                          : current || states.active
+                          ? mq.textPrimary
+                          : mq.textSecondary,
+                      fontSize: MqTheme.fontBody,
+                      fontWeight: current ? FontWeight.w600 : FontWeight.w400,
+                      height: MqTheme.lineTight,
                     ),
                   ),
-                  child: MqIcon(
-                    widget.state.valid ? 'check-line' : widget.icon,
-                    size: 14,
-                    color: widget.state.valid
-                        ? Colors.white
-                        : widget.current
-                            ? mq.accent
-                            : mq.textFaint,
+                  const SizedBox(height: 2),
+                  Text(
+                    hint,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: reachable ? mq.textTertiary : mq.textDisabled,
+                      fontSize: MqTheme.fontSmall,
+                      height: MqTheme.lineTight,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: TextStyle(
-                          color: widget.current ? mq.text : mq.textDim,
-                          fontSize: MqTheme.fontBody,
-                          fontWeight: widget.current
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        widget.hint,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: mq.textFaint,
-                          fontSize: MqTheme.fontSmall,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -71,8 +71,10 @@ class _SceneBubbleState extends State<SceneBubble> {
     setState(() {
       _editing = true;
       _editor.text = widget.line;
-      _editor.selection =
-          TextSelection(baseOffset: 0, extentOffset: _editor.text.length);
+      _editor.selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: _editor.text.length,
+      );
     });
     _focus.requestFocus();
   }
@@ -86,6 +88,14 @@ class _SceneBubbleState extends State<SceneBubble> {
 
   bool get _isBroll => widget.kind == 'broll';
 
+  /// Five 26px glyphs. The slot is this wide whether or not they are showing.
+  static const double _controlsWidth = 5 * 26;
+
+  bool get _showControls => _hovered && !_editing;
+
+  /// Same asymmetry as everywhere else: appear at once, fade away.
+  Duration get _fade => _showControls ? Duration.zero : MqTheme.hoverDuration;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
@@ -96,17 +106,22 @@ class _SceneBubbleState extends State<SceneBubble> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onDoubleTap: _editing ? null : _beginEdit,
-        child: Container(
+        child: AnimatedContainer(
+          duration: _hovered || _editing
+              ? Duration.zero
+              : MqTheme.hoverDuration,
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: _hovered || _editing ? mq.surfaceAlt : Colors.transparent,
+            color: _hovered || _editing
+                ? mq.surfaceSecondary
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(MqTheme.radius),
             border: Border.all(
               color: _editing
-                  ? mq.accent
+                  ? mq.primary
                   : _hovered
-                      ? mq.border
-                      : Colors.transparent,
+                  ? mq.borderStrong
+                  : Colors.transparent,
             ),
           ),
           child: Row(
@@ -114,24 +129,29 @@ class _SceneBubbleState extends State<SceneBubble> {
             children: [
               // Number, or the b-roll marker: the one thing about a scene worth
               // seeing without hovering.
+              // Neutral: a list of eight scenes numbered in pink would spend
+              // the whole colour budget on counting.
               Container(
                 width: 26,
                 height: 26,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _isBroll ? Colors.transparent : mq.accentSoft,
+                  color: _isBroll ? Colors.transparent : mq.surfaceTertiary,
                   shape: BoxShape.circle,
-                  border:
-                      Border.all(color: _isBroll ? mq.borderStrong : mq.accent),
+                  border: Border.all(
+                    color: _isBroll ? mq.borderStrong : Colors.transparent,
+                  ),
                 ),
                 child: _isBroll
-                    ? MqIcon('image-line', size: 14, color: mq.textFaint)
+                    ? MqIcon('image-line', size: 14, color: mq.textTertiary)
                     : Text(
                         '${widget.position + 1}'.padLeft(2, '0'),
                         style: TextStyle(
-                          color: mq.accent,
+                          color: mq.textSecondary,
                           fontSize: MqTheme.fontSmall,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          height: 1,
                         ),
                       ),
               ),
@@ -167,9 +187,9 @@ class _SceneBubbleState extends State<SceneBubble> {
                             controller: _editor,
                             focusNode: _focus,
                             maxLines: null,
-                            cursorColor: mq.accent,
+                            cursorColor: mq.primary,
                             style: TextStyle(
-                              color: mq.text,
+                              color: mq.textPrimary,
                               fontSize: MqTheme.fontBody,
                             ),
                             decoration: const InputDecoration(
@@ -184,18 +204,22 @@ class _SceneBubbleState extends State<SceneBubble> {
                       Text(
                         widget.line,
                         style: TextStyle(
-                          color: mq.text,
+                          color: mq.textPrimary,
                           fontSize: MqTheme.fontBody,
                         ),
                       ),
-                    if (widget.directed && !_editing && _hovered) ...[
-                      const SizedBox(height: 3),
+                    // On screen whether or not the pointer is here. Revealing
+                    // it on hover grew the row, which shoved every scene below
+                    // it down the page -- under a pointer that was, by
+                    // definition, aiming at one of them.
+                    if (widget.directed && !_editing) ...[
+                      const SizedBox(height: 2),
                       Text(
                         widget.imagePrompt,
-                        maxLines: 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: mq.textFaint,
+                          color: mq.textTertiary,
                           fontSize: MqTheme.fontSmall,
                         ),
                       ),
@@ -204,49 +228,75 @@ class _SceneBubbleState extends State<SceneBubble> {
                 ),
               ),
               const SizedBox(width: 10),
-              // The controls, only while you are here.
-              if (_hovered && !_editing)
-                Row(
-                  mainAxisSize: MainAxisSize.min,
+              // The controls and the duration share one fixed slot and cross-
+              // fade inside it. Swapping a 30px label for a 130px toolbar --
+              // which is what this used to do -- resized the row the instant
+              // the pointer arrived, so the text next to it jumped sideways
+              // and the button you were reaching for was somewhere else.
+              SizedBox(
+                width: _controlsWidth,
+                height: 26,
+                child: Stack(
+                  alignment: AlignmentDirectional.centerEnd,
                   children: [
-                    MqIconButton(
-                      icon: _isBroll ? 'image-line' : 'user-smile-line',
-                      tip: _isBroll ? tr('Product shot') : tr('Talking'),
-                      onPressed: widget.onKindToggled,
+                    AnimatedOpacity(
+                      opacity: _showControls ? 0 : 1,
+                      duration: _fade,
+                      child: Text(
+                        //: %1 is a duration in seconds
+                        tr('%1 s').arg(widget.seconds.toStringAsFixed(1)),
+                        style: TextStyle(
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontSmall,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ),
-                    MqIconButton(
-                      icon: 'arrow-up-s-line',
-                      enabled: widget.position > 0,
-                      onPressed: () => widget.onMoveRequested(widget.position - 1),
-                    ),
-                    MqIconButton(
-                      icon: 'arrow-down-s-line',
-                      enabled: widget.position < widget.total - 1,
-                      onPressed: () => widget.onMoveRequested(widget.position + 1),
-                    ),
-                    MqIconButton(
-                      icon: 'edit-line',
-                      tip: tr('Edit'),
-                      onPressed: _beginEdit,
-                    ),
-                    MqIconButton(
-                      icon: 'delete-bin-line',
-                      tip: tr('Delete'),
-                      destructive: true,
-                      onPressed: widget.onRemoveRequested,
+                    IgnorePointer(
+                      ignoring: !_showControls,
+                      child: AnimatedOpacity(
+                        opacity: _showControls ? 1 : 0,
+                        duration: _fade,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            MqIconButton(
+                              icon: _isBroll ? 'image-line' : 'user-smile-line',
+                              tip: _isBroll
+                                  ? tr('Product shot')
+                                  : tr('Talking'),
+                              onPressed: widget.onKindToggled,
+                            ),
+                            MqIconButton(
+                              icon: 'arrow-up-s-line',
+                              enabled: widget.position > 0,
+                              onPressed: () =>
+                                  widget.onMoveRequested(widget.position - 1),
+                            ),
+                            MqIconButton(
+                              icon: 'arrow-down-s-line',
+                              enabled: widget.position < widget.total - 1,
+                              onPressed: () =>
+                                  widget.onMoveRequested(widget.position + 1),
+                            ),
+                            MqIconButton(
+                              icon: 'edit-line',
+                              tip: tr('Edit'),
+                              onPressed: _beginEdit,
+                            ),
+                            MqIconButton(
+                              icon: 'delete-bin-line',
+                              tip: tr('Delete'),
+                              destructive: true,
+                              onPressed: widget.onRemoveRequested,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
-                )
-              else
-                Text(
-                  //: %1 is a duration in seconds
-                  tr('%1 s').arg(widget.seconds.toStringAsFixed(1)),
-                  style: TextStyle(
-                    color: mq.textFaint,
-                    fontSize: MqTheme.fontSmall,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
                 ),
+              ),
             ],
           ),
         ),

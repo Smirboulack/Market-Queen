@@ -36,7 +36,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final mq = context.mq;
     final app = widget.app;
 
     return ListenableBuilder(
@@ -52,19 +51,12 @@ class _SettingsPageState extends State<SettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                tr('Settings'),
-                style: TextStyle(
-                  color: mq.text,
-                  fontSize: MqTheme.fontHeading,
-                  fontWeight: FontWeight.w600,
+              PageHeader(
+                title: tr('Settings'),
+                subtitle: tr(
+                  'Keys are encrypted on this machine and sent only '
+                  'to the provider they belong to.',
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                tr('Keys are encrypted on this machine and sent only to the '
-                    'provider they belong to.'),
-                style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontBody),
               ),
               const SizedBox(height: MqTheme.gapLarge),
 
@@ -89,16 +81,16 @@ class _SettingsPageState extends State<SettingsPage> {
     final app = widget.app;
 
     Widget label(String text) => SizedBox(
-          width: 130,
-          child: Text(
-            text,
-            style: TextStyle(
-              color: mq.textDim,
-              fontSize: MqTheme.fontSmall,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        );
+      width: 130,
+      child: Text(
+        text,
+        style: TextStyle(
+          color: mq.textSecondary,
+          fontSize: MqTheme.fontSmall,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
 
     return SectionCard(
       title: tr('Appearance'),
@@ -145,8 +137,10 @@ class _SettingsPageState extends State<SettingsPage> {
   Widget _apiKeys(BuildContext context) {
     return SectionCard(
       title: tr('API keys'),
-      subtitle: tr('You only need the ones you actually use. An empty field '
-          'means the provider is off.'),
+      subtitle: tr(
+        'You only need the ones you actually use. An empty field '
+        'means the provider is off.',
+      ),
       children: [
         for (final credential in widget.app.registry.credentials())
           KeyField(app: widget.app, credential: credential),
@@ -167,7 +161,7 @@ class _SettingsPageState extends State<SettingsPage> {
             Text(
               tr('Projects folder'),
               style: TextStyle(
-                color: mq.textDim,
+                color: mq.textSecondary,
                 fontSize: MqTheme.fontSmall,
                 fontWeight: FontWeight.w600,
               ),
@@ -178,8 +172,9 @@ class _SettingsPageState extends State<SettingsPage> {
                 Expanded(
                   child: LabeledField(
                     key: ValueKey(app.settings.projectsDir),
-                    controller:
-                        TextEditingController(text: app.settings.projectsDir),
+                    controller: TextEditingController(
+                      text: app.settings.projectsDir,
+                    ),
                     readOnly: true,
                   ),
                 ),
@@ -188,7 +183,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   text: tr('Change'),
                   onPressed: () async {
                     final folder = await getDirectoryPath(
-                        confirmButtonText: tr('Choose where projects are saved'));
+                      confirmButtonText: tr('Choose where projects are saved'),
+                    );
                     if (folder != null) app.settings.projectsDir = folder;
                   },
                 ),
@@ -214,7 +210,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Text(
                       tr('FFmpeg'),
                       style: TextStyle(
-                        color: mq.textDim,
+                        color: mq.textSecondary,
                         fontSize: MqTheme.fontSmall,
                         fontWeight: FontWeight.w600,
                       ),
@@ -234,7 +230,9 @@ class _SettingsPageState extends State<SettingsPage> {
                         resolved.isNotEmpty ? resolved : tr('not found'),
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                            color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontSmall,
+                        ),
                       ),
                     ),
                   ],
@@ -265,17 +263,22 @@ class _SettingsPageState extends State<SettingsPage> {
                 GhostButton(
                   text: tr('Download'),
                   onPressed: () => PlatformUtil.openExternal(
-                      'https://ffmpeg.org/download.html'),
+                    'https://ffmpeg.org/download.html',
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 5),
             Text(
-              tr('FFmpeg merges the clip, the voice-over and the subtitles into '
-                  'the final MP4. Without it the app still generates every '
-                  'piece, but cannot assemble them.'),
-              style:
-                  TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+              tr(
+                'FFmpeg merges the clip, the voice-over and the subtitles into '
+                'the final MP4. Without it the app still generates every '
+                'piece, but cannot assemble them.',
+              ),
+              style: TextStyle(
+                color: mq.textTertiary,
+                fontSize: MqTheme.fontSmall,
+              ),
             ),
           ],
         ),
@@ -289,24 +292,30 @@ class _SettingsPageState extends State<SettingsPage> {
 
     return SectionCard(
       title: tr('Prices'),
-      subtitle: tr('Used for the cost estimate. They are what the providers '
-          'publish, not what they billed you.'),
+      subtitle: tr(
+        'Used for the cost estimate. They are what the providers '
+        'publish, not what they billed you.',
+      ),
       children: [
         Text(
           pricing.overridden
               //: %1 is a date
-              ? tr('Using your own price list, last edited %1.')
-                  .arg(pricing.updated)
-              : tr("Checked against the providers' pricing pages on %1. Drop a "
-                      'pricing.json in the config folder to use your own.')
-                  .arg(pricing.updated),
-          style:
-              TextStyle(color: mq.textDim, fontSize: MqTheme.fontSmall + 1),
+              ? tr(
+                  'Using your own price list, last edited %1.',
+                ).arg(pricing.updated)
+              : tr(
+                  "Checked against the providers' pricing pages on %1. Drop a "
+                  'pricing.json in the config folder to use your own.',
+                ).arg(pricing.updated),
+          style: TextStyle(
+            color: mq.textSecondary,
+            fontSize: MqTheme.fontLabel,
+          ),
         ),
         Text(
           pricing.overridePath,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+          style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
         ),
       ],
     );
@@ -320,19 +329,21 @@ class _SettingsPageState extends State<SettingsPage> {
       title: tr('About'),
       children: [
         Text(
-          tr('Market Queen %1 - free and open source. There is no account and '
-                  'no server: every request goes straight from your machine to '
-                  'the provider you picked, with your key.')
-              .arg(app.version),
-          style:
-              TextStyle(color: mq.textDim, fontSize: MqTheme.fontSmall + 1),
+          tr(
+            'Market Queen %1 - free and open source. There is no account and '
+            'no server: every request goes straight from your machine to '
+            'the provider you picked, with your key.',
+          ).arg(app.version),
+          style: TextStyle(
+            color: mq.textSecondary,
+            fontSize: MqTheme.fontLabel,
+          ),
         ),
         Align(
           alignment: AlignmentDirectional.centerStart,
           child: GhostButton(
             text: tr('Config folder'),
-            onPressed: () =>
-                PlatformUtil.openPath(app.settings.configLocation),
+            onPressed: () => PlatformUtil.openPath(app.settings.configLocation),
           ),
         ),
       ],
@@ -387,7 +398,7 @@ class _KeyFieldState extends State<KeyField> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: mq.surfaceAlt,
+        color: mq.surfaceSecondary,
         borderRadius: BorderRadius.circular(MqTheme.radius),
         border: Border.all(color: mq.border),
       ),
@@ -408,7 +419,7 @@ class _KeyFieldState extends State<KeyField> {
               Text(
                 credential.label,
                 style: TextStyle(
-                  color: mq.text,
+                  color: mq.textPrimary,
                   fontSize: MqTheme.fontBody,
                   fontWeight: FontWeight.w600,
                 ),
@@ -419,7 +430,9 @@ class _KeyFieldState extends State<KeyField> {
                   credential.note,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                      color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -438,8 +451,9 @@ class _KeyFieldState extends State<KeyField> {
                   controller: _controller,
                   obscure: !_reveal,
                   placeholder: fromEnvironment
-                      ? tr('Using %1 from your environment')
-                          .arg(credential.envVar)
+                      ? tr(
+                          'Using %1 from your environment',
+                        ).arg(credential.envVar)
                       : tr('Paste your key'),
                   onEditingComplete: (text) {
                     settings.setApiKey(credential.id, text);

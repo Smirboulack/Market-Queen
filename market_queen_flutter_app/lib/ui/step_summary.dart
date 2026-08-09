@@ -45,21 +45,13 @@ class _StepSummaryState extends State<StepSummary> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              tr('Ready to shoot'),
-              style: TextStyle(
-                color: mq.text,
-                fontSize: MqTheme.fontHeading,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
+            PageHeader(
+              title: tr('Ready to shoot'),
               //: %1 is a duration in seconds
-              tr('About %1 s of video, lip-synced to your lines. '
-                      'Nothing is charged until you press generate.')
-                  .arg(project.spokenSeconds.toStringAsFixed(1)),
-              style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontBody),
+              subtitle: tr(
+                'About %1 s of video, lip-synced to your lines. '
+                'Nothing is charged until you press generate.',
+              ).arg(project.spokenSeconds.toStringAsFixed(1)),
             ),
             const SizedBox(height: MqTheme.gapLarge),
 
@@ -75,7 +67,7 @@ class _StepSummaryState extends State<StepSummary> {
                         Text(
                           tr('Format'),
                           style: TextStyle(
-                            color: mq.textDim,
+                            color: mq.textSecondary,
                             fontSize: MqTheme.fontSmall,
                             fontWeight: FontWeight.w600,
                           ),
@@ -109,7 +101,9 @@ class _StepSummaryState extends State<StepSummary> {
             // making an ad, it is something you do once and forget.
             SectionCard(
               title: tr('Advanced'),
-              subtitle: tr('Which models do the work. The defaults are sensible.'),
+              subtitle: tr(
+                'Which models do the work. The defaults are sensible.',
+              ),
               children: [
                 Align(
                   alignment: AlignmentDirectional.centerStart,
@@ -124,9 +118,15 @@ class _StepSummaryState extends State<StepSummary> {
                 if (_advancedOpen) ...[
                   ModelPicker(app: app, category: 'image', label: tr('Frames')),
                   ModelPicker(
-                      app: app, category: 'avatar', label: tr('Talking shots')),
+                    app: app,
+                    category: 'avatar',
+                    label: tr('Talking shots'),
+                  ),
                   ModelPicker(
-                      app: app, category: 'video', label: tr('Product shots')),
+                    app: app,
+                    category: 'video',
+                    label: tr('Product shots'),
+                  ),
                   ModelPicker(app: app, category: 'voice', label: tr('Voice')),
                 ],
               ],
@@ -171,7 +171,9 @@ class _StepSummaryState extends State<StepSummary> {
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                          color: mq.textDim, fontSize: MqTheme.fontSmall),
+                        color: mq.textSecondary,
+                        fontSize: MqTheme.fontSmall,
+                      ),
                     ),
                 ],
               ),
@@ -184,9 +186,10 @@ class _StepSummaryState extends State<StepSummary> {
                 title: tr('Your ad is ready'),
                 //: %1 is a price
                 subtitle: pipeline.cost.lines.isNotEmpty
-                    ? tr('Cost so far %1. Fixing one scene costs a fraction of '
-                            'starting over.')
-                        .arg(Format.estimated(pipeline.cost.total))
+                    ? tr(
+                        'Cost so far %1. Fixing one scene costs a fraction of '
+                        'starting over.',
+                      ).arg(Format.estimated(pipeline.cost.total))
                     : tr('Fixing one scene costs a fraction of starting over.'),
                 children: [
                   Storyboard(app: app),
@@ -224,7 +227,7 @@ class _StepSummaryState extends State<StepSummary> {
                 Text(
                   tr('Activity'),
                   style: TextStyle(
-                    color: mq.textDim,
+                    color: mq.textSecondary,
                     fontSize: MqTheme.fontSmall,
                     fontWeight: FontWeight.w600,
                   ),

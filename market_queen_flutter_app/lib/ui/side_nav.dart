@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../i18n/translator.dart';
 import 'icons.dart';
 import 'theme.dart';
+import 'widgets/buttons.dart';
 
 class SideNav extends StatelessWidget {
   const SideNav({
@@ -39,20 +40,23 @@ class SideNav extends StatelessWidget {
         children: [
           Row(
             children: [
+              // The one piece of pure brand on the page, and the size of a
+              // thumbnail.
               Container(
                 width: 34,
                 height: 34,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: mq.accentSoft,
+                  color: mq.primary,
                   borderRadius: BorderRadius.circular(9),
                 ),
                 child: Text(
                   'MQ',
                   style: TextStyle(
-                    color: mq.accent,
-                    fontSize: MqTheme.fontSmall + 1,
-                    fontWeight: FontWeight.bold,
+                    color: mq.onPrimary,
+                    fontSize: MqTheme.fontSmall,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
@@ -64,17 +68,20 @@ class SideNav extends StatelessWidget {
                     // Product name: never translated.
                     'Market Queen',
                     style: TextStyle(
-                      color: mq.text,
-                      fontSize: MqTheme.fontBody + 1,
+                      color: mq.textPrimary,
+                      fontSize: MqTheme.fontBody,
                       fontWeight: FontWeight.w600,
+                      letterSpacing: MqTheme.trackTitle,
+                      height: MqTheme.lineTight,
                     ),
                   ),
                   Text(
                     // Company name: never translated.
                     'SegfaultLabs',
                     style: TextStyle(
-                      color: mq.textFaint,
+                      color: mq.textTertiary,
                       fontSize: MqTheme.fontSmall,
+                      height: MqTheme.lineTight,
                     ),
                   ),
                 ],
@@ -84,7 +91,7 @@ class SideNav extends StatelessWidget {
           const SizedBox(height: 18),
           for (var i = 0; i < entries.length; ++i)
             Padding(
-              padding: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.only(bottom: 3),
               child: _NavEntry(
                 label: entries[i].label,
                 icon: entries[i].icon,
@@ -102,7 +109,7 @@ class SideNav extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: mq.surfaceAlt,
+                  color: mq.surfaceSecondary,
                   borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
                   border: Border.all(color: mq.border),
                 ),
@@ -119,21 +126,22 @@ class SideNav extends StatelessWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 7),
                         Text(
                           ready ? tr('FFmpeg ready') : tr('FFmpeg missing'),
                           style: TextStyle(
-                            color: mq.textDim,
+                            color: mq.textSecondary,
                             fontSize: MqTheme.fontSmall,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
                     Text(
                       tr('Your keys, your files.\nNothing is uploaded to us.'),
                       style: TextStyle(
-                        color: mq.textFaint,
+                        color: mq.textTertiary,
                         fontSize: MqTheme.fontSmall,
                       ),
                     ),
@@ -145,7 +153,11 @@ class SideNav extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'v${app.version}',
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontMicro,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
         ],
       ),
@@ -153,7 +165,7 @@ class SideNav extends StatelessWidget {
   }
 }
 
-class _NavEntry extends StatefulWidget {
+class _NavEntry extends StatelessWidget {
   const _NavEntry({
     required this.label,
     required this.icon,
@@ -167,55 +179,53 @@ class _NavEntry extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_NavEntry> createState() => _NavEntryState();
-}
-
-class _NavEntryState extends State<_NavEntry> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          height: 36,
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            // Adjacent rows: hover snaps both ways, so sweeping the list never
-            // tints two entries at once.
-            color: widget.selected
-                ? mq.accentSoft
-                : _hovered
-                    ? mq.surfaceAlt
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          ),
-          child: Row(
-            children: [
-              MqIcon(
-                widget.icon,
-                size: 18,
-                color: widget.selected ? mq.accent : mq.textFaint,
+    return Pressable(
+      onTap: onTap,
+      // Adjacent rows: hover snaps both ways, so sweeping the list never tints
+      // two entries at once.
+      snap: true,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        height: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          // A selected page is a place, not an action: it is marked by a step
+          // up the grey ladder, and the pink is left to the icon.
+          color: selected
+              ? mq.surfaceActive
+              : states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        ),
+        child: Row(
+          children: [
+            MqIcon(
+              icon,
+              size: 18,
+              color: selected
+                  ? mq.primary
+                  : states.active
+                  ? mq.textSecondary
+                  : mq.textTertiary,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: TextStyle(
+                color: selected || states.active
+                    ? mq.textPrimary
+                    : mq.textSecondary,
+                fontSize: MqTheme.fontBody,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
               ),
-              const SizedBox(width: 10),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: widget.selected ? mq.text : mq.textDim,
-                  fontSize: MqTheme.fontBody,
-                  fontWeight:
-                      widget.selected ? FontWeight.w600 : FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

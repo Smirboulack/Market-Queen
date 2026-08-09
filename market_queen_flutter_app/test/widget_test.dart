@@ -1,30 +1,240 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:market_queen_flutter_app/main.dart';
+import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/buttons.dart';
+
+/// Puts a widget under an [AppTheme], which every control in `lib/ui` expects
+/// to find above it.
+Widget _skin(Widget child, {bool dark = false}) {
+  final theme = MqTheme(dark: dark);
+  return AppTheme(
+    theme: theme,
+    child: MaterialApp(
+      theme: theme.material,
+      home: Scaffold(body: Center(child: child)),
+    ),
+  );
+}
+
+/// WCAG relative luminance, for the contrast claims the palette makes.
+double _luminance(Color color) {
+  double channel(double value) => value <= 0.03928
+      ? value / 12.92
+      : pow((value + 0.055) / 1.055, 2.4) as double;
+  return 0.2126 * channel(color.r) +
+      0.7152 * channel(color.g) +
+      0.0722 * channel(color.b);
+}
+
+double _contrast(Color a, Color b) {
+  final la = _luminance(a);
+  final lb = _luminance(b);
+  final light = la > lb ? la : lb;
+  final dark = la > lb ? lb : la;
+  return (light + 0.05) / (dark + 0.05);
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('palette', () {
+    test('the brand colour is the same in both skins', () {
+      expect(
+        const MqTheme(dark: false).primary,
+        const MqTheme(dark: true).primary,
+      );
+      expect(
+        const MqTheme(dark: false).focusRing,
+        const MqTheme(dark: true).focusRing,
+      );
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('text on a primary fill is readable', () {
+      // The reason `onPrimary` exists: white on this pink is about 2.4:1.
+      const theme = MqTheme(dark: false);
+      expect(_contrast(theme.onPrimary, theme.primary), greaterThan(4.5));
+      expect(_contrast(const Color(0xFFFFFFFF), theme.primary), lessThan(3.0));
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('body text is readable on its own background', () {
+      for (final dark in [false, true]) {
+        final theme = MqTheme(dark: dark);
+        expect(
+          _contrast(theme.textPrimary, theme.background),
+          greaterThan(7.0),
+          reason: 'primary text, dark=$dark',
+        );
+        expect(
+          _contrast(theme.textSecondary, theme.surface),
+          greaterThan(4.5),
+          reason: 'secondary text, dark=$dark',
+        );
+      }
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('the surface ladder is ordered in both directions', () {
+      final light = MqTheme(dark: false);
+      // Light: each step down the ladder is darker than the last.
+      expect(
+        _luminance(light.surface),
+        greaterThan(_luminance(light.surfaceSecondary)),
+      );
+      expect(
+        _luminance(light.surfaceSecondary),
+        greaterThan(_luminance(light.surfaceTertiary)),
+      );
+
+      final dark = MqTheme(dark: true);
+      // Dark: the same steps run the other way.
+      expect(
+        _luminance(dark.surface),
+        lessThan(_luminance(dark.surfaceSecondary)),
+      );
+      expect(
+        _luminance(dark.surfaceSecondary),
+        lessThan(_luminance(dark.surfaceTertiary)),
+      );
+    });
+  });
+
+  group('interaction spec', () {
+    test('lighting up is instant and going back to rest fades', () {
+      const rest = MqStates();
+      expect(rest.duration, MqTheme.hoverDuration);
+
+      expect(const MqStates(hovered: true).duration, Duration.zero);
+      expect(const MqStates(pressed: true).duration, Duration.zero);
+    });
+
+    test('grouped rows snap both ways', () {
+      expect(const MqStates(snap: true).duration, Duration.zero);
+      expect(const MqStates(snap: true, hovered: true).duration, Duration.zero);
+    });
+  });
+
+  group('Pressable', () {
+    testWidgets('reports hover, and drops it when the pointer leaves', (
+      tester,
+    ) async {
+      var seen = const MqStates();
+
+      await tester.pumpWidget(
+        _skin(
+          Pressable(
+            onTap: () {},
+            builder: (context, states) {
+              seen = states;
+              return const SizedBox(width: 80, height: 30);
+            },
+          ),
+        ),
+      );
+
+      final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await pointer.addPointer(location: Offset.zero);
+      addTearDown(pointer.removePointer);
+      await tester.pump();
+      expect(seen.hovered, isFalse);
+
+      await pointer.moveTo(tester.getCenter(find.byType(SizedBox)));
+      await tester.pumpAndSettle();
+      expect(seen.hovered, isTrue);
+
+      await pointer.moveTo(Offset.zero);
+      await tester.pumpAndSettle();
+      expect(seen.hovered, isFalse);
+    });
+
+    testWidgets('a disabled control never reports hover or fires', (
+      tester,
+    ) async {
+      var taps = 0;
+      var seen = const MqStates();
+
+      await tester.pumpWidget(
+        _skin(
+          Pressable(
+            enabled: false,
+            onTap: () => taps++,
+            builder: (context, states) {
+              seen = states;
+              return const SizedBox(width: 80, height: 30);
+            },
+          ),
+        ),
+      );
+
+      final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await pointer.addPointer(location: Offset.zero);
+      addTearDown(pointer.removePointer);
+      await pointer.moveTo(tester.getCenter(find.byType(SizedBox)));
+      await tester.pumpAndSettle();
+
+      expect(seen.hovered, isFalse);
+      expect(seen.enabled, isFalse);
+
+      await tester.tap(find.byType(SizedBox), warnIfMissed: false);
+      await tester.pump();
+      expect(taps, 0);
+    });
+
+    testWidgets('Enter and Space fire it from the keyboard', (tester) async {
+      var taps = 0;
+
+      await tester.pumpWidget(
+        _skin(
+          Pressable(
+            onTap: () => taps++,
+            builder: (context, states) => const SizedBox(width: 80, height: 30),
+          ),
+        ),
+      );
+
+      // Tab to it, then activate.
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(taps, 1);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pumpAndSettle();
+      expect(taps, 2);
+    });
+
+    testWidgets('a control that goes inert under the pointer goes dark', (
+      tester,
+    ) async {
+      var seen = const MqStates();
+
+      Widget build({required bool enabled}) => _skin(
+        Pressable(
+          enabled: enabled,
+          onTap: () {},
+          builder: (context, states) {
+            seen = states;
+            return const SizedBox(width: 80, height: 30);
+          },
+        ),
+      );
+
+      await tester.pumpWidget(build(enabled: true));
+
+      final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+      await pointer.addPointer(location: Offset.zero);
+      addTearDown(pointer.removePointer);
+      await pointer.moveTo(tester.getCenter(find.byType(SizedBox)));
+      await tester.pumpAndSettle();
+      expect(seen.hovered, isTrue);
+
+      // The pointer has not moved; the button simply stopped being one.
+      await tester.pumpWidget(build(enabled: false));
+      await tester.pumpAndSettle();
+      expect(seen.hovered, isFalse);
+    });
   });
 }

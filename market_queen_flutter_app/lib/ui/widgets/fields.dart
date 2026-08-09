@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
+import 'buttons.dart';
 
 /// The frame every text input sits in: hover and focus move the border, and
 /// only the way back to rest fades.
+///
+/// Focus adds a ring outside the border rather than thickening it. A border
+/// that grows from 1px to 2px on focus moves every character in the field by
+/// half a pixel, and on a field you are typing into that is the one place a
+/// wobble is guaranteed to be noticed.
 class FieldFrame extends StatelessWidget {
   const FieldFrame({
     super.key,
@@ -24,19 +30,47 @@ class FieldFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
     final line = focused
-        ? mq.accent
+        ? mq.primary
         : (hovered && !readOnly)
-            ? mq.borderStrong
-            : mq.border;
+        ? mq.borderStrong
+        : mq.border;
 
     return AnimatedContainer(
-      duration: MqTheme.hoverDuration,
+      duration: focused || hovered ? Duration.zero : MqTheme.hoverDuration,
       decoration: BoxDecoration(
-        color: fill ?? (readOnly ? mq.background : mq.surfaceAlt),
+        color: fill ?? (readOnly ? mq.background : mq.surfaceSecondary),
         borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         border: Border.all(color: line),
+        boxShadow: focused
+            ? [
+                BoxShadow(
+                  color: mq.focusRing.withValues(alpha: 0.22),
+                  spreadRadius: 2,
+                ),
+              ]
+            : null,
       ),
       child: child,
+    );
+  }
+}
+
+/// The caption above a field. One weight, one colour, everywhere.
+class FieldLabel extends StatelessWidget {
+  const FieldLabel(this.text, {super.key});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: TextStyle(
+        color: context.mq.textSecondary,
+        fontSize: MqTheme.fontSmall,
+        fontWeight: FontWeight.w500,
+        letterSpacing: MqTheme.trackSmall,
+      ),
     );
   }
 }
@@ -99,15 +133,8 @@ class _LabeledFieldState extends State<LabeledField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label.isNotEmpty) ...[
-          Text(
-            widget.label,
-            style: TextStyle(
-              color: mq.textDim,
-              fontSize: MqTheme.fontSmall,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 5),
+          FieldLabel(widget.label),
+          const SizedBox(height: 6),
         ],
         MouseRegion(
           onEnter: (_) => setState(() => _hovered = true),
@@ -125,26 +152,36 @@ class _LabeledFieldState extends State<LabeledField> {
                 obscureText: widget.obscure,
                 onChanged: widget.onChanged,
                 onSubmitted: widget.onEditingComplete,
-                cursorColor: mq.accent,
-                style: TextStyle(color: mq.text, fontSize: MqTheme.fontBody),
+                cursorColor: mq.primary,
+                style: TextStyle(
+                  color: widget.readOnly ? mq.textSecondary : mq.textPrimary,
+                  fontSize: MqTheme.fontBody,
+                ),
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 11,
+                    vertical: 9,
+                  ),
                   hintText: widget.placeholder,
-                  hintStyle:
-                      TextStyle(color: mq.textFaint, fontSize: MqTheme.fontBody),
+                  hintStyle: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontBody,
+                  ),
                 ),
               ),
             ),
           ),
         ),
         if (widget.hint.isNotEmpty) ...[
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             widget.hint,
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
         ],
       ],
@@ -202,15 +239,8 @@ class _LabeledAreaState extends State<LabeledArea> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label.isNotEmpty) ...[
-          Text(
-            widget.label,
-            style: TextStyle(
-              color: mq.textDim,
-              fontSize: MqTheme.fontSmall,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 5),
+          FieldLabel(widget.label),
+          const SizedBox(height: 6),
         ],
         MouseRegion(
           onEnter: (_) => setState(() => _hovered = true),
@@ -225,15 +255,20 @@ class _LabeledAreaState extends State<LabeledArea> {
                 focusNode: _focus,
                 maxLines: null,
                 onChanged: widget.onChanged,
-                cursorColor: mq.accent,
-                style: TextStyle(color: mq.text, fontSize: MqTheme.fontBody),
+                cursorColor: mq.primary,
+                style: TextStyle(
+                  color: mq.textPrimary,
+                  fontSize: MqTheme.fontBody,
+                ),
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(8),
+                  contentPadding: const EdgeInsets.all(10),
                   hintText: widget.placeholder,
-                  hintStyle:
-                      TextStyle(color: mq.textFaint, fontSize: MqTheme.fontBody),
+                  hintStyle: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontBody,
+                  ),
                 ),
               ),
             ),
@@ -279,19 +314,12 @@ class LabeledSlider extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: mq.textDim,
-                fontSize: MqTheme.fontSmall,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            FieldLabel(label),
             const Spacer(),
             Text(
               value.toStringAsFixed(decimals),
               style: TextStyle(
-                color: mq.text,
+                color: mq.textPrimary,
                 fontSize: MqTheme.fontSmall,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -301,11 +329,11 @@ class LabeledSlider extends StatelessWidget {
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 4,
-            activeTrackColor: mq.accent,
-            inactiveTrackColor: mq.surfaceHover,
+            activeTrackColor: mq.primary,
+            inactiveTrackColor: mq.surfaceTertiary,
             thumbColor: mq.surface,
             overlayShape: SliderComponentShape.noOverlay,
-            thumbShape: _RingThumb(mq.accent),
+            thumbShape: _RingThumb(mq.primary),
           ),
           child: Slider(
             value: value.clamp(from, to),
@@ -317,7 +345,10 @@ class LabeledSlider extends StatelessWidget {
         if (hint.isNotEmpty)
           Text(
             hint,
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
       ],
     );
@@ -364,8 +395,8 @@ class _RingThumb extends SliderComponentShape {
   }
 }
 
-/// Checkbox in the app's look: hover ring on the box, pointing-hand cursor.
-class StyledCheck extends StatefulWidget {
+/// Checkbox in the app's look: the whole row is the target, not the 16px box.
+class StyledCheck extends StatelessWidget {
   const StyledCheck({
     super.key,
     required this.text,
@@ -378,57 +409,52 @@ class StyledCheck extends StatefulWidget {
   final ValueChanged<bool> onChanged;
 
   @override
-  State<StyledCheck> createState() => _StyledCheckState();
-}
-
-class _StyledCheckState extends State<StyledCheck> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => widget.onChanged(!widget.checked),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: MqTheme.hoverDuration,
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: widget.checked ? mq.accent : mq.surfaceAlt,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: widget.checked
-                      ? mq.accent
-                      : _hovered
-                          ? mq.borderStrong
-                          : mq.border,
-                ),
-              ),
-              child: widget.checked
-                  ? const Icon(Icons.check, size: 12, color: Colors.white)
-                  : null,
-            ),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                widget.text,
-                style: TextStyle(
-                  color: mq.textDim,
-                  fontSize: MqTheme.fontSmall + 1,
-                ),
+    return Pressable(
+      onTap: () => onChanged(!checked),
+      builder: (context, states) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: states.duration,
+            width: 17,
+            height: 17,
+            decoration: BoxDecoration(
+              color: checked
+                  ? (states.pressed
+                        ? mq.primaryActive
+                        : states.hovered
+                        ? mq.primaryHover
+                        : mq.primary)
+                  : states.active
+                  ? mq.surfaceHover
+                  : mq.surfaceSecondary,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(
+                color: checked
+                    ? Colors.transparent
+                    : states.active
+                    ? mq.borderStrong
+                    : mq.border,
               ),
             ),
-          ],
-        ),
+            child: checked
+                ? Icon(Icons.check, size: 12, color: mq.onPrimary)
+                : null,
+          ),
+          const SizedBox(width: 9),
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: states.active ? mq.textPrimary : mq.textSecondary,
+                fontSize: MqTheme.fontLabel,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -453,9 +479,9 @@ class SegmentedControl<T> extends StatelessWidget {
 
     return Container(
       height: 34,
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: mq.surfaceAlt,
+        color: mq.surfaceSecondary,
         borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         border: Border.all(color: mq.border),
       ),
@@ -463,13 +489,10 @@ class SegmentedControl<T> extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final option in options)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: _Segment(
-                label: option.label,
-                selected: option.value == value,
-                onTap: () => onPicked(option.value),
-              ),
+            _Segment(
+              label: option.label,
+              selected: option.value == value,
+              onTap: () => onPicked(option.value),
             ),
         ],
       ),
@@ -477,7 +500,7 @@ class SegmentedControl<T> extends StatelessWidget {
   }
 }
 
-class _Segment extends StatefulWidget {
+class _Segment extends StatelessWidget {
   const _Segment({
     required this.label,
     required this.selected,
@@ -489,43 +512,42 @@ class _Segment extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<_Segment> createState() => _SegmentState();
-}
-
-class _SegmentState extends State<_Segment> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          // Segments touch each other, so hover snaps both ways: sliding across
-          // the pill never lights two.
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: widget.selected
-                ? mq.accent
-                : _hovered
-                    ? mq.surfaceHover
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 2),
-          ),
-          child: Text(
-            widget.label,
-            style: TextStyle(
-              color: widget.selected ? Colors.white : mq.textDim,
-              fontSize: MqTheme.fontSmall + 1,
-              fontWeight: widget.selected ? FontWeight.w600 : FontWeight.normal,
-            ),
+    return Pressable(
+      onTap: onTap,
+      // Segments touch each other, so hover snaps both ways: sliding across
+      // the pill never lights two.
+      snap: true,
+      focusRadius: MqTheme.radiusSmall - 2,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        height: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          // The selected segment is raised, not painted: this control is a
+          // setting, and a pink one would outrank the Generate button.
+          color: selected
+              ? mq.surfaceRaised
+              : states.active
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 2),
+          border: Border.all(color: selected ? mq.border : Colors.transparent),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected
+                ? mq.textPrimary
+                : states.active
+                ? mq.textPrimary
+                : mq.textSecondary,
+            fontSize: MqTheme.fontLabel,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            letterSpacing: MqTheme.trackSmall,
           ),
         ),
       ),
@@ -563,7 +585,6 @@ class StyledCombo<T> extends StatefulWidget {
 }
 
 class _StyledComboState<T> extends State<StyledCombo<T>> {
-  bool _hovered = false;
   bool _open = false;
 
   @override
@@ -578,28 +599,28 @@ class _StyledComboState<T> extends State<StyledCombo<T>> {
       }
     }
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: _showMenu,
-        child: AnimatedContainer(
-          duration: MqTheme.hoverDuration,
+    return Pressable(
+      onTap: _showMenu,
+      builder: (context, states) {
+        // An open menu outranks the pointer: the combo stays lit underneath it
+        // even though the barrier has taken the hover away.
+        final line = _open
+            ? mq.primary
+            : states.active
+            ? mq.borderStrong
+            : mq.border;
+
+        return AnimatedContainer(
+          duration: _open ? Duration.zero : states.duration,
           width: widget.width,
           height: MqTheme.fieldHeight,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: _open ? mq.surfaceHover : mq.surfaceAlt,
+            color: _open || states.active
+                ? mq.surfaceHover
+                : mq.surfaceSecondary,
             borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(
-              color: _open
-                  ? mq.accent
-                  : _hovered
-                      ? mq.borderStrong
-                      : mq.border,
-            ),
+            border: Border.all(color: line),
           ),
           child: Row(
             children: [
@@ -607,42 +628,44 @@ class _StyledComboState<T> extends State<StyledCombo<T>> {
                 child: Text(
                   current,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: mq.text, fontSize: MqTheme.fontBody),
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontSize: MqTheme.fontBody,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
               Icon(
                 Icons.keyboard_arrow_down,
                 size: 18,
-                color: _hovered || _open ? mq.text : mq.textDim,
+                color: states.active || _open
+                    ? mq.textPrimary
+                    : mq.textTertiary,
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Future<void> _showMenu() async {
     final mq = context.mq;
     final box = context.findRenderObject() as RenderBox?;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
     if (box == null || overlay == null) return;
 
-    final topLeft =
-        box.localToGlobal(Offset(0, box.size.height + 4), ancestor: overlay);
+    final topLeft = box.localToGlobal(
+      Offset(0, box.size.height + 4),
+      ancestor: overlay,
+    );
 
     setState(() => _open = true);
 
     final picked = await showMenu<T>(
       context: context,
-      color: mq.surface,
-      surfaceTintColor: Colors.transparent,
       constraints: BoxConstraints(minWidth: box.size.width, maxHeight: 320),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-        side: BorderSide(color: mq.borderStrong),
-      ),
       position: RelativeRect.fromLTRB(
         topLeft.dx,
         topLeft.dy,
@@ -658,11 +681,13 @@ class _StyledComboState<T> extends State<StyledCombo<T>> {
               option.label,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: option.value == widget.value ? mq.accent : mq.text,
+                color: option.value == widget.value
+                    ? mq.primaryText
+                    : mq.textPrimary,
                 fontSize: MqTheme.fontBody,
                 fontWeight: option.value == widget.value
                     ? FontWeight.w600
-                    : FontWeight.normal,
+                    : FontWeight.w400,
               ),
             ),
           ),
@@ -752,7 +777,7 @@ class _PickerWithCustomState extends State<PickerWithCustom> {
           },
         ),
         if (_isCustom) ...[
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           LabeledField(
             controller: _custom,
             placeholder: widget.customPlaceholder,

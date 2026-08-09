@@ -53,24 +53,17 @@ class _StepProductState extends State<StepProduct> {
 
   @override
   Widget build(BuildContext context) {
-    final mq = context.mq;
     final project = widget.app.project;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          tr('What are you selling?'),
-          style: TextStyle(
-            color: mq.text,
-            fontSize: MqTheme.fontHeading,
-            fontWeight: FontWeight.w600,
+        PageHeader(
+          title: tr('What are you selling?'),
+          subtitle: tr(
+            'Everything the actor says and everything on screen is '
+            'built from this.',
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          tr('Everything the actor says and everything on screen is built from this.'),
-          style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontBody),
         ),
         const SizedBox(height: MqTheme.gapLarge),
 
@@ -85,8 +78,10 @@ class _StepProductState extends State<StepProduct> {
             LabeledArea(
               controller: _description,
               label: tr('What it is'),
-              placeholder: tr('A vitamin C serum that clears dull skin in two weeks. '
-                  'Fragrance free, 30 ml.'),
+              placeholder: tr(
+                'A vitamin C serum that clears dull skin in two weeks. '
+                'Fragrance free, 30 ml.',
+              ),
               onChanged: (text) => project.setProductField('description', text),
             ),
             LabeledField(
@@ -101,13 +96,15 @@ class _StepProductState extends State<StepProduct> {
 
         SectionCard(
           title: tr('Reference pictures'),
-          subtitle:
-              tr('A picture of the real product keeps it recognisable in every shot.'),
+          subtitle: tr(
+            'A picture of the real product keeps it recognisable in every shot.',
+          ),
           children: [
             ImageDropGrid(
               images: project.imagesFor('product'),
               onFilesAdded: (paths) => project.addImages('product', paths),
-              onRemoveRequested: (index) => project.removeImage('product', index),
+              onRemoveRequested: (index) =>
+                  project.removeImage('product', index),
               onPrimaryRequested: (index) =>
                   project.setPrimaryImage('product', index),
             ),

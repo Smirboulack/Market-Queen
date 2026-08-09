@@ -69,9 +69,9 @@ class _ImageDropGridState extends State<ImageDropGrid> {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: _dragging ? mq.accentSoft : mq.surfaceAlt,
+          color: _dragging ? mq.primarySubtle : mq.surfaceSecondary,
           borderRadius: BorderRadius.circular(MqTheme.radius),
-          border: Border.all(color: _dragging ? mq.accent : mq.border),
+          border: Border.all(color: _dragging ? mq.primary : mq.border),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,22 +81,24 @@ class _ImageDropGridState extends State<ImageDropGrid> {
                 child: Column(
                   children: [
                     const SizedBox(height: 10),
-                    MqIcon('image-add-line', size: 30, color: mq.textFaint),
+                    MqIcon('image-add-line', size: 30, color: mq.textTertiary),
                     const SizedBox(height: 4),
                     Text(
                       tr('Drop your product pictures here'),
                       style: TextStyle(
-                        color: mq.text,
+                        color: mq.textPrimary,
                         fontSize: MqTheme.fontBody,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      tr('As many as you like. Packshot, in use, close-up on the label.'),
+                      tr(
+                        'As many as you like. Packshot, in use, close-up on the label.',
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: mq.textDim,
+                        color: mq.textSecondary,
                         fontSize: MqTheme.fontSmall,
                       ),
                     ),
@@ -130,12 +132,13 @@ class _ImageDropGridState extends State<ImageDropGrid> {
                     empty
                         ? ''
                         : widget.images.length == 1
-                            ? tr('1 picture. It is the reference.')
-                            //: %1 is a number of pictures
-                            : tr('%1 pictures. The starred one is the main reference.')
-                                .arg(widget.images.length),
+                        ? tr('1 picture. It is the reference.')
+                        //: %1 is a number of pictures
+                        : tr(
+                            '%1 pictures. The starred one is the main reference.',
+                          ).arg(widget.images.length),
                     style: TextStyle(
-                      color: mq.textFaint,
+                      color: mq.textTertiary,
                       fontSize: MqTheme.fontSmall,
                     ),
                   ),
@@ -178,10 +181,15 @@ class _TileState extends State<_Tile> {
     final mq = context.mq;
     final borderWidth = widget.primary ? 2.0 : 1.0;
 
+    // The badges fade rather than appear: on a grid, a pointer crossing four
+    // tiles used to fire eight of them like a string of lights.
+    final fade = _hovered ? Duration.zero : MqTheme.hoverDuration;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: Container(
+      child: AnimatedContainer(
+        duration: fade,
         width: widget.size,
         height: widget.size,
         decoration: BoxDecoration(
@@ -189,10 +197,10 @@ class _TileState extends State<_Tile> {
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
           border: Border.all(
             color: widget.primary
-                ? mq.accent
+                ? mq.primary
                 : _hovered
-                    ? mq.borderStrong
-                    : mq.border,
+                ? mq.borderStrong
+                : mq.border,
             width: borderWidth,
           ),
         ),
@@ -205,26 +213,38 @@ class _TileState extends State<_Tile> {
             ),
             // Primary marker. Always lit on the first tile, offered on the
             // others only while the pointer is on them.
-            if (widget.primary || _hovered)
-              Positioned(
-                left: 4,
-                top: 4,
-                child: _Badge(
-                  icon: widget.primary ? 'star-fill' : 'star-line',
-                  filled: widget.primary,
-                  onTap: widget.primary ? null : widget.onPrimary,
+            Positioned(
+              left: 4,
+              top: 4,
+              child: IgnorePointer(
+                ignoring: !widget.primary && !_hovered,
+                child: AnimatedOpacity(
+                  opacity: widget.primary || _hovered ? 1 : 0,
+                  duration: fade,
+                  child: _Badge(
+                    icon: widget.primary ? 'star-fill' : 'star-line',
+                    filled: widget.primary,
+                    onTap: widget.primary ? null : widget.onPrimary,
+                  ),
                 ),
               ),
-            if (_hovered)
-              Positioned(
-                right: 4,
-                top: 4,
-                child: _Badge(
-                  icon: 'close-line',
-                  danger: true,
-                  onTap: widget.onRemove,
+            ),
+            Positioned(
+              right: 4,
+              top: 4,
+              child: IgnorePointer(
+                ignoring: !_hovered,
+                child: AnimatedOpacity(
+                  opacity: _hovered ? 1 : 0,
+                  duration: fade,
+                  child: _Badge(
+                    icon: 'close-line',
+                    danger: true,
+                    onTap: widget.onRemove,
+                  ),
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -252,25 +272,44 @@ class _Badge extends StatelessWidget {
     return Pressable(
       enabled: onTap != null,
       onTap: onTap,
-      builder: (context, hovered, pressed) => Container(
-        width: 20,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: filled ? mq.accent : mq.background.withValues(alpha: 0.85),
-          shape: BoxShape.circle,
-          border: Border.all(color: filled ? mq.accent : mq.borderStrong),
-        ),
-        child: MqIcon(
-          icon,
-          size: 12,
-          color: filled
-              ? Colors.white
-              : danger
-                  ? mq.danger
-                  : mq.text,
-        ),
-      ),
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) {
+        final Color fill;
+        if (filled) {
+          fill = mq.primary;
+        } else if (states.active) {
+          fill = danger ? mq.errorSubtle : mq.surfaceActive;
+        } else {
+          fill = mq.surface.withValues(alpha: 0.88);
+        }
+
+        return AnimatedContainer(
+          duration: states.duration,
+          width: 20,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: fill,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: filled
+                  ? mq.primary
+                  : states.active && danger
+                  ? mq.error
+                  : mq.borderStrong,
+            ),
+          ),
+          child: MqIcon(
+            icon,
+            size: 12,
+            color: filled
+                ? mq.onPrimary
+                : danger
+                ? mq.error
+                : mq.textPrimary,
+          ),
+        );
+      },
     );
   }
 }
@@ -287,16 +326,27 @@ class _AddTile extends StatelessWidget {
 
     return Pressable(
       onTap: onTap,
-      builder: (context, hovered, pressed) => Container(
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
         width: size,
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: hovered ? mq.surfaceHover : Colors.transparent,
+          color: states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          border: Border.all(color: hovered ? mq.borderStrong : mq.border),
+          border: Border.all(
+            color: states.active ? mq.borderStrong : mq.border,
+          ),
         ),
-        child: MqIcon('add-line', size: 20, color: mq.textFaint),
+        child: MqIcon(
+          'add-line',
+          size: 20,
+          color: states.active ? mq.textSecondary : mq.textTertiary,
+        ),
       ),
     );
   }

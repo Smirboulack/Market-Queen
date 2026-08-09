@@ -36,7 +36,7 @@ class EstimateCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: mq.surfaceAlt,
+        color: mq.surfaceSecondary,
         borderRadius: BorderRadius.circular(MqTheme.radius),
         border: Border.all(color: mq.border),
       ),
@@ -48,7 +48,7 @@ class EstimateCard extends StatelessWidget {
               Text(
                 tr('Estimated cost'),
                 style: TextStyle(
-                  color: mq.textDim,
+                  color: mq.textSecondary,
                   fontSize: MqTheme.fontSmall,
                   fontWeight: FontWeight.w600,
                 ),
@@ -59,7 +59,9 @@ class EstimateCard extends StatelessWidget {
                   //: %1 is a date like "8 Aug 2026"
                   tr('prices %1').arg(_checkedOn),
                   style: TextStyle(
-                      color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
                 ),
             ],
           ),
@@ -70,19 +72,23 @@ class EstimateCard extends StatelessWidget {
                 Text(
                   Format.stepLabel(line.step),
                   style: TextStyle(
-                      color: mq.textDim, fontSize: MqTheme.fontSmall),
+                    color: mq.textSecondary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
                 ),
                 const SizedBox(width: 6),
                 Text(
                   Format.unitsLabel(line.units, line.unit),
                   style: TextStyle(
-                      color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
                 ),
                 const Spacer(),
                 Text(
                   line.known ? Format.estimated(line.amount) : tr('?'),
                   style: TextStyle(
-                    color: line.known ? mq.text : mq.textFaint,
+                    color: line.known ? mq.textPrimary : mq.textTertiary,
                     fontSize: MqTheme.fontSmall,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
@@ -91,14 +97,14 @@ class EstimateCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
           ],
-          Container(height: 1, color: mq.border),
+          Container(height: 1, color: mq.divider),
           const SizedBox(height: 6),
           Row(
             children: [
               Text(
                 tr('Total'),
                 style: TextStyle(
-                  color: mq.text,
+                  color: mq.textPrimary,
                   fontSize: MqTheme.fontSmall,
                   fontWeight: FontWeight.w600,
                 ),
@@ -107,7 +113,7 @@ class EstimateCard extends StatelessWidget {
               Text(
                 Format.estimated(breakdown.total),
                 style: TextStyle(
-                  color: mq.text,
+                  color: mq.textPrimary,
                   fontSize: MqTheme.fontBody,
                   fontWeight: FontWeight.w600,
                   fontFeatures: const [FontFeature.tabularFigures()],
@@ -121,16 +127,22 @@ class EstimateCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               //: %1 is a count of models
-              tr('+ %1 model(s) with no published price')
-                  .arg(breakdown.unknownCount),
-              style:
-                  TextStyle(color: mq.warning, fontSize: MqTheme.fontSmall),
+              tr(
+                '+ %1 model(s) with no published price',
+              ).arg(breakdown.unknownCount),
+              style: TextStyle(
+                color: mq.warningText,
+                fontSize: MqTheme.fontSmall,
+              ),
             ),
           ],
           const SizedBox(height: 6),
           Text(
             tr('An estimate, not a bill. Each provider charges you directly.'),
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
         ],
       ),
@@ -164,9 +176,9 @@ class StepList extends StatelessWidget {
                   step.label,
                   style: TextStyle(
                     color: switch (step.state) {
-                      StepPhase.running || StepPhase.done => mq.text,
-                      StepPhase.failed => mq.danger,
-                      _ => mq.textFaint,
+                      StepPhase.running || StepPhase.done => mq.textPrimary,
+                      StepPhase.failed => mq.error,
+                      _ => mq.textTertiary,
                     },
                     fontSize: MqTheme.fontBody,
                     fontWeight: step.state == StepPhase.running
@@ -182,7 +194,9 @@ class StepList extends StatelessWidget {
                     textAlign: TextAlign.right,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontSmall,
+                    ),
                   ),
                 ),
               ],
@@ -239,8 +253,8 @@ class _StateDotState extends State<_StateDot>
 
     final fill = switch (widget.state) {
       StepPhase.done => mq.success,
-      StepPhase.failed => mq.danger,
-      StepPhase.running => mq.accent,
+      StepPhase.failed => mq.error,
+      StepPhase.running => mq.primary,
       _ => Colors.transparent,
     };
 
@@ -263,8 +277,7 @@ class _StateDotState extends State<_StateDot>
             StepPhase.skipped => mq.borderStrong,
             StepPhase.done ||
             StepPhase.failed ||
-            StepPhase.running =>
-              Colors.transparent,
+            StepPhase.running => Colors.transparent,
             _ => mq.border,
           },
         ),
@@ -272,9 +285,16 @@ class _StateDotState extends State<_StateDot>
       child: Text(
         glyph,
         style: TextStyle(
-          color: widget.state == StepPhase.skipped ? mq.textFaint : Colors.white,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
+          color: switch (widget.state) {
+            StepPhase.skipped => mq.textTertiary,
+            StepPhase.running => mq.onPrimary,
+            // Inverse rather than white: in the dark skin these fills are the
+            // light ones, and a white tick on them is a smudge.
+            _ => mq.textInverse,
+          },
+          fontSize: MqTheme.fontMicro,
+          fontWeight: FontWeight.w600,
+          height: 1,
         ),
       ),
     );
@@ -355,7 +375,9 @@ class _LogPanelState extends State<LogPanel> {
                   child: Text(
                     tr('Nothing yet.'),
                     style: TextStyle(
-                        color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontSmall,
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -371,9 +393,11 @@ class _LogPanelState extends State<LogPanel> {
                           Text(
                             entry.clock,
                             style: TextStyle(
-                              color: mq.textFaint,
+                              color: mq.textTertiary,
                               fontSize: MqTheme.fontSmall,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                              fontFeatures: const [
+                                FontFeature.tabularFigures(),
+                              ],
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -411,7 +435,7 @@ class ProgressBar extends StatelessWidget {
       builder: (context, constraints) => Container(
         height: 4,
         decoration: BoxDecoration(
-          color: mq.surfaceAlt,
+          color: mq.surfaceTertiary,
           borderRadius: BorderRadius.circular(2),
         ),
         child: Align(
@@ -421,7 +445,7 @@ class ProgressBar extends StatelessWidget {
             curve: Curves.easeOutCubic,
             width: constraints.maxWidth * value.clamp(0.0, 1.0),
             decoration: BoxDecoration(
-              color: mq.accent,
+              color: mq.primary,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -430,4 +454,3 @@ class ProgressBar extends StatelessWidget {
     );
   }
 }
-

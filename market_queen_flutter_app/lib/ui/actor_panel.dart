@@ -144,7 +144,8 @@ class _ActorPanelState extends State<ActorPanel> {
   Future<void> _pickVoice() async {
     if (_voices.isEmpty) {
       await widget.app.loadVoices(
-          widget.app.settings.prefString('voiceProvider', 'elevenlabs'));
+        widget.app.settings.prefString('voiceProvider', 'elevenlabs'),
+      );
       if (!mounted) return;
     }
     if (_voices.isEmpty) return;
@@ -152,13 +153,7 @@ class _ActorPanelState extends State<ActorPanel> {
     final mq = context.mq;
     final picked = await showMenu<String>(
       context: context,
-      color: mq.surface,
-      surfaceTintColor: Colors.transparent,
       constraints: const BoxConstraints(minWidth: 240, maxHeight: 360),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-        side: BorderSide(color: mq.border),
-      ),
       position: RelativeRect.fromLTRB(
         MediaQuery.of(context).size.width - 420,
         220,
@@ -176,7 +171,9 @@ class _ActorPanelState extends State<ActorPanel> {
                   : '${voice.label} — ${voice.description}',
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: voice.id == _setting('voiceId') ? mq.accent : mq.text,
+                color: voice.id == _setting('voiceId')
+                    ? mq.primary
+                    : mq.textPrimary,
                 fontSize: MqTheme.fontSmall,
               ),
             ),
@@ -208,7 +205,12 @@ class _ActorPanelState extends State<ActorPanel> {
       child: ListenableBuilder(
         // One rebuild source for the whole drawer: the project owns the actor,
         // casting owns the candidates, the booth owns the audition.
-        listenable: Listenable.merge([project, app.casting, app.voiceBooth, app.actors]),
+        listenable: Listenable.merge([
+          project,
+          app.casting,
+          app.voiceBooth,
+          app.actors,
+        ]),
         builder: (context, _) {
           final portrait = '${project.actor['portraitPath'] ?? ''}';
           final references = project.imagesFor('actor');
@@ -221,7 +223,7 @@ class _ActorPanelState extends State<ActorPanel> {
                   Text(
                     tr('Actor'),
                     style: TextStyle(
-                      color: mq.text,
+                      color: mq.textPrimary,
                       fontSize: MqTheme.fontTitle,
                       fontWeight: FontWeight.w600,
                     ),
@@ -248,7 +250,9 @@ class _ActorPanelState extends State<ActorPanel> {
                         Text(
                           app.casting.error,
                           style: TextStyle(
-                              color: mq.danger, fontSize: MqTheme.fontSmall),
+                            color: mq.error,
+                            fontSize: MqTheme.fontSmall,
+                          ),
                         ),
                       ],
                       const SizedBox(height: MqTheme.gap),
@@ -256,8 +260,10 @@ class _ActorPanelState extends State<ActorPanel> {
                       const SizedBox(height: MqTheme.gap),
                       PromptBar(
                         controller: _decor,
-                        placeholder: tr('Where they are. A small bathroom, '
-                            'towels on the floor…'),
+                        placeholder: tr(
+                          'Where they are. A small bathroom, '
+                          'towels on the floor…',
+                        ),
                         minHeight: 40,
                         submitIcon: 'check-line',
                         onChanged: (text) =>
@@ -280,7 +286,9 @@ class _ActorPanelState extends State<ActorPanel> {
                         Text(
                           app.voiceBooth.error,
                           style: TextStyle(
-                              color: mq.danger, fontSize: MqTheme.fontSmall),
+                            color: mq.error,
+                            fontSize: MqTheme.fontSmall,
+                          ),
                         ),
                       ],
                       const SizedBox(height: 4),
@@ -299,7 +307,7 @@ class _ActorPanelState extends State<ActorPanel> {
                             : '${project.actor['name']}',
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: mq.textDim,
+                          color: mq.textSecondary,
                           fontSize: MqTheme.fontSmall,
                         ),
                       ),
@@ -316,7 +324,9 @@ class _ActorPanelState extends State<ActorPanel> {
                         project.setActorField('name', kept['name']);
                         if (kept['portraitPath'] != null) {
                           project.setActorField(
-                              'portraitPath', kept['portraitPath']);
+                            'portraitPath',
+                            kept['portraitPath'],
+                          );
                         }
                       },
                     ),
@@ -337,7 +347,7 @@ class _ActorPanelState extends State<ActorPanel> {
         Text(
           tr('Your actors'),
           style: TextStyle(
-            color: mq.textFaint,
+            color: mq.textTertiary,
             fontSize: MqTheme.fontSmall,
             fontWeight: FontWeight.w600,
           ),
@@ -448,32 +458,33 @@ class _ActorPanelState extends State<ActorPanel> {
           child: Text(
             casting.running
                 //: %1 and %2 are counts of portraits
-                ? tr('Casting... %1 of %2')
-                    .arg(casting.received)
-                    .arg(casting.requested)
+                ? tr(
+                    'Casting... %1 of %2',
+                  ).arg(casting.received).arg(casting.requested)
                 : _castCost.known
-                    //: %1 is a price
-                    ? tr('Four faces for %1')
-                        .arg(Format.estimated(_castCost.amount))
-                    : tr('price unknown'),
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                //: %1 is a price
+                ? tr(
+                    'Four faces for %1',
+                  ).arg(Format.estimated(_castCost.amount))
+                : tr('price unknown'),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
         ),
         if (casting.running)
-          Pressable(
-            onTap: casting.cancel,
-            builder: (context, hovered, pressed) => Text(
-              tr('Cancel'),
-              style: TextStyle(color: mq.danger, fontSize: MqTheme.fontSmall),
-            ),
+          MqLink(
+            text: tr('Cancel'),
+            destructive: true,
+            onPressed: casting.cancel,
           ),
         if (references.isNotEmpty && portrait != references.first)
-          Pressable(
-            onTap: () => widget.app.project
-                .setActorField('portraitPath', references.first),
-            builder: (context, hovered, pressed) => Text(
-              tr('Use my photo'),
-              style: TextStyle(color: mq.accent, fontSize: MqTheme.fontSmall),
+          MqLink(
+            text: tr('Use my photo'),
+            onPressed: () => widget.app.project.setActorField(
+              'portraitPath',
+              references.first,
             ),
           ),
       ],
@@ -492,8 +503,10 @@ class _ActorPanelState extends State<ActorPanel> {
           _Face(
             path: candidate.path,
             chosen: portrait == candidate.path,
-            onTap: () => widget.app.project
-                .setActorField('portraitPath', candidate.path),
+            onTap: () => widget.app.project.setActorField(
+              'portraitPath',
+              candidate.path,
+            ),
           ),
         // The kept portrait stays visible after a batch is replaced.
         if (portrait.isNotEmpty && candidates.isEmpty)
@@ -509,8 +522,8 @@ class _ActorPanelState extends State<ActorPanel> {
       minHeight: 40,
       busy: widget.app.voiceBooth.auditioning,
       submitIcon: 'play-fill',
-      onChanged: (text) => setState(
-          () => _auditionCost = widget.app.voiceBooth.estimate(text)),
+      onChanged: (text) =>
+          setState(() => _auditionCost = widget.app.voiceBooth.estimate(text)),
       onSubmitted: (text) =>
           widget.app.voiceBooth.audition(widget.app.project.actor, text),
       chips: [
@@ -525,7 +538,8 @@ class _ActorPanelState extends State<ActorPanel> {
           label: tr('Load voices'),
           icon: 'refresh-line',
           onPressed: () => widget.app.loadVoices(
-              widget.app.settings.prefString('voiceProvider', 'elevenlabs')),
+            widget.app.settings.prefString('voiceProvider', 'elevenlabs'),
+          ),
         ),
       ],
     );
@@ -548,7 +562,8 @@ class _ActorPanelState extends State<ActorPanel> {
         for (final preset in presets)
           MqChip(
             label: tr(preset.label),
-            active: (_number('voiceStability', 0.45) - preset.s).abs() < 0.01 &&
+            active:
+                (_number('voiceStability', 0.45) - preset.s).abs() < 0.01 &&
                 (_number('voiceStyle', 0.35) - preset.y).abs() < 0.01,
             onPressed: () {
               widget.app.project.setActorField('voiceStability', preset.s);
@@ -565,15 +580,12 @@ class _ActorPanelState extends State<ActorPanel> {
       children: [
         Text(
           _auditionCost.known ? Format.estimated(_auditionCost.amount) : '',
-          style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+          style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
         ),
         const Spacer(),
-        Pressable(
-          onTap: () => setState(() => _fineTuning = !_fineTuning),
-          builder: (context, hovered, pressed) => Text(
-            _fineTuning ? tr('Hide the sliders') : tr('Fine-tune'),
-            style: TextStyle(color: mq.accent, fontSize: MqTheme.fontSmall),
-          ),
+        MqLink(
+          text: _fineTuning ? tr('Hide the sliders') : tr('Fine-tune'),
+          onPressed: () => setState(() => _fineTuning = !_fineTuning),
         ),
       ],
     );
@@ -611,7 +623,7 @@ class _ActorPanelState extends State<ActorPanel> {
   }
 }
 
-class _SavedActor extends StatefulWidget {
+class _SavedActor extends StatelessWidget {
   const _SavedActor({
     required this.path,
     required this.current,
@@ -625,65 +637,60 @@ class _SavedActor extends StatefulWidget {
   final VoidCallback onRemove;
 
   @override
-  State<_SavedActor> createState() => _SavedActorState();
-}
-
-class _SavedActorState extends State<_SavedActor> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          width: 56,
-          height: 76,
-          decoration: BoxDecoration(
-            color: mq.background,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(
-              color: widget.current
-                  ? mq.accent
-                  : _hovered
-                      ? mq.borderStrong
-                      : mq.border,
-              width: widget.current ? 2 : 1,
-            ),
+    return Pressable(
+      onTap: onTap,
+      // A strip of thumbnails: sweeping it must not leave a wake.
+      snap: true,
+      builder: (context, states) => Container(
+        width: 56,
+        height: 76,
+        decoration: BoxDecoration(
+          color: mq.background,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          border: Border.all(
+            color: current
+                ? mq.primary
+                : states.active
+                ? mq.borderStrong
+                : mq.border,
+            width: current ? 2 : 1,
           ),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
-                child: LocalImage(widget.path),
-              ),
-              if (_hovered)
-                Positioned(
-                  right: 1,
-                  top: 1,
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
+              child: LocalImage(path),
+            ),
+            Positioned(
+              right: 1,
+              top: 1,
+              child: IgnorePointer(
+                ignoring: !states.active,
+                child: AnimatedOpacity(
+                  opacity: states.active ? 1 : 0,
+                  duration: states.duration,
                   child: MqIconButton(
                     icon: 'close-line',
                     destructive: true,
                     size: 20,
-                    onPressed: widget.onRemove,
+                    onPressed: onRemove,
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _Face extends StatefulWidget {
+class _Face extends StatelessWidget {
   const _Face({required this.path, required this.chosen, required this.onTap});
 
   final String path;
@@ -691,44 +698,30 @@ class _Face extends StatefulWidget {
   final VoidCallback? onTap;
 
   @override
-  State<_Face> createState() => _FaceState();
-}
-
-class _FaceState extends State<_Face> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: widget.onTap == null
-          ? MouseCursor.defer
-          : SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.onTap,
-        child: Container(
-          width: 84,
-          height: 112,
-          decoration: BoxDecoration(
-            color: mq.background,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(
-              color: widget.chosen
-                  ? mq.accent
-                  : _hovered
-                      ? mq.borderStrong
-                      : mq.border,
-              width: widget.chosen ? 2 : 1,
-            ),
+    return Pressable(
+      onTap: onTap,
+      snap: true,
+      builder: (context, states) => Container(
+        width: 84,
+        height: 112,
+        decoration: BoxDecoration(
+          color: mq.background,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          border: Border.all(
+            color: chosen
+                ? mq.primary
+                : states.active
+                ? mq.borderStrong
+                : mq.border,
+            width: chosen ? 2 : 1,
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
-            child: LocalImage(widget.path),
-          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
+          child: LocalImage(path),
         ),
       ),
     );

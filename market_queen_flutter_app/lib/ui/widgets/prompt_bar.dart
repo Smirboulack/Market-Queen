@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../icons.dart';
 import '../theme.dart';
+import 'buttons.dart';
 
 /// The one input shape this app uses now: a field that grows, a row of chips
 /// under it, and a send button.
@@ -98,18 +99,30 @@ class _PromptBarState extends State<PromptBar>
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: AnimatedContainer(
-        duration: MqTheme.hoverDuration,
+        duration: _focus.hasFocus || _hovered
+            ? Duration.zero
+            : MqTheme.hoverDuration,
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: mq.surfaceAlt,
+          color: mq.surfaceSecondary,
           borderRadius: BorderRadius.circular(MqTheme.radius),
           border: Border.all(
             color: _focus.hasFocus
-                ? mq.accent
+                ? mq.primary
                 : _hovered
-                    ? mq.borderStrong
-                    : mq.border,
+                ? mq.borderStrong
+                : mq.border,
           ),
+          // The bar is the thing you are addressing; when the caret is in it,
+          // it should be unmistakably the live object on the page.
+          boxShadow: _focus.hasFocus
+              ? [
+                  BoxShadow(
+                    color: mq.focusRing.withValues(alpha: 0.22),
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +138,8 @@ class _PromptBarState extends State<PromptBar>
               child: Shortcuts(
                 shortcuts: const {
                   SingleActivator(LogicalKeyboardKey.enter): _SubmitIntent(),
-                  SingleActivator(LogicalKeyboardKey.numpadEnter): _SubmitIntent(),
+                  SingleActivator(LogicalKeyboardKey.numpadEnter):
+                      _SubmitIntent(),
                 },
                 child: Actions(
                   actions: {
@@ -141,15 +155,18 @@ class _PromptBarState extends State<PromptBar>
                     focusNode: _focus,
                     maxLines: null,
                     onChanged: widget.onChanged,
-                    cursorColor: mq.accent,
-                    style: TextStyle(color: mq.text, fontSize: MqTheme.fontBody),
+                    cursorColor: mq.primary,
+                    style: TextStyle(
+                      color: mq.textPrimary,
+                      fontSize: MqTheme.fontBody,
+                    ),
                     decoration: InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                       hintText: widget.placeholder,
                       hintStyle: TextStyle(
-                        color: mq.textFaint,
+                        color: mq.textTertiary,
                         fontSize: MqTheme.fontBody,
                       ),
                     ),
@@ -188,7 +205,7 @@ class _SubmitIntent extends Intent {
   const _SubmitIntent();
 }
 
-class _SendButton extends StatefulWidget {
+class _SendButton extends StatelessWidget {
   const _SendButton({
     required this.enabled,
     required this.busy,
@@ -204,43 +221,39 @@ class _SendButton extends StatefulWidget {
   final VoidCallback onPressed;
 
   @override
-  State<_SendButton> createState() => _SendButtonState();
-}
-
-class _SendButtonState extends State<_SendButton> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      cursor: widget.enabled ? SystemMouseCursors.click : MouseCursor.defer,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.enabled ? widget.onPressed : null,
-        child: Opacity(
-          opacity: widget.enabled ? 1.0 : 0.35,
-          child: Container(
-            width: 32,
-            height: 32,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _hovered && widget.enabled ? mq.accentHover : mq.accent,
-              shape: BoxShape.circle,
-            ),
-            child: widget.busy
-                ? RotationTransition(
-                    turns: widget.spinner,
-                    child: const MqIcon('loader-4-line',
-                        size: 16, color: Colors.white),
-                  )
-                : MqIcon(widget.icon, size: 16, color: Colors.white),
-          ),
-        ),
-      ),
+    return Pressable(
+      enabled: enabled,
+      onTap: onPressed,
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) {
+        // Empty bar, nothing to send: the button reads as part of the frame
+        // rather than a dimmed pink disc.
+        final fill = !states.enabled
+            ? mq.surfaceTertiary
+            : states.pressed
+            ? mq.primaryActive
+            : states.hovered
+            ? mq.primaryHover
+            : mq.primary;
+        final ink = states.enabled ? mq.onPrimary : mq.textDisabled;
+
+        return AnimatedContainer(
+          duration: states.duration,
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(color: fill, shape: BoxShape.circle),
+          child: busy
+              ? RotationTransition(
+                  turns: spinner,
+                  child: MqIcon('loader-4-line', size: 16, color: ink),
+                )
+              : MqIcon(icon, size: 16, color: ink),
+        );
+      },
     );
   }
 }

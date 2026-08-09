@@ -23,9 +23,8 @@ class RecapPanel extends StatelessWidget {
     final project = app.project;
     final states = project.stepStates;
 
-    VoidCallback? jump(int step) => states[step].reachable
-        ? () => project.currentStep = step
-        : null;
+    VoidCallback? jump(int step) =>
+        states[step].reachable ? () => project.currentStep = step : null;
 
     return Container(
       width: 320,
@@ -37,15 +36,7 @@ class RecapPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            tr('YOUR AD'),
-            style: TextStyle(
-              color: mq.textFaint,
-              fontSize: MqTheme.fontSmall,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
-            ),
-          ),
+          Overline(tr('YOUR AD')),
           const SizedBox(height: MqTheme.gap),
           Expanded(
             child: SingleChildScrollView(
@@ -62,16 +53,20 @@ class RecapPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: MqTheme.gap),
-          Container(height: 1, color: mq.border),
+          Container(height: 1, color: mq.divider),
           const SizedBox(height: MqTheme.gap),
           ListenableBuilder(
             listenable: app.pipeline,
             builder: (context, _) {
               if (!project.complete) {
                 return Text(
-                  tr('The estimate appears once the three steps are filled in.'),
+                  tr(
+                    'The estimate appears once the three steps are filled in.',
+                  ),
                   style: TextStyle(
-                      color: mq.textFaint, fontSize: MqTheme.fontSmall),
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
                 );
               }
               if (app.pipeline.running || app.pipeline.outputFile.isNotEmpty) {
@@ -100,7 +95,7 @@ class RecapPanel extends StatelessWidget {
         Text(
           '${project.product['name'] ?? ''}',
           style: TextStyle(
-            color: mq.text,
+            color: mq.textPrimary,
             fontSize: MqTheme.fontBody,
             fontWeight: FontWeight.w600,
           ),
@@ -111,7 +106,10 @@ class RecapPanel extends StatelessWidget {
             audience,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textSecondary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
         ],
         // Reference images, as thumbnails: the point of collecting several is
@@ -127,12 +125,12 @@ class RecapPanel extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: mq.surfaceAlt,
+                    color: mq.surfaceSecondary,
                     borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
                     // The primary reference is outlined here too, so the two
                     // views never disagree about which picture the models get.
                     border: Border.all(
-                      color: i == 0 ? mq.accent : mq.border,
+                      color: i == 0 ? mq.primary : mq.border,
                       width: i == 0 ? 2 : 1,
                     ),
                   ),
@@ -167,7 +165,7 @@ class RecapPanel extends StatelessWidget {
               width: 48,
               height: 64,
               decoration: BoxDecoration(
-                color: mq.surfaceAlt,
+                color: mq.surfaceSecondary,
                 borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
                 border: Border.all(color: mq.border),
               ),
@@ -183,7 +181,7 @@ class RecapPanel extends StatelessWidget {
                     name.isEmpty ? tr('Not saved') : name,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: mq.text,
+                      color: mq.textPrimary,
                       fontSize: MqTheme.fontSmall,
                       fontWeight: FontWeight.w600,
                     ),
@@ -194,7 +192,9 @@ class RecapPanel extends StatelessWidget {
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                        color: mq.textDim, fontSize: MqTheme.fontSmall),
+                      color: mq.textSecondary,
+                      fontSize: MqTheme.fontSmall,
+                    ),
                   ),
                 ],
               ),
@@ -207,7 +207,10 @@ class RecapPanel extends StatelessWidget {
             decor,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: mq.textFaint, fontSize: MqTheme.fontSmall),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+            ),
           ),
         ],
       ],
@@ -228,7 +231,7 @@ class RecapPanel extends StatelessWidget {
           //: %1 is a duration in seconds, e.g. "13.5 s"
           tr('%1 s spoken').arg(project.spokenSeconds.toStringAsFixed(1)),
           style: TextStyle(
-            color: mq.text,
+            color: mq.textPrimary,
             fontSize: MqTheme.fontBody,
             fontWeight: FontWeight.w600,
           ),
@@ -238,7 +241,10 @@ class RecapPanel extends StatelessWidget {
           project.spokenScript(),
           maxLines: 3,
           overflow: TextOverflow.ellipsis,
-          style: TextStyle(color: mq.textDim, fontSize: MqTheme.fontSmall),
+          style: TextStyle(
+            color: mq.textSecondary,
+            fontSize: MqTheme.fontSmall,
+          ),
         ),
       ],
     );
