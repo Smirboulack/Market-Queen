@@ -13,6 +13,7 @@ import 'side_nav.dart';
 import 'studio/ad_editor_page.dart';
 import 'studio/ads_page.dart';
 import 'studio/projects_page.dart';
+import 'studio/studio_tree.dart';
 import 'theme.dart';
 import 'top_bar.dart';
 import 'widgets/mq_dialog.dart';
@@ -54,7 +55,20 @@ class _MainWindowState extends State<MainWindow> {
   AppState get app => widget.app;
 
   List<NavEntry> get _entries => [
-    NavEntry(label: tr('Studio'), icon: 'clapperboard-line', page: _studio),
+    NavEntry(
+      label: tr('Studio'),
+      icon: 'clapperboard-line',
+      page: _studio,
+      expansion: StudioTree(
+        app: app,
+        openProjectId: _projectId,
+        openAdId: _adId,
+        onNewProject: _newProject,
+        onNewAd: _newAd,
+        onOpenProject: _openProject,
+        onOpenAd: _openAd,
+      ),
+    ),
     NavEntry(label: tr('Library'), icon: 'movie-2-line', page: _library),
     NavEntry(label: tr('Actors'), icon: 'user-line', page: _actors),
     NavEntry(label: tr('Décors'), icon: 'image-line', page: _decors),
@@ -68,6 +82,7 @@ class _MainWindowState extends State<MainWindow> {
   void _openProject(String id) {
     app.workspace.closeAd();
     setState(() {
+      _currentPage = _studio;
       _projectId = id;
       _adId = '';
       _rendering = false;
@@ -103,11 +118,26 @@ class _MainWindowState extends State<MainWindow> {
 
   void _openRender() => setState(() => _rendering = true);
 
-  /// A second ad in the same project, from the render view. The one that just
-  /// rendered stays exactly as it was.
-  Future<void> _newSiblingAd() async {
-    final projectId = _projectId;
-    if (projectId.isEmpty) return;
+  /// Asks for a name and opens what it made. Reached from the nav tree, and --
+  /// for the ad -- from the render view, so a second angle on the same product
+  /// never means walking back up to the list.
+  Future<void> _newProject() async {
+    final name = await askForName(
+      context,
+      title: tr('New project'),
+      subtitle: tr('A folder for the ads of one product or one campaign.'),
+      label: tr('Project name'),
+      placeholder: tr('e.g. Lumen glow serum'),
+      confirmLabel: tr('Create'),
+      initial: app.workspace.suggestedProjectName(),
+    );
+    if (name == null) return;
+
+    _openProject(app.workspace.createProject(name).id);
+  }
+
+  Future<void> _newAd(String projectId) async {
+    if (app.workspace.project(projectId) == null) return;
 
     final name = await askForName(
       context,
@@ -123,6 +153,10 @@ class _MainWindowState extends State<MainWindow> {
     final ad = app.workspace.createAd(projectId, name);
     _openAd(projectId, ad.id);
   }
+
+  /// A second ad in the same project, from the render view. The one that just
+  /// rendered stays exactly as it was.
+  Future<void> _newSiblingAd() => _newAd(_projectId);
 
   /// Which of the studio's four screens is showing.
   int get _studioLevel {

@@ -45,19 +45,29 @@ class FalVideoTask extends VideoTask {
       throw ProviderException(tr('No opening frame to animate.'));
     }
 
-    final input = <String, Object?>{
-      'prompt': request.prompt,
-      'image_url': request.imageDataUri,
-    };
-
     final model = request.model;
-    if (model.contains('kling')) {
-      input['duration'] = request.durationSeconds > 7 ? '10' : '5';
-      input['aspect_ratio'] = request.aspectRatio;
-    } else if (model.contains('hailuo')) {
-      input['duration'] = request.durationSeconds > 7 ? '10' : '6';
-    } else if (model.contains('luma')) {
-      input['aspect_ratio'] = request.aspectRatio;
+    final input = <String, Object?>{'prompt': request.prompt};
+
+    if (request.extraInput.isNotEmpty || request.imageField.isNotEmpty) {
+      // The caller read this model's own schema. It knows what the opening
+      // frame is called here and which of duration, resolution and audio the
+      // model actually declares, so nothing is added on top of it.
+      final field = request.imageField.isEmpty
+          ? 'image_url'
+          : request.imageField;
+      input[field] = request.imageDataUri;
+      input.addAll(request.extraInput);
+    } else {
+      // No schema to hand -- offline, or a model id typed in by hand. Fall back
+      // to what the families are known to accept.
+      input['image_url'] = request.imageDataUri;
+      if (model.contains('kling')) {
+        input['duration'] = request.durationSeconds > 7 ? '10' : '5';
+      } else if (model.contains('hailuo')) {
+        input['duration'] = request.durationSeconds > 7 ? '10' : '6';
+      } else if (model.contains('luma')) {
+        input['aspect_ratio'] = request.aspectRatio;
+      }
     }
 
     final result = await submitFal(request.apiKey, model, input);

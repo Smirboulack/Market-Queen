@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-08-08",
+  "updated": "2026-08-10",
   "currency": "USD",
   "_comment": [
     "What each model costs, keyed by the model id the providers actually send.",
@@ -101,9 +101,9 @@
     },
     "claude-sonnet-5": {
       "unit": "tokens",
-      "in": 3.0,
-      "out": 15.0,
-      "source": "https://claude.com/pricing"
+      "in": 2.0,
+      "out": 10.0,
+      "source": "https://platform.claude.com/docs/en/about-claude/pricing"
     },
     "claude-opus-5": {
       "unit": "tokens",
@@ -187,36 +187,35 @@
     },
     "fal-ai/nano-banana/edit": {
       "unit": "image",
-      "amount": 0.039,
-      "source": "https://fal.ai/models/fal-ai/nano-banana/edit"
+      "amount": 0.0398,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/nano-banana-2/edit": {
       "unit": "image",
       "amount": 0.08,
-      "approx": true,
-      "source": "https://fal.ai/models/fal-ai/nano-banana-2/edit"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/nano-banana-pro/edit": {
       "unit": "image",
       "amount": 0.15,
-      "source": "https://fal.ai/models/fal-ai/nano-banana-pro/edit"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/nano-banana": {
       "unit": "image",
-      "amount": 0.039,
-      "source": "https://fal.ai/models/fal-ai/nano-banana"
+      "amount": 0.0398,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/flux-2-pro/edit": {
       "unit": "image",
-      "amount": 0.03,
+      "amount": 0.054,
       "approx": true,
-      "source": "https://fal.ai/models/fal-ai/flux-2-pro/edit"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/flux-2-flex/edit": {
       "unit": "image",
-      "amount": 0.05,
+      "amount": 0.09,
       "approx": true,
-      "source": "https://fal.ai/models/fal-ai/flux-2-flex/edit"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/bytedance/seedream/v5/lite/edit": {
       "unit": "image",
@@ -238,31 +237,46 @@
     "fal-ai/flux-pro/v1.1-ultra": {
       "unit": "image",
       "amount": 0.06,
-      "source": "https://fal.ai/models/fal-ai/flux-pro/v1.1-ultra"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/flux-pro/kontext": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.04,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/flux/dev": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.045,
+      "approx": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/flux/schnell": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.0054,
+      "approx": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/bytedance/seedream/v4/text-to-image": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.03,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/imagen4/preview": {
       "unknown": true
     },
     "fal-ai/ideogram/v3": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.03,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/recraft-v3": {
       "unknown": true
     },
     "fal-ai/qwen-image": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.036,
+      "approx": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "gpt-image-2": {
       "unknown": true
@@ -295,7 +309,8 @@
       "unknown": true
     },
     "openai/gpt-image-2": {
-      "unknown": true
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "openai/gpt-image-1.5": {
       "unknown": true
@@ -316,7 +331,9 @@
       "unknown": true
     },
     "xai/grok-imagine-image": {
-      "unknown": true
+      "unit": "image",
+      "amount": 0.02,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "google/imagen-4-ultra": {
       "unknown": true
@@ -359,69 +376,79 @@
       "unknown": true
     },
     "fal-ai/kling-video/ai-avatar/v2/standard": {
-      "unit": "second", "amount": 0.0562,
-      "source": "https://fal.ai/models/fal-ai/kling-video/ai-avatar/v2/standard"
+      "unit": "second",
+      "amount": 0.0562,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/ai-avatar/v2/pro": {
-      "unit": "second", "amount": 0.115,
-      "source": "https://fal.ai/models/fal-ai/kling-video/ai-avatar/v2/pro"
+      "unit": "second",
+      "amount": 0.115,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "veed/fabric-1.0": {
-      "unit": "second", "amount": 0.08,
+      "unit": "second",
+      "amount": 0.08,
       "source": "https://fal.ai/models/veed/fabric-1.0"
     },
     "fal-ai/infinitalk": {
-      "unit": "second", "amount": 0.2,
-      "source": "https://fal.ai/models/fal-ai/infinitalk"
+      "unit": "second",
+      "amount": 0.2,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/v3/standard/image-to-video": {
       "unit": "second",
-      "amount": 0.084,
-      "source": "https://fal.ai/models/fal-ai/kling-video/v3/standard/image-to-video"
+      "amount": 0.14,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/v3/pro/image-to-video": {
       "unit": "second",
-      "amount": 0.112,
-      "source": "https://fal.ai/models/fal-ai/kling-video/v3/pro/image-to-video"
+      "amount": 0.14,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/v3/turbo/pro/image-to-video": {
       "unit": "second",
       "amount": 0.14,
-      "source": "https://fal.ai/models/fal-ai/kling-video/v3/turbo/pro/image-to-video"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/v3/4k/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.42,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/o3/standard/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.14,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/veo3.1/lite/image-to-video": {
       "unit": "second",
-      "amount": 0.03,
-      "approx": true,
-      "source": "https://fal.ai/models/fal-ai/veo3.1/lite/image-to-video"
+      "amount": 0.05,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/veo3.1/fast/image-to-video": {
       "unit": "second",
-      "amount": 0.1,
-      "source": "https://fal.ai/models/fal-ai/veo3.1/fast/image-to-video"
+      "amount": 0.15,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/veo3.1/image-to-video": {
       "unit": "second",
-      "amount": 0.2,
-      "source": "https://fal.ai/models/fal-ai/veo3.1/image-to-video"
+      "amount": 0.4,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "wan/v2.6/image-to-video": {
       "unit": "second",
       "amount": 0.1,
-      "approx": true,
-      "source": "https://fal.ai/models/wan/v2.6/image-to-video"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "wan/v2.6/image-to-video/flash": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.05,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/wan/v2.7/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.1,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "bytedance/seedance-2.0/image-to-video": {
       "unit": "second",
@@ -430,10 +457,12 @@
       "source": "https://fal.ai/models/bytedance/seedance-2.0/image-to-video"
     },
     "fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video": {
-      "unknown": true
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/minimax/hailuo-2.3/standard/image-to-video": {
-      "unknown": true
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/minimax/hailuo-2.3/pro/image-to-video": {
       "unit": "video",
@@ -441,13 +470,13 @@
       "source": "https://fal.ai/models/fal-ai/minimax/hailuo-2.3/pro/image-to-video"
     },
     "fal-ai/decart/lucy-5b/image-to-video": {
-      "unknown": true
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kling-video/v2.1/master/image-to-video": {
       "unit": "second",
       "amount": 0.28,
-      "minUnits": 5,
-      "source": "https://fal.ai/models/fal-ai/kling-video/v2.1/master/image-to-video"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/veo3/image-to-video": {
       "unit": "second",
@@ -466,25 +495,34 @@
     "fal-ai/minimax/hailuo-02/pro/image-to-video": {
       "unit": "second",
       "amount": 0.08,
-      "source": "https://fal.ai/models/fal-ai/minimax/hailuo-02/pro/image-to-video"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/minimax/hailuo-02/standard/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.045,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/runway-gen3/turbo/image-to-video": {
       "unknown": true
     },
     "fal-ai/luma-dream-machine/ray-2/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.1,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/wan/v2.2-a14b/image-to-video": {
-      "unknown": true
+      "unit": "second",
+      "amount": 0.08,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/pika/v2.2/image-to-video": {
-      "unknown": true
+      "unit": "video",
+      "amount": 0.2,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/pixverse/v4.5/image-to-video": {
-      "unknown": true
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "kwaivgi/kling-v3-video": {
       "unknown": true
@@ -593,32 +631,83 @@
     "fal-ai/elevenlabs/tts/eleven-v3": {
       "unit": "kchars",
       "amount": 0.1,
-      "source": "https://fal.ai/models/fal-ai/elevenlabs/tts/eleven-v3"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/minimax/speech-02-hd": {
       "unit": "kchars",
       "amount": 0.1,
-      "source": "https://fal.ai/models/fal-ai/minimax/speech-02-hd"
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/minimax/speech-02-turbo": {
-      "unknown": true
+      "unit": "kchars",
+      "amount": 0.06,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/elevenlabs/tts/multilingual-v2": {
-      "unknown": true
+      "unit": "kchars",
+      "amount": 0.1,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/elevenlabs/tts/turbo-v2.5": {
-      "unknown": true
+      "unit": "kchars",
+      "amount": 0.05,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/kokoro/american-english": {
-      "unknown": true
+      "unit": "kchars",
+      "amount": 0.02,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "fal-ai/chatterbox/text-to-speech": {
-      "unknown": true
+      "unit": "kchars",
+      "amount": 0.025,
+      "source": "https://api.fal.ai/v1/models/pricing"
     },
     "whisper-1": {
       "unit": "minute",
       "amount": 0.006,
       "source": "https://developers.openai.com/api/docs/pricing"
+    },
+    "bytedance/seedream/v5/lite/edit": {
+      "unit": "image",
+      "amount": 0.035,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "bytedance/seedream/v5/pro/edit": {
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "fal-ai/recraft/v4/text-to-image": {
+      "unit": "image",
+      "amount": 0.04,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "fal-ai/recraft/v3/text-to-image": {
+      "unit": "image",
+      "amount": 0.04,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "fal-ai/clarity-upscaler": {
+      "unit": "image",
+      "amount": 0.054,
+      "approx": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "fal-ai/aura-sr": {
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "fal-ai/esrgan": {
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "bytedance/seedance-2.5/image-to-video": {
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "bytedance/seedance-2.0/fast/image-to-video": {
+      "unknown": true,
+      "source": "https://api.fal.ai/v1/models/pricing"
     }
   }
 }

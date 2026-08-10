@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../app_state.dart';
+import '../../core/pricing.dart';
 import '../../i18n/translator.dart';
 import '../../models/canvas_feed.dart';
+import '../../models/studio_runner.dart';
+import '../../providers/fal_schema.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
@@ -134,11 +137,14 @@ class ComposerSpec {
     ),
   };
 
-  /// The three that get a pill of their own.
+  /// The three that get a pill of their own, in the order they are reached
+  /// for: the actor and the stills come first, and video last, because video is
+  /// what you shoot once everything else is settled -- and the most expensive
+  /// thing to shoot twice.
   static const List<ComposerTab> primary = [
     ComposerTab.actors,
-    ComposerTab.video,
     ComposerTab.image,
+    ComposerTab.video,
   ];
 
   static const List<ComposerTab> secondary = [
@@ -154,56 +160,96 @@ class ComposerSpec {
 /// canvas rather than a strip inside the input -- so that what you are making
 /// reads as a choice you have already made, and the bar underneath is only
 /// about what you are saying.
+///
+/// "See more" adds rather than replaces. It used to *become* the mode you
+/// picked out of it, which meant the way back into the menu was the thing you
+/// had just taken out of it: choosing Subtitles hid Voice-over and Enlarge
+/// behind a pill that no longer said "See more". Now the picked mode arrives as
+/// a pill of its own, with a cross to put it away again, and the menu stays
+/// where it was.
 class ComposerTabBar extends StatelessWidget {
   const ComposerTabBar({
     super.key,
     required this.current,
+    required this.extras,
     required this.onPicked,
+    required this.onRemoved,
   });
 
   final ComposerTab current;
+
+  /// The advanced modes pulled out of the menu, in the order they were added.
+  final List<ComposerTab> extras;
+
   final ValueChanged<ComposerTab> onPicked;
+  final ValueChanged<ComposerTab> onRemoved;
+
+  static const double _pillHeight = 34;
+  static const double _framePadding = 5;
+
+  /// Half the height of a single row of pills. That makes the frame a stadium
+  /// while everything is on one line -- which is what it always was -- and a
+  /// rounded rectangle the moment it needs two, instead of a stadium whose
+  /// curve cuts through the pills at either end.
+  static const double _frameRadius = _pillHeight / 2 + _framePadding;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final inMenu = ComposerSpec.secondary.contains(current);
+
+    final remaining = [
+      for (final tab in ComposerSpec.secondary)
+        if (!extras.contains(tab)) tab,
+    ];
 
     return Container(
-      padding: const EdgeInsets.all(5),
+      padding: const EdgeInsets.all(_framePadding),
       decoration: BoxDecoration(
         color: mq.surface,
-        borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+        borderRadius: BorderRadius.circular(_frameRadius),
         border: Border.all(color: mq.border),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      // Wrapped, not a row: with all three advanced modes out on the bar the
+      // pills are wider than the bar underneath them, and the frame is anchored
+      // to the bottom of the page, so a second line grows upward into empty
+      // background rather than pushing anything around.
+      child: Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          for (final tab in ComposerSpec.primary) ...[
+          for (final tab in ComposerSpec.primary)
             _Pill(
               spec: ComposerSpec.of(tab),
               selected: tab == current,
               onTap: () => onPicked(tab),
             ),
-            const SizedBox(width: 4),
-          ],
+          for (final tab in extras)
+            _Pill(
+              spec: ComposerSpec.of(tab),
+              selected: tab == current,
+              onTap: () => onPicked(tab),
+              onRemove: () => onRemoved(tab),
+            ),
           Builder(
             builder: (anchor) => _Pill(
-              spec: inMenu
-                  ? ComposerSpec.of(current)
-                  : ComposerSpec(
-                      label: tr('See more'),
-                      icon: 'search-line',
-                      category: '',
-                      kind: CanvasKind.image,
-                      placeholder: '',
-                    ),
-              selected: inMenu,
+              spec: ComposerSpec(
+                label: tr('See more'),
+                icon: 'search-line',
+                category: '',
+                kind: CanvasKind.image,
+                placeholder: '',
+              ),
+              selected: false,
+              // Everything is already out on the bar; the menu behind it would
+              // be empty.
+              enabled: remaining.isNotEmpty,
               onTap: () async {
                 final picked = await showChipMenu<ComposerTab>(
                   anchor,
                   options: [
-                    for (final tab in ComposerSpec.secondary)
+                    for (final tab in remaining)
                       MenuOption(ComposerSpec.of(tab).label, tab),
                   ],
                   current: current,
@@ -224,11 +270,18 @@ class _Pill extends StatelessWidget {
     required this.spec,
     required this.selected,
     required this.onTap,
+    this.onRemove,
+    this.enabled = true,
   });
 
   final ComposerSpec spec;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Set on the advanced pills, which can be put away again.
+  final VoidCallback? onRemove;
+
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -236,6 +289,7 @@ class _Pill extends StatelessWidget {
 
     return Pressable(
       onTap: onTap,
+      enabled: enabled,
       // The pills touch, so hover snaps both ways and only one is ever lit.
       snap: true,
       focusRadius: MqTheme.radiusPill,
@@ -250,7 +304,9 @@ class _Pill extends StatelessWidget {
             : states.hovered
             ? mq.surfaceHover
             : Colors.transparent;
-        final ink = selected
+        final ink = !states.enabled && !selected
+            ? mq.textDisabled
+            : selected
             ? mq.onPrimary
             : states.active
             ? mq.textPrimary
@@ -258,8 +314,8 @@ class _Pill extends StatelessWidget {
 
         return AnimatedContainer(
           duration: states.duration,
-          height: 34,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          height: ComposerTabBar._pillHeight,
+          padding: EdgeInsets.only(left: 14, right: onRemove == null ? 14 : 6),
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(MqTheme.radiusPill),
@@ -278,10 +334,47 @@ class _Pill extends StatelessWidget {
                   letterSpacing: MqTheme.trackSmall,
                 ),
               ),
+              if (onRemove != null) ...[
+                const SizedBox(width: 4),
+                _PillClose(ink: ink, onTap: onRemove!),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+/// The cross on an advanced pill.
+///
+/// Its own target inside the pill rather than a second meaning for it: pressing
+/// the pill always switches to that mode, which is what you do twenty times to
+/// the once you put it away.
+class _PillClose extends StatelessWidget {
+  const _PillClose({required this.ink, required this.onTap});
+
+  final Color ink;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      onTap: onTap,
+      tooltip: tr('Put this one away'),
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) => Container(
+        width: 20,
+        height: 20,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: states.active
+              ? ink.withValues(alpha: 0.16)
+              : Colors.transparent,
+          shape: BoxShape.circle,
+        ),
+        child: MqIcon('close-line', size: 13, color: ink),
+      ),
     );
   }
 }
@@ -306,62 +399,102 @@ class ComposerSettings extends StatelessWidget {
 
   ComposerSpec get spec => ComposerSpec.of(tab);
 
+  /// How tall the column is allowed to get before its rows start scrolling.
+  ///
+  /// It hangs off the bottom edge of the composer and grows upward, so without
+  /// a ceiling a long model list would run off the top of the window.
+  static const double _maxHeight = 460;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
+    final rows = _rows(context);
 
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
-      decoration: BoxDecoration(
-        color: mq.surface,
-        borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
-        border: Border.all(color: mq.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  //: %1 is the name of a composer tab, e.g. "Video"
-                  tr('%1 settings').arg(spec.label),
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: mq.textPrimary,
-                    fontSize: MqTheme.fontBody,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: MqTheme.trackTitle,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: _maxHeight),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
+        decoration: BoxDecoration(
+          color: mq.surface,
+          borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
+          border: Border.all(color: mq.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    //: %1 is the name of a composer tab, e.g. "Video"
+                    tr('%1 settings').arg(spec.label),
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: mq.textPrimary,
+                      fontSize: MqTheme.fontBody,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: MqTheme.trackTitle,
+                    ),
                   ),
                 ),
+                MqIconButton(
+                  icon: 'close-line',
+                  tip: tr('Close'),
+                  size: 24,
+                  onPressed: onClose,
+                ),
+              ],
+            ),
+            const SizedBox(height: MqTheme.gap),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // A settings column with nothing in it looks broken; saying
+                    // why is better than an empty box.
+                    if (rows.isEmpty)
+                      Text(
+                        tr('Nothing to set here -- hand it a file and press '
+                            'send.'),
+                        style: TextStyle(
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontSmall,
+                          height: MqTheme.lineBody,
+                        ),
+                      ),
+                    // The hairline separates rows rather than terminating them,
+                    // so the last one -- the price, always -- has nothing ruled
+                    // underneath it.
+                    for (var i = 0; i < rows.length; ++i)
+                      _Row(
+                        label: rows[i].label,
+                        divider: i < rows.length - 1,
+                        child: rows[i].child,
+                      ),
+                  ],
+                ),
               ),
-              MqIconButton(
-                icon: 'close-line',
-                tip: tr('Close'),
-                size: 24,
-                onPressed: onClose,
-              ),
-            ],
-          ),
-          const SizedBox(height: MqTheme.gap),
-          ..._rows(context),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  List<Widget> _rows(BuildContext context) {
+  List<({String label, Widget child})> _rows(BuildContext context) {
     final project = app.project;
 
-    final rows = <Widget>[
+    final rows = <({String label, Widget child})>[
       if (spec.category.isNotEmpty)
-        _Row(
+        (
           label: tr('Model'),
           child: _ModelPicker(app: app, category: spec.category),
         ),
       if (spec.picksAspect)
-        _Row(
+        (
           label: tr('Format'),
           child: _Pick(
             value: _aspect,
@@ -382,27 +515,85 @@ class ComposerSettings extends StatelessWidget {
     ];
 
     if (tab == ComposerTab.video) {
+      // What the chosen model actually accepts, read from its own schema
+      // rather than from a list we keep in step by hand. Hailuo offers 6 and
+      // 10 seconds and nothing else; Kling v3 offers every second from 3 to 15;
+      // Veo has three lengths and calls them "4s", "6s", "8s". A fixed menu was
+      // wrong for all three.
+      final capabilities = app.falSchemas.capabilities(
+        app.runner.modelFor('video', _videoSeconds),
+      );
+
+      final lengths = <MenuOption<String>>[
+        for (final token in capabilities.durations)
+          if (FalCapabilities.secondsOf(token) > 0)
+            MenuOption(
+              //: %1 is a whole number of seconds
+              tr('%1 s').arg(FalCapabilities.secondsOf(token)),
+              '${FalCapabilities.secondsOf(token)}',
+            ),
+      ];
+
       rows.add(
-        _Row(
+        (
           label: tr('Length'),
-          child: _Pick(
-            value: '$_videoSeconds',
-            options: [
-              MenuOption(tr('5 s'), '5'),
-              MenuOption(tr('10 s'), '10'),
-              MenuOption(tr('15 s'), '15'),
-              MenuOption(tr('30 s'), '30'),
-            ],
-            onPicked: (value) =>
-                app.settings.setPref('videoSeconds', int.tryParse(value) ?? 5),
-          ),
+          child: lengths.isEmpty
+              // Still fetching, or a model with no length input at all. The
+              // two commonest lengths are offered meanwhile rather than an
+              // empty menu.
+              ? _Pick(
+                  value: '$_videoSeconds',
+                  options: [
+                    MenuOption(tr('%1 s').arg(5), '5'),
+                    MenuOption(tr('%1 s').arg(10), '10'),
+                  ],
+                  onPicked: _setSeconds,
+                )
+              : _Pick(
+                  value: '$_videoSeconds',
+                  options: lengths,
+                  onPicked: _setSeconds,
+                ),
         ),
       );
+
+      if (capabilities.resolutions.isNotEmpty) {
+        rows.add(
+          (
+            label: tr('Quality'),
+            child: _Pick(
+              value: _resolution(capabilities),
+              options: [
+                for (final value in capabilities.resolutions)
+                  MenuOption(value, value),
+              ],
+              onPicked: (value) =>
+                  app.settings.setPref('videoResolution', value),
+            ),
+          ),
+        );
+      }
+
+      // Only the models that can make sound get the switch. Offering it on one
+      // that cannot would be a control that does nothing.
+      if (capabilities.supportsAudio) {
+        rows.add(
+          (
+            label: tr('Audio'),
+            child: MqToggle(
+              value: app.settings.pref<bool>('videoAudio', true) ?? true,
+              tooltip: tr('Let the model generate a soundtrack as well as the '
+                  'picture.'),
+              onChanged: (value) => app.settings.setPref('videoAudio', value),
+            ),
+          ),
+        );
+      }
     }
 
     if (tab == ComposerTab.actors) {
       rows.addAll([
-        _Row(
+        (
           label: tr('Max length'),
           child: _Pick(
             value: project.maxSeconds == 0 ? '' : '${project.maxSeconds}',
@@ -418,14 +609,14 @@ class ComposerSettings extends StatelessWidget {
                 project.setMaxSeconds(int.tryParse(value) ?? 0),
           ),
         ),
-        _Row(
+        (
           label: tr('Subtitles'),
           child: MqToggle(
             value: project.captions,
             onChanged: project.setCaptions,
           ),
         ),
-        _Row(
+        (
           label: tr('Product shots'),
           child: MqToggle(
             value: project.broll,
@@ -436,29 +627,43 @@ class ComposerSettings extends StatelessWidget {
             onChanged: project.setBroll,
           ),
         ),
-        _Row(
-          label: tr('Cost'),
-          child: _Estimate(app: app),
-        ),
+        (label: tr('Cost'), child: _Estimate(app: app)),
       ]);
     }
 
-    // A settings column with one row in it looks broken; saying why is better
-    // than an empty box.
-    if (rows.isEmpty) {
-      rows.add(
-        Text(
-          tr('Nothing to set here -- hand it a file and press send.'),
-          style: TextStyle(
-            color: context.mq.textTertiary,
-            fontSize: MqTheme.fontSmall,
-            height: MqTheme.lineBody,
+    // What the batch on the bar would cost, in the same place and the same
+    // words as the ad's own estimate. It used to be on the talking-actor column
+    // alone, which left the two tabs where a careless press costs dollars as
+    // the two with no figure anywhere on screen.
+    if (tab == ComposerTab.image || tab == ComposerTab.video) {
+      rows.add((
+        label: tr('Cost'),
+        child: _OrderEstimate(
+          estimate: app.runner.estimate(
+            GenerationOrder(
+              kind: spec.kind,
+              category: spec.category,
+              prompt: '',
+              aspectRatio: _aspect,
+              seconds: _videoSeconds,
+              count: _count,
+            ),
           ),
         ),
-      );
+      ));
     }
 
     return rows;
+  }
+
+  /// How many the stepper on the bar is asking for. Read from the same
+  /// preference the bar writes, so the two cannot disagree about what is being
+  /// priced.
+  int get _count {
+    if (!spec.batched) return 1;
+    final saved = app.settings.pref<int>('${spec.category}Count', 0) ?? 0;
+    if (saved < 1) return 1;
+    return saved > spec.maxCount ? spec.maxCount : saved;
   }
 
   String get _aspect {
@@ -471,21 +676,44 @@ class ComposerSettings extends StatelessWidget {
     final saved = app.settings.pref<int>('videoSeconds', 0) ?? 0;
     return saved < 1 ? 5 : saved;
   }
+
+  void _setSeconds(String value) =>
+      app.settings.setPref('videoSeconds', int.tryParse(value) ?? 5);
+
+  /// The saved resolution when this model still offers it, otherwise whatever
+  /// the model itself defaults to. Switching from a model with 4k to one
+  /// without must not leave "4k" showing under a model that has never heard
+  /// of it.
+  String _resolution(FalCapabilities capabilities) {
+    final saved = app.settings.prefString('videoResolution');
+    return capabilities.resolutions.contains(saved)
+        ? saved
+        : capabilities.firstResolution;
+  }
 }
 
-/// A label on the left, its control on the right, and a hairline under it.
+/// A label on the left, its control on the right, and -- unless it is the last
+/// one -- a hairline under it.
 class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.child});
+  const _Row({
+    required this.label,
+    required this.child,
+    this.divider = true,
+  });
 
   final String label;
   final Widget child;
+
+  /// Off on the bottom row. A rule under the last thing in a box closes nothing
+  /// off; it just draws a second border a few pixels inside the real one.
+  final bool divider;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: EdgeInsets.only(bottom: divider ? 4 : 0),
       child: Column(
         children: [
           // The value is capped at a share of the row and the label takes
@@ -518,9 +746,11 @@ class _Row extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          Container(height: 1, color: mq.borderSubtle),
-          const SizedBox(height: 6),
+          if (divider) ...[
+            const SizedBox(height: 10),
+            Container(height: 1, color: mq.borderSubtle),
+            const SizedBox(height: 6),
+          ],
         ],
       ),
     );
@@ -692,6 +922,33 @@ class _Estimate extends StatelessWidget {
       Format.estimated(breakdown.total),
       style: TextStyle(
         color: context.mq.textPrimary,
+        fontSize: MqTheme.fontLabel,
+        fontWeight: FontWeight.w600,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+  }
+}
+
+/// What one press of send on this tab would cost, at the model, the length and
+/// the count currently set.
+///
+/// A model the catalogue has no line for says so rather than showing a zero:
+/// an invented figure next to a spend button is worse than none.
+class _OrderEstimate extends StatelessWidget {
+  const _OrderEstimate({required this.estimate});
+
+  final CostEstimate estimate;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Text(
+      estimate.known ? Format.estimated(estimate.amount) : tr('price unknown'),
+      overflow: TextOverflow.ellipsis,
+      style: TextStyle(
+        color: estimate.known ? mq.textPrimary : mq.textTertiary,
         fontSize: MqTheme.fontLabel,
         fontWeight: FontWeight.w600,
         fontFeatures: const [FontFeature.tabularFigures()],

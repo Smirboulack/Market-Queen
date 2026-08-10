@@ -33,30 +33,68 @@ class AdEditorPage extends StatelessWidget {
   /// The way through to a finished ad's shot list, from its tile in the canvas.
   final VoidCallback onOpenRender;
 
-  /// The composer stops widening here. Past it the send button ends up at the
-  /// far edge of a 27" monitor while the caret is in the middle of the screen,
-  /// and a prompt bar you have to travel to is a prompt bar you stop using.
-  static const double _composerWidth = 1180;
+  /// How much of the bottom of the canvas the composer stands in front of.
+  ///
+  /// Roughly the height of the bar with an empty prompt: enough that the last
+  /// tile in the feed can be scrolled clear of it. It is a fixed number on
+  /// purpose -- a measured one would change every time the settings column
+  /// opened, which is exactly the shuffling this layout exists to stop.
+  static const double composerReserve = 250;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final mq = context.mq;
+
+    // The composer floats over the canvas instead of sitting under it. Stacked
+    // in a column, its settings panel added its own height to the row and the
+    // feed above shrank by that much every time the gear was pressed -- the
+    // canvas visibly jumping on a control that is supposed to affect only what
+    // the next generation will look like. Anchored to the bottom of a stack, it
+    // grows into empty background and the feed never moves.
+    return Stack(
       children: [
-        Expanded(
-          child: CanvasView(app: app, onOpenRender: onOpenRender),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            MqTheme.pagePadding,
-            0,
-            MqTheme.pagePadding,
-            MqTheme.gapLarge,
+        Positioned.fill(
+          child: CanvasView(
+            app: app,
+            onOpenRender: onOpenRender,
+            bottomInset: composerReserve,
           ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _composerWidth),
-              child: Composer(app: app, onGenerateAd: onGenerate),
+        ),
+        // A short fade so a tile scrolling past does not slide out from behind
+        // the bar with a hard edge.
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: composerReserve,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    mq.background.withValues(alpha: 0),
+                    mq.background,
+                  ],
+                  stops: const [0, 0.35],
+                ),
+              ),
             ),
+          ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              MqTheme.pagePadding,
+              0,
+              MqTheme.pagePadding,
+              MqTheme.gapLarge,
+            ),
+            child: Composer(app: app, onGenerateAd: onGenerate),
           ),
         ),
       ],

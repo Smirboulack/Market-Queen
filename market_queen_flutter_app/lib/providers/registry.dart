@@ -158,7 +158,9 @@ class Registry extends ChangeNotifier {
           const ModelEntry('fal-ai/flux-2-pro/edit', 'FLUX.2 Pro (edit)'),
           const ModelEntry('fal-ai/flux-2-flex/edit', 'FLUX.2 Flex (edit)'),
           const ModelEntry(
-              'fal-ai/bytedance/seedream/v5/lite/edit', 'Seedream 5.0 Lite (edit)'),
+              'bytedance/seedream/v5/lite/edit', 'Seedream 5.0 Lite (edit)'),
+          const ModelEntry(
+              'bytedance/seedream/v5/pro/edit', 'Seedream 5.0 Pro (edit)'),
           const ModelEntry('openai/gpt-image-2/edit', 'GPT Image 2 (edit)'),
           const ModelEntry(
               'xai/grok-imagine-image/quality/edit', 'Grok Imagine (edit)'),
@@ -168,9 +170,9 @@ class Registry extends ChangeNotifier {
           const ModelEntry('fal-ai/flux/schnell', 'FLUX.1 schnell'),
           const ModelEntry(
               'fal-ai/bytedance/seedream/v4/text-to-image', 'Seedream 4.0'),
-          const ModelEntry('fal-ai/imagen4/preview', 'Imagen 4'),
           const ModelEntry('fal-ai/ideogram/v3', 'Ideogram 3.0'),
-          const ModelEntry('fal-ai/recraft-v3', 'Recraft V3'),
+          const ModelEntry('fal-ai/recraft/v4/text-to-image', 'Recraft V4'),
+          const ModelEntry('fal-ai/recraft/v3/text-to-image', 'Recraft V3'),
           const ModelEntry('fal-ai/qwen-image', 'Qwen Image'),
         ],
         defaultModel: 'auto',
@@ -263,8 +265,19 @@ class Registry extends ChangeNotifier {
         credential: 'fal',
         models: [
           auto,
+          // Kling 3.0 Standard stays at the head, and it is a pricing decision
+          // rather than a quality one: "Auto" takes the first concrete entry,
+          // so whatever sits here is what most runs buy -- and it is the newest
+          // generation that fal still bills by the second, which is the only
+          // shape the estimate can turn into a figure before you press send.
+          // Seedance is billed in token buckets, so it is one click away
+          // instead of the default nobody could price.
           const ModelEntry(
               'fal-ai/kling-video/v3/standard/image-to-video', 'Kling 3.0 Standard'),
+          const ModelEntry(
+              'bytedance/seedance-2.5/image-to-video', 'Seedance 2.5'),
+          const ModelEntry(
+              'bytedance/seedance-2.0/fast/image-to-video', 'Seedance 2.0 Fast'),
           const ModelEntry(
               'fal-ai/kling-video/v3/pro/image-to-video', 'Kling 3.0 Pro'),
           const ModelEntry('fal-ai/kling-video/v3/turbo/pro/image-to-video',
@@ -294,17 +307,12 @@ class Registry extends ChangeNotifier {
               'fal-ai/decart/lucy-5b/image-to-video', 'Decart Lucy 5B'),
           const ModelEntry(
               'fal-ai/kling-video/v2.1/master/image-to-video', 'Kling 2.1 Master'),
-          const ModelEntry('fal-ai/veo3/image-to-video', 'Google Veo 3'),
           const ModelEntry('fal-ai/bytedance/seedance/v1/pro/image-to-video',
               'Seedance 1.0 Pro'),
-          const ModelEntry('fal-ai/bytedance/seedance/v1/lite/image-to-video',
-              'Seedance 1.0 Lite'),
           const ModelEntry(
               'fal-ai/minimax/hailuo-02/pro/image-to-video', 'Hailuo 02 Pro'),
           const ModelEntry('fal-ai/minimax/hailuo-02/standard/image-to-video',
               'Hailuo 02 Standard'),
-          const ModelEntry(
-              'fal-ai/runway-gen3/turbo/image-to-video', 'Runway Gen-3 Turbo'),
           const ModelEntry(
               'fal-ai/luma-dream-machine/ray-2/image-to-video', 'Luma Ray 2'),
           const ModelEntry('fal-ai/wan/v2.2-a14b/image-to-video', 'Wan 2.2 A14B'),

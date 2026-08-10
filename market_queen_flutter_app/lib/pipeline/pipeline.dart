@@ -14,6 +14,7 @@ import '../core/signal.dart';
 import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
+import '../providers/fal_schema.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/text_providers.dart';
@@ -128,6 +129,7 @@ class Pipeline extends ChangeNotifier {
     this._pricing,
     this._log,
     this._casting,
+    this._falSchemas,
   ) {
     // Show the plan before anything runs.
     _resetSteps();
@@ -138,6 +140,7 @@ class Pipeline extends ChangeNotifier {
   final Pricing _pricing;
   final LogModel _log;
   final VoiceCasting _casting;
+  final FalSchemas _falSchemas;
 
   /// (success, outputFile).
   final Event<({bool success, String outputFile})> finished = Event();
@@ -1091,18 +1094,35 @@ class Pipeline extends ChangeNotifier {
         model = _pickModel(providerId, _text('videoModel'), clipSeconds);
         task = ProviderFactory.video(
           providerId,
-          VideoRequest(
-            apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
-            model: model,
-            aspectRatio:
-                _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio'),
-            imageDataUri: shot.frameDataUri,
-            prompt: shot.videoPrompt.isEmpty
-                ? tr('Slow handheld move around the product, natural light, '
-                    'nobody on screen.')
-                : shot.videoPrompt,
-            durationSeconds: clipSeconds,
-          ),
+          () {
+            final aspect =
+                _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio');
+            // The b-roll clip is silent: its sound is the voice-over laid over
+            // it in the cut, and a model that also generates audio would be
+            // paid for a track that is thrown away.
+            final shaped = FalSchemas.handles(providerId)
+                ? _falSchemas.capabilities(model).videoInput(
+                    seconds: clipSeconds,
+                    resolution: _text('videoResolution'),
+                    audio: false,
+                    aspectRatio: aspect,
+                  )
+                : null;
+
+            return VideoRequest(
+              apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
+              model: model,
+              aspectRatio: aspect,
+              imageDataUri: shot.frameDataUri,
+              prompt: shot.videoPrompt.isEmpty
+                  ? tr('Slow handheld move around the product, natural light, '
+                      'nobody on screen.')
+                  : shot.videoPrompt,
+              durationSeconds: clipSeconds,
+              imageField: shaped?.imageField ?? '',
+              extraInput: shaped?.input ?? const {},
+            );
+          }(),
         );
       }
 

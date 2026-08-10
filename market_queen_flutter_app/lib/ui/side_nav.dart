@@ -13,6 +13,7 @@ class NavEntry {
     required this.label,
     required this.icon,
     required this.page,
+    this.expansion,
   });
 
   final String label;
@@ -20,6 +21,14 @@ class NavEntry {
 
   /// Index into the window's page stack.
   final int page;
+
+  /// Unfolded beneath the row while this is the page you are on.
+  ///
+  /// Only the studio uses it, and only because the studio is the one page with
+  /// somewhere to go: projects, then ads, then the ad. Walking back up that
+  /// with the crumb trail alone means two clicks and a page load to look at the
+  /// ad next door.
+  final Widget? expansion;
 }
 
 /// The left column: the mark, the pages, and the one status line that matters
@@ -57,50 +66,63 @@ class SideNav extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 6),
-            child: Row(
+          // The rows and whatever is unfolded under them share the space above
+          // the status line; the tree gives its room back before anything else
+          // has to be pushed off the bottom.
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const BrandMark(size: 70),
-                const SizedBox(width: 11),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      // Product name: never translated.
-                      'Market Queen',
-                      style: TextStyle(
-                        color: mq.textPrimary,
-                        fontSize: MqTheme.fontTitle,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: MqTheme.trackTitle,
-                        height: MqTheme.lineTight,
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Row(
+                    children: [
+                      const BrandMark(size: 70),
+                      const SizedBox(width: 11),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            // Product name: never translated.
+                            'Market Queen',
+                            style: TextStyle(
+                              color: mq.textPrimary,
+                              fontSize: MqTheme.fontTitle,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: MqTheme.trackTitle,
+                              height: MqTheme.lineTight,
+                            ),
+                          ),
+                          Text(
+                            tr('studio'),
+                            style: TextStyle(
+                              color: mq.textTertiary,
+                              fontSize: MqTheme.fontSmall,
+                              height: MqTheme.lineTight,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                    Text(
-                      tr('studio'),
-                      style: TextStyle(
-                        color: mq.textTertiary,
-                        fontSize: MqTheme.fontSmall,
-                        height: MqTheme.lineTight,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(height: 26),
+                for (final entry in entries) ...[
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: _NavRow(
+                      entry: entry,
+                      selected: entry.page == currentPage,
+                      onTap: () => onPicked(entry.page),
+                    ),
+                  ),
+                  if (entry.expansion != null && entry.page == currentPage)
+                    Flexible(child: entry.expansion!),
+                ],
               ],
             ),
           ),
-          const SizedBox(height: 26),
-          for (final entry in entries)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: _NavRow(
-                entry: entry,
-                selected: entry.page == currentPage,
-                onTap: () => onPicked(entry.page),
-              ),
-            ),
-          const Spacer(),
+          const SizedBox(height: MqTheme.gap),
           ListenableBuilder(
             listenable: app.ffmpegPathChanged,
             builder: (context, _) {

@@ -817,5 +817,12 @@
   "Nothing to set here -- hand it a file and press send.": "Rien à régler ici — donnez-lui un fichier et envoyez.",
   "None enabled": "Aucun activé",
   "Max length": "Durée max",
-  "Cost": "Coût"
+  "Cost": "Coût",
+  "Quality": "Qualité",
+  "Let the model generate a soundtrack as well as the picture.": "Laisser le modèle générer une bande-son en plus de l'image.",
+  "Take this actor off the ad": "Retirer cet acteur de la pub",
+  "Take this décor off the ad": "Retirer ce décor de la pub",
+  "Put this one away": "Retirer cette fonction",
+  "Attach a photo or a clip of the product": "Joindre une photo ou une vidéo du produit",
+  "+ New ad": "+ Nouvelle pub"
 }

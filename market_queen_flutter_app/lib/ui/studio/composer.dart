@@ -63,7 +63,39 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   final FocusNode _focus = FocusNode();
 
+  /// The column on the right. Wide enough for "Kling 3.0 Turbo Pro" without an
+  /// ellipsis, which is about the longest thing that lands in it.
+  static const double _settingsWidth = 330;
+
+  /// The gutter kept for that column on *both* sides of the bar, open or not.
+  ///
+  /// This is what centres the bar. Reserving the column on the right alone --
+  /// which is what used to happen -- put the bar half a column left of the
+  /// middle of the page and left it there all session. Mirroring the reservation
+  /// costs a strip of empty background nobody was using and makes the caret land
+  /// in the centre of the screen.
+  static const double _gutter = _settingsWidth + MqTheme.gap;
+
+  /// The bar stops widening here. Past it the send button ends up at the far
+  /// edge of a 27" monitor while the caret is in the middle of the screen, and
+  /// a prompt bar you have to travel to is a prompt bar you stop using.
+  static const double _barMaxWidth = 1180;
+
+  /// ...and it stops narrowing here. On a small window the gutters give their
+  /// room back rather than squeezing the prompt into a slot.
+  static const double _barMinWidth = 460;
+
+  /// How much room the prompt gets before it has anything in it. The same on
+  /// every tab, so the bar is one shape.
+  static const double _fieldMinHeight = 84;
+
   ComposerTab _tab = ComposerTab.actors;
+
+  /// The advanced modes taken out of "See more", in the order they were added.
+  /// They sit on the pill row beside the three permanent ones until they are
+  /// put away again.
+  final List<ComposerTab> _extras = [];
+
   bool _settingsOpen = false;
   bool _hovered = false;
   bool _dragging = false;
@@ -133,7 +165,16 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   // ---- sending -------------------------------------------------------------
 
   TextEditingController get _prompt => _prompts[_tab]!;
-  List<String> get _refs => _references[_tab]!;
+
+  /// What is attached to the bar on this tab.
+  ///
+  /// The talking-actor tab reads and writes the ad's own reference media rather
+  /// than a session list: a photo of the product is part of the ad -- the
+  /// pipeline hands it to the frame model -- and it has to still be there
+  /// tomorrow. Every other tab is composing a one-off request, so its
+  /// references live and die with it.
+  List<String> get _refs =>
+      _tab == ComposerTab.actors ? app.project.media : _references[_tab]!;
 
   ComposerSpec get _spec => ComposerSpec.of(_tab);
 
@@ -230,6 +271,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       seconds: _seconds,
       count: _count,
       voiceSource: _tab == ComposerTab.audio ? app.request() : const {},
+      resolution: app.settings.prefString('videoResolution'),
+      audio: app.settings.pref<bool>('videoAudio', true) ?? true,
     );
 
     // Only video asks twice. It is the only kind where one careless press is
@@ -268,6 +311,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   void _addReferences(List<String> paths) {
+    if (_tab == ComposerTab.actors) {
+      // Through the ad, which de-duplicates, normalises file:// URLs and marks
+      // itself dirty so the reference is saved with the document.
+      app.project.addMedia(paths);
+      return;
+    }
+
     setState(() {
       for (final path in paths) {
         if (path.isEmpty || _refs.contains(path)) continue;
@@ -280,6 +330,14 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     });
   }
 
+  void _removeReference(int index) {
+    if (_tab == ComposerTab.actors) {
+      app.project.removeMedia(index);
+      return;
+    }
+    setState(() => _refs.removeAt(index));
+  }
+
   // ---- build ---------------------------------------------------------------
 
   @override
@@ -290,42 +348,103 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         app.pipeline,
         app.runner,
         app.settings,
+        // A model schema arriving turns the Length menu from two guesses into
+        // the model's real list, so the column has to hear about it.
+        app.falSchemas,
       ]),
-      builder: (context, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: ComposerTabBar(
-              current: _tab,
-              onPicked: (tab) => setState(() => _tab = tab),
-            ),
-          ),
-          const SizedBox(height: MqTheme.gap),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      // The settings live beside the bar rather than inside it: they are read
+      // once per session and the prompt is rewritten twenty times, so they must
+      // not take room from it.
+      //
+      // Three rules hold this row together:
+      //
+      //  - the same gutter is reserved on both sides, so the bar is centred on
+      //    the page and stays centred whether the panel is open or shut;
+      //  - the panel is the third child of that one row, hung off a shared
+      //    bottom edge by [CrossAxisAlignment.end], so it grows upward instead
+      //    of leaving the bar floating with a hole underneath it;
+      //  - the whole row is bottom-anchored over the canvas by the page, so a
+      //    tall panel takes its room from empty background rather than from the
+      //    feed. Opening it moves nothing.
+      //
+      // The tab row lives inside the bar's own column rather than above the
+      // whole thing, so it stays centred on the bar.
+      builder: (context, _) => LayoutBuilder(
+        builder: (context, constraints) {
+          final gutter = _gutterFor(constraints.maxWidth);
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Expanded(child: _bar()),
-              // The settings live beside the bar rather than inside it: they
-              // are read once per session and the prompt is rewritten twenty
-              // times, so they must not take room from it.
-              if (_settingsOpen) ...[
-                const SizedBox(width: MqTheme.gap),
-                SizedBox(
-                  // Wide enough for "fal.ai · Kling 3.0 Turbo Pro" without an
-                  // ellipsis, which is the longest thing that ever lands here.
-                  width: 330,
-                  child: ComposerSettings(
-                    app: app,
-                    tab: _tab,
-                    onClose: () => setState(() => _settingsOpen = false),
+              SizedBox(width: gutter),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _barMaxWidth),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: ComposerTabBar(
+                            current: _tab,
+                            extras: _extras,
+                            onPicked: _pickTab,
+                            onRemoved: _dropTab,
+                          ),
+                        ),
+                        const SizedBox(height: MqTheme.gap),
+                        _bar(),
+                      ],
+                    ),
                   ),
                 ),
-              ],
+              ),
+              SizedBox(
+                width: gutter,
+                child: _settingsOpen
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: MqTheme.gap),
+                        child: ComposerSettings(
+                          app: app,
+                          tab: _tab,
+                          onClose: () => setState(() => _settingsOpen = false),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
+  }
+
+  /// The reserved column, given back to the bar on a window too narrow to
+  /// afford it.
+  double _gutterFor(double width) {
+    if (width - 2 * _gutter >= _barMinWidth) return _gutter;
+    final left = (width - _barMinWidth) / 2;
+    return left < 0 ? 0 : left;
+  }
+
+  /// A pill was pressed, or a mode was chosen out of "See more". Either way the
+  /// composer switches to it; an advanced one also earns a pill of its own.
+  void _pickTab(ComposerTab tab) {
+    setState(() {
+      _tab = tab;
+      if (ComposerSpec.secondary.contains(tab) && !_extras.contains(tab)) {
+        _extras.add(tab);
+      }
+    });
+  }
+
+  /// The cross on an advanced pill. Putting away the mode you are standing in
+  /// falls back to the talking actor, which is where the studio starts.
+  void _dropTab(ComposerTab tab) {
+    setState(() {
+      _extras.remove(tab);
+      if (_tab == tab) _tab = ComposerTab.actors;
+    });
   }
 
   Widget _bar() {
@@ -384,10 +503,11 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     final mq = context.mq;
 
     return ConstrainedBox(
-      constraints: BoxConstraints(
-        minHeight: _spec.tall ? 84 : 44,
-        maxHeight: 220,
-      ),
+      // One floor for every tab, and it is the script's. A 44px prompt and an
+      // 84px one are two differently sized objects in the same place on the
+      // page, and switching between them made the bar jump; the taller of the
+      // two is also the one that invites a sentence rather than three words.
+      constraints: const BoxConstraints(minHeight: _fieldMinHeight, maxHeight: 220),
       // Enter breaks the line; Ctrl+Enter sends. The other way round is the
       // chat convention and it is wrong here -- every send costs money, and a
       // prompt is a paragraph rather than a message.
@@ -445,7 +565,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       focusRadius: MqTheme.radius,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        height: 84,
+        height: _fieldMinHeight,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
@@ -481,7 +601,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           MediaTile(
             path: _refs[i],
             size: 54,
-            onRemove: () => setState(() => _refs.removeAt(i)),
+            onRemove: () => _removeReference(i),
           ),
       ],
     );
@@ -511,10 +631,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           ),
         ),
         const SizedBox(width: MqTheme.gap),
-        if (_tab == ComposerTab.actors) ...[
-          _CharacterCount(controller: _prompt),
-          const SizedBox(width: 10),
-        ],
         if (_spec.batched) ...[
           _Stepper(
             value: _count,
@@ -557,18 +673,32 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       final decor = app.decors.byId(project.decorId);
 
       return [
-        MqChip(
+        _CastChip(
           label: tr('Add an actor'),
-          value: actor?.name ?? '',
-          icon: actor == null ? 'user-add-line' : '',
+          emptyIcon: 'user-add-line',
+          name: actor?.name ?? '',
           portrait: actor?.thumbnail ?? '',
+          clearTip: tr('Take this actor off the ad'),
           onPressed: () => _cast(AssetKind.actor),
+          onCleared: project.clearActor,
         ),
-        MqChip(
+        _CastChip(
           label: tr('Add a décor'),
-          value: decor?.name ?? '',
-          icon: decor == null ? 'image-add-line' : '',
+          emptyIcon: 'image-add-line',
+          name: decor?.name ?? '',
+          clearTip: tr('Take this décor off the ad'),
           onPressed: () => _cast(AssetKind.decor),
+          onCleared: project.clearDecor,
+        ),
+        // The product itself. An ad is usually *about* something, and the
+        // frame model can only put it on screen if it has been shown it --
+        // until this button existed the only way in was the drag-and-drop
+        // nobody discovers.
+        MqIconButton(
+          icon: 'attachment-line',
+          tip: tr('Attach a photo or a clip of the product'),
+          size: 32,
+          onPressed: _browse,
         ),
       ];
     }
@@ -602,27 +732,57 @@ class _SendIntent extends Intent {
   const _SendIntent();
 }
 
-/// "0 / 1500". A script longer than that is not an ad, and knowing before the
-/// send button says so is what stops it being written twice.
-class _CharacterCount extends StatelessWidget {
-  const _CharacterCount({required this.controller});
+/// The actor or the décor on the ad: a chip that casts one, and once one is
+/// cast, a way to take it off again.
+///
+/// The cross is a second target rather than a second meaning for the chip.
+/// Clicking the chip always opens the picker -- swapping the actor is the
+/// common act -- but until this existed, casting one was a one-way door: the
+/// picker could replace it and nothing could empty it.
+class _CastChip extends StatelessWidget {
+  const _CastChip({
+    required this.label,
+    required this.emptyIcon,
+    required this.name,
+    required this.clearTip,
+    required this.onPressed,
+    required this.onCleared,
+    this.portrait = '',
+  });
 
-  final TextEditingController controller;
-
-  static const int limit = 1500;
+  final String label;
+  final String emptyIcon;
+  final String name;
+  final String portrait;
+  final String clearTip;
+  final VoidCallback onPressed;
+  final VoidCallback onCleared;
 
   @override
   Widget build(BuildContext context) {
-    final mq = context.mq;
-    final used = controller.text.characters.length;
+    final chip = MqChip(
+      label: label,
+      value: name,
+      icon: name.isEmpty ? emptyIcon : '',
+      portrait: portrait,
+      onPressed: onPressed,
+    );
 
-    return Text(
-      '$used / $limit',
-      style: TextStyle(
-        color: used > limit ? mq.warningText : mq.textTertiary,
-        fontSize: MqTheme.fontSmall,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
+    if (name.isEmpty) return chip;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        chip,
+        const SizedBox(width: 2),
+        MqIconButton(
+          icon: 'close-line',
+          tip: clearTip,
+          size: 24,
+          destructive: true,
+          onPressed: onCleared,
+        ),
+      ],
     );
   }
 }

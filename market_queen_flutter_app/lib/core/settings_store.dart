@@ -148,10 +148,17 @@ class SettingsStore extends ChangeNotifier {
     return value == null ? fallback : '$value';
   }
 
+  /// Writes a free-form preference and tells the interface.
+  ///
+  /// The notification is not optional bookkeeping: the composer's model, format
+  /// and length menus all write through here, and without it a picked model
+  /// stayed on the old name until the panel was closed and opened again -- the
+  /// value had changed, nothing had been asked to redraw.
   void setPref(String key, Object? value) {
     if (_prefs[key] == value) return;
     _prefs[key] = value;
     save();
+    notifyListeners();
   }
 
   // ---- The model shortlist ----------------------------------------------

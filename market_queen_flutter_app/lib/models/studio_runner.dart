@@ -11,6 +11,7 @@ import '../core/pricing.dart';
 import '../core/settings_store.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
+import '../providers/fal_schema.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
@@ -34,6 +35,8 @@ class GenerationOrder {
     this.seconds = 5,
     this.count = 1,
     this.voiceSource = const {},
+    this.resolution = '',
+    this.audio = true,
   });
 
   /// How the canvas draws the result.
@@ -64,6 +67,13 @@ class GenerationOrder {
   /// The composer has no voice picker of its own, because a second answer to
   /// "who is speaking" is a second thing to keep in step with the actor.
   final Map<String, Object?> voiceSource;
+
+  /// Video only, and only when the model offers a choice: "720p", "1080p".
+  final String resolution;
+
+  /// Video only. Whether the model should also generate a soundtrack, for the
+  /// ones that can. Ignored by models with no such switch.
+  final bool audio;
 }
 
 /// Fires what the composer ordered and files the results in the feed.
@@ -80,6 +90,7 @@ class StudioRunner extends ChangeNotifier {
     this._pricing,
     this._log,
     this._casting,
+    this._falSchemas,
     this.feed,
   );
 
@@ -88,6 +99,7 @@ class StudioRunner extends ChangeNotifier {
   final Pricing _pricing;
   final LogModel _log;
   final VoiceCasting _casting;
+  final FalSchemas _falSchemas;
 
   /// The feed everything lands in. Owned by the ad, not by this object: closing
   /// an ad swaps the feed's contents while a batch may still be in the air, and
@@ -215,6 +227,17 @@ class StudioRunner extends ChangeNotifier {
     for (var i = 0; i < batch.items.length; ++i) {
       final item = batch.items[i];
 
+      // Read once per batch: what this model calls its opening frame, and which
+      // of duration, resolution and audio it actually declares.
+      final shaped = order.category == 'video' && FalSchemas.handles(providerId)
+          ? _falSchemas.capabilities(model).videoInput(
+              seconds: order.seconds,
+              resolution: order.resolution,
+              audio: order.audio,
+              aspectRatio: order.aspectRatio,
+            )
+          : null;
+
       final task = switch (order.category) {
         'video' => ProviderFactory.video(
           providerId,
@@ -225,6 +248,8 @@ class StudioRunner extends ChangeNotifier {
             imageDataUri: referenceUri,
             aspectRatio: order.aspectRatio,
             durationSeconds: order.seconds,
+            imageField: shaped?.imageField ?? '',
+            extraInput: shaped?.input ?? const {},
           ),
         ),
         _ => ProviderFactory.image(

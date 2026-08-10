@@ -29,6 +29,7 @@ class CanvasView extends StatefulWidget {
     super.key,
     required this.app,
     required this.onOpenRender,
+    this.bottomInset = 0,
   });
 
   final AppState app;
@@ -37,6 +38,11 @@ class CanvasView extends StatefulWidget {
   /// the per-scene reshoot, the log. That view still exists; it is simply no
   /// longer where Generate takes you.
   final VoidCallback onOpenRender;
+
+  /// How much of the bottom edge the composer stands in front of. The feed
+  /// scrolls under it and pads itself by this much so the newest tile can still
+  /// be brought clear.
+  final double bottomInset;
 
   @override
   State<CanvasView> createState() => _CanvasViewState();
@@ -92,15 +98,17 @@ class _CanvasViewState extends State<CanvasView> {
         listenable: _feed,
         builder: (context, _) {
           final batches = _feed.batches;
-          if (batches.isEmpty) return const _EmptyCanvas();
+          if (batches.isEmpty) {
+            return _EmptyCanvas(bottomInset: widget.bottomInset);
+          }
 
           return ListView.separated(
             controller: _scroll,
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               MqTheme.pagePadding,
               MqTheme.gapLarge,
               MqTheme.pagePadding,
-              MqTheme.gapLarge,
+              MqTheme.gapLarge + widget.bottomInset,
             ),
             itemCount: batches.length,
             separatorBuilder: (context, _) =>
@@ -124,72 +132,83 @@ class _CanvasViewState extends State<CanvasView> {
 /// putting a button on it: the bar underneath is the only way in, and pointing
 /// somewhere else would be a second answer to the same question.
 class _EmptyCanvas extends StatelessWidget {
-  const _EmptyCanvas();
+  const _EmptyCanvas({this.bottomInset = 0});
+
+  /// Keeps the invitation in the middle of the *visible* canvas rather than the
+  /// middle of the surface the composer covers the bottom of.
+  final double bottomInset;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: 92,
-            height: 74,
-            child: Stack(
-              children: [
-                Positioned(
-                  left: 0,
-                  top: 6,
-                  child: Container(
-                    width: 46,
-                    height: 62,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                      border: Border.all(color: mq.border),
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomInset),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 92,
+              height: 74,
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 6,
+                    child: Container(
+                      width: 46,
+                      height: 62,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          MqTheme.radiusSmall,
+                        ),
+                        border: Border.all(color: mq.border),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 52,
-                    height: 68,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: mq.surface,
-                      borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                      border: Border.all(color: mq.borderStrong),
-                    ),
-                    child: MqIcon(
-                      'movie-2-line',
-                      size: 20,
-                      color: mq.textTertiary,
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      width: 52,
+                      height: 68,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: mq.surface,
+                        borderRadius: BorderRadius.circular(
+                          MqTheme.radiusSmall,
+                        ),
+                        border: Border.all(color: mq.borderStrong),
+                      ),
+                      child: MqIcon(
+                        'movie-2-line',
+                        size: 20,
+                        color: mq.textTertiary,
+                      ),
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: MqTheme.gapLarge),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                tr(
+                  'Everything you generate lands here: talking actors, videos, '
+                  'images.',
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: MqTheme.gapLarge),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 320),
-            child: Text(
-              tr(
-                'Everything you generate lands here: talking actors, videos, '
-                'images.',
-              ),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontBody,
-                height: MqTheme.lineBody,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontBody,
+                  height: MqTheme.lineBody,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

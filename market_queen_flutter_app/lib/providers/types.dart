@@ -98,6 +98,8 @@ class VideoRequest {
     this.imageDataUri = '',
     this.aspectRatio = '9:16',
     this.durationSeconds = 5,
+    this.imageField = '',
+    this.extraInput = const {},
   });
 
   final String apiKey;
@@ -108,6 +110,23 @@ class VideoRequest {
   final String imageDataUri;
   final String aspectRatio;
   final int durationSeconds;
+
+  /// What this model calls its opening frame.
+  ///
+  /// `image_url` on most of fal, `start_image_url` on Kling. Empty means "we do
+  /// not know", and the provider falls back to guessing from the model id the
+  /// way it always did.
+  final String imageField;
+
+  /// Model-specific inputs the caller read out of the model's own schema:
+  /// the duration in the exact spelling its enum uses, the resolution, the
+  /// audio switch under whichever name it goes by here.
+  ///
+  /// Every fal endpoint rejects fields it does not declare, so guessing at
+  /// these from the model id was both incomplete and actively harmful. When
+  /// this is non-empty the provider sends it as given and adds nothing of its
+  /// own.
+  final Map<String, Object?> extraInput;
 }
 
 /// A talking shot: a still plus the audio it should be saying.
