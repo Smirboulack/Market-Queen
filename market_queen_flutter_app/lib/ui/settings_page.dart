@@ -247,6 +247,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     controller: _ffmpeg,
                     placeholder: tr('Leave empty to use the one on your PATH'),
                     onEditingComplete: (text) => app.settings.ffmpegPath = text,
+                    onSubmitted: (text) => app.settings.ffmpegPath = text,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -386,6 +387,17 @@ class _KeyFieldState extends State<KeyField> {
     if (mounted) setState(() {});
   }
 
+  /// Saves the key and flashes the confirmation. Wired to both Enter and the
+  /// focus leaving the field: pasting a key and clicking away is as common as
+  /// pasting one and pressing Enter, and neither should lose it.
+  void _commit(String text) {
+    widget.app.settings.setApiKey(widget.credential.id, text);
+    setState(() => _saved = true);
+    Future.delayed(const Duration(milliseconds: 1900), () {
+      if (mounted) setState(() => _saved = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
@@ -455,13 +467,8 @@ class _KeyFieldState extends State<KeyField> {
                           'Using %1 from your environment',
                         ).arg(credential.envVar)
                       : tr('Paste your key'),
-                  onEditingComplete: (text) {
-                    settings.setApiKey(credential.id, text);
-                    setState(() => _saved = true);
-                    Future.delayed(const Duration(milliseconds: 1900), () {
-                      if (mounted) setState(() => _saved = false);
-                    });
-                  },
+                  onEditingComplete: _commit,
+                  onSubmitted: _commit,
                 ),
               ),
               const SizedBox(width: 8),

@@ -7,7 +7,9 @@ import '../core/settings_store.dart';
 import '../core/signal.dart';
 import '../i18n/translator.dart';
 import '../providers/registry.dart';
+import '../providers/voice_profile.dart';
 import 'asset_library.dart';
+import 'canvas_feed.dart';
 
 /// The ad being edited: one UGC spot, inside one project.
 ///
@@ -21,7 +23,11 @@ import 'asset_library.dart';
 /// take of one person talking, and cutting it into beats on the way in only
 /// ever made it look like an advert.
 class AdProject extends ChangeNotifier {
-  AdProject(this._settings, this._registry);
+  AdProject(this._settings, this._registry) {
+    // Everything the canvas produced is part of the document, so a new tile has
+    // to dirty the ad the same way a keystroke does.
+    feed.addListener(_touched);
+  }
 
   // Rough speaking pace, the same figure the pipeline plans against, so the
   // duration shown while writing matches the one the ad runs to.
@@ -44,7 +50,19 @@ class AdProject extends ChangeNotifier {
   String projectId = '';
   String name = '';
 
+  /// Everything this ad has generated, in the order it was asked for.
+  ///
+  /// The canvas is the studio now, so its contents are the ad as much as the
+  /// scenario is. It saves and reopens with the rest of the document.
+  final CanvasFeed feed = CanvasFeed();
+
   /// name, description, audience.
+  ///
+  /// No longer collected anywhere in the interface -- the block that used to
+  /// ask for it is gone, on the grounds that somebody opening an ad studio is
+  /// already advertising something and being made to fill in a form saying so
+  /// twice is not a step. It stays on the model because the writer and the
+  /// pricing still read it, and because ads saved before the change carry it.
   Map<String, Object?> product = {};
 
   /// Reference pictures and clips of the product, in the order they were
@@ -191,14 +209,17 @@ class AdProject extends ChangeNotifier {
 
   bool get hasActor => actorIds.isNotEmpty;
 
-  bool get complete => hasProduct && hasScript && hasActor;
+  /// Two things, not three. The product used to be one of them; it was dropped
+  /// with the panel that asked for it, because an ad with a scenario and an
+  /// actor is an ad that can be shot, and nothing downstream ever refused to
+  /// run for want of a product name.
+  bool get complete => hasScript && hasActor;
 
-  /// What is still missing, in the order it reads best. Shown on the Generate
-  /// button, so a disabled button always says why.
+  /// What is still missing, in the order it reads best. Shown on the send
+  /// button, so a disabled one always says why.
   List<String> get missing => [
-    if (!hasProduct) tr('a product'),
     if (!hasActor) tr('an actor'),
-    if (!hasScript) tr('a scenario'),
+    if (!hasScript) tr('a script'),
   ];
 
   /// How long the written ad takes to say.
@@ -256,8 +277,13 @@ class AdProject extends ChangeNotifier {
     double voice(String key, double fallback) =>
         actor?.extraNumber(key, fallback) ?? fallback;
 
+    // The ad's own name stands in when there is no product name: it is what the
+    // run folder is called, and "20260810-143002-" is not a folder anybody can
+    // find again.
+    final productName = '${product['name'] ?? ''}'.trim();
+
     return {
-      'productName': '${product['name'] ?? ''}'.trim(),
+      'productName': productName.isEmpty ? name.trim() : productName,
       'productDescription': '${product['description'] ?? ''}'.trim(),
       'audience': '${product['audience'] ?? ''}'.trim(),
       'tone': '',
@@ -289,7 +315,15 @@ class AdProject extends ChangeNotifier {
       'videoModel': pickedModel('video', videoProvider),
       'voiceProvider': voiceProvider,
       'voiceModel': pickedModel('voice', voiceProvider),
+      // The voice the actor was cast with, and the brief it was cast from. The
+      // owner travels with the id because a library voice has to be put on the
+      // account before it can speak, and the pipeline may be the first to use
+      // it. With no voice chosen, the brief is searched and the best match
+      // reads the ad.
       'voiceId': actor?.extraText('voiceId') ?? '',
+      'voiceOwner': actor?.extraText('voiceOwner') ?? '',
+      'voiceName': actor?.extraText('voiceName') ?? '',
+      for (final key in VoiceProfile.keys) key: actor?.extraText(key) ?? '',
       // What was auditioned has to be what is bought.
       'voiceStability': voice('voiceStability', 0.45),
       'voiceSimilarity': voice('voiceSimilarity', 0.8),
@@ -337,6 +371,7 @@ class AdProject extends ChangeNotifier {
     'captions': captions,
     'broll': broll,
     'maxSeconds': maxSeconds,
+    'feed': feed.toJson(),
   };
 
   /// Opens a document. Wholesale, not merged: opening an ad has to give exactly
@@ -381,6 +416,7 @@ class AdProject extends ChangeNotifier {
     // accident, not by choice, so they open with them switched on.
     broll = document['broll'] != false;
     maxSeconds = (document['maxSeconds'] as num?)?.toInt() ?? 0;
+    feed.load(document['feed']);
 
     notifyListeners();
     requestChanged.emit();
@@ -401,10 +437,18 @@ class AdProject extends ChangeNotifier {
     captions = true;
     broll = true;
     maxSeconds = 0;
+    feed.clear();
 
     notifyListeners();
     requestChanged.emit();
     reloaded.emit();
+  }
+
+  @override
+  void dispose() {
+    feed.removeListener(_touched);
+    feed.dispose();
+    super.dispose();
   }
 
   /// Drops an actor or a décor that has been deleted from its library, so an ad

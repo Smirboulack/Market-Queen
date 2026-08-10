@@ -232,6 +232,25 @@ class Registry extends ChangeNotifier {
         note: tr('Use owner/name, or owner/name:version to pin a version.'),
       ),
 
+      // ---- Enlarging -------------------------------------------------------
+      // Its own category rather than another image model, because it is the one
+      // generation with no prompt: you hand it a picture from the canvas and
+      // get the same picture, bigger. The task underneath is the ordinary fal
+      // image task -- these endpoints read `image_url` and ignore the rest.
+      ProviderEntry(
+        id: 'fal-upscale',
+        category: 'upscale',
+        label: 'fal.ai',
+        credential: 'fal',
+        models: const [
+          ModelEntry('fal-ai/clarity-upscaler', 'Clarity Upscaler'),
+          ModelEntry('fal-ai/aura-sr', 'Aura SR'),
+          ModelEntry('fal-ai/esrgan', 'Real-ESRGAN'),
+        ],
+        defaultModel: 'fal-ai/clarity-upscaler',
+        note: tr('Enlarges a picture from the canvas. No prompt needed.'),
+      ),
+
       // ---- Video (image to video) ----------------------------------------
       // Video is almost the whole bill, so the head of this list is the single
       // most expensive default in the app. Kling v3 Standard leads: current
@@ -549,6 +568,9 @@ class ProviderFactory {
         'openai-image' => OpenAiImageTask(request),
         'fal-image' => FalImageTask(request),
         'replicate-image' => ReplicateImageTask(request),
+        // The upscalers take the picture as `image_url` and hand one back the
+        // same way an image model does, so they need no task of their own.
+        'fal-upscale' => FalImageTask(request),
         _ => null,
       };
 

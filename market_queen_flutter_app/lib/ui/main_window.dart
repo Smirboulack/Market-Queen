@@ -93,10 +93,15 @@ class _MainWindowState extends State<MainWindow> {
     });
   }
 
-  void _generate() {
-    setState(() => _rendering = true);
-    app.pipeline.start(app.request());
-  }
+  /// Starts a run and stays where it is.
+  ///
+  /// It used to navigate to the render view, which meant every generation threw
+  /// you off the page you were working on for as long as it took. The progress
+  /// is in the canvas now, as a tile filling itself in; this screen is still
+  /// reachable, from that tile, for the shot list and the log.
+  void _generate() => app.pipeline.start(app.request());
+
+  void _openRender() => setState(() => _rendering = true);
 
   /// A second ad in the same project, from the render view. The one that just
   /// rendered stays exactly as it was.
@@ -248,6 +253,7 @@ class _MainWindowState extends State<MainWindow> {
             key: ValueKey('ad:$_adId'),
             app: app,
             onGenerate: _generate,
+            onOpenRender: _openRender,
           ),
         RenderView(
           app: app,

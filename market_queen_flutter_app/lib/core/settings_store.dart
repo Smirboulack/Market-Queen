@@ -154,6 +154,67 @@ class SettingsStore extends ChangeNotifier {
     save();
   }
 
+  // ---- The model shortlist ----------------------------------------------
+  //
+  // The Models page no longer picks a default for each kind of generation --
+  // that choice moved into the composer, next to the prompt it applies to. What
+  // the page does now is decide which models are *offered* there, because a
+  // provider's full catalogue is thirty entries deep and two thirds of it is
+  // last year's.
+  //
+  // Stored as the hidden set rather than the visible one, so a model added in a
+  // future release shows up for everybody instead of being invisible to every
+  // existing install.
+
+  static const _hiddenModelsKey = 'hiddenModels';
+
+  Set<String> get _hidden {
+    final saved = _prefs[_hiddenModelsKey];
+    return {
+      if (saved is List)
+        for (final entry in saved) '$entry',
+    };
+  }
+
+  static String _modelKey(String providerId, String modelId) =>
+      '$providerId::$modelId';
+
+  bool modelHidden(String providerId, String modelId) =>
+      _hidden.contains(_modelKey(providerId, modelId));
+
+  bool modelShown(String providerId, String modelId) =>
+      !modelHidden(providerId, modelId);
+
+  void setModelHidden(String providerId, String modelId, bool hidden) {
+    final set = _hidden;
+    final key = _modelKey(providerId, modelId);
+    if (hidden ? !set.add(key) : !set.remove(key)) return;
+
+    _prefs[_hiddenModelsKey] = set.toList()..sort();
+    save();
+    notifyListeners();
+  }
+
+  /// Hides or shows a provider's whole catalogue in one gesture.
+  void setProviderModelsHidden(
+    String providerId,
+    Iterable<String> modelIds,
+    bool hidden,
+  ) {
+    final set = _hidden;
+    var changed = false;
+
+    for (final modelId in modelIds) {
+      final key = _modelKey(providerId, modelId);
+      if (hidden ? set.add(key) : set.remove(key)) changed = true;
+    }
+    if (!changed) return;
+
+    _prefs[_hiddenModelsKey] = set.toList()..sort();
+    save();
+    notifyListeners();
+  }
+
   // ---- Secrets ----------------------------------------------------------
   //
   // Reading falls back to the provider's conventional environment variable, so

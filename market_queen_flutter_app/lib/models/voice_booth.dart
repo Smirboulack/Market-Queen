@@ -13,6 +13,7 @@ import '../i18n/translator.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
+import '../providers/voice_casting.dart';
 import '../providers/voice_providers.dart';
 
 /// The audition booth.
@@ -26,7 +27,13 @@ import '../providers/voice_providers.dart';
 /// recordings and creates a permanent voice on their provider account, so it
 /// only ever happens on an explicit click.
 class VoiceBooth extends ChangeNotifier {
-  VoiceBooth(this._settings, this._registry, this._pricing, this._log);
+  VoiceBooth(
+    this._settings,
+    this._registry,
+    this._pricing,
+    this._log,
+    this._casting,
+  );
 
   /// ElevenLabs bills text-to-speech per thousand characters.
   static const _charsPerKilo = 1000.0;
@@ -35,6 +42,7 @@ class VoiceBooth extends ChangeNotifier {
   final Registry _registry;
   final Pricing _pricing;
   final LogModel _log;
+  final VoiceCasting _casting;
 
   /// The new voice is on the account; the caller decides whether to adopt it.
   final Event<({String voiceId, String name})> cloned = Event();
@@ -90,8 +98,13 @@ class VoiceBooth extends ChangeNotifier {
     return CostEstimate(true, unit.amount * (text.length / _charsPerKilo));
   }
 
-  /// Speaks [text] as the actor would. [actor] is AdProject's actor map:
-  /// voiceId plus the four settings.
+  /// Speaks [text] as the actor would. [actor] is AdProject's actor map: the
+  /// casting brief -- or a pinned voice id -- plus the four settings.
+  ///
+  /// The voice is worked out here rather than passed in, because the whole
+  /// point of the audition is that it buys what the render will: the brief goes
+  /// through the same caster, hits the same remembered answer, and the actor you
+  /// hear is the actor the ad gets.
   Future<void> audition(Map<String, Object?> actor, String text) async {
     if (_auditioning || _cloning) return;
 
@@ -110,37 +123,57 @@ class VoiceBooth extends ChangeNotifier {
     var providerId = _settings.prefString('voiceProvider');
     if (providerId.isEmpty) providerId = _registry.defaultProvider('voice');
 
+    final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
+    final model =
+        _registry.resolveModel(providerId, _settings.prefString('voiceModel'));
+
     double setting(String key, double fallback) {
       final value = actor[key];
       return value is num ? value.toDouble() : fallback;
     }
 
-    final task = ProviderFactory.voice(
-      providerId,
-      VoiceRequest(
-        apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
-        model:
-            _registry.resolveModel(providerId, _settings.prefString('voiceModel')),
-        voiceId: '${actor['voiceId'] ?? ''}',
-        text: line,
-        stability: setting('voiceStability', 0.45),
-        similarity: setting('voiceSimilarity', 0.8),
-        style: setting('voiceStyle', 0.35),
-        speed: setting('voiceSpeed', 1.0),
-      ),
-    );
-
-    if (task == null) {
-      _setError(tr('No voice provider called %1.').arg(providerId));
-      return;
-    }
-
     _error = '';
     _auditioning = true;
-    _task = task;
     notifyListeners();
 
     try {
+      final voice = await _casting.voiceFor(
+        providerId: providerId,
+        apiKey: apiKey,
+        modelId: model,
+        source: actor,
+        onTask: (running) => _task = running,
+      );
+      if (voice.label.isNotEmpty) {
+        _log.info(voice.description.isEmpty
+            //: %1 is a voice's name
+            ? tr('Voice: %1.').arg(voice.label)
+            //: %1 is a voice's name, %2 what it sounds like
+            : tr('Voice: %1 — %2.').arg(voice.label).arg(voice.description));
+      }
+
+      final task = ProviderFactory.voice(
+        providerId,
+        VoiceRequest(
+          apiKey: apiKey,
+          model: model,
+          voiceId: voice.id,
+          text: line,
+          stability: setting('voiceStability', 0.45),
+          similarity: setting('voiceSimilarity', 0.8),
+          style: setting('voiceStyle', 0.35),
+          speed: setting('voiceSpeed', 1.0),
+        ),
+      );
+
+      if (task == null) {
+        _setError(tr('No voice provider called %1.').arg(providerId));
+        _auditioning = false;
+        notifyListeners();
+        return;
+      }
+      _task = task;
+
       final result = await task.run();
 
       final data = result['data'] as Uint8List? ?? Uint8List(0);

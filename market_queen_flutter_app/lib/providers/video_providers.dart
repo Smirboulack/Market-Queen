@@ -180,6 +180,9 @@ class SoraVideoTask extends VideoTask {
           'input_reference',
           frame,
           filename: 'frame.png',
+          // _fitToSize re-encodes to PNG; saying so is what keeps the part from
+          // going up as an unnamed binary blob.
+          contentType: Http.mediaType('image/png'),
         ),
       ],
     );

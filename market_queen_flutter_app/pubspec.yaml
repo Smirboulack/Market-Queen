@@ -16,6 +16,10 @@ dependencies:
   # Networking. `http` gives us multipart for free, which several providers need.
   http: ^1.2.2
 
+  # MediaType, for the content type every multipart part has to declare. `http`
+  # defaults them to application/octet-stream, which the OpenAI uploads reject.
+  http_parser: ^4.0.2
+
   # SHA-256 + HMAC, so secrets.bin keeps the exact format the Qt build wrote.
   crypto: ^3.0.5
 

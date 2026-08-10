@@ -10,6 +10,7 @@ import '../core/paths.dart';
 import '../core/pricing.dart';
 import '../core/settings_store.dart';
 import '../i18n/translator.dart';
+import '../media/ffmpeg.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
@@ -149,7 +150,10 @@ class ImageForge extends ChangeNotifier {
     var referenceUri = '';
     for (final path in references) {
       if (isVideoPath(path)) continue;
-      referenceUri = Http.imageToDataUri(path);
+      // Through ffmpeg when the Dart codecs cannot read it: a reference dropped
+      // straight off a shop page is as likely to be AVIF as anything.
+      referenceUri = await imageDataUri(Ffmpeg.resolve(_settings.ffmpegPath), path);
+      if (referenceUri.isEmpty) _log.warning(unreadableImage(path));
       break;
     }
 

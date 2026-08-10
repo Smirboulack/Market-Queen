@@ -79,14 +79,18 @@ class _ModelPickerState extends State<ModelPicker> {
     // being a surprise; a model we have no price for is simply left plain.
     final pricedModels = <MenuEntry<String>>[
       for (final model in info?.models ?? const <ModelEntry>[])
-        MenuEntry<String>(
-          () {
-            final price =
-                Format.unitPriceLabel(widget.app.pricing.unitPrice(model.id));
-            return price.isEmpty ? model.label : '${model.label}   $price';
-          }(),
-          model.id,
-        ),
+        // The Models page's shortlist applies here too: a model switched off
+        // there must not come back through the actor editor's own picker.
+        if (settings.modelShown(_providerId, model.id))
+          MenuEntry<String>(
+            () {
+              final price = Format.unitPriceLabel(
+                widget.app.pricing.unitPrice(model.id),
+              );
+              return price.isEmpty ? model.label : '${model.label}   $price';
+            }(),
+            model.id,
+          ),
     ];
 
     return Column(

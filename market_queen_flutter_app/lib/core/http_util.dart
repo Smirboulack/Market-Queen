@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart' show MediaType;
 import 'package:image/image.dart' as img;
 import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
@@ -92,9 +93,33 @@ class Http {
   static String _simplified(String text) =>
       text.replaceAll(RegExp(r'\s+'), ' ').trim();
 
-  /// Encodes a local image as a data: URI, re-compressing to JPEG when the file
-  /// is large. Providers accept these in place of a hosted URL, which lets the
-  /// app stay storage-free.
+  /// What bytes actually are, whatever the file is called.
+  ///
+  /// The extension is a claim, not evidence. A shop's AVIF saved as ".png" is
+  /// exactly the file that sails through every check here and comes back from
+  /// the model as a 400, so nothing downstream is allowed to trust the name.
+  static String sniffMime(List<int> data) =>
+      lookupMimeType('', headerBytes: data.take(64).toList()) ?? '';
+
+  /// The image formats every model in the app will look at.
+  ///
+  /// Anything else has to be turned into one of these before it is sent.
+  /// Labelling an AVIF "image/png" does not make it readable -- it only moves
+  /// the rejection one API call further away from the cause.
+  static const acceptedImageMimes = <String>{
+    'image/png',
+    'image/jpeg',
+    'image/webp',
+    'image/gif',
+  };
+
+  /// Encodes a local image as a data: URI a model will accept, converting and
+  /// re-compressing as needed. Providers take these in place of a hosted URL,
+  /// which lets the app stay storage-free.
+  ///
+  /// Empty when the file cannot be read or decoded -- a shop's AVIF, a phone's
+  /// HEIC. That is not a failure to paper over: the caller has ffmpeg to try
+  /// instead, and something to tell the user if that fails too.
   static String imageToDataUri(String path, {int maxBytes = 2 * 1024 * 1024}) {
     final file = File(path);
     if (!file.existsSync()) return '';
@@ -105,31 +130,71 @@ class Http {
     } on FileSystemException {
       return '';
     }
+    return imageBytesToDataUri(data, maxBytes: maxBytes);
+  }
+
+  /// The same, for bytes that never were a file -- a frame just generated, or
+  /// a picture something else has already converted.
+  static String imageBytesToDataUri(
+    Uint8List data, {
+    int maxBytes = 2 * 1024 * 1024,
+  }) {
     if (data.isEmpty) return '';
 
-    var mime = lookupMimeType(path, headerBytes: data.take(64).toList()) ?? '';
-    if (!mime.startsWith('image/')) mime = 'image/png';
+    var bytes = data;
+    var mime = sniffMime(data);
 
-    if (data.length > maxBytes) {
-      final decoded = img.decodeImage(data);
-      if (decoded != null) {
-        final resized = (decoded.width > 2048 || decoded.height > 2048)
-            ? img.copyResize(
-                decoded,
-                width: decoded.width >= decoded.height ? 2048 : null,
-                height: decoded.height > decoded.width ? 2048 : null,
-                interpolation: img.Interpolation.average,
-              )
-            : decoded;
-        final recompressed = img.encodeJpg(resized, quality: 88);
-        if (recompressed.isNotEmpty) {
-          data = Uint8List.fromList(recompressed);
-          mime = 'image/jpeg';
-        }
+    // A format nothing reads and a file too big to inline are one problem with
+    // one answer: decode it, and hand over something everybody takes.
+    if (!acceptedImageMimes.contains(mime) || bytes.length > maxBytes) {
+      final decoded = img.decodeImage(bytes);
+      if (decoded == null) return '';
+
+      final resized = (decoded.width > 2048 || decoded.height > 2048)
+          ? img.copyResize(
+              decoded,
+              width: decoded.width >= decoded.height ? 2048 : null,
+              height: decoded.height > decoded.width ? 2048 : null,
+              interpolation: img.Interpolation.average,
+            )
+          : decoded;
+
+      // PNG while there is transparency worth keeping, JPEG once there is not:
+      // a photograph re-encoded as PNG is several times the size and no better.
+      final png = resized.hasAlpha ? img.encodePng(resized) : const <int>[];
+      if (png.isNotEmpty && png.length <= maxBytes) {
+        bytes = Uint8List.fromList(png);
+        mime = 'image/png';
+      } else {
+        final jpeg = img.encodeJpg(resized, quality: 88);
+        if (jpeg.isEmpty) return '';
+        bytes = Uint8List.fromList(jpeg);
+        mime = 'image/jpeg';
       }
     }
 
-    return 'data:$mime;base64,${base64Encode(data)}';
+    return 'data:$mime;base64,${base64Encode(bytes)}';
+  }
+
+  /// The content type one part of a multipart upload declares.
+  ///
+  /// `http` defaults every part to application/octet-stream and never looks at
+  /// the filename, which is what OpenAI's uploads were rejecting: a PNG called
+  /// product.png, sent as a binary blob.
+  static MediaType mediaType(String mimeType) {
+    final parts = mimeType.split(';').first.trim().split('/');
+    if (parts.length == 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+      return MediaType(parts[0], parts[1]);
+    }
+    return MediaType('application', 'octet-stream');
+  }
+
+  /// The content type of a file about to be uploaded, read from its bytes and
+  /// falling back to its name.
+  static MediaType mediaTypeOf(String path, List<int> data) {
+    final sniffed = sniffMime(data);
+    if (sniffed.isNotEmpty) return mediaType(sniffed);
+    return mediaType(lookupMimeType(path) ?? '');
   }
 
   /// Encodes any local file as a data: URI, verbatim. Used for the few seconds

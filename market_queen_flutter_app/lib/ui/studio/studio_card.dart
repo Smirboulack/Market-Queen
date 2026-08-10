@@ -193,58 +193,62 @@ String formatStamp(DateTime when) =>
 
 /// The button that makes the next thing.
 ///
-/// It is drawn twice on every studio list: in the top-left corner once there is
-/// something in the list, and in the middle of the canvas while there is not.
-/// An empty page whose only action is tucked into a corner is a page that looks
-/// broken.
-class StudioEmptyState extends StatelessWidget {
-  const StudioEmptyState({
+/// Small, transparent and hard against the left edge, in every state of the
+/// page. It used to be drawn two different ways -- a quiet outline in the
+/// corner once the list had something in it, and a full-width filled slab in
+/// the middle of an empty one. The slab was the loudest object in the app, for
+/// the least consequential act in it, so both states are this now.
+///
+/// [Row] with [MainAxisSize.min], not [Align]: a button in a stretched box is
+/// one careless `crossAxisAlignment` away from filling the window, and that is
+/// exactly how it got there the first time.
+class StudioNewButton extends StatelessWidget {
+  const StudioNewButton({
     super.key,
-    required this.title,
-    required this.subtitle,
-    required this.actionLabel,
+    required this.label,
     required this.onPressed,
   });
 
-  final String title;
-  final String subtitle;
-  final String actionLabel;
+  final String label;
   final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [GhostButton(text: label, onPressed: onPressed)],
+    );
+  }
+}
+
+/// What a studio list says while it is empty: one line, where the first card
+/// would be. Not a call to action -- the button above it already is one, and
+/// two on a page with nothing on it is a page shouting.
+class StudioEmptyNote extends StatelessWidget {
+  const StudioEmptyNote({super.key, required this.text});
+
+  final String text;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: mq.textPrimary,
-              fontSize: MqTheme.fontTitle,
-              fontWeight: FontWeight.w600,
-              letterSpacing: MqTheme.trackTitle,
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: mq.textTertiary,
-              fontSize: MqTheme.fontLabel,
-            ),
-          ),
-          const SizedBox(height: MqTheme.gapLarge),
-          PrimaryButton(
-            text: actionLabel,
-            icon: 'add-line',
-            onPressed: onPressed,
-          ),
-        ],
+    return Container(
+      width: StudioCard.width,
+      height: StudioCard.height,
+      padding: const EdgeInsets.all(16),
+      alignment: AlignmentDirectional.centerStart,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(MqTheme.radius),
+        border: Border.all(color: mq.borderSubtle),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: mq.textTertiary,
+          fontSize: MqTheme.fontLabel,
+          height: MqTheme.lineBody,
+        ),
       ),
     );
   }

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:media_kit/media_kit.dart';
 
 import '../../app_state.dart';
+import '../../core/http_util.dart';
 import '../../i18n/translator.dart';
 import '../../models/ad_project.dart';
 import '../../models/asset_library.dart';
 import '../../models/image_forge.dart';
 import '../../providers/types.dart';
+import '../../providers/voice_profile.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
@@ -80,8 +82,19 @@ class _AssetEditorState extends State<AssetEditor> {
   Player? _player;
 
   bool _models = false;
-  List<VoiceOption> _voices = const [];
   String _lastSample = '';
+
+  /// Who the brief turned up, best first, and how much of it had to be given
+  /// up to turn up anybody.
+  List<LibraryVoice> _shortlist = const [];
+  List<String> _relaxed = const [];
+  bool _searching = false;
+  String _searchError = '';
+
+  /// The user's own voices, only fetched if they ask for them: a cloned voice
+  /// is a choice no brief can express.
+  List<VoiceOption> _accountVoices = const [];
+  bool _showAccount = false;
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
@@ -101,6 +114,10 @@ class _AssetEditorState extends State<AssetEditor> {
       _audition.text = tr('Honestly, I did not think this would work.');
       widget.app.voiceBooth.addListener(_onBooth);
       widget.app.voicesLoaded.listen(_onVoicesLoaded);
+      // The list has to be right the moment the editor opens, not after the
+      // first chip is touched: an actor with no brief is still a brief -- a
+      // voice in the language the ad is written in.
+      _search();
     }
   }
 
@@ -135,7 +152,7 @@ class _AssetEditorState extends State<AssetEditor> {
 
   void _onVoicesLoaded(({String providerId, List<VoiceOption> voices}) event) {
     if (!mounted) return;
-    setState(() => _voices = event.voices);
+    setState(() => _accountVoices = event.voices);
   }
 
   // ---- actions -------------------------------------------------------------
@@ -309,18 +326,107 @@ class _AssetEditorState extends State<AssetEditor> {
   }
 
   // ---- the voice -----------------------------------------------------------
+  //
+  // The brief is not a filter over a list that was already downloaded -- there
+  // are ten thousand voices and no such list exists. It is the query. Every
+  // chip below goes into the Voice Library search in the exact spelling that
+  // search honours, and what comes back is what is shown.
+  //
+  // That distinction is the whole feature. Filtering client-side is how a
+  // French brief used to come back read by an American: the app asked for
+  // everything, then hoped.
 
-  String get _voiceLabel {
-    final id = _draft.extraText('voiceId');
-    if (id.isEmpty) return '';
-    for (final voice in _voices) {
-      if (voice.id == id) {
-        return voice.description.isEmpty
-            ? voice.label
-            : '${voice.label} — ${voice.description}';
+  String get _voiceProvider {
+    final id = widget.app.settings.prefString('voiceProvider');
+    return id.isEmpty ? widget.app.registry.defaultProvider('voice') : id;
+  }
+
+  VoiceProfile get _profile => VoiceProfile.from(_draft.extras);
+
+  /// Runs the brief past the provider. Cached for a day unless [refresh].
+  ///
+  /// [briefChanged] is what tells the search whether it is allowed to re-cast:
+  /// touching a chip is meant to change who reads the ad, merely opening the
+  /// editor is not.
+  Future<void> _search({bool refresh = false, bool briefChanged = false}) async {
+    final casting = widget.app.voiceCasting;
+    final settings = widget.app.settings;
+    final registry = widget.app.registry;
+    final provider = _voiceProvider;
+    final profile = _profile;
+
+    if (!refresh) {
+      final known = casting.remembered(provider, profile);
+      if (known != null) {
+        setState(() {
+          _shortlist = known.voices;
+          _relaxed = known.relaxed;
+          _searchError = '';
+        });
+        _castDefault(briefChanged);
+        return;
       }
     }
-    return id;
+
+    setState(() {
+      _searching = true;
+      _searchError = '';
+    });
+
+    try {
+      final found = await casting.shortlist(
+        providerId: provider,
+        apiKey: settings.apiKey(registry.credentialFor(provider)),
+        modelId: registry.resolveModel(provider, settings.prefString('voiceModel')),
+        profile: profile,
+        refresh: refresh,
+      );
+      if (!mounted) return;
+      setState(() {
+        _shortlist = found.voices;
+        _relaxed = found.relaxed;
+        _searching = false;
+      });
+      _castDefault(briefChanged);
+    } on ProviderException catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _searching = false;
+        _searchError = error.message;
+        _shortlist = const [];
+        _relaxed = const [];
+      });
+    }
+  }
+
+  /// Fills in the voice, or moves it when the brief moved.
+  ///
+  /// An actor with nothing chosen gets the top of the list, so a voice is never
+  /// simply missing. A [briefChanged] search re-casts even over an existing
+  /// choice -- editing the brief is meant to change who reads the ad, and
+  /// leaving yesterday's voice selected under today's brief is the lie this
+  /// screen exists to stop telling. Nothing else touches a choice already made.
+  void _castDefault(bool briefChanged) {
+    if (_shortlist.isEmpty) return;
+    if (!briefChanged && _draft.extraText('voiceId').isNotEmpty) return;
+
+    setState(() => _choose(_shortlist.first));
+  }
+
+  void _choose(LibraryVoice voice) {
+    _draft
+      ..setExtra('voiceId', voice.id)
+      // Travels with the id: a library voice has to be put on the account
+      // before it can speak, and the render may be the first to need it.
+      ..setExtra('voiceOwner', voice.ownerId)
+      ..setExtra('voiceName', voice.name);
+  }
+
+  /// A few seconds of the real voice, hosted by the provider. No credits, no
+  /// key, no wait -- which is what makes comparing six of them bearable.
+  void _preview(String url) {
+    if (url.isEmpty) return;
+    (_player ??= Player()).open(Media(url));
   }
 
   Widget _voice() {
@@ -333,37 +439,64 @@ class _AssetEditorState extends State<AssetEditor> {
       children: [
         FieldLabel(tr('Voice')),
         const SizedBox(height: 7),
+        _brief(),
+        const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
-              child: Builder(
-                builder: (anchor) => _VoiceButton(
-                  label: _voiceLabel,
-                  onPressed: () => _pickVoice(anchor),
+              child: Text(
+                _resultLine,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _relaxed.isEmpty ? mq.textTertiary : mq.textSecondary,
+                  fontSize: MqTheme.fontSmall,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
             MqIconButton(
-              icon: 'refresh-line',
-              tip: tr('Reload the voice list'),
-              size: 34,
-              onPressed: () => widget.app.loadVoices(
-                widget.app.settings.prefString('voiceProvider', 'elevenlabs'),
-              ),
+              icon: _searching ? 'loader-4-line' : 'refresh-line',
+              tip: tr('Search the library again'),
+              size: 32,
+              enabled: !_searching,
+              onPressed: () => _search(refresh: true),
             ),
             const SizedBox(width: 2),
             MqIconButton(
               icon: booth.auditioning ? 'loader-4-line' : 'play-fill',
               tip: cost.known
                   //: %1 is a price
-                  ? tr('Hear them — %1').arg(Format.estimated(cost.amount))
-                  : tr('Hear them'),
-              size: 34,
-              enabled: !booth.auditioning,
+                  ? tr('Hear them say a line — %1')
+                      .arg(Format.estimated(cost.amount))
+                  : tr('Hear them say a line'),
+              size: 32,
+              enabled: !booth.auditioning && _draft.extraText('voiceId').isNotEmpty,
               onPressed: () => booth.audition(_draft.extras, _audition.text),
             ),
           ],
+        ),
+        if (_searchError.isNotEmpty) ...[
+          const SizedBox(height: 6),
+          Text(
+            _searchError,
+            style: TextStyle(color: mq.error, fontSize: MqTheme.fontSmall),
+          ),
+        ],
+        const SizedBox(height: 6),
+        _voiceList(),
+        const SizedBox(height: 6),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: MqLink(
+            text: _showAccount
+                ? tr('Hide my own voices')
+                : tr('Use one of my own voices'),
+            onPressed: () {
+              setState(() => _showAccount = !_showAccount);
+              if (_showAccount && _accountVoices.isEmpty) {
+                widget.app.loadVoices(_voiceProvider);
+              }
+            },
+          ),
         ),
         if (booth.error.isNotEmpty) ...[
           const SizedBox(height: 6),
@@ -376,33 +509,138 @@ class _AssetEditorState extends State<AssetEditor> {
     );
   }
 
-  Future<void> _pickVoice(BuildContext anchor) async {
-    if (_voices.isEmpty) {
-      await widget.app.loadVoices(
-        widget.app.settings.prefString('voiceProvider', 'elevenlabs'),
-      );
-      if (!mounted || !anchor.mounted) return;
+  /// How the search went, in one line. When filters had to be dropped it says
+  /// which ones, because "some filters were relaxed" leaves the user guessing
+  /// at exactly the moment they need to know what to change.
+  String get _resultLine {
+    if (_searching) return tr('Looking for voices...');
+    if (_searchError.isNotEmpty) return '';
+    if (_shortlist.isEmpty) {
+      return tr('No voice matches this brief.');
     }
-    if (_voices.isEmpty) return;
+    if (_relaxed.isEmpty) {
+      //: %1 is a number of voices
+      return tr('%1 voice(s) match').arg(_shortlist.length);
+    }
+    final dropped =
+        _relaxed.map(VoiceProfile.filterLabel).join(tr(', '));
+    //: %1 is a number of voices, %2 a list of criteria such as "age, tone"
+    return tr('%1 voice(s) — widened on: %2').arg(_shortlist.length).arg(dropped);
+  }
 
-    final picked = await showChipMenu<String>(
-      anchor,
-      current: _draft.extraText('voiceId'),
-      width: 380,
-      options: [
-        for (final voice in _voices)
-          MenuOption(
-            voice.description.isEmpty
-                ? voice.label
-                : '${voice.label} — ${voice.description}',
-            voice.id,
+  /// The brief itself. Every chip is optional: what is left unsaid widens the
+  /// search rather than blocking it, and the language chip falls back to the
+  /// one the ad is written in.
+  Widget _brief() {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        MqPickChip(
+          label: tr('Language'),
+          icon: 'translate-line',
+          menuWidth: 260,
+          value: _draft.extraText('voiceLocale'),
+          options: [
+            MenuOption(tr('Same as the ad'), ''),
+            for (final locale in VoiceLocale.all)
+              MenuOption(locale.menuLabel, locale.id),
+          ],
+          onPicked: (value) => _briefChanged('voiceLocale', value),
+        ),
+        for (final trait in VoiceTrait.all)
+          MqChoiceChip(
+            label: trait.label,
+            value: _draft.extraText(trait.key),
+            onPicked: (value) => _briefChanged(trait.key, value),
+            options: [
+              for (final option in trait.options)
+                MenuOption(option.$1, option.$2),
+            ],
           ),
       ],
     );
+  }
 
-    if (picked != null && mounted) {
-      setState(() => _draft.setExtra('voiceId', picked));
+  void _briefChanged(String key, String value) {
+    if (_draft.extraText(key) == value) return;
+    setState(() => _draft.setExtra(key, value));
+    _search(briefChanged: true);
+  }
+
+  Widget _voiceList() {
+    final mq = context.mq;
+    final chosen = _draft.extraText('voiceId');
+
+    // A choice the current search does not return still has to be visible --
+    // an actor cast last week under another brief, or one of the account's own
+    // voices. Silently showing six voices with none of them ticked would read
+    // as "your voice is gone".
+    final elsewhere = chosen.isNotEmpty &&
+        !_shortlist.any((voice) => voice.id == chosen) &&
+        !(_showAccount && _accountVoices.any((voice) => voice.id == chosen));
+
+    final rows = <Widget>[
+      if (elsewhere)
+        _VoiceRow(
+          name: _draft.extraText('voiceName').isEmpty
+              ? chosen
+              : _draft.extraText('voiceName'),
+          traits: tr('chosen earlier · outside this brief'),
+          chosen: true,
+          previewUrl: '',
+          onChoose: () {},
+          onPreview: () {},
+        ),
+      for (final voice in _shortlist)
+        _VoiceRow(
+          name: voice.name,
+          traits: describeVoice(voice),
+          chosen: voice.id == chosen,
+          previewUrl: voice.previewUrl,
+          onChoose: () => setState(() => _choose(voice)),
+          onPreview: () => _preview(voice.previewUrl),
+        ),
+      if (_showAccount)
+        for (final voice in _accountVoices)
+          _VoiceRow(
+            name: voice.label,
+            traits: voice.description.isEmpty
+                ? tr('on your account')
+                //: %1 lists a voice's traits
+                : tr('on your account · %1').arg(voice.description),
+            chosen: voice.id == chosen,
+            previewUrl: '',
+            onChoose: () => setState(() {
+              _draft
+                ..setExtra('voiceId', voice.id)
+                ..setExtra('voiceOwner', '')
+                ..setExtra('voiceName', voice.label);
+            }),
+            onPreview: () {},
+          ),
+    ];
+
+    if (rows.isEmpty) {
+      return Text(
+        _searching ? '' : tr('Widen the brief, or reload.'),
+        style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
+      );
     }
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 186),
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        border: Border.all(color: mq.border),
+      ),
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.all(3),
+        children: rows,
+      ),
+    );
   }
 
   // ---- the stills ----------------------------------------------------------
@@ -557,56 +795,95 @@ class _Still extends StatelessWidget {
   }
 }
 
-/// The voice picker. Not a chip: the list only exists after a round trip to the
-/// provider, so it has to be a button that fetches rather than a menu that is
-/// empty until it is.
-class _VoiceButton extends StatelessWidget {
-  const _VoiceButton({required this.label, required this.onPressed});
+/// One candidate: who they are, and what about them matched.
+///
+/// The traits line is not decoration. It is the receipt for the search -- six
+/// rows all reading `fr-FR · Femme · Jeune · Réseaux sociaux` is how the user
+/// sees that the chips did something, and one row that does not is how they
+/// see a filter had to be given up.
+class _VoiceRow extends StatelessWidget {
+  const _VoiceRow({
+    required this.name,
+    required this.traits,
+    required this.chosen,
+    required this.previewUrl,
+    required this.onChoose,
+    required this.onPreview,
+  });
 
-  final String label;
-  final VoidCallback onPressed;
+  final String name;
+  final String traits;
+  final bool chosen;
+
+  /// Empty for a voice with nothing to play: the account's own, which the paid
+  /// audition covers anyway.
+  final String previewUrl;
+
+  final VoidCallback onChoose;
+  final VoidCallback onPreview;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
     return Pressable(
-      onTap: onPressed,
+      onTap: onChoose,
+      snap: true,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
-          color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
+          color: chosen
+              ? mq.surfaceActive
+              : states.active
+              ? mq.surfaceHover
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          border: Border.all(
-            color: states.active ? mq.borderStrong : mq.border,
-          ),
         ),
         child: Row(
           children: [
             MqIcon(
-              'mic-line',
-              size: 16,
-              color: label.isEmpty ? mq.textTertiary : mq.primary,
+              chosen ? 'check-line' : 'mic-line',
+              size: 15,
+              color: chosen ? mq.primary : mq.textTertiary,
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(
-                label.isEmpty ? tr('Choose a voice') : label,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: label.isEmpty ? mq.textTertiary : mq.textPrimary,
-                  fontSize: MqTheme.fontLabel,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    name,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: mq.textPrimary,
+                      fontSize: MqTheme.fontLabel,
+                      fontWeight: chosen ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                  if (traits.isNotEmpty)
+                    Text(
+                      traits,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: mq.textTertiary,
+                        fontSize: MqTheme.fontSmall,
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(width: 6),
-            MqIcon(
-              'arrow-down-s-line',
-              size: 16,
-              color: states.active ? mq.textPrimary : mq.textTertiary,
-            ),
+            if (previewUrl.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              MqIconButton(
+                icon: 'play-fill',
+                //: Playing the provider's own sample costs nothing
+                tip: tr('Listen — free'),
+                size: 28,
+                onPressed: onPreview,
+              ),
+            ],
           ],
         ),
       ),

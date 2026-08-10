@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../theme.dart';
-import '../widgets/buttons.dart';
 import '../widgets/mq_dialog.dart';
 import 'studio_card.dart';
 
@@ -84,18 +83,6 @@ class AdsPage extends StatelessWidget {
       builder: (context, _) {
         final ads = app.workspace.adsByRecency(projectId);
 
-        if (ads.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(MqTheme.pagePadding),
-            child: StudioEmptyState(
-              title: tr('No ad in this project yet'),
-              subtitle: tr('Write the first one.'),
-              actionLabel: tr('Create a UGC ad'),
-              onPressed: () => _create(context),
-            ),
-          );
-        }
-
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             MqTheme.pagePadding,
@@ -106,14 +93,18 @@ class AdsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: GhostButton(
-                  text: tr('+ Create a UGC ad'),
-                  onPressed: () => _create(context),
-                ),
+              StudioNewButton(
+                label: tr('+ Create a UGC ad'),
+                onPressed: () => _create(context),
               ),
               const SizedBox(height: MqTheme.gapLarge),
+              if (ads.isEmpty)
+                StudioEmptyNote(
+                  text: tr(
+                    'No ad in this project yet. One ad is one spot: one '
+                    'person, one take, one thing to say.',
+                  ),
+                ),
               Wrap(
                 spacing: MqTheme.gap,
                 runSpacing: MqTheme.gap,

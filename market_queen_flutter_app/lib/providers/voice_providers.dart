@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:mime/mime.dart';
 import 'package:path/path.dart' as p;
 
 import '../core/http_util.dart';
 import '../i18n/translator.dart';
 import 'provider_task.dart';
 import 'types.dart';
+import 'voice_profile.dart';
 
 abstract class VoiceTask extends HttpTask {
   VoiceTask(this.request);
@@ -257,6 +257,7 @@ class WhisperCaptionTask extends HttpTask {
           'file',
           audioData,
           filename: p.basename(request.audioPath),
+          contentType: Http.mediaTypeOf(request.audioPath, audioData),
         ),
       ],
     );
@@ -296,10 +297,12 @@ class ElevenLabsVoiceCloneTask extends HttpTask {
     for (final path in request.samplePaths) {
       final file = File(path);
       if (!file.existsSync()) continue;
+      final data = file.readAsBytesSync();
       files.add(http.MultipartFile.fromBytes(
         'files',
-        file.readAsBytesSync(),
+        data,
         filename: p.basename(path),
+        contentType: Http.mediaTypeOf(path, data),
       ));
     }
 
@@ -382,6 +385,235 @@ class ElevenLabsVoiceListTask extends HttpTask {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Casting: a brief in, a shortlist out
+// ---------------------------------------------------------------------------
+
+/// Searches ElevenLabs' shared library for the voices a [VoiceProfile]
+/// describes.
+///
+/// The brief becomes the query. That is the whole design: the library is past
+/// ten thousand voices and cannot be pulled down and sifted here, so what the
+/// user asked for is what the server is asked for -- in the exact spelling it
+/// honours, which is lower case and snake_case throughout. `gender=Female` and
+/// `use_cases=Social Media` return nothing; `female` and `social_media` return
+/// hundreds.
+///
+/// Two things are kept strictly apart:
+///
+///  * **Filtering** decides who is eligible, and is done by the API.
+///  * **Ranking** decides who is shown first, and is done here.
+///
+/// Ranking never promotes a voice past a filter. An American voice cannot rank
+/// its way into a French brief, because it was never in the result set and is
+/// dropped again on the way out if it somehow is.
+class ElevenLabsVoiceSearchTask extends HttpTask {
+  ElevenLabsVoiceSearchTask({
+    required this.apiKey,
+    required this.profile,
+    this.limit = 6,
+  });
+
+  final String apiKey;
+  final VoiceProfile profile;
+
+  /// Five right voices beat fifty of which five are right.
+  final int limit;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'ElevenLabs');
+    report(tr('Looking for voices...'));
+
+    final filters = Map<String, String>.of(profile.filters);
+
+    // Only what this brief actually set can be given up; asking the same
+    // question five times is not a search.
+    final droppable = [
+      for (final key in VoiceProfile.relaxationOrder)
+        if (filters.containsKey(key)) key,
+    ];
+    final relaxed = <String>[];
+
+    for (var step = 0; ; ++step) {
+      final found = await _search(filters);
+      if (found.isNotEmpty) {
+        return {'voices': _rank(found), 'relaxed': relaxed};
+      }
+      if (step >= droppable.length) {
+        return {'voices': const <LibraryVoice>[], 'relaxed': relaxed};
+      }
+      relaxed.add(droppable[step]);
+      filters.remove(droppable[step]);
+    }
+  }
+
+  Future<List<LibraryVoice>> _search(Map<String, String> filters) async {
+    final Map<String, dynamic> response;
+    try {
+      response = await getJson(
+        Uri.https('api.elevenlabs.io', '/v1/shared-voices', {
+          'page_size': '100',
+          // The voices people are actually cloning, rather than the newest
+          // upload nobody has heard.
+          'sort': 'trending',
+          ...filters,
+        }),
+        headers: {'xi-api-key': apiKey},
+      );
+    } on ProviderException catch (error) {
+      if (error is TaskCancelled) rethrow;
+      // A plan that cannot reach the library, or a key that was refused. Either
+      // way there is nothing to rank; the caller falls back to the account.
+      _error = error.message;
+      return const [];
+    }
+
+    final raw = response['voices'];
+    if (raw is! List) return const [];
+
+    final wanted = profile.language;
+    return [
+      for (final entry in raw)
+        if (entry is Map)
+          LibraryVoice.fromShared(entry.cast<String, Object?>()),
+    ].where((voice) {
+      // The language is a contract, not a preference. This is belt and braces
+      // over the API filter, and it is the line that would have caught the
+      // accent bug: `accent` is scoped per language, so `language=fr` with an
+      // English accent value used to come back full of English voices.
+      if (wanted.isNotEmpty && voice.language != wanted) return false;
+      return voice.id.isNotEmpty;
+    }).toList();
+  }
+
+  /// Out of a hundred, weighted by how much a mismatch costs the ad.
+  ///
+  /// Everything here already passed the filters that were still in force, so
+  /// this is really scoring the parts of the brief that had to be *dropped* to
+  /// find anybody: when region was given up, the voices that happen to be from
+  /// the right region still come first.
+  int _score(LibraryVoice voice) {
+    var score = 0;
+    if (profile.language.isNotEmpty && voice.language == profile.language) {
+      score += 40;
+    }
+    if (profile.region.isNotEmpty && voice.locale == profile.region) score += 25;
+    if (profile.gender.isNotEmpty && voice.gender == profile.gender) score += 15;
+    if (profile.age.isNotEmpty && voice.age == profile.age) score += 10;
+    if (profile.useCase.isNotEmpty && voice.useCase == profile.useCase) {
+      score += 10;
+    }
+    if (profile.tone.isNotEmpty && voice.descriptive == profile.tone) score += 5;
+    return score;
+  }
+
+  /// Everything that is not the brief: whether the owner vouches for the
+  /// language, whether it costs extra, how many people chose it. Kept as a
+  /// separate rung of the sort rather than added to the score, so no amount of
+  /// popularity can ever outrank one trait the user asked for.
+  int _standing(LibraryVoice voice) =>
+      (voice.verified ? 4 : 0) + (voice.premiumRate ? 0 : 2) + (voice.free ? 1 : 0);
+
+  List<LibraryVoice> _rank(List<LibraryVoice> voices) {
+    final ordered = List<LibraryVoice>.of(voices)
+      ..sort((a, b) {
+        final byScore = _score(b).compareTo(_score(a));
+        if (byScore != 0) return byScore;
+        final byStanding = _standing(b).compareTo(_standing(a));
+        if (byStanding != 0) return byStanding;
+        final byUse = b.clonedBy.compareTo(a.clonedBy);
+        if (byUse != 0) return byUse;
+        // Last resort, so the same brief keeps returning the same order.
+        return a.id.compareTo(b.id);
+      });
+
+    return ordered.take(limit).toList();
+  }
+
+  String _error = '';
+
+  /// Why the search came back empty, when the library itself refused us.
+  String get error => _error;
+}
+
+/// Puts a shared voice on the user's account, which is what lets it speak.
+///
+/// A library voice is a listing, not something text-to-speech will accept: the
+/// copy gets its own id and that is the one the endpoint takes. Done once per
+/// voice, on first use rather than on every search -- a shortlist of six must
+/// not adopt six.
+class ElevenLabsVoiceAdoptTask extends HttpTask {
+  ElevenLabsVoiceAdoptTask({
+    required this.apiKey,
+    required this.voiceId,
+    required this.ownerId,
+    this.name = '',
+  });
+
+  final String apiKey;
+  final String voiceId;
+  final String ownerId;
+  final String name;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'ElevenLabs');
+    if (voiceId.isEmpty) throw ProviderException(tr('No voice to add.'));
+    // Nothing to adopt: it is already an account voice.
+    if (ownerId.isEmpty) return {'voiceId': voiceId};
+
+    final owned = await _ownedCopy();
+    if (owned.isNotEmpty) return {'voiceId': owned};
+
+    report(tr('Adding the voice to your account...'));
+
+    try {
+      final response = await postJson(
+        Uri.parse('https://api.elevenlabs.io/v1/voices/add/$ownerId/$voiceId'),
+        {'new_name': name.trim().isEmpty ? tr('Market Queen voice') : name.trim()},
+        headers: {'xi-api-key': apiKey},
+      );
+      final added = '${response['voice_id'] ?? ''}';
+      if (added.isNotEmpty) return {'voiceId': added};
+    } on ProviderException catch (error) {
+      if (error is TaskCancelled) rethrow;
+      // Best effort: hand back the shared id and let ElevenLabs have the last
+      // word rather than lose the run over an add that may not be needed.
+    }
+    return {'voiceId': voiceId};
+  }
+
+  /// The account's own copy, if this voice was adopted before.
+  Future<String> _ownedCopy() async {
+    final Map<String, dynamic> response;
+    try {
+      response = await getJson(
+        Uri.parse('https://api.elevenlabs.io/v1/voices'),
+        headers: {'xi-api-key': apiKey},
+      );
+    } on ProviderException catch (error) {
+      if (error is TaskCancelled) rethrow;
+      return '';
+    }
+
+    final voices = response['voices'];
+    if (voices is! List) return '';
+
+    for (final entry in voices) {
+      if (entry is! Map) continue;
+      final id = '${entry['voice_id'] ?? ''}';
+      if (id == voiceId) return id;
+
+      final sharing = entry['sharing'];
+      if (sharing is Map && '${sharing['original_voice_id'] ?? ''}' == voiceId) {
+        return id;
+      }
+    }
+    return '';
+  }
+}
+
 /// OpenAI has no voices endpoint: the set is fixed and documented.
 class OpenAiVoiceListTask extends ProviderTask {
   static const _voices = <VoiceOption>[
@@ -425,7 +657,3 @@ class FalVoiceListTask extends ProviderTask {
   Future<Map<String, Object?>> execute() async => {'voices': _voices};
 }
 
-/// Kept for the multipart bodies above, which need a content type when the
-/// extension alone is ambiguous.
-String mimeForPath(String path) =>
-    lookupMimeType(path) ?? 'application/octet-stream';

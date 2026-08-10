@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
 
 import '../core/http_util.dart';
+import '../core/paths.dart';
 import '../i18n/translator.dart';
 import '../providers/provider_task.dart';
 
@@ -188,6 +190,124 @@ class FfmpegProbeTask extends FfmpegTask {
         ...super.buildResult(exitCode),
         'duration': Ffmpeg.parseDuration(log),
       };
+}
+
+/// A picture as a data: URI a model will accept, whatever it arrived as.
+///
+/// The Dart codecs read PNG, JPEG, WebP and GIF. Shops and phones increasingly
+/// hand out neither: a product photo saved off a store page is as likely to be
+/// AVIF as anything, and an iPhone screenshot is HEIC. Both used to reach the
+/// model as bytes labelled "image/png" and come back as a 400 that blamed the
+/// upload without naming the format.
+///
+/// So when the codecs cannot read it, ffmpeg -- which the render already needs
+/// installed -- is asked to turn it into a PNG first. Empty when there is no
+/// ffmpeg to ask, or when it cannot read the file either.
+Future<String> imageDataUri(String executable, String path) async {
+  final direct = Http.imageToDataUri(path);
+  if (direct.isNotEmpty || executable.isEmpty || path.isEmpty) return direct;
+
+  final converted = await transcodeImage(executable, path);
+  return converted.isEmpty ? '' : Http.imageBytesToDataUri(converted);
+}
+
+/// Why [imageDataUri] came back empty, said in the one term that lets the user
+/// do something about it: the format the file is actually in.
+///
+/// "Could not read the product photo" is what this used to be, and it sent
+/// everybody looking at permissions and paths. The file was an AVIF.
+String unreadableImage(String path) {
+  final name = p.basename(path);
+  final format = p.extension(path).replaceFirst('.', '').toUpperCase();
+
+  if (format.isEmpty) {
+    //: %1 is a file name
+    return tr('Could not read %1.').arg(name);
+  }
+  //: %1 is a file name, %2 a format such as AVIF or HEIC
+  return tr('Could not read %1: %2 is a format no model accepts, and FFmpeg '
+          'could not convert it either. Save it as PNG or JPEG.')
+      .arg(name)
+      .arg(format);
+}
+
+/// One frame of [path], re-encoded as PNG. Empty when ffmpeg cannot read it.
+Future<Uint8List> transcodeImage(String executable, String path) async {
+  final directory = Paths.ensureDir(p.join(Paths.configDir, 'converted'));
+  if (directory.isEmpty) return Uint8List(0);
+
+  // Named for the source, so converting the same photo twice in one run does
+  // not race with itself.
+  final target = p.join(
+    directory,
+    '${path.hashCode.toUnsigned(32).toRadixString(16)}.png',
+  );
+
+  try {
+    await FfmpegTask(executable, [
+      '-hide_banner',
+      '-y',
+      '-i',
+      path,
+      // One frame, written over one file. Without both, an animated source
+      // wants a "%03d" pattern in the name and refuses the plain one.
+      '-frames:v',
+      '1',
+      '-update',
+      '1',
+      target,
+    ]).run();
+  } on ProviderException {
+    return Uint8List(0);
+  }
+
+  final file = File(target);
+  if (!file.existsSync()) return Uint8List(0);
+  try {
+    return file.readAsBytesSync();
+  } on FileSystemException {
+    return Uint8List(0);
+  }
+}
+
+/// Pulls one frame out of a clip so the canvas has something to draw.
+///
+/// A tile that is a grey rectangle with a play glyph tells you a video exists;
+/// a tile showing the video tells you which video it is, which is the only
+/// question a feed of ten of them raises. The frame is taken a second in --
+/// clips routinely open on black -- and written beside the clip as a .jpg, so
+/// the extraction happens once per file and never again.
+///
+/// Returns the poster's path, or empty when there is no ffmpeg, no clip, or
+/// ffmpeg could not read it. Never throws: a missing poster costs a thumbnail,
+/// not a result.
+Future<String> posterFrame(String executable, String videoPath) async {
+  if (executable.isEmpty || videoPath.isEmpty) return '';
+
+  final source = File(videoPath);
+  if (!source.existsSync()) return '';
+
+  final poster = '$videoPath.poster.jpg';
+  final cached = File(poster);
+  if (cached.existsSync() && cached.lengthSync() > 0) return poster;
+
+  try {
+    await FfmpegTask(executable, [
+      '-hide_banner',
+      '-y',
+      // Seeking before -i is the fast path, and past the end of a very short
+      // clip it simply lands on the last frame rather than failing.
+      '-ss', '1',
+      '-i', videoPath,
+      '-frames:v', '1',
+      '-q:v', '4',
+      poster,
+    ]).run();
+  } on ProviderException {
+    return '';
+  }
+
+  return cached.existsSync() ? poster : '';
 }
 
 /// Measures a media file, returning -1 when it cannot be read. Never throws:

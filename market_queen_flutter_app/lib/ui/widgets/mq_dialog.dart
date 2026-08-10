@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:flutter/material.dart';
 
 import '../../i18n/translator.dart';
@@ -8,12 +6,14 @@ import '../theme.dart';
 import 'buttons.dart';
 import 'fields.dart';
 
-/// Opens something over the page, with the page blurred behind it.
+/// Opens something over the page, with the page darkened behind it.
 ///
-/// The blur is the point: a modal that only dims looks like a panel that
-/// happens to be in front, and the studio has enough panels. Blurring puts the
-/// canvas out of reach visually as well as functionally, which is what makes a
-/// naming prompt feel like a decision rather than a field.
+/// It used to blur the backdrop as well. That is gone: a `BackdropFilter` over
+/// the whole window re-rasterised the live tree every frame, and a dialog that
+/// closed while the filter was mid-composite took the frame down with it --
+/// which is what the black screen on Enter actually looked like from the
+/// outside. Darkening puts the canvas out of reach just as clearly and costs
+/// one solid rectangle.
 Future<T?> showMqModal<T>({
   required BuildContext context,
   required Widget child,
@@ -23,8 +23,8 @@ Future<T?> showMqModal<T>({
 
   return showGeneralDialog<T>(
     context: context,
-    // We paint our own scrim under the blur; the stock barrier would sit above
-    // it and cancel the effect out.
+    // The route paints the scrim itself so it fades with the card rather than
+    // snapping in ahead of it.
     barrierColor: Colors.transparent,
     barrierDismissible: false,
     barrierLabel: tr('Close'),
@@ -43,13 +43,8 @@ Future<T?> showMqModal<T>({
             Positioned.fill(
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: dismissible ? () => Navigator.of(context).pop() : null,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                  child: ColoredBox(
-                    color: mq.overlay.withValues(alpha: mq.dark ? 0.5 : 0.28),
-                  ),
-                ),
+                onTap: dismissible ? () => closeMqModal(context) : null,
+                child: ColoredBox(color: mq.overlay),
               ),
             ),
             // Clicks inside the card are the card's, never the backdrop's.
@@ -65,8 +60,7 @@ Future<T?> showMqModal<T>({
                   // need one -- without it every modal that holds a field
                   // throws "No Material widget found" on the first frame.
                   //
-                  // Transparent: the card paints its own surface, and a second
-                  // opaque layer here would sit over the blur.
+                  // Transparent: the card paints its own surface.
                   child: Material(
                     type: MaterialType.transparency,
                     child: SingleChildScrollView(
@@ -82,6 +76,26 @@ Future<T?> showMqModal<T>({
       );
     },
   );
+}
+
+/// Closes the modal [context] is inside, once.
+///
+/// Every dismissal in a dialog goes through here rather than calling
+/// `Navigator.pop` directly, and the reason is the bug this replaced: two
+/// dismissals could reach the navigator for one user action -- Enter popping
+/// the route and the focus leaving the field behind it, or a Cancel click
+/// blurring the field on the way down. The first pop closed the dialog; the
+/// second popped whatever was underneath, which on a single-page desktop app is
+/// the window's own route. The user saw a black screen, and on the way past,
+/// the value the dialog was carrying got returned anyway -- so cancelling
+/// created the project.
+///
+/// [ModalRoute.isCurrent] is the guard: a route that has already begun popping
+/// stops being current, so the second call is a no-op.
+void closeMqModal<T>(BuildContext context, [T? result]) {
+  final route = ModalRoute.of(context);
+  if (route == null || !route.isCurrent) return;
+  Navigator.of(context).pop(result);
 }
 
 /// The card every modal is drawn in: a heading, the content, and the actions
@@ -164,7 +178,7 @@ class MqModalCard extends StatelessWidget {
                   MqIconButton(
                     icon: 'close-line',
                     tip: tr('Close'),
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => closeMqModal(context),
                   ),
                 ],
               ],
@@ -271,7 +285,7 @@ class _NamePromptState extends State<_NamePrompt> {
   void _submit() {
     final name = _name.text.trim();
     if (name.isEmpty) return;
-    Navigator.of(context).pop(name);
+    closeMqModal(context, name);
   }
 
   @override
@@ -283,16 +297,19 @@ class _NamePromptState extends State<_NamePrompt> {
       actions: [
         GhostButton(
           text: tr('Cancel'),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () => closeMqModal(context),
         ),
         PrimaryButton(text: widget.confirmLabel, onPressed: _submit),
       ],
+      // Enter accepts, and only Enter: the field must not also commit when the
+      // focus leaves it, or clicking Cancel would create the thing on its way
+      // out of the field.
       child: LabeledField(
         controller: _name,
         label: widget.label,
         placeholder: widget.placeholder,
         autofocus: true,
-        onEditingComplete: (_) => _submit(),
+        onSubmitted: (_) => _submit(),
       ),
     );
   }
@@ -314,12 +331,12 @@ Future<bool> askToConfirm(
         actions: [
           GhostButton(
             text: tr('Cancel'),
-            onPressed: () => Navigator.of(context).pop(false),
+            onPressed: () => closeMqModal(context, false),
           ),
           GhostButton(
             text: confirmLabel,
             destructive: true,
-            onPressed: () => Navigator.of(context).pop(true),
+            onPressed: () => closeMqModal(context, true),
           ),
         ],
         child: Text(

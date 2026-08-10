@@ -18,6 +18,7 @@ import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/text_providers.dart';
 import '../providers/types.dart';
+import '../providers/voice_casting.dart';
 import '../providers/voice_providers.dart';
 import 'shot_planner.dart';
 
@@ -121,7 +122,13 @@ const _subtitleStyle =
 /// Nothing blocks the UI: every step awaits a task, and a cancel tears the
 /// active one down.
 class Pipeline extends ChangeNotifier {
-  Pipeline(this._settings, this._registry, this._pricing, this._log) {
+  Pipeline(
+    this._settings,
+    this._registry,
+    this._pricing,
+    this._log,
+    this._casting,
+  ) {
     // Show the plan before anything runs.
     _resetSteps();
   }
@@ -130,6 +137,7 @@ class Pipeline extends ChangeNotifier {
   final Registry _registry;
   final Pricing _pricing;
   final LogModel _log;
+  final VoiceCasting _casting;
 
   /// (success, outputFile).
   final Event<({bool success, String outputFile})> finished = Event();
@@ -246,17 +254,17 @@ class Pipeline extends ChangeNotifier {
     final productImage = Http.toLocalPath('${request['productImagePath'] ?? ''}');
     if (productImage.isNotEmpty && File(productImage).existsSync()) {
       _run.productImagePath = productImage;
-      _run.productImageDataUri = Http.imageToDataUri(productImage);
+      _run.productImageDataUri = await _prepare(productImage);
       if (_run.productImageDataUri.isEmpty) {
-        _log.warning(tr('Could not read the product photo.'));
+        _log.warning(unreadableImage(productImage));
       }
     }
 
     final portrait = Http.toLocalPath('${request['actorPortraitPath'] ?? ''}');
     if (portrait.isNotEmpty && File(portrait).existsSync()) {
-      _run.actorPortraitDataUri = Http.imageToDataUri(portrait);
+      _run.actorPortraitDataUri = await _prepare(portrait);
       if (_run.actorPortraitDataUri.isEmpty) {
-        _log.warning(tr('Could not read the actor portrait.'));
+        _log.warning(unreadableImage(portrait));
       }
     }
 
@@ -423,6 +431,10 @@ class Pipeline extends ChangeNotifier {
         : _run.script.trim().split(RegExp(r'\s+')).length;
     return math.max(3.0, words / 2.6);
   }
+
+  /// A picture the models will accept, converting it with ffmpeg first if the
+  /// Dart codecs cannot read it.
+  Future<String> _prepare(String path) => imageDataUri(_ffmpeg, path);
 
   String _text(String key) => '${_request[key] ?? ''}';
 
@@ -698,6 +710,10 @@ class Pipeline extends ChangeNotifier {
           'have one continuous read.'));
     }
 
+    // Cast once, before the first line: every shot is the same person speaking,
+    // and a brief resolved per shot would be four round trips to say so.
+    final voiceId = await _castVoice(providerId, apiKey);
+
     for (var index = 0; index < _run.shots.length; ++index) {
       _throwIfCancelling();
 
@@ -716,7 +732,7 @@ class Pipeline extends ChangeNotifier {
           VoiceRequest(
             apiKey: apiKey,
             model: model,
-            voiceId: _text('voiceId'),
+            voiceId: voiceId,
             text: shot.line,
             // The booth's sliders, so the ad sounds like the audition did.
             stability: _number('voiceStability', 0.45),
@@ -746,6 +762,42 @@ class Pipeline extends ChangeNotifier {
     _shotLabel = '';
     await _probeShotAudio();
     await _joinVoice();
+  }
+
+  /// Who reads the ad.
+  ///
+  /// The user picked traits, not a voice: a language and an accent, a gender, an
+  /// age, what the read is for. Turning that into a provider's voice id is this
+  /// step's first job, and it is done through the same caster the audition used,
+  /// so the answer it finds is the answer it already found.
+  Future<String> _castVoice(String providerId, String apiKey) async {
+    _setStatus(tr('Casting the voice...'));
+
+    try {
+      final voice = await _casting.voiceFor(
+        providerId: providerId,
+        apiKey: apiKey,
+        modelId: _registry.resolveModel(providerId, _text('voiceModel')),
+        source: _request,
+        onTask: (task) => _activeTask = task,
+      );
+
+      if (voice.label.isNotEmpty) {
+        _log.info(voice.description.isEmpty
+            //: %1 is a voice's name
+            ? tr('Voice: %1.').arg(voice.label)
+            //: %1 is a voice's name, %2 what it sounds like
+            : tr('Voice: %1 — %2.').arg(voice.label).arg(voice.description));
+      } else if (voice.id.isEmpty) {
+        // Said here rather than left to the provider's "pick a voice first",
+        // which names neither the brief nor the reason.
+        _log.warning(tr('No voice matched this actor. Widen the brief, or pick '
+            'a voice in the actor editor.'));
+      }
+      return voice.id;
+    } finally {
+      _activeTask = null;
+    }
   }
 
   /// Measures every line. Without ffmpeg there is nothing to measure with, so

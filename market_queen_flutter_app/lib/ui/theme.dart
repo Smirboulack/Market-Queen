@@ -9,10 +9,14 @@ import 'package:flutter/material.dart';
 /// share one set of names: [surfaceHover] is "the fill of something the pointer
 /// is on", and it happens to be lighter in one skin and darker in the other.
 ///
-/// The rule the palette is built around: the interface is greyscale, and
-/// [primary] is a signal. Pink marks the thing you are meant to press, the field
-/// you are typing in, the shot you picked -- and nothing else. It is never a
-/// page or panel background. Roughly one part pink to nineteen parts grey.
+/// The rule the palette is built around: the interface is greyscale, full stop.
+/// No tinted glyphs, no coloured focus rings, no brand wash on a selected row.
+/// [primary] is ink -- near-black on the light skin, near-white on the dark one
+/// -- so the thing you are meant to press reads by contrast rather than by hue.
+///
+/// The one exception is [ctaGradient], the brand ramp. It is spent on the two
+/// controls that actually commit something: the send button on the composer and
+/// the confirm button of a modal. Nothing else in the app is allowed colour.
 @immutable
 class MqTheme {
   const MqTheme({required this.dark});
@@ -67,32 +71,86 @@ class MqTheme {
       dark ? const Color(0xFF111111) : const Color(0xFFFFFFFF);
 
   // ----------------------------------------------------------------- primary
-  // The brand colour is the same in both skins -- an identity that changed with
-  // the theme would not be one. Only the hover and pressed steps differ, and
-  // they move in opposite directions so each stays visible against its own
-  // background.
+  // Ink, not a hue. A filled button is black on the light skin and white on the
+  // dark one, which is the strongest signal a greyscale interface has and the
+  // reason it needs no brand colour to say "press this".
+  //
+  // The names are kept from the days this was pink so the forty call sites that
+  // ask for "the emphatic colour" keep working; what they get is now ink.
 
-  Color get primary => const Color(0xFFE88C9B);
+  Color get primary => dark ? const Color(0xFFF5F5F5) : const Color(0xFF171717);
   Color get primaryHover =>
-      dark ? const Color(0xFFF09AA7) : const Color(0xFFDC7183);
+      dark ? const Color(0xFFFFFFFF) : const Color(0xFF2E2E2E);
   Color get primaryActive =>
-      dark ? const Color(0xFFF4A8B3) : const Color(0xFFCE6375);
+      dark ? const Color(0xFFE0E0E0) : const Color(0xFF404040);
+
+  /// The faintest possible "this one is selected": one step off the surface,
+  /// never a wash.
   Color get primarySubtle =>
-      dark ? const Color(0xFF3A2025) : const Color(0xFFFBE7EA);
+      dark ? const Color(0xFF232323) : const Color(0xFFF0F0F0);
   Color get primaryMuted =>
-      dark ? const Color(0xFF713D46) : const Color(0xFFF4C5CC);
+      dark ? const Color(0xFF3A3A3A) : const Color(0xFFDCDCDC);
 
-  /// Pink as *text*, on a normal background. Darkened well past [primary],
-  /// which is a fill colour and unreadable at 13px.
-  Color get primaryText =>
-      dark ? const Color(0xFFF4B1BA) : const Color(0xFFA94355);
+  /// Emphatic *text* on a normal background -- a link, the picked row of a
+  /// menu. Plain ink; it earns its emphasis from weight, not colour.
+  Color get primaryText => textPrimary;
 
-  /// What goes on top of a [primary] fill.
+  /// What goes on top of a [primary] fill: the opposite ink.
+  Color get onPrimary =>
+      dark ? const Color(0xFF111111) : const Color(0xFFFFFFFF);
+
+  // --------------------------------------------------------------------- CTA
+  // The brand ramp, and the only colour left in the interface. Ten stops from
+  // sky to red, laid across the button rather than sampled from -- a single
+  // stop out of context is just a random pastel.
+  //
+  // Identical in both skins: an identity that changed with the theme would not
+  // be one.
+
+  static const List<Color> ctaColors = [
+    Color(0xFF7DD3FC),
+    Color(0xFF67D5E8),
+    Color(0xFF5EDBD1),
+    Color(0xFF7DDFC0),
+    Color(0xFFB2D9A7),
+    Color(0xFFD9C18F),
+    Color(0xFFEFA47F),
+    Color(0xFFF47B72),
+    Color(0xFFF05263),
+    Color(0xFFEF3F55),
+  ];
+
+  static const LinearGradient ctaGradient = LinearGradient(
+    colors: ctaColors,
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  /// The same ramp turned 45°, for square-ish targets (the send disc) where a
+  /// left-to-right sweep across 32px would only ever show two of the ten stops.
+  static const LinearGradient ctaGradientDiagonal = LinearGradient(
+    colors: ctaColors,
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// What is legible on top of the ramp.
   ///
-  /// White is the reflex here and it is wrong: white on #E88C9B is 2.4:1, which
-  /// is unreadable. This near-black holds 6.1:1 and keeps the button warm
-  /// rather than turning it into a grey chip.
-  Color get onPrimary => const Color(0xFF3D1E24);
+  /// Near-black, and it has to be: the pale end (#7DD3FC) gives white 1.9:1,
+  /// which cannot be read at all, while this holds 5:1 or better against every
+  /// one of the ten stops including the red.
+  static const Color onCta = Color(0xFF0F0F0F);
+
+  /// The ramp dimmed to a disabled fill, so a CTA that cannot be pressed still
+  /// reads as the same control rather than turning into a grey chip.
+  LinearGradient get ctaGradientMuted => LinearGradient(
+    colors: [
+      for (final colour in ctaColors)
+        Color.alphaBlend(colour.withValues(alpha: 0.22), surfaceSecondary),
+    ],
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
 
   // -------------------------------------------------------- system feedback
   // Kept in colour even though the rest is monochrome: "it failed" is the one
@@ -123,10 +181,20 @@ class MqTheme {
       dark ? const Color(0xFFA7C8F2) : const Color(0xFF315F96);
 
   // ------------------------------------------------------------ interaction
-  Color get focusRing => const Color(0xFFE88C9B);
+
+  /// Keyboard focus. Ink, so it reads as "you are here" without putting a
+  /// second colour on a page that has one.
+  Color get focusRing =>
+      dark ? const Color(0xFF8A8A8A) : const Color(0xFF171717);
+
   Color get selection =>
-      dark ? const Color(0xFF713D46) : const Color(0xFFF4C5CC);
-  Color get overlay => dark ? const Color(0xA6000000) : const Color(0x73000000);
+      dark ? const Color(0xFF3F3F3F) : const Color(0xFFD6D6D6);
+
+  /// The scrim a modal drops over the page. There is no blur behind it any
+  /// more: a `BackdropFilter` over a live tree cost a full-window raster on
+  /// every frame and, when a dialog closed mid-frame, took the composition down
+  /// with it. Darkening says the same thing for nothing.
+  Color get overlay => dark ? const Color(0xB3000000) : const Color(0x66000000);
 
   /// Status text on its own tinted pill, in the matching subtle fill.
   Color levelColor(int level) => switch (level) {

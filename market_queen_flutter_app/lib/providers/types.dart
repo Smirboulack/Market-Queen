@@ -209,3 +209,134 @@ class VoiceOption {
   final String label;
   final String description;
 }
+
+/// A voice a search turned up, with the metadata it was matched on.
+///
+/// The metadata travels with the voice so the interface can show *why* it is on
+/// the list -- "fr-FR · female · young · social media" under the name is what
+/// turns a shortlist into an argument.
+class LibraryVoice {
+  const LibraryVoice({
+    required this.id,
+    this.ownerId = '',
+    this.name = '',
+    this.language = '',
+    this.locale = '',
+    this.accent = '',
+    this.gender = '',
+    this.age = '',
+    this.useCase = '',
+    this.descriptive = '',
+    this.previewUrl = '',
+    this.verified = false,
+    this.free = true,
+    this.premiumRate = false,
+    this.clonedBy = 0,
+  });
+
+  factory LibraryVoice.fromShared(Map<String, Object?> json) {
+    String at(String key) => '${json[key] ?? ''}'.toLowerCase().trim();
+
+    final language = at('language');
+    var verified = false;
+    final languages = json['verified_languages'];
+    if (languages is List) {
+      for (final entry in languages) {
+        if (entry is Map && '${entry['language'] ?? ''}'.toLowerCase() == language) {
+          verified = true;
+          break;
+        }
+      }
+    }
+
+    final rate = json['rate'];
+
+    return LibraryVoice(
+      id: '${json['voice_id'] ?? ''}',
+      ownerId: '${json['public_owner_id'] ?? ''}',
+      name: '${json['name'] ?? ''}',
+      language: language,
+      locale: '${json['locale'] ?? ''}',
+      accent: at('accent'),
+      gender: at('gender'),
+      age: at('age'),
+      useCase: at('use_case'),
+      descriptive: at('descriptive'),
+      previewUrl: '${json['preview_url'] ?? ''}',
+      verified: verified,
+      free: json['free_users_allowed'] == true,
+      // 1.0 is the ordinary rate; anything above it bills the user extra for
+      // the same sentence.
+      premiumRate: rate is num && rate > 1,
+      clonedBy: json['cloned_by_count'] is num
+          ? (json['cloned_by_count']! as num).toInt()
+          : 0,
+    );
+  }
+
+  factory LibraryVoice.fromJson(Map<String, Object?> json) => LibraryVoice(
+    id: '${json['id'] ?? ''}',
+    ownerId: '${json['ownerId'] ?? ''}',
+    name: '${json['name'] ?? ''}',
+    language: '${json['language'] ?? ''}',
+    locale: '${json['locale'] ?? ''}',
+    accent: '${json['accent'] ?? ''}',
+    gender: '${json['gender'] ?? ''}',
+    age: '${json['age'] ?? ''}',
+    useCase: '${json['useCase'] ?? ''}',
+    descriptive: '${json['descriptive'] ?? ''}',
+    previewUrl: '${json['previewUrl'] ?? ''}',
+    verified: json['verified'] == true,
+    free: json['free'] != false,
+    premiumRate: json['premiumRate'] == true,
+    clonedBy: json['clonedBy'] is num ? (json['clonedBy']! as num).toInt() : 0,
+  );
+
+  final String id;
+
+  /// Who published it. Needed to put the voice on the account before it can
+  /// speak; empty for a voice that is already there.
+  final String ownerId;
+
+  final String name;
+  final String language;
+  final String locale;
+  final String accent;
+  final String gender;
+  final String age;
+  final String useCase;
+  final String descriptive;
+
+  /// A few seconds of the voice, hosted. Free to play -- no credits, no key.
+  final String previewUrl;
+
+  /// Its owner has confirmed it in this language, rather than it merely being
+  /// able to attempt it.
+  final bool verified;
+
+  final bool free;
+  final bool premiumRate;
+  final int clonedBy;
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'ownerId': ownerId,
+    'name': name,
+    'language': language,
+    'locale': locale,
+    'accent': accent,
+    'gender': gender,
+    'age': age,
+    'useCase': useCase,
+    'descriptive': descriptive,
+    'previewUrl': previewUrl,
+    'verified': verified,
+    'free': free,
+    'premiumRate': premiumRate,
+    'clonedBy': clonedBy,
+  };
+}
+
+/// What one search came back with: the voices, and how much of the brief had to
+/// be given up to find them.
+typedef VoiceShortlist = ({List<LibraryVoice> voices, List<String> relaxed});

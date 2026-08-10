@@ -1,9 +1,13 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 
 import 'package:market_queen/core/http_util.dart';
 import 'package:market_queen/pipeline/shot_planner.dart';
 import 'package:market_queen/providers/text_providers.dart';
 import 'package:market_queen/providers/types.dart';
+import 'package:market_queen/providers/voice_profile.dart';
 import 'package:market_queen/providers/voice_providers.dart';
 
 /// The words of a script, whitespace and layout thrown away. What the shot list
@@ -181,6 +185,141 @@ void main() {
       expect(ScriptTask.shotKind('b-roll'), 'talking');
       expect(ScriptTask.shotKind(null), 'talking');
       expect(ScriptTask.shotKind(''), 'talking');
+    });
+  });
+
+  group('casting brief', () {
+    // What the brief becomes is a real Voice Library query, in the exact
+    // spelling that search honours. It was verified against the live API:
+    // `language=French`, `gender=Female` and `use_cases=Social Media` all
+    // return zero voices where the lower-case snake_case forms return hundreds.
+    test('the brief is a query, in the spelling the API answers to', () {
+      const brief = VoiceProfile(
+        locale: 'fr-FR',
+        gender: 'female',
+        age: 'young',
+        useCase: 'social_media',
+        tone: 'upbeat',
+      );
+
+      expect(brief.filters, {
+        'language': 'fr',
+        'locale': 'fr-FR',
+        'gender': 'female',
+        'age': 'young',
+        'use_cases': 'social_media',
+        'descriptives': 'upbeat',
+      });
+    });
+
+    test('region travels as locale, never as accent', () {
+      // The bug this whole file exists to prevent: ElevenLabs scopes `accent`
+      // to the language a voice speaks, and its value "french" belongs to
+      // English -- it means an English voice with a French accent. Asking for
+      // language=fr&accent=french returns English voices. Region has to go as
+      // `locale`, and `accent` must never appear in a query.
+      const quebec = VoiceProfile(locale: 'fr-CA');
+      const france = VoiceProfile(locale: 'fr-FR');
+
+      expect(quebec.filters['locale'], 'fr-CA');
+      expect(france.filters['locale'], 'fr-FR');
+      expect(quebec.filters.containsKey('accent'), isFalse);
+      expect(france.filters.containsKey('accent'), isFalse);
+      expect(quebec.language, 'fr');
+      expect(quebec.signature, isNot(france.signature));
+    });
+
+    test('an unset language is the language the ad is written in', () {
+      // The tests never switch the interface, so that is English here. What
+      // matters is that "unset" is a real language rather than "any": a French
+      // ad read by an English voice was the whole complaint.
+      const brief = VoiceProfile(gender: 'female');
+      expect(brief.language, 'en');
+      expect(brief.filters, {'language': 'en', 'gender': 'female'});
+    });
+
+    test('a brief widens in the order the criteria matter', () {
+      // Language is not in the list at all: it is never given up.
+      expect(VoiceProfile.relaxationOrder, [
+        'descriptives',
+        'use_cases',
+        'age',
+        'locale',
+        'gender',
+      ]);
+      expect(VoiceProfile.relaxationOrder.contains('language'), isFalse);
+    });
+
+    test('it reads back out of an actor, and out of a run request', () {
+      // The actor's extras and the pipeline's request map carry the same keys,
+      // which is what lets the editor and the render cast the same voice.
+      final brief = VoiceProfile.from(<String, Object?>{
+        'voiceId': '',
+        'voiceLocale': 'cmn-TW',
+        'voiceGender': 'male',
+        'voiceAge': 'middle_aged',
+        'voiceUse': 'advertisement',
+        'voiceTone': 'calm',
+        'voiceStability': 0.45,
+      });
+
+      // Chinese is filed under cmn-* in the library, not zh-*.
+      expect(brief.language, 'zh');
+      expect(brief.filters['locale'], 'cmn-TW');
+      expect(brief.isEmpty, isFalse);
+      expect(const VoiceProfile().isEmpty, isTrue);
+    });
+  });
+
+  group('pictures handed to a model', () {
+    // The run that failed twice on one file: a product photo downloaded off a
+    // shop page, in AVIF. It went up labelled "image/png" because that is what
+    // the old code called anything it did not recognise, and OpenAI answered
+    // "you uploaded an unsupported image" -- twice, without ever naming AVIF.
+    final avif = Uint8List.fromList([
+      0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70, // ....ftyp
+      0x61, 0x76, 0x69, 0x66, 0x00, 0x00, 0x00, 0x00, // avif....
+      0x61, 0x76, 0x69, 0x66, 0x6d, 0x69, 0x66, 0x31, // avifmif1
+      ...List<int>.filled(64, 0),
+    ]);
+
+    test('a format nothing can read is refused, not relabelled', () {
+      final uri = Http.imageBytesToDataUri(avif);
+      expect(uri, isEmpty);
+      // The point is what it must never do: claim to be a PNG.
+      expect(uri.startsWith('data:image/png'), isFalse);
+    });
+
+    test('a real picture goes through as what it is', () {
+      final png = Uint8List.fromList(img.encodePng(img.Image(width: 8, height: 8)));
+
+      expect(Http.sniffMime(png), 'image/png');
+      expect(Http.imageBytesToDataUri(png), startsWith('data:image/png;base64,'));
+    });
+
+    test('an oversized picture is re-encoded rather than refused', () {
+      // Noise, so it cannot be compressed away to nothing.
+      final big = img.Image(width: 900, height: 900);
+      for (var y = 0; y < big.height; ++y) {
+        for (var x = 0; x < big.width; ++x) {
+          big.setPixelRgb(x, y, (x * 7) % 256, (y * 13) % 256, (x * y) % 256);
+        }
+      }
+      final png = Uint8List.fromList(img.encodePng(big));
+      expect(png.length, greaterThan(64 * 1024));
+
+      final uri = Http.imageBytesToDataUri(png, maxBytes: 64 * 1024);
+      expect(uri, startsWith('data:image/jpeg;base64,'));
+    });
+
+    test('a multipart part says what it is carrying', () {
+      // `http` sends every part as application/octet-stream unless told
+      // otherwise, and the OpenAI uploads reject that whatever the file is
+      // called. This is the whole of that bug.
+      expect(Http.mediaType('image/png').mimeType, 'image/png');
+      expect(Http.mediaType('image/jpeg; charset=binary').subtype, 'jpeg');
+      expect(Http.mediaType('').mimeType, 'application/octet-stream');
+      expect(Http.mediaType('nonsense').mimeType, 'application/octet-stream');
     });
   });
 

@@ -12,11 +12,13 @@ import 'models/casting.dart';
 import 'models/image_forge.dart';
 import 'models/library_model.dart';
 import 'models/line_doctor.dart';
+import 'models/studio_runner.dart';
 import 'models/voice_booth.dart';
 import 'models/workspace.dart';
 import 'pipeline/pipeline.dart';
 import 'providers/registry.dart';
 import 'providers/types.dart';
+import 'providers/voice_casting.dart';
 
 /// The single object the UI talks to. It owns the engine pieces and exposes the
 /// few OS-level helpers the interface needs.
@@ -28,7 +30,10 @@ class AppState {
     this.log,
     this.translator,
   ) {
-    pipeline = Pipeline(settings, registry, pricing, log);
+    // One caster for the whole app: the booth and the pipeline have to agree on
+    // who is reading the ad, and they agree by sharing the record of it.
+    voiceCasting = VoiceCasting(settings);
+    pipeline = Pipeline(settings, registry, pricing, log, voiceCasting);
     project = AdProject(settings, registry);
     casting = Casting();
     actors = ActorLibrary();
@@ -50,9 +55,14 @@ class AppState {
       log,
       scratchFolder: 'scenery',
     );
-    voiceBooth = VoiceBooth(settings, registry, pricing, log);
+    voiceBooth = VoiceBooth(settings, registry, pricing, log, voiceCasting);
     library = LibraryModel(settings);
     lineDoctor = LineDoctor(settings, registry, pricing, log);
+    // Fires into the open ad's feed, which is where the canvas reads from. It
+    // outlives any one ad: a batch sent just before you step back to the
+    // project list still has somewhere to land.
+    runner = StudioRunner(settings, registry, pricing, log, voiceCasting,
+        project.feed);
   }
 
   /// Builds everything and loads the data files the models need before the
@@ -68,6 +78,12 @@ class AppState {
     // string: the registry catalogue and the pipeline step labels are both
     // produced once, in Dart, rather than re-evaluated per frame.
     await translator.applyLanguage(settings.uiLanguage);
+    // The registry was built a few lines above, while the catalogue was still
+    // empty, so its notes came out in English and stayed there -- the listener
+    // that would have caught the change is only wired up in `_wire()`, after
+    // this. It went unnoticed while one note was on screen at a time; the
+    // Models page now shows all of them at once.
+    registry.retranslate();
     await pricing.load();
 
     final app = AppState._(settings, registry, pricing, log, translator);
@@ -90,6 +106,10 @@ class AppState {
   /// Projects and their ads.
   late final Workspace workspace;
 
+  /// Single images, single clips, single readings: everything the composer can
+  /// ask for that is not a whole ad.
+  late final StudioRunner runner;
+
   /// How a person or a place is asked for -- the prompt scaffold, not a run.
   late final Casting casting;
 
@@ -100,6 +120,9 @@ class AppState {
   /// never land in each other's strip.
   late final ImageForge actorForge;
   late final ImageForge decorForge;
+
+  /// Who reads the ad, worked out from the brief rather than picked by id.
+  late final VoiceCasting voiceCasting;
 
   late final VoiceBooth voiceBooth;
   late final LineDoctor lineDoctor;
@@ -207,6 +230,7 @@ class AppState {
   }
 
   void dispose() {
+    runner.dispose();
     pipeline.dispose();
     workspace.dispose();
     project.dispose();

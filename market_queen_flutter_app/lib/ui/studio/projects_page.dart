@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../theme.dart';
-import '../widgets/buttons.dart';
 import '../widgets/mq_dialog.dart';
 import 'studio_card.dart';
 
@@ -68,19 +67,6 @@ class ProjectsPage extends StatelessWidget {
       builder: (context, _) {
         final projects = app.workspace.byRecency;
 
-        if (projects.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.all(MqTheme.pagePadding),
-            child: StudioEmptyState(
-              title: tr('No project yet'),
-              subtitle: tr('Start one, then write as many ads in it as you '
-                  'like.'),
-              actionLabel: tr('New project'),
-              onPressed: () => _create(context),
-            ),
-          );
-        }
-
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(
             MqTheme.pagePadding,
@@ -91,14 +77,18 @@ class ProjectsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: GhostButton(
-                  text: tr('+ New project'),
-                  onPressed: () => _create(context),
-                ),
+              StudioNewButton(
+                label: tr('+ New project'),
+                onPressed: () => _create(context),
               ),
               const SizedBox(height: MqTheme.gapLarge),
+              if (projects.isEmpty)
+                StudioEmptyNote(
+                  text: tr(
+                    'No project yet. A project is a folder for the ads of one '
+                    'product or one campaign.',
+                  ),
+                ),
               Wrap(
                 spacing: MqTheme.gap,
                 runSpacing: MqTheme.gap,

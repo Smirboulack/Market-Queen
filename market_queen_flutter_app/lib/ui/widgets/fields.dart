@@ -6,10 +6,10 @@ import 'buttons.dart';
 /// The frame every text input sits in: hover and focus move the border, and
 /// only the way back to rest fades.
 ///
-/// Focus adds a ring outside the border rather than thickening it. A border
-/// that grows from 1px to 2px on focus moves every character in the field by
-/// half a pixel, and on a field you are typing into that is the one place a
-/// wobble is guaranteed to be noticed.
+/// Focus darkens the border and does nothing else. It used to tint it and lay a
+/// coloured halo behind it, which put the loudest thing on the page around
+/// whatever field happened to hold the caret. The border is one step darker
+/// than hover, and one step is enough.
 class FieldFrame extends StatelessWidget {
   const FieldFrame({
     super.key,
@@ -30,7 +30,7 @@ class FieldFrame extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
     final line = focused
-        ? mq.primary
+        ? mq.textTertiary
         : (hovered && !readOnly)
         ? mq.borderStrong
         : mq.border;
@@ -41,14 +41,6 @@ class FieldFrame extends StatelessWidget {
         color: fill ?? (readOnly ? mq.background : mq.surfaceSecondary),
         borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         border: Border.all(color: line),
-        boxShadow: focused
-            ? [
-                BoxShadow(
-                  color: mq.focusRing.withValues(alpha: 0.22),
-                  spreadRadius: 2,
-                ),
-              ]
-            : null,
       ),
       child: child,
     );
@@ -88,6 +80,7 @@ class LabeledField extends StatefulWidget {
     this.autofocus = false,
     this.onChanged,
     this.onEditingComplete,
+    this.onSubmitted,
   });
 
   final String label;
@@ -102,7 +95,22 @@ class LabeledField extends StatefulWidget {
   final bool autofocus;
 
   final ValueChanged<String>? onChanged;
+
+  /// "Commit what is in the field": fired when focus leaves it. For the
+  /// settings fields, where clicking away is how you finish editing.
+  ///
+  /// Deliberately *not* fired by Enter, and deliberately separate from
+  /// [onSubmitted]. Wiring both to one callback is what put an app-wide crash
+  /// in the naming dialogs: pressing Enter popped the route, popping moved the
+  /// focus off the field, the focus listener fired the same callback again and
+  /// the second pop took the window's own route down with it -- a black screen.
+  /// Clicking Cancel did the same thing in the other order, which is why a
+  /// cancelled dialog still created the project.
   final ValueChanged<String>? onEditingComplete;
+
+  /// "Accept": Enter, and nothing else. What a dialog's confirm button is
+  /// wired to.
+  final ValueChanged<String>? onSubmitted;
 
   @override
   State<LabeledField> createState() => _LabeledFieldState();
@@ -118,6 +126,12 @@ class _LabeledFieldState extends State<LabeledField> {
   void initState() {
     super.initState();
     _focus.addListener(() {
+      // Disposing a focused node notifies its listeners on the way out, so this
+      // runs once more *after* the field is gone. Without the guard it commits
+      // a value nobody asked it to and then calls setState on a dead State --
+      // which is how closing a dialog with the caret still in it took the whole
+      // window down.
+      if (!mounted) return;
       // Committing on focus loss is what `onEditingFinished` did in QML.
       if (!_focus.hasFocus) widget.onEditingComplete?.call(_controller.text);
       setState(() {});
@@ -158,7 +172,7 @@ class _LabeledFieldState extends State<LabeledField> {
                 readOnly: widget.readOnly,
                 obscureText: widget.obscure,
                 onChanged: widget.onChanged,
-                onSubmitted: widget.onEditingComplete,
+                onSubmitted: widget.onSubmitted,
                 cursorColor: mq.primary,
                 style: TextStyle(
                   color: widget.readOnly ? mq.textSecondary : mq.textPrimary,
@@ -569,6 +583,68 @@ class MenuEntry<T> {
   final T value;
 }
 
+/// An on/off switch, for the settings column where a checkbox would read as
+/// part of a form rather than as a property of the thing being generated.
+class MqToggle extends StatelessWidget {
+  const MqToggle({
+    super.key,
+    required this.value,
+    required this.onChanged,
+    this.enabled = true,
+    this.tooltip = '',
+  });
+
+  final bool value;
+  final ValueChanged<bool> onChanged;
+  final bool enabled;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      enabled: enabled,
+      onTap: () => onChanged(!value),
+      tooltip: tooltip,
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) {
+        final track = !states.enabled
+            ? mq.surfaceTertiary
+            : value
+            ? (states.active ? mq.primaryHover : mq.primary)
+            : (states.active ? mq.surfaceActive : mq.surfaceTertiary);
+
+        return AnimatedContainer(
+          duration: MqTheme.hoverDuration,
+          width: 38,
+          height: 22,
+          padding: const EdgeInsets.all(3),
+          alignment: value
+              ? AlignmentDirectional.centerEnd
+              : AlignmentDirectional.centerStart,
+          decoration: BoxDecoration(
+            color: track,
+            borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+            border: Border.all(color: value ? track : mq.border),
+          ),
+          child: Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: value ? mq.onPrimary : mq.surface,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: value ? Colors.transparent : mq.borderStrong,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 /// Fixed-choice picker.
 ///
 /// There is deliberately no inline editing: free text lives in its own field
@@ -612,7 +688,7 @@ class _StyledComboState<T> extends State<StyledCombo<T>> {
         // An open menu outranks the pointer: the combo stays lit underneath it
         // even though the barrier has taken the hover away.
         final line = _open
-            ? mq.primary
+            ? mq.textTertiary
             : states.active
             ? mq.borderStrong
             : mq.border;

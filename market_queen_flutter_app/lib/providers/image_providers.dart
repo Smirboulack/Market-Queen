@@ -92,7 +92,10 @@ class OpenAiImageTask extends ImageTask {
     );
     if (imageBytes.isEmpty) return _generate();
 
-    final extension = mimeType.split('/').length > 1 ? mimeType.split('/')[1] : 'png';
+    // The type has to be declared, not implied by the file name: `http` sends
+    // every part as application/octet-stream otherwise, and the edits endpoint
+    // rejects that outright however the part is named.
+    final contentType = Http.mediaType(mimeType);
 
     final response = await postMultipart(
       Uri.parse('https://api.openai.com/v1/images/edits'),
@@ -107,7 +110,8 @@ class OpenAiImageTask extends ImageTask {
         http.MultipartFile.fromBytes(
           'image[]',
           imageBytes,
-          filename: 'product.$extension',
+          filename: 'product.${contentType.subtype}',
+          contentType: contentType,
         ),
       ],
     );

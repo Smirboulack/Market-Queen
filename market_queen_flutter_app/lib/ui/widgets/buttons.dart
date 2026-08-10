@@ -250,8 +250,11 @@ class _PressableState extends State<Pressable> {
   }
 }
 
-/// The one thing on the page you are meant to press. Pink, and the only large
-/// area of it anywhere.
+/// The one thing on the page you are meant to press.
+///
+/// The only coloured object in the interface: the brand ramp, laid across the
+/// button. Everything else is greyscale, which is what makes a single gradient
+/// enough to find the commit button on any screen without a label being read.
 class PrimaryButton extends StatelessWidget {
   const PrimaryButton({
     super.key,
@@ -286,24 +289,29 @@ class PrimaryButton extends StatelessWidget {
       tooltip: tooltip,
       focusRadius: MqTheme.radius,
       builder: (context, states) {
-        final fill = !states.enabled
-            ? mq.surfaceSecondary
-            : states.pressed
-            ? mq.primaryActive
-            : states.hovered
-            ? mq.primaryHover
-            : mq.primary;
-        final ink = states.enabled ? mq.onPrimary : mq.textDisabled;
+        // Hover and press move the whole ramp rather than swapping its colours:
+        // a ten-stop gradient has no single "darker" version, and dimming it
+        // the way a flat fill dims would read as the button going disabled.
+        final ink = states.enabled ? MqTheme.onCta : mq.textDisabled;
 
         return AnimatedContainer(
           duration: states.duration,
           height: 42,
           constraints: const BoxConstraints(minWidth: 140),
           padding: const EdgeInsets.symmetric(horizontal: 22),
-          decoration: BoxDecoration(
-            color: fill,
+          foregroundDecoration: BoxDecoration(
+            color: states.pressed
+                ? const Color(0x26000000)
+                : states.hovered
+                ? const Color(0x14FFFFFF)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(MqTheme.radius),
-            border: Border.all(color: states.enabled ? fill : mq.border),
+          ),
+          decoration: BoxDecoration(
+            gradient: states.enabled
+                ? MqTheme.ctaGradient
+                : mq.ctaGradientMuted,
+            borderRadius: BorderRadius.circular(MqTheme.radius),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -334,6 +342,80 @@ class PrimaryButton extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+/// The composer's send button: the same brand ramp as [PrimaryButton], round,
+/// and holding a glyph instead of a label.
+///
+/// It is its own widget rather than a flag on the primary button because the
+/// two differ in every measurement -- and because this one has a third state
+/// the other does not: turning while a batch is out.
+class GradientSendButton extends StatelessWidget {
+  const GradientSendButton({
+    super.key,
+    required this.onPressed,
+    required this.spinner,
+    this.enabled = true,
+    this.busy = false,
+    this.icon = 'arrow-up-line',
+    this.size = 40,
+    this.tooltip = '',
+  });
+
+  final VoidCallback? onPressed;
+
+  /// Driven by the composer, so the glyph keeps turning across rebuilds.
+  final AnimationController spinner;
+
+  final bool enabled;
+  final bool busy;
+  final String icon;
+  final double size;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      enabled: enabled && !busy,
+      onTap: onPressed,
+      tooltip: tooltip,
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) {
+        // Nothing to send: the disc reads as part of the frame rather than as a
+        // dimmed rainbow.
+        final live = states.enabled || busy;
+        final ink = live ? MqTheme.onCta : mq.textDisabled;
+
+        return AnimatedContainer(
+          duration: states.duration,
+          width: size,
+          height: size,
+          alignment: Alignment.center,
+          foregroundDecoration: BoxDecoration(
+            color: states.pressed
+                ? const Color(0x26000000)
+                : states.hovered
+                ? const Color(0x14FFFFFF)
+                : Colors.transparent,
+            shape: BoxShape.circle,
+          ),
+          decoration: BoxDecoration(
+            gradient: live ? MqTheme.ctaGradientDiagonal : null,
+            color: live ? null : mq.surfaceTertiary,
+            shape: BoxShape.circle,
+          ),
+          child: busy
+              ? RotationTransition(
+                  turns: spinner,
+                  child: MqIcon('loader-4-line', size: size * 0.45, color: ink),
+                )
+              : MqIcon(icon, size: size * 0.45, color: ink),
         );
       },
     );
