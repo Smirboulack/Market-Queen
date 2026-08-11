@@ -40,7 +40,7 @@ class ModelsPage extends StatelessWidget {
       title: 'Video',
       subtitle: 'Animate a still, or shoot from a prompt.',
     ),
-    (id: 'image', title: 'Image', subtitle: 'Stills, actors and décors.'),
+    (id: 'image', title: 'Image', subtitle: 'Stills, actors and scenes.'),
     (id: 'voice', title: 'Voice', subtitle: 'Who reads your script.'),
     (
       id: 'upscale',

@@ -71,11 +71,14 @@ class AdProject extends ChangeNotifier {
   final List<String> media = [];
 
   /// A list, though the interface only fills the first slot today: two actors
-  /// in one décor is the next thing this grows into, and a list costs nothing
+  /// in one scene is the next thing this grows into, and a list costs nothing
   /// now against a migration later.
   final List<String> actorIds = [];
 
-  String decorId = '';
+  /// The scene the ad is filmed in. Written to the document under its old
+  /// name, `decorId`, because renaming the idea is not a reason to lose the
+  /// scene off every ad already saved.
+  String sceneId = '';
 
   /// The whole ad, written by the user in their own words.
   String script = '';
@@ -152,13 +155,13 @@ class AdProject extends ChangeNotifier {
     _touched();
   }
 
-  void setDecor(String id) {
-    if (decorId == id) return;
-    decorId = id;
+  void setScene(String id) {
+    if (sceneId == id) return;
+    sceneId = id;
     _touched();
   }
 
-  void clearDecor() => setDecor('');
+  void clearScene() => setScene('');
 
   // ---- Reference media --------------------------------------------------
   //
@@ -237,11 +240,11 @@ class AdProject extends ChangeNotifier {
   /// The request shape the pipeline, the pricer and the writing helpers all
   /// understand.
   ///
-  /// The actor and the décor are references into the libraries rather than
+  /// The actor and the scene are references into the libraries rather than
   /// copies, so editing one from anywhere updates every ad that casts it.
   Map<String, Object?> toRequest({
     required ActorLibrary actors,
-    required DecorLibrary decors,
+    required SceneLibrary scenes,
   }) {
     // Model choices live in the preferences the Models page writes, so the
     // studio and that page agree on what "your usual models" means.
@@ -263,7 +266,7 @@ class AdProject extends ChangeNotifier {
     final voiceProvider = pickedProvider('voice');
 
     final actor = actorIds.isEmpty ? null : actors.byId(actorIds.first);
-    final decor = decorId.isEmpty ? null : decors.byId(decorId);
+    final scene = sceneId.isEmpty ? null : scenes.byId(sceneId);
 
     final images = productImages;
 
@@ -292,7 +295,7 @@ class AdProject extends ChangeNotifier {
       // was read as "English".
       'language': Translator.instance.currentLabel,
       'avatarBrief': actor?.prompt.trim() ?? '',
-      'extraInstructions': decorBrief(decors),
+      'extraInstructions': sceneBrief(scenes),
       // No scenes any more: the pipeline cuts the user's own script into shots
       // itself, which is the only cutting an authentic UGC ad wants.
       'scenes': const <Map<String, Object?>>[],
@@ -303,7 +306,7 @@ class AdProject extends ChangeNotifier {
       // One image: the pipeline takes a single reference.
       'productImagePath': images.isEmpty ? '' : images.first,
       'actorPortraitPath': actor?.thumbnail ?? '',
-      'decorImagePath': decor?.thumbnail ?? '',
+      'decorImagePath': scene?.thumbnail ?? '',
       'useProductPhotoAsFrame': false,
       'textProvider': textProvider,
       'textModel': pickedModel('text', textProvider),
@@ -335,25 +338,25 @@ class AdProject extends ChangeNotifier {
     };
   }
 
-  /// The décor in one sentence: what the user wrote, plus whichever dials they
-  /// set. Empty when no décor is cast.
-  String decorBrief(DecorLibrary decors) {
-    final decor = decorId.isEmpty ? null : decors.byId(decorId);
-    if (decor == null) return '';
+  /// The scene in one sentence: what the user wrote, plus whichever dials they
+  /// set. Empty when no scene is cast.
+  String sceneBrief(SceneLibrary scenes) {
+    final scene = sceneId.isEmpty ? null : scenes.byId(sceneId);
+    if (scene == null) return '';
 
-    final tweaks = decorTweakFragments(decor);
-    final description = decor.prompt.trim();
+    final tweaks = sceneTweakFragments(scene);
+    final description = scene.prompt.trim();
 
     if (description.isEmpty) return tweaks;
     if (tweaks.isEmpty) return description;
     return '$description, $tweaks';
   }
 
-  /// The set dials of a décor, strung together in the order they are offered.
-  static String decorTweakFragments(LibraryAsset decor) {
+  /// The set dials of a scene, strung together in the order they are offered.
+  static String sceneTweakFragments(LibraryAsset scene) {
     final fragments = <String>[];
-    for (final tweak in DecorTweak.all) {
-      final value = decor.extraText(tweak.key);
+    for (final tweak in SceneTweak.all) {
+      final value = scene.extraText(tweak.key);
       if (value.isNotEmpty) fragments.add(value);
     }
     return fragments.join(', ');
@@ -365,7 +368,7 @@ class AdProject extends ChangeNotifier {
     'product': product,
     'media': media,
     'actorIds': actorIds,
-    'decorId': decorId,
+    'decorId': sceneId,
     'script': script,
     'aspectRatio': aspectRatio,
     'captions': captions,
@@ -408,7 +411,7 @@ class AdProject extends ChangeNotifier {
             if ('$entry'.isNotEmpty) '$entry',
       ]);
 
-    decorId = '${document['decorId'] ?? ''}';
+    sceneId = '${document['decorId'] ?? ''}';
     script = '${document['script'] ?? ''}';
     aspectRatio = '${document['aspectRatio'] ?? '9:16'}';
     captions = document['captions'] != false;
@@ -431,7 +434,7 @@ class AdProject extends ChangeNotifier {
     product = {};
     media.clear();
     actorIds.clear();
-    decorId = '';
+    sceneId = '';
     script = '';
     aspectRatio = '9:16';
     captions = true;
@@ -451,13 +454,13 @@ class AdProject extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Drops an actor or a décor that has been deleted from its library, so an ad
+  /// Drops an actor or a scene that has been deleted from its library, so an ad
   /// never points at something that is gone.
-  void forget({String actorId = '', String decorId = ''}) {
+  void forget({String actorId = '', String sceneId = ''}) {
     var changed = false;
     if (actorId.isNotEmpty && actorIds.remove(actorId)) changed = true;
-    if (decorId.isNotEmpty && this.decorId == decorId) {
-      this.decorId = '';
+    if (sceneId.isNotEmpty && this.sceneId == sceneId) {
+      this.sceneId = '';
       changed = true;
     }
     if (changed) _touched();

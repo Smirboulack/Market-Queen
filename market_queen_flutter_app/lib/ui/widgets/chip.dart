@@ -139,13 +139,22 @@ class MqChip extends StatelessWidget {
                 MqIcon(icon, size: 15, color: glyph),
                 const SizedBox(width: 6),
               ],
-              Text(
-                value.isNotEmpty ? value : label,
-                style: TextStyle(
-                  color: ink,
-                  fontSize: MqTheme.fontLabel,
-                  fontWeight: lit || accent ? FontWeight.w500 : FontWeight.w400,
-                  letterSpacing: MqTheme.trackSmall,
+              // Flexible: a chip carrying a model name is at the mercy of
+              // whatever the provider called it, and one long enough to
+              // overflow its row must give in before the row does.
+              Flexible(
+                child: Text(
+                  value.isNotEmpty ? value : label,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: ink,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: lit || accent
+                        ? FontWeight.w500
+                        : FontWeight.w400,
+                    letterSpacing: MqTheme.trackSmall,
+                  ),
                 ),
               ),
               if (detail.isNotEmpty) ...[

@@ -9,7 +9,7 @@ import 'studio_card.dart';
 /// One project's ads.
 ///
 /// The same list as the one above it, a level down. An ad is a whole spot: one
-/// product, one actor, one décor, one scenario -- so trying a second angle is
+/// product, one actor, one scene, one scenario -- so trying a second angle is
 /// a second card here rather than a second scene inside the first.
 class AdsPage extends StatelessWidget {
   const AdsPage({

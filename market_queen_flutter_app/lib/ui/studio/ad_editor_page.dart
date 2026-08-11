@@ -11,7 +11,7 @@ import 'composer.dart';
 /// the whole screen.
 ///
 /// It replaced a page built the other way round -- a block in the middle asking
-/// for the product name, its description, its audience, the actor and the décor
+/// for the product name, its description, its audience, the actor and the scene
 /// before anything could happen, with the writing squeezed underneath. All of
 /// it is gone. Somebody who opens an ad studio is already advertising
 /// something; being made to fill in a form saying so was a gate, not a step.

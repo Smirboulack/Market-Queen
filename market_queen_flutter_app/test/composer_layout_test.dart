@@ -72,11 +72,20 @@ void main() {
     await openSettings(tester);
     expect(find.byType(ComposerSettings), findsOneWidget);
 
+    // It may well be narrower -- a panel beside it has to come out of
+    // somewhere -- but its middle is still the middle of the page.
     final open = barRect(tester);
     expect(open.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1));
-    // ...and it is the same bar in the same place, not a bar that survived the
-    // centring test by moving twice.
-    expect(open, shut);
+  });
+
+  testWidgets('the shut bar gets the whole width', (tester) async {
+    await pumpEditor(tester);
+
+    // The bar is what the studio is used through, so it holds the room until
+    // something actually needs it: no gutter is reserved for a panel that is
+    // shut. What is left over is the page's own padding and the bar's cap.
+    final available = window.width - 2 * MqTheme.pagePadding;
+    expect(barRect(tester).width, greaterThan(available * 0.85));
   });
 
   testWidgets('the settings panel takes no height from the canvas', (
@@ -85,12 +94,54 @@ void main() {
     await pumpEditor(tester);
 
     final before = tester.getRect(find.byType(CanvasView));
-    final barBefore = barRect(tester);
+    final bottom = barRect(tester).bottom;
 
     await openSettings(tester);
 
     expect(tester.getRect(find.byType(CanvasView)), before);
-    expect(barRect(tester), barBefore);
+    // The bar stays welded to the bottom of the page whatever grows above it.
+    expect(barRect(tester).bottom, moreOrLessEquals(bottom, epsilon: 0.5));
+  });
+
+  testWidgets('a narrow window stacks the panel instead of squeezing', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(1040, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final theme = MqTheme(dark: false);
+    await tester.pumpWidget(
+      AppTheme(
+        theme: theme,
+        child: MaterialApp(
+          theme: theme.material,
+          home: Scaffold(
+            body: AdEditorPage(
+              app: app,
+              onGenerate: () {},
+              onOpenRender: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final shut = barRect(tester);
+    await tester.tap(find.byTooltip('Settings'));
+    await tester.pump();
+
+    expect(find.byType(ComposerSettings), findsOneWidget);
+    // The panel went above the bar rather than beside it, so the prompt is
+    // exactly as wide as it was.
+    final open = barRect(tester);
+    expect(open.width, moreOrLessEquals(shut.width, epsilon: 0.5));
+    expect(
+      tester.getRect(find.byType(ComposerSettings)).bottom,
+      lessThan(open.top),
+    );
   });
 
   testWidgets('the panel hangs off the bar\'s own bottom edge', (tester) async {

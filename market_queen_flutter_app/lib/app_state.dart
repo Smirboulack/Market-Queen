@@ -38,7 +38,7 @@ class AppState {
     project = AdProject(settings, registry);
     casting = Casting();
     actors = ActorLibrary();
-    decors = DecorLibrary();
+    scenes = SceneLibrary();
     // The tree the studio browses. It has to be built after the actor library,
     // because importing a pre-projects draft rehouses that draft's actor in it.
     workspace = Workspace(project, actors);
@@ -49,7 +49,7 @@ class AppState {
       log,
       scratchFolder: 'casting',
     );
-    decorForge = ImageForge(
+    sceneForge = ImageForge(
       settings,
       registry,
       pricing,
@@ -119,12 +119,12 @@ class AppState {
   late final Casting casting;
 
   late final ActorLibrary actors;
-  late final DecorLibrary decors;
+  late final SceneLibrary scenes;
 
-  /// One picture generator per editor, so an actor batch and a décor batch can
+  /// One picture generator per editor, so an actor batch and a scene batch can
   /// never land in each other's strip.
   late final ImageForge actorForge;
-  late final ImageForge decorForge;
+  late final ImageForge sceneForge;
 
   /// Who reads the ad, worked out from the brief rather than picked by id.
   late final VoiceCasting voiceCasting;
@@ -147,9 +147,9 @@ class AppState {
 
   /// What Generate would run, priced and sent. Every caller goes through here
   /// so the estimate, the writing helpers and the pipeline all read the same
-  /// ad, the same actor and the same décor.
+  /// ad, the same actor and the same scene.
   Map<String, Object?> request() =>
-      project.toRequest(actors: actors, decors: decors);
+      project.toRequest(actors: actors, scenes: scenes);
 
   String _lastFfmpegPath = '';
   String _lastLanguage = '';
@@ -203,10 +203,10 @@ class AppState {
     workspace.forgetAsset(actorId: id);
   }
 
-  /// Deletes a décor and takes it off every ad that used it.
-  void deleteDecor(String id) {
-    decors.remove(id);
-    workspace.forgetAsset(decorId: id);
+  /// Deletes a scene and takes it off every ad that used it.
+  void deleteScene(String id) {
+    scenes.remove(id);
+    workspace.forgetAsset(sceneId: id);
   }
 
   /// Asks the provider for the voices on the user's account.
@@ -240,9 +240,9 @@ class AppState {
     workspace.dispose();
     project.dispose();
     actors.dispose();
-    decors.dispose();
+    scenes.dispose();
     actorForge.dispose();
-    decorForge.dispose();
+    sceneForge.dispose();
     voiceBooth.dispose();
     lineDoctor.dispose();
     library.dispose();

@@ -93,7 +93,7 @@ class Casting {
   /// realism work is the product here, so it should be inspectable rather than
   /// magic.
   ///
-  /// [description] is what the user wrote. [location] is the décor, when the
+  /// [description] is what the user wrote. [location] is the scene, when the
   /// actor is being pictured somewhere in particular.
   String buildPortraitPrompt({
     required String description,

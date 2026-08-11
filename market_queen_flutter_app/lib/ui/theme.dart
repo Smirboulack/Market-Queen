@@ -14,9 +14,10 @@ import 'package:flutter/material.dart';
 /// [primary] is ink -- near-black on the light skin, near-white on the dark one
 /// -- so the thing you are meant to press reads by contrast rather than by hue.
 ///
-/// The one exception is [ctaGradient], the brand ramp. It is spent on the two
-/// controls that actually commit something: the send button on the composer and
-/// the confirm button of a modal. Nothing else in the app is allowed colour.
+/// The one exception is [ctaGradient], the brand ramp -- sky blue into green.
+/// It is spent on the two controls that actually commit something: the send
+/// button on the composer and the confirm button of a modal. Nothing else in
+/// the app is allowed colour.
 @immutable
 class MqTheme {
   const MqTheme({required this.dark});
@@ -100,24 +101,20 @@ class MqTheme {
       dark ? const Color(0xFF111111) : const Color(0xFFFFFFFF);
 
   // --------------------------------------------------------------------- CTA
-  // The brand ramp, and the only colour left in the interface. Ten stops from
-  // sky to red, laid across the button rather than sampled from -- a single
-  // stop out of context is just a random pastel.
+  // The brand ramp, and the only colour left in the interface: sky blue into
+  // green, laid across the button rather than sampled from.
+  //
+  // It used to be ten stops running from that same sky blue all the way to red.
+  // Two is better: a ten-stop ramp reads as a rainbow at 140px and as a muddy
+  // orange at 40, and the one stop a small control actually shows was never a
+  // colour anybody chose.
   //
   // Identical in both skins: an identity that changed with the theme would not
   // be one.
 
   static const List<Color> ctaColors = [
-    Color(0xFF7DD3FC),
-    Color(0xFF67D5E8),
-    Color(0xFF5EDBD1),
-    Color(0xFF7DDFC0),
-    Color(0xFFB2D9A7),
-    Color(0xFFD9C18F),
-    Color(0xFFEFA47F),
-    Color(0xFFF47B72),
-    Color(0xFFF05263),
-    Color(0xFFEF3F55),
+    Color(0xFF60D1F8),
+    Color(0xFF00DF9A),
   ];
 
   static const LinearGradient ctaGradient = LinearGradient(
@@ -127,7 +124,7 @@ class MqTheme {
   );
 
   /// The same ramp turned 45°, for square-ish targets (the send disc) where a
-  /// left-to-right sweep across 32px would only ever show two of the ten stops.
+  /// left-to-right sweep across 32px would barely leave the blue end.
   static const LinearGradient ctaGradientDiagonal = LinearGradient(
     colors: ctaColors,
     begin: Alignment.topLeft,
@@ -136,9 +133,8 @@ class MqTheme {
 
   /// What is legible on top of the ramp.
   ///
-  /// Near-black, and it has to be: the pale end (#7DD3FC) gives white 1.9:1,
-  /// which cannot be read at all, while this holds 5:1 or better against every
-  /// one of the ten stops including the red.
+  /// Near-black, and it has to be: both ends are light enough that white gives
+  /// under 2:1 and cannot be read at all, while this holds 10:1 against either.
   static const Color onCta = Color(0xFF0F0F0F);
 
   /// The ramp dimmed to a disabled fill, so a CTA that cannot be pressed still

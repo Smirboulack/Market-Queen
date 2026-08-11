@@ -361,11 +361,17 @@ class BigChoice extends StatelessWidget {
     required this.title,
     required this.icon,
     required this.onPressed,
+    this.overline = '',
     this.subtitle = '',
     this.enabled = true,
   });
 
   final String title;
+
+  /// One word above the title, in caps: what this door *is* ("Generate",
+  /// "Import"), as against the sentence under it explaining what it does.
+  final String overline;
+
   final String subtitle;
   final String icon;
   final VoidCallback onPressed;
@@ -381,7 +387,10 @@ class BigChoice extends StatelessWidget {
       focusRadius: MqTheme.radius,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        height: 176,
+        // A floor rather than a height: the two doors are stretched to match
+        // each other by the row they sit in, and a fixed height clipped the one
+        // with the longer sentence on it.
+        constraints: const BoxConstraints(minHeight: 176),
         padding: const EdgeInsets.all(18),
         alignment: Alignment.center,
         decoration: BoxDecoration(
@@ -408,6 +417,19 @@ class BigChoice extends StatelessWidget {
                   : mq.textTertiary,
             ),
             const SizedBox(height: 12),
+            if (overline.isNotEmpty) ...[
+              Text(
+                overline.toUpperCase(),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontMicro,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: MqTheme.trackOverline,
+                ),
+              ),
+              const SizedBox(height: 6),
+            ],
             Text(
               title,
               textAlign: TextAlign.center,

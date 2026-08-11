@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../app_state.dart';
 import '../i18n/translator.dart';
+import '../models/asset_library.dart' show AssetKind;
 import 'asset_library_page.dart';
-import 'dialogs/asset_editor.dart';
 import 'examples_page.dart';
 import 'library_page.dart';
 import 'models_page.dart';
@@ -37,7 +37,7 @@ class _MainWindowState extends State<MainWindow> {
   static const _studio = 0;
   static const _library = 1;
   static const _actors = 2;
-  static const _decors = 3;
+  static const _scenes = 3;
   static const _examples = 4;
   static const _models = 5;
   static const _settings = 6;
@@ -71,7 +71,7 @@ class _MainWindowState extends State<MainWindow> {
     ),
     NavEntry(label: tr('Library'), icon: 'movie-2-line', page: _library),
     NavEntry(label: tr('Actors'), icon: 'user-line', page: _actors),
-    NavEntry(label: tr('Décors'), icon: 'image-line', page: _decors),
+    NavEntry(label: tr('Scenes'), icon: 'scene-line', page: _scenes),
     NavEntry(label: tr('Examples'), icon: 'lightbulb-line', page: _examples),
     NavEntry(label: tr('Models'), icon: 'layout-line', page: _models),
     NavEntry(label: tr('Settings'), icon: 'settings-3-line', page: _settings),
@@ -173,8 +173,8 @@ class _MainWindowState extends State<MainWindow> {
         return [Crumb(tr('Library'))];
       case _actors:
         return [Crumb(tr('Actors'))];
-      case _decors:
-        return [Crumb(tr('Décors'))];
+      case _scenes:
+        return [Crumb(tr('Scenes'))];
       case _examples:
         return [Crumb(tr('Examples'))];
       case _models:
@@ -247,7 +247,7 @@ class _MainWindowState extends State<MainWindow> {
                       _studioStack(),
                       LibraryPage(app: app),
                       AssetLibraryPage(app: app, kind: AssetKind.actor),
-                      AssetLibraryPage(app: app, kind: AssetKind.decor),
+                      AssetLibraryPage(app: app, kind: AssetKind.scene),
                       ExamplesPage(app: app, onOpenAd: _openAd),
                       ModelsPage(app: app),
                       SettingsPage(app: app),

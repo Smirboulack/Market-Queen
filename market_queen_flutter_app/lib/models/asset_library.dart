@@ -7,12 +7,19 @@ import 'package:path/path.dart' as p;
 import '../core/paths.dart';
 import '../i18n/translator.dart';
 
-/// One reusable piece of casting: an actor, or a décor.
+/// The two things that can be cast in an ad.
+///
+/// They are one shape -- references, a description, a still -- so one library,
+/// one gallery and one editor serve both, and every screen that handles either
+/// takes this rather than a boolean nobody can read at the call site.
+enum AssetKind { actor, scene }
+
+/// One reusable piece of casting: an actor, or a scene.
 ///
 /// Both are the same object -- a name, a description in plain words, the
 /// pictures and clips it was described with, and one still to recognise it by.
 /// What differs is only what the extras carry: a voice for an actor, the light
-/// and the mood for a décor.
+/// and the mood for a scene.
 class LibraryAsset {
   LibraryAsset({
     this.id = '',
@@ -156,7 +163,7 @@ bool isVideoPath(String path) =>
 /// A folder of reusable assets on disk.
 ///
 /// Saving copies the still out of the scratch folder into the library's own
-/// directory, so clearing scratch can never orphan a saved actor or décor.
+/// directory, so clearing scratch can never orphan a saved actor or scene.
 abstract class AssetLibrary extends ChangeNotifier {
   /// [_fileName] is the store inside the config directory, [_folder] the
   /// sub-directory adopted stills are copied into.
@@ -171,7 +178,7 @@ abstract class AssetLibrary extends ChangeNotifier {
   List<LibraryAsset> get assets => List.unmodifiable(_assets);
   int get count => _assets.length;
 
-  /// What an entry saved without a name is called: "Actor 3", "Décor 3".
+  /// What an entry saved without a name is called: "Actor 3", "Scene 3".
   String suggestedName();
 
   String get _storeFile => p.join(Paths.configDir, _fileName);
@@ -228,6 +235,22 @@ abstract class AssetLibrary extends ChangeNotifier {
       if (asset.id == id) return asset;
     }
     return null;
+  }
+
+  /// Everything whose name or description matches [query], newest first.
+  ///
+  /// Substring, case-folded, over both fields: somebody looking for the woman
+  /// in the kitchen is as likely to have written that in the description as in
+  /// the name.
+  List<LibraryAsset> search(String query) {
+    final needle = query.trim().toLowerCase();
+    if (needle.isEmpty) return assets;
+    return [
+      for (final asset in _assets)
+        if (asset.name.toLowerCase().contains(needle) ||
+            asset.prompt.toLowerCase().contains(needle))
+          asset,
+    ];
   }
 
   /// Inserts or updates, and returns the id. An asset carrying an id already on
@@ -327,19 +350,23 @@ class ActorLibrary extends AssetLibrary {
   String suggestedName() => tr('Actor %1').arg(count + 1);
 }
 
-/// The décors the user has kept: the room the ad is filmed in.
-class DecorLibrary extends AssetLibrary {
-  DecorLibrary() : super('decors.json', 'decors');
+/// The scenes the user has kept: the place the ad is filmed in.
+///
+/// Called décors until the interface was rewritten. The file it is stored in
+/// keeps the old name, and always will -- renaming a concept is not a reason to
+/// lose everybody's library.
+class SceneLibrary extends AssetLibrary {
+  SceneLibrary() : super('decors.json', 'decors');
 
   @override
-  String suggestedName() => tr('Décor %1').arg(count + 1);
+  String suggestedName() => tr('Scene %1').arg(count + 1);
 }
 
-/// The optional dials a décor can carry. Not traits in the old sense: a décor
+/// The optional dials a scene can carry. Not traits in the old sense: a scene
 /// is written in words like everything else, and these only pin down the four
 /// things a sentence tends to leave vague.
-class DecorTweak {
-  const DecorTweak(this.key, this.label, this.options);
+class SceneTweak {
+  const SceneTweak(this.key, this.label, this.options);
 
   final String key;
   final String label;
@@ -347,28 +374,31 @@ class DecorTweak {
   /// Label shown, fragment sent.
   final List<(String, String)> options;
 
-  static List<DecorTweak> get all => [
-    DecorTweak('light', tr('Light'), [
+  static List<SceneTweak> get all => [
+    // "Lighting" rather than "Light": the catalogue is keyed on the English
+    // string, and "Light" is already the name of the pale theme. One key
+    // cannot be both "Clair" and "Lumière".
+    SceneTweak('light', tr('Lighting'), [
       (tr('Window daylight'), 'lit only by daylight from a window'),
       (tr('Overcast'), 'flat overcast daylight'),
       (tr('Warm lamps'), 'lit by warm household lamps'),
       (tr('Overhead'), 'lit by a plain overhead ceiling light'),
       (tr('Night'), 'at night, only the lights of the room on'),
     ]),
-    DecorTweak('mood', tr('Mood'), [
+    SceneTweak('mood', tr('Mood'), [
       (tr('Lived-in'), 'lived-in and a little untidy'),
       (tr('Tidy'), 'tidy but ordinary, nothing staged'),
       (tr('Cosy'), 'cosy and warm'),
       (tr('Cold'), 'bare and slightly cold'),
       (tr('Busy'), 'busy, things going on in the background'),
     ]),
-    DecorTweak('time', tr('Time of day'), [
+    SceneTweak('time', tr('Time of day'), [
       (tr('Morning'), 'early morning'),
       (tr('Midday'), 'the middle of the day'),
       (tr('Late afternoon'), 'late afternoon'),
       (tr('Evening'), 'the evening'),
     ]),
-    DecorTweak('space', tr('Space'), [
+    SceneTweak('space', tr('Space'), [
       (tr('Indoors'), 'indoors'),
       (tr('Outdoors'), 'outdoors'),
       (tr('In a car'), 'inside a parked car'),

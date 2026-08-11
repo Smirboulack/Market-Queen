@@ -326,9 +326,10 @@ class Workspace extends ChangeNotifier {
     return true;
   }
 
-  /// Called when an actor or a décor is deleted: no ad may point at one that is
-  /// gone.
-  void forgetAsset({String actorId = '', String decorId = ''}) {
+  /// Called when an actor or a scene is deleted: no ad may point at one that is
+  /// gone. The document key stays `decorId`, which is what every saved ad has
+  /// in it.
+  void forgetAsset({String actorId = '', String sceneId = ''}) {
     var changed = false;
 
     for (final owner in _projects) {
@@ -343,14 +344,15 @@ class Workspace extends ChangeNotifier {
           ];
           changed = true;
         }
-        if (decorId.isNotEmpty && '${entry.document['decorId'] ?? ''}' == decorId) {
+        if (sceneId.isNotEmpty &&
+            '${entry.document['decorId'] ?? ''}' == sceneId) {
           entry.document['decorId'] = '';
           changed = true;
         }
       }
     }
 
-    _project.forget(actorId: actorId, decorId: decorId);
+    _project.forget(actorId: actorId, sceneId: sceneId);
     if (changed) _changed();
   }
 

@@ -46,7 +46,7 @@ void main() {
       // The interface is greyscale and reverses between the skins; the CTA
       // gradient is the identity and must not. It is a constant on the class
       // rather than a getter for exactly that reason.
-      expect(MqTheme.ctaColors.length, 10);
+      expect(MqTheme.ctaColors, const [Color(0xFF60D1F8), Color(0xFF00DF9A)]);
       expect(MqTheme.ctaGradient.colors, MqTheme.ctaColors);
     });
 

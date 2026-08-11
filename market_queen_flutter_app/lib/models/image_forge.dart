@@ -18,7 +18,7 @@ import 'asset_library.dart';
 
 /// Turns a written description into a handful of stills.
 ///
-/// One object, used by both editors: an actor and a décor are the same request
+/// One object, used by both editors: an actor and a scene are the same request
 /// with a different prompt. The stills land in a scratch folder and only the
 /// one the user keeps is ever copied anywhere permanent -- saving the asset is
 /// what adopts it.
@@ -37,7 +37,7 @@ class ImageForge extends ChangeNotifier {
   final LogModel _log;
 
   /// Sub-directory of the config folder this forge writes into, so an actor
-  /// batch and a décor batch never overwrite one another.
+  /// batch and a scene batch never overwrite one another.
   final String scratchFolder;
 
   final List<String> _images = [];

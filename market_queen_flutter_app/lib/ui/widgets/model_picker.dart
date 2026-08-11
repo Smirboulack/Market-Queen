@@ -5,7 +5,104 @@ import '../../i18n/translator.dart';
 import '../../providers/registry.dart';
 import '../format.dart';
 import '../theme.dart';
+import 'chip.dart';
 import 'fields.dart';
+
+/// The model a one-off generation will be bought from, as a chip.
+///
+/// It exists because the app is bring-your-own-keys: every screen that spends
+/// money has to name what it is about to spend it on, and be able to change it
+/// on the spot. The full two-combo [ModelPicker] is right on a settings page
+/// and far too heavy to sit in a prompt bar.
+///
+/// Only models the Models page has left switched on appear, and the price is on
+/// every entry of the menu -- which is what you want while choosing and pure
+/// noise afterwards, so the chip itself shows the name alone.
+class ModelChip extends StatelessWidget {
+  const ModelChip({super.key, required this.app, required this.category});
+
+  final AppState app;
+  final String category;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([app.settings, app.registry]),
+      builder: (context, _) {
+        final registry = app.registry;
+        final settings = app.settings;
+
+        final providers = registry.providers(category);
+        final named = providers.length > 1;
+
+        final options = <MenuOption<String>>[];
+        for (final provider in providers) {
+          for (final model in provider.models) {
+            if (settings.modelHidden(provider.id, model.id)) continue;
+
+            final price = Format.unitPriceLabel(
+              app.pricing.unitPrice(model.id),
+            );
+            options.add(
+              MenuOption(
+                [
+                  if (named) '${provider.label} · ',
+                  model.label,
+                  if (price.isNotEmpty) '   $price',
+                ].join(),
+                '${provider.id}|${model.id}',
+              ),
+            );
+          }
+        }
+
+        final providerId = _providerId;
+        final modelId = _modelId(providerId);
+
+        return Builder(
+          builder: (anchor) => MqChip(
+            label: options.isEmpty
+                ? tr('None enabled')
+                : registry.modelLabel(providerId, modelId),
+            icon: 'layout-line',
+            opensMenu: true,
+            active: true,
+            enabled: options.isNotEmpty,
+            tooltip: tr('Which model this is generated with'),
+            onPressed: () async {
+              final picked = await showChipMenu<String>(
+                anchor,
+                options: options,
+                current: '$providerId|$modelId',
+                width: 340,
+              );
+              if (picked == null) return;
+              final parts = picked.split('|');
+              if (parts.length != 2) return;
+              settings
+                ..setPref('${category}Provider', parts[0])
+                ..setPref('${category}Model', parts[1]);
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  String get _providerId {
+    final saved = app.settings.prefString('${category}Provider');
+    final known = app.registry
+        .providers(category)
+        .any((provider) => provider.id == saved);
+    return known ? saved : app.registry.defaultProvider(category);
+  }
+
+  String _modelId(String providerId) {
+    final saved = app.settings.prefString('${category}Model');
+    if (saved.isNotEmpty) return saved;
+    return app.registry.provider(providerId)?.defaultModel ?? '';
+  }
+}
 
 /// Provider + model. Both are fixed lists; the model list ends with an
 /// "Other..." entry so a brand-new model id can still be pasted in without

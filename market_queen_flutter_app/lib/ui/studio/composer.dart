@@ -8,14 +8,14 @@ import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../../models/canvas_feed.dart';
 import '../../models/studio_runner.dart';
-import '../dialogs/asset_editor.dart' show AssetKind;
-import '../dialogs/asset_picker.dart';
+import '../dialogs/asset_gallery.dart';
 import '../dialogs/confirm_generation.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
 import '../widgets/media_drop.dart';
+import 'cast_panels.dart';
 import 'composer_tabs.dart';
 
 /// The bar the whole studio is driven from.
@@ -63,31 +63,30 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   final FocusNode _focus = FocusNode();
 
-  /// The column on the right. Wide enough for "Kling 3.0 Turbo Pro" without an
+  /// The panel beside the bar. Wide enough for "Kling 3.0 Turbo Pro" without an
   /// ellipsis, which is about the longest thing that lands in it.
-  static const double _settingsWidth = 330;
+  static const double _panelWidth = 320;
 
-  /// The gutter kept for that column on *both* sides of the bar, open or not.
-  ///
-  /// This is what centres the bar. Reserving the column on the right alone --
-  /// which is what used to happen -- put the bar half a column left of the
-  /// middle of the page and left it there all session. Mirroring the reservation
-  /// costs a strip of empty background nobody was using and makes the caret land
-  /// in the centre of the screen.
-  static const double _gutter = _settingsWidth + MqTheme.gap;
+  /// What that panel costs when it stands beside the bar: itself, plus the same
+  /// again mirrored on the left so the bar's centre is the page's centre.
+  static const double _gutter = _panelWidth + MqTheme.gap;
 
   /// The bar stops widening here. Past it the send button ends up at the far
   /// edge of a 27" monitor while the caret is in the middle of the screen, and
   /// a prompt bar you have to travel to is a prompt bar you stop using.
   static const double _barMaxWidth = 1180;
 
-  /// ...and it stops narrowing here. On a small window the gutters give their
-  /// room back rather than squeezing the prompt into a slot.
-  static const double _barMinWidth = 460;
+  /// The narrowest the bar is allowed to be while a panel stands beside it.
+  ///
+  /// Below this the layout changes shape rather than shrinking: the panel comes
+  /// out of the row and sits above the bar instead. Squeezing was the wrong
+  /// answer twice over -- the prompt ended up narrower than a paragraph, and the
+  /// panel's own rows ended up as a label and an ellipsis.
+  static const double _barComfortable = 640;
 
   /// How much room the prompt gets before it has anything in it. The same on
   /// every tab, so the bar is one shape.
-  static const double _fieldMinHeight = 84;
+  static const double _fieldMinHeight = 104;
 
   ComposerTab _tab = ComposerTab.actors;
 
@@ -96,7 +95,11 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// put away again.
   final List<ComposerTab> _extras = [];
 
-  bool _settingsOpen = false;
+  /// Which of the three panels is showing, if any. They share one slot because
+  /// they answer one question -- "what exactly is about to be generated" -- and
+  /// two of them open at once would be two answers.
+  _Panel _panel = _Panel.none;
+
   bool _hovered = false;
   bool _dragging = false;
 
@@ -352,26 +355,28 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         // the model's real list, so the column has to hear about it.
         app.falSchemas,
       ]),
-      // The settings live beside the bar rather than inside it: they are read
-      // once per session and the prompt is rewritten twenty times, so they must
-      // not take room from it.
+      // The panels live beside the bar rather than inside it: they are read
+      // once and the prompt is rewritten twenty times, so they must not take
+      // room from it. Two rules hold the row together, and one changes shape:
       //
-      // Three rules hold this row together:
-      //
-      //  - the same gutter is reserved on both sides, so the bar is centred on
-      //    the page and stays centred whether the panel is open or shut;
-      //  - the panel is the third child of that one row, hung off a shared
-      //    bottom edge by [CrossAxisAlignment.end], so it grows upward instead
-      //    of leaving the bar floating with a hole underneath it;
+      //  - the panel is the third child of one row, hung off a shared bottom
+      //    edge by [CrossAxisAlignment.end], so it grows upward instead of
+      //    leaving the bar floating with a hole underneath it;
       //  - the whole row is bottom-anchored over the canvas by the page, so a
       //    tall panel takes its room from empty background rather than from the
-      //    feed. Opening it moves nothing.
+      //    feed. Opening one moves nothing;
+      //  - and when the window cannot afford a column beside a readable bar,
+      //    the panel comes out of the row and stacks above it instead. See
+      //    [_wideEnough]: the prompt keeps the whole width either way, which is
+      //    the point -- a permanently half-width prompt bar to hold room for a
+      //    panel that is shut nine tenths of the time is a bad trade.
       //
       // The tab row lives inside the bar's own column rather than above the
       // whole thing, so it stays centred on the bar.
       builder: (context, _) => LayoutBuilder(
         builder: (context, constraints) {
-          final gutter = _gutterFor(constraints.maxWidth);
+          final beside = _open && _wideEnough(constraints.maxWidth);
+          final gutter = beside ? _gutter : 0.0;
 
           return Row(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -384,6 +389,10 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        if (_open && !beside) ...[
+                          _panelBody(),
+                          const SizedBox(height: MqTheme.gap),
+                        ],
                         Center(
                           child: ComposerTabBar(
                             current: _tab,
@@ -399,19 +408,14 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              SizedBox(
-                width: gutter,
-                child: _settingsOpen
-                    ? Padding(
-                        padding: const EdgeInsets.only(left: MqTheme.gap),
-                        child: ComposerSettings(
-                          app: app,
-                          tab: _tab,
-                          onClose: () => setState(() => _settingsOpen = false),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-              ),
+              if (beside)
+                SizedBox(
+                  width: gutter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: MqTheme.gap),
+                    child: _panelBody(),
+                  ),
+                ),
             ],
           );
         },
@@ -419,12 +423,34 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     );
   }
 
-  /// The reserved column, given back to the bar on a window too narrow to
-  /// afford it.
-  double _gutterFor(double width) {
-    if (width - 2 * _gutter >= _barMinWidth) return _gutter;
-    final left = (width - _barMinWidth) / 2;
-    return left < 0 ? 0 : left;
+  bool get _open => _panel != _Panel.none;
+
+  /// Whether a column beside the bar still leaves a bar worth typing in.
+  bool _wideEnough(double width) => width - 2 * _gutter >= _barComfortable;
+
+  void _show(_Panel panel) =>
+      setState(() => _panel = _panel == panel ? _Panel.none : panel);
+
+  /// Whichever panel is open, in the slot the layout gave it.
+  Widget _panelBody() {
+    void close() => setState(() => _panel = _Panel.none);
+
+    return switch (_panel) {
+      _Panel.none => const SizedBox.shrink(),
+      _Panel.settings => ComposerSettings(app: app, tab: _tab, onClose: close),
+      _Panel.actor => CastPanel(
+        app: app,
+        kind: AssetKind.actor,
+        onClose: close,
+        onReplace: () => _cast(AssetKind.actor),
+      ),
+      _Panel.scene => CastPanel(
+        app: app,
+        kind: AssetKind.scene,
+        onClose: close,
+        onReplace: () => _cast(AssetKind.scene),
+      ),
+    };
   }
 
   /// A pill was pressed, or a mode was chosen out of "See more". Either way the
@@ -641,9 +667,11 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         ],
         MqIconButton(
           icon: 'equalizer-line',
-          tip: _settingsOpen ? tr('Hide the settings') : tr('Settings'),
+          tip: _panel == _Panel.settings
+              ? tr('Hide the settings')
+              : tr('Settings'),
           size: 32,
-          onPressed: () => setState(() => _settingsOpen = !_settingsOpen),
+          onPressed: () => _show(_Panel.settings),
         ),
         const SizedBox(width: 8),
         Container(width: 1, height: 24, color: mq.divider),
@@ -670,25 +698,43 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       final actor = project.actorIds.isEmpty
           ? null
           : app.actors.byId(project.actorIds.first);
-      final decor = app.decors.byId(project.decorId);
+      final scene = app.scenes.byId(project.sceneId);
 
       return [
+        // Empty, the chip opens the gallery. Cast, it opens that actor's own
+        // panel -- the voice and the four dials the read is shaped with -- and
+        // swapping them is a button inside it. Which way round is deliberate:
+        // once somebody is cast you tune them twenty times and replace them
+        // once.
         _CastChip(
           label: tr('Add an actor'),
           emptyIcon: 'user-add-line',
           name: actor?.name ?? '',
           portrait: actor?.thumbnail ?? '',
           clearTip: tr('Take this actor off the ad'),
-          onPressed: () => _cast(AssetKind.actor),
-          onCleared: project.clearActor,
+          lit: _panel == _Panel.actor,
+          onPressed: actor == null
+              ? () => _cast(AssetKind.actor)
+              : () => _show(_Panel.actor),
+          onCleared: () {
+            project.clearActor();
+            if (_panel == _Panel.actor) setState(() => _panel = _Panel.none);
+          },
         ),
         _CastChip(
-          label: tr('Add a décor'),
-          emptyIcon: 'image-add-line',
-          name: decor?.name ?? '',
-          clearTip: tr('Take this décor off the ad'),
-          onPressed: () => _cast(AssetKind.decor),
-          onCleared: project.clearDecor,
+          label: tr('Add a scene'),
+          emptyIcon: 'scene-line',
+          name: scene?.name ?? '',
+          portrait: scene?.thumbnail ?? '',
+          clearTip: tr('Take this scene off the ad'),
+          lit: _panel == _Panel.scene,
+          onPressed: scene == null
+              ? () => _cast(AssetKind.scene)
+              : () => _show(_Panel.scene),
+          onCleared: () {
+            project.clearScene();
+            if (_panel == _Panel.scene) setState(() => _panel = _Panel.none);
+          },
         ),
         // The product itself. An ad is usually *about* something, and the
         // frame model can only put it on screen if it has been shown it --
@@ -718,12 +764,19 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   Future<void> _cast(AssetKind kind) async {
-    final id = await showAssetPicker(context, app: app, kind: kind);
+    final id = await showAssetGallery(context, app: app, kind: kind);
     if (id == null) return;
     if (kind == AssetKind.actor) {
       app.project.setActor(id);
     } else {
-      app.project.setDecor(id);
+      app.project.setScene(id);
+    }
+    // Straight into its panel: something has just been cast, and the next
+    // question is always how it should sound or how it should look.
+    if (mounted) {
+      setState(
+        () => _panel = kind == AssetKind.actor ? _Panel.actor : _Panel.scene,
+      );
     }
   }
 }
@@ -732,13 +785,15 @@ class _SendIntent extends Intent {
   const _SendIntent();
 }
 
-/// The actor or the décor on the ad: a chip that casts one, and once one is
-/// cast, a way to take it off again.
+/// Which of the three panels the slot beside the bar is showing.
+enum _Panel { none, settings, actor, scene }
+
+/// The actor or the scene on the ad: a chip that casts one, and once one is
+/// cast, the way into its settings.
 ///
-/// The cross is a second target rather than a second meaning for the chip.
-/// Clicking the chip always opens the picker -- swapping the actor is the
-/// common act -- but until this existed, casting one was a one-way door: the
-/// picker could replace it and nothing could empty it.
+/// The cross is a second target rather than a second meaning for the chip,
+/// because casting one used to be a one-way door: the picker could replace it
+/// and nothing could empty it.
 class _CastChip extends StatelessWidget {
   const _CastChip({
     required this.label,
@@ -748,6 +803,7 @@ class _CastChip extends StatelessWidget {
     required this.onPressed,
     required this.onCleared,
     this.portrait = '',
+    this.lit = false,
   });
 
   final String label;
@@ -758,6 +814,10 @@ class _CastChip extends StatelessWidget {
   final VoidCallback onPressed;
   final VoidCallback onCleared;
 
+  /// True while this chip's panel is the one open, so the bar says which of the
+  /// two the column on the right belongs to.
+  final bool lit;
+
   @override
   Widget build(BuildContext context) {
     final chip = MqChip(
@@ -765,6 +825,8 @@ class _CastChip extends StatelessWidget {
       value: name,
       icon: name.isEmpty ? emptyIcon : '',
       portrait: portrait,
+      opensMenu: name.isNotEmpty,
+      active: lit ? true : null,
       onPressed: onPressed,
     );
 
