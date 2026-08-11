@@ -217,6 +217,15 @@ class OpenAiImageTask extends ImageTask {
         'prompt': request.prompt,
         'size': _openAiSize(request.model, request.aspectRatio),
         'n': '1',
+        // Without this the endpoint runs at `low`, which is its default and
+        // which explicitly does not preserve faces: the person comes back
+        // recognisably redrawn rather than edited. That is the whole job here
+        // -- an actor has to still be the same actor, a bottle the same bottle
+        // -- so it is worth the extra input tokens it costs.
+        //
+        // Left off gpt-image-1-mini, which is the one model in the family that
+        // rejects the field.
+        if (!request.model.contains('mini')) 'input_fidelity': 'high',
       },
       files: [
         http.MultipartFile.fromBytes(

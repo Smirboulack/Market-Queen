@@ -731,24 +731,46 @@
       "unknown": true,
       "source": "https://api.fal.ai/v1/models/pricing"
     },
+    "_comment_seedance": [
+      "The Seedance 2.x endpoints are billed by token, not by the second:",
+      "tokens = height * width * seconds * 24 / 1024, then the rate below per",
+      "1000 of them. That makes the per-second figure a function of resolution,",
+      "so these are the 720p 9:16 numbers -- 21,600 tokens a second -- and they",
+      "are marked approx because 480p is roughly half.",
+      "",
+      "They were 'unknown' before, which meant the confirmation modal said",
+      "'price unknown' on the single most expensive thing the app can buy: a",
+      "30s 720p clip on Seedance 2.5 is $13.87, and nobody should meet that",
+      "figure for the first time on their fal invoice."
+    ],
     "bytedance/seedance-2.5/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "bytedance/seedance-2.0/fast/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "unit": "second",
+      "amount": 0.4622,
+      "approx": true,
+      "source": "https://fal.ai/models/bytedance/seedance-2.5/image-to-video"
     },
     "bytedance/seedance-2.5/reference-to-video": {
-      "unknown": true,
+      "unit": "second",
+      "amount": 0.4622,
+      "approx": true,
       "source": "https://fal.ai/models/bytedance/seedance-2.5/reference-to-video"
     },
     "bytedance/seedance-2.0/reference-to-video": {
-      "unknown": true,
+      "unit": "second",
+      "amount": 0.3024,
+      "approx": true,
       "source": "https://fal.ai/models/bytedance/seedance-2.0/reference-to-video"
     },
+    "bytedance/seedance-2.0/fast/image-to-video": {
+      "unit": "second",
+      "amount": 0.2419,
+      "approx": true,
+      "source": "https://fal.ai/models/bytedance/seedance-2.0/fast/image-to-video"
+    },
     "bytedance/seedance-2.0/fast/reference-to-video": {
-      "unknown": true,
+      "unit": "second",
+      "amount": 0.2419,
+      "approx": true,
       "source": "https://fal.ai/models/bytedance/seedance-2.0/fast/reference-to-video"
     }
   }
