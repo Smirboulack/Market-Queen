@@ -938,7 +938,9 @@ Endpoints de listing officiellement documentés :
 - Luma `getcredits`
 - BFL `get-the-users-credits`
 
-**Aucun** fournisseur vidéo n'expose de catalogue de modèles interrogeable avec capacités et prix. Le catalogue JSON reste donc la source de vérité, avec un enrichissement opportuniste par ces endpoints là où ils existent (utile surtout pour valider une clé et afficher le solde).
+**Aucun** fournisseur vidéo n'expose de catalogue de modèles interrogeable avec capacités et prix. Le catalogue reste donc la source de vérité, avec un enrichissement opportuniste par ces endpoints là où ils existent (utile surtout pour valider une clé et afficher le solde).
+
+> **Implémenté le 11 août 2026** — `lib/providers/capabilities.dart`. Les capacités sont déclarées en Dart (`ModelCapabilities.declared`) plutôt qu'en JSON : elles sont typées, vérifiées à la compilation, et un test échoue si un modèle vidéo du registre n'en a pas. Chaque entrée porte durées, résolutions, ratios, commutateur audio et plafonds de références, d'après les sources de la section 3. `lib/providers/model_schemas.dart` arbitre entre cette table et la lecture dynamique du schéma fal, qui ne sert plus qu'aux deux endpoints Kling.
 
 ## 9.7 Ordre de migration proposé
 

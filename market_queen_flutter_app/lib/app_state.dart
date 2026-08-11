@@ -16,7 +16,7 @@ import 'models/studio_runner.dart';
 import 'models/voice_booth.dart';
 import 'models/workspace.dart';
 import 'pipeline/pipeline.dart';
-import 'providers/fal_schema.dart';
+import 'providers/model_schemas.dart';
 import 'providers/registry.dart';
 import 'providers/types.dart';
 import 'providers/voice_casting.dart';
@@ -34,7 +34,7 @@ class AppState {
     // One caster for the whole app: the booth and the pipeline have to agree on
     // who is reading the ad, and they agree by sharing the record of it.
     voiceCasting = VoiceCasting(settings);
-    pipeline = Pipeline(settings, registry, pricing, log, voiceCasting, falSchemas);
+    pipeline = Pipeline(settings, registry, pricing, log, voiceCasting, modelSchemas);
     project = AdProject(settings, registry);
     casting = Casting();
     actors = ActorLibrary();
@@ -63,7 +63,7 @@ class AppState {
     // outlives any one ad: a batch sent just before you step back to the
     // project list still has somewhere to land.
     runner = StudioRunner(settings, registry, pricing, log, voiceCasting,
-        falSchemas, project.feed);
+        modelSchemas, project.feed);
   }
 
   /// Builds everything and loads the data files the models need before the
@@ -113,7 +113,7 @@ class AppState {
 
   /// What each fal model actually accepts, read from the model's own schema.
   /// Built first, because both the pipeline and the runner take it.
-  final FalSchemas falSchemas = FalSchemas();
+  final ModelSchemas modelSchemas = ModelSchemas();
 
   /// How a person or a place is asked for -- the prompt scaffold, not a run.
   late final Casting casting;

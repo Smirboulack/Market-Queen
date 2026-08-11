@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:market_queen/core/pricing.dart';
+import 'package:market_queen/providers/capabilities.dart';
+import 'package:market_queen/providers/model_schemas.dart';
 import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/providers/types.dart';
 
@@ -94,6 +96,114 @@ void main() {
               'task for it, so picking it fails at run time',
         );
       }
+    });
+  });
+
+  group('capabilities', () {
+    final schemas = ModelSchemas();
+
+    test('every video model states what it accepts', () {
+      // The regression this exists for: the lengths and the resolutions used to
+      // be read off fal's schema for every model, and when video moved to the
+      // direct APIs that reader stopped answering. Nothing broke loudly -- the
+      // settings column quietly fell back to "5 s or 10 s, no quality row", so
+      // a model that can shoot thirty seconds at 1080p was being sold five at
+      // whatever it defaulted to.
+      for (final provider in registry.providers('video')) {
+        for (final model in provider.models) {
+          if (Registry.isAuto(model.id)) continue;
+
+          // fal is the exception on purpose: its catalogue moves between our
+          // releases, so those two are read at run time instead.
+          if (ModelSchemas.fetches(provider.id)) continue;
+
+          final caps = schemas.capabilities(provider.id, model.id);
+          expect(
+            caps.known,
+            isTrue,
+            reason: '${model.id} is offered but declares no capabilities, so '
+                'the composer cannot offer its lengths or its quality',
+          );
+          expect(caps.durationChoices, isNotEmpty, reason: model.id);
+          expect(caps.modes, isNotEmpty, reason: model.id);
+        }
+      }
+    });
+
+    test('a model is offered its own ceiling, not a house default', () {
+      final seedance = schemas.capabilities(
+        'bytedance-video',
+        'dreamina-seedance-2-5-260628',
+      );
+
+      // Thirty seconds is the whole reason to reach for this one.
+      expect(seedance.durationChoices.last, '30');
+      expect(seedance.durationFor(30), '30');
+      expect(seedance.resolutions, contains('720p'));
+
+      // Hailuo takes 6 or 10 and nothing between, so 8 has to resolve rather
+      // than being sent as-is and rejected.
+      final hailuo = schemas.capabilities('minimax-video', 'MiniMax-Hailuo-2.3');
+      expect(hailuo.durationChoices, ['6', '10']);
+      expect(hailuo.durationFor(8), '10');
+      expect(hailuo.durationFor(5), '6');
+
+      // Luma spells the unit, and the token has to survive the round trip.
+      final luma = schemas.capabilities('luma-video', 'ray-2');
+      expect(luma.durationFor(9), '9s');
+    });
+
+    test('the mode follows what was dropped in, not which model was picked', () {
+      final seedance = schemas.capabilities(
+        'bytedance-video',
+        'dreamina-seedance-2-5-260628',
+      );
+
+      // Nothing attached is a prompt; one still is an opening frame; anything
+      // more is reference material. Same model, same endpoint, three requests.
+      expect(seedance.modeFor(), VideoMode.textToVideo);
+      expect(seedance.modeFor(images: 1), VideoMode.imageToVideo);
+      expect(seedance.modeFor(images: 4), VideoMode.referenceToVideo);
+      expect(seedance.modeFor(images: 1, videos: 1), VideoMode.referenceToVideo);
+
+      // A model with no reference mode never gets handed one, however much is
+      // attached: it falls back to animating the first still.
+      final hailuo = schemas.capabilities('minimax-video', 'MiniMax-Hailuo-2.3');
+      expect(hailuo.modeFor(images: 4), VideoMode.imageToVideo);
+      expect(hailuo.modeFor(), VideoMode.textToVideo);
+
+      // And one that only animates stills says so rather than claiming it can
+      // shoot from a prompt.
+      const stillsOnly = ModelCapabilities(
+        modes: {VideoMode.imageToVideo},
+        imageField: 'image_url',
+        known: true,
+      );
+      expect(stillsOnly.modeFor(), VideoMode.imageToVideo);
+    });
+
+    test('the shaped request carries the choice, in the model\'s spelling', () {
+      final seedance = schemas.capabilities(
+        'bytedance-video',
+        'dreamina-seedance-2-5-260628',
+      );
+
+      final shaped = seedance.videoInput(
+        seconds: 30,
+        resolution: '480p',
+        audio: true,
+        aspectRatio: '9:16',
+      );
+
+      expect(shaped.input['duration'], 30);
+      expect(shaped.input['resolution'], '480p');
+      expect(shaped.input['generate_audio'], isTrue);
+      expect(shaped.input['aspect_ratio'], '9:16');
+
+      // A resolution this model has never heard of is dropped rather than sent:
+      // these APIs reject a value outside their enum.
+      final bogus = seedance.videoInput(seconds: 5, resolution: '8k');
+      expect(bogus.input.containsKey('resolution'), isFalse);
     });
   });
 

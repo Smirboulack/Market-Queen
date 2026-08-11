@@ -13,7 +13,8 @@ import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../../models/canvas_feed.dart';
 import '../../models/studio_runner.dart';
-import '../../providers/fal_schema.dart';
+import '../../providers/capabilities.dart';
+import '../../providers/model_schemas.dart';
 import '../dialogs/asset_gallery.dart';
 import '../dialogs/confirm_generation.dart';
 import '../icons.dart';
@@ -271,13 +272,25 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     final kinds = _spec.referenceKinds;
 
     if (_tab == ComposerTab.video) {
-      final capabilities = app.falSchemas.capabilities(
+      final providerId = app.runner.providerFor('video');
+      final capabilities = app.modelSchemas.capabilities(
+        providerId,
         app.runner.modelFor('video', _seconds),
       );
-      if (capabilities.takesReferences) return capabilities.referenceLimits;
 
-      // A model whose schema has been read and declares no lists: one opening
-      // frame, which is exactly what the runner sends it.
+      if (capabilities.takesReferences) {
+        final limits = capabilities.referenceLimits;
+        // A directly-called provider has nowhere to host a clip, so the runner
+        // will refuse one. Saying so with the counter is better than accepting
+        // the drop and rejecting it at send.
+        return ModelSchemas.fetches(providerId)
+            ? limits
+            : (images: limits.images, videos: 0, audios: 0);
+      }
+
+      // A model that declares no lists: one opening frame, which is exactly
+      // what the runner sends it. A model that also shoots from the prompt
+      // still only has room for the one.
       if (capabilities.known) return (images: 1, videos: 0, audios: 0);
 
       // Nothing read yet -- a fetch still in flight, no network, or a provider
@@ -286,9 +299,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       // trims what a model will not take anyway, and the counters correct
       // themselves the moment the schema lands.
       return (
-        images: FalCapabilities.platformMaxImages,
-        videos: FalCapabilities.platformMaxVideos,
-        audios: FalCapabilities.platformMaxAudios,
+        images: ModelCapabilities.platformMaxImages,
+        videos: ModelCapabilities.platformMaxVideos,
+        audios: ModelCapabilities.platformMaxAudios,
       );
     }
 
@@ -616,7 +629,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         app.settings,
         // A model schema arriving turns the Length menu from two guesses into
         // the model's real list, so the column has to hear about it.
-        app.falSchemas,
+        app.modelSchemas,
       ]),
       // The panels live beside the bar rather than inside it: they are read
       // once and the prompt is rewritten twenty times, so they must not take
@@ -1382,9 +1395,9 @@ class _CounterLine extends StatelessWidget {
 
   static String _sizeLimit(MediaKind kind) {
     final bytes = switch (kind) {
-      MediaKind.image => FalCapabilities.maxImageBytes,
-      MediaKind.video => FalCapabilities.maxVideoBytes,
-      MediaKind.audio => FalCapabilities.maxAudioBytes,
+      MediaKind.image => ModelCapabilities.maxImageBytes,
+      MediaKind.video => ModelCapabilities.maxVideoBytes,
+      MediaKind.audio => ModelCapabilities.maxAudioBytes,
     };
     return '${bytes ~/ (1024 * 1024)} MB';
   }

@@ -125,32 +125,32 @@ void main() {
     expect(find.text(tr('Free tier')), findsWidgets);
   });
 
-  testWidgets('every shelf is drawn, with the keys it needs on it', (
+  testWidgets('each tab shows its own shelf, and only that one', (
     tester,
   ) async {
     await pump(tester, ModelsPage(app: app));
     expect(tester.takeException(), isNull);
 
-    // The five shelves, and inside each one the providers that fill it. A
-    // panel that renders its title but none of its providers is the failure
-    // this catches -- it looks configured and offers nothing.
+    // Every shelf is reachable: the tab row is always drawn in full, whichever
+    // one is open.
     for (final panel in Registry.panels) {
-      expect(find.text(tr(panel.title)), findsOneWidget);
+      expect(find.text(tr(panel.title)), findsWidgets);
       expect(app.registry.providersForPanel(panel.id), isNotEmpty);
     }
 
-    // One key field per shelf that needs it, which means OpenAI is drawn four
-    // times on purpose -- it unlocks the writer, the stills, Sora and the
-    // voice-over, and each panel has to be usable without leaving it.
-    final expected = [
-      for (final panel in Registry.panels)
-        ...app.registry.credentialsForPanel(panel.id),
-    ].length;
+    // The point of the tabs: one shelf's keys on screen, not seventeen. The
+    // count is per shelf and not the sum, and the same key is drawn again on
+    // the next shelf that needs it -- OpenAI is on four of the five.
+    for (final panel in Registry.panels) {
+      await tester.tap(find.text(tr(panel.title)).first);
+      await tester.pump();
 
-    expect(find.byType(KeyField), findsNWidgets(expected));
-    expect(
-      app.registry.credentialsForPanel('llm'),
-      contains(isA<CredentialEntry>().having((c) => c.id, 'id', 'openai')),
-    );
+      expect(
+        find.byType(KeyField),
+        findsNWidgets(app.registry.credentialsForPanel(panel.id).length),
+        reason: 'panel ${panel.id}',
+      );
+      expect(tester.takeException(), isNull);
+    }
   });
 }

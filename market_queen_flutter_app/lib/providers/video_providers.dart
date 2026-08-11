@@ -54,6 +54,52 @@ abstract class VideoTask extends HttpTask {
 
   final VideoRequest request;
 
+  // ---- What the composer chose -------------------------------------------
+  //
+  // `extraInput` is what the model's own capabilities shaped out of the
+  // settings column: the duration in the spelling this model uses, the
+  // resolution it named, its audio switch under whichever name it goes by.
+  // Reading it here rather than hardcoding a length is the difference between
+  // Seedance running the thirty seconds it can do and running the five the
+  // studio used to assume.
+  //
+  // Every fallback is the value the request already carried, so a task whose
+  // model declared nothing behaves exactly as it did.
+
+  int get seconds {
+    final shaped = request.extraInput['duration'];
+    if (shaped is num) return shaped.toInt();
+    if (shaped is String) {
+      final digits = RegExp(r'\d+').firstMatch(shaped);
+      if (digits != null) return int.parse(digits.group(0)!);
+    }
+    return request.durationSeconds;
+  }
+
+  /// The duration exactly as the model spells it -- "8s" and 8 are not
+  /// interchangeable, and neither is "auto".
+  Object? get durationToken => request.extraInput['duration'];
+
+  String resolution(String fallback) {
+    final shaped = '${request.extraInput['resolution'] ?? ''}';
+    return shaped.isEmpty ? fallback : shaped;
+  }
+
+  /// The audio switch, under the name this model gave it.
+  bool audio(String field, {bool fallback = false}) {
+    final value = request.extraInput[field];
+    return value is bool ? value : fallback;
+  }
+
+  String get aspectRatio {
+    final shaped = '${request.extraInput['aspect_ratio'] ?? ''}';
+    if (shaped.isNotEmpty) return shaped;
+    return request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio;
+  }
+
+  bool get hasOpeningFrame => request.imageDataUri.isNotEmpty;
+  bool get hasReferences => !request.references.isEmpty;
+
   Future<Map<String, Object?>> deliverFromUrl(String url) async {
     if (url.isEmpty) throw ProviderException(tr('The provider returned no video.'));
 
@@ -142,25 +188,26 @@ class LtxVideoTask extends VideoTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'LTX');
-    if (request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
+
+    // Two endpoints, one model. Which one is decided by whether there is a
+    // still to start from, not by anything the user had to pick.
+    final endpoint = hasOpeningFrame ? 'image-to-video' : 'text-to-video';
 
     final headers = {'Authorization': 'Bearer ${request.apiKey}'};
     report(tr('Sending the shot to %1...').arg(request.model));
 
     final queued = await postJson(
-      Uri.parse('$_base/image-to-video'),
+      Uri.parse('$_base/$endpoint'),
       {
         'model': request.model,
-        'image_uri': request.imageDataUri,
+        if (hasOpeningFrame) 'image_uri': request.imageDataUri,
         'prompt': request.prompt,
-        'duration': request.durationSeconds,
-        // 720p is where the three-cents-a-second price lives; anything higher
-        // doubles the bill for a frame nobody is going to inspect at that size
-        // in a vertical ad.
-        'resolution': '720p',
-        'generate_audio': false,
+        'duration': seconds,
+        // 720p is where the three-cents-a-second price lives, and it is the
+        // default the settings column starts from -- but whatever it was set
+        // to is what goes.
+        'resolution': resolution('720p'),
+        'generate_audio': audio('generate_audio'),
       },
       headers: headers,
     );
@@ -171,7 +218,7 @@ class LtxVideoTask extends VideoTask {
     }
 
     final finished = await pollUntil(
-      Uri.parse('$_base/image-to-video/$jobId'),
+      Uri.parse('$_base/$endpoint/$jobId'),
       headers,
       (status) {
         final state = '${status['status'] ?? ''}';
@@ -211,21 +258,22 @@ class SeedanceVideoTask extends VideoTask {
     requireKey(request.apiKey, 'BytePlus');
 
     final references = request.references;
-    if (references.isEmpty && request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
 
     final headers = {'Authorization': 'Bearer ${request.apiKey}'};
     final content = <Map<String, Object?>>[
       {'type': 'text', 'text': request.prompt},
     ];
 
+    // Three shapes, one endpoint and one model id. With nothing attached the
+    // text item is the whole request and Seedance shoots from the prompt.
     if (references.isEmpty) {
-      content.add({
-        'type': 'image_url',
-        'image_url': {'url': request.imageDataUri},
-        'role': 'first_frame',
-      });
+      if (hasOpeningFrame) {
+        content.add({
+          'type': 'image_url',
+          'image_url': {'url': request.imageDataUri},
+          'role': 'first_frame',
+        });
+      }
     } else {
       // Every piece of material is one entry, in the order the prompt names
       // them: @Image1 is the first image, @Video1 the first clip.
@@ -259,10 +307,10 @@ class SeedanceVideoTask extends VideoTask {
       {
         'model': request.model,
         'content': content,
-        'resolution': '720p',
-        'ratio': request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
-        'duration': request.durationSeconds,
-        'generate_audio': false,
+        'resolution': resolution('720p'),
+        'ratio': aspectRatio,
+        'duration': seconds,
+        'generate_audio': audio('generate_audio'),
         'watermark': false,
       },
       headers: headers,
@@ -310,32 +358,43 @@ class VeoVideoTask extends VideoTask {
 
   static const _base = 'https://generativelanguage.googleapis.com/v1beta';
 
-  /// 4, 6 or 8 seconds -- nothing in between, and 8 is forced above 720p.
+  /// 4, 6 or 8 seconds -- nothing in between.
   int get _seconds {
-    if (request.durationSeconds <= 4) return 4;
-    if (request.durationSeconds <= 6) return 6;
+    if (seconds <= 4) return 4;
+    if (seconds <= 6) return 6;
     return 8;
   }
 
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'Google Gemini');
-    if (request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
 
     final headers = {'x-goog-api-key': request.apiKey};
 
-    var mimeType = '';
-    final bytes = Http.dataUriPayload(
-      request.imageDataUri,
-      mimeType: (value) => mimeType = value,
-    );
-    if (bytes.isEmpty) {
-      throw ProviderException(tr('Could not read the opening frame.'));
+    // Optional: with no still, Veo shoots from the prompt.
+    Map<String, Object?>? image;
+    if (hasOpeningFrame) {
+      var mimeType = '';
+      final bytes = Http.dataUriPayload(
+        request.imageDataUri,
+        mimeType: (value) => mimeType = value,
+      );
+      if (bytes.isEmpty) {
+        throw ProviderException(tr('Could not read the opening frame.'));
+      }
+      image = {
+        'bytesBase64Encoded': base64Encode(bytes),
+        'mimeType': mimeType,
+      };
     }
 
     report(tr('Sending the shot to %1...').arg(request.model));
+
+    // 1080p and 4K are eight seconds only, so a shorter length asked for at
+    // one of those has to give: the resolution is what was picked deliberately
+    // and the length is what the shot planner suggested, so the length yields.
+    final wanted = resolution('720p');
+    final duration = wanted == '720p' ? _seconds : 8;
 
     final started = await postJson(
       Uri.parse('$_base/models/${request.model}:predictLongRunning'),
@@ -343,16 +402,13 @@ class VeoVideoTask extends VideoTask {
         'instances': [
           {
             'prompt': request.prompt,
-            'image': {
-              'bytesBase64Encoded': base64Encode(bytes),
-              'mimeType': mimeType,
-            },
+            'image': ?image,
           },
         ],
         'parameters': {
-          'aspectRatio': request.aspectRatio == '16:9' ? '16:9' : '9:16',
-          'resolution': '720p',
-          'durationSeconds': _seconds,
+          'aspectRatio': aspectRatio == '16:9' ? '16:9' : '9:16',
+          'resolution': wanted,
+          'durationSeconds': duration,
         },
       },
       headers: headers,
@@ -416,11 +472,6 @@ class MiniMaxVideoTask extends VideoTask {
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'MiniMax');
 
-    final references = request.references;
-    if (references.isEmpty && request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
-
     final headers = {'Authorization': 'Bearer ${request.apiKey}'};
     report(tr('Sending the shot to %1...').arg(request.model));
 
@@ -463,11 +514,13 @@ class MiniMaxVideoTask extends VideoTask {
     ];
 
     if (references.isEmpty) {
-      content.add({
-        'type': 'image_url',
-        'image_url': request.imageDataUri,
-        'role': 'first_frame',
-      });
+      if (hasOpeningFrame) {
+        content.add({
+          'type': 'image_url',
+          'image_url': request.imageDataUri,
+          'role': 'first_frame',
+        });
+      }
     } else {
       for (final url in references.images) {
         content.add({'type': 'image_url', 'image_url': url});
@@ -493,9 +546,9 @@ class MiniMaxVideoTask extends VideoTask {
       {
         'model': request.model,
         'content': content,
-        'resolution': '768P',
-        'duration': request.durationSeconds.clamp(4, 15),
-        'ratio': request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+        'resolution': resolution('768P'),
+        'duration': seconds.clamp(4, 15),
+        'ratio': aspectRatio,
       },
       headers: headers,
     );
@@ -513,10 +566,12 @@ class MiniMaxVideoTask extends VideoTask {
       {
         'model': request.model,
         'prompt': request.prompt,
-        'first_frame_image': request.imageDataUri,
+        // Optional: without it Hailuo shoots from the prompt. Sending the key
+        // with an empty value is not the same request and is rejected.
+        if (hasOpeningFrame) 'first_frame_image': request.imageDataUri,
         // 6 or 10 -- the Hailuo models take nothing else.
-        'duration': request.durationSeconds > 7 ? 10 : 6,
-        'resolution': '768P',
+        'duration': seconds > 7 ? 10 : 6,
+        'resolution': resolution('768P'),
       },
       headers: headers,
     );
@@ -542,9 +597,6 @@ class XaiVideoTask extends VideoTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'xAI');
-    if (request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
 
     final headers = {'Authorization': 'Bearer ${request.apiKey}'};
     report(tr('Sending the shot to %1...').arg(request.model));
@@ -554,8 +606,10 @@ class XaiVideoTask extends VideoTask {
       {
         'model': request.model,
         'prompt': request.prompt,
-        'image_url': request.imageDataUri,
-        'duration': request.durationSeconds,
+        // One endpoint either way: with a still it animates it, without one it
+        // shoots from the prompt.
+        if (hasOpeningFrame) 'image_url': request.imageDataUri,
+        'duration': seconds,
       },
       headers: headers,
     );
@@ -601,26 +655,30 @@ class LumaVideoTask extends VideoTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'Luma');
-    if (request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
 
     final headers = {'Authorization': 'Bearer ${request.apiKey}'};
     report(tr('Sending the shot to %1...').arg(request.model));
+
+    // Luma spells its lengths with the unit, so the token from the model's own
+    // list goes through as it stands rather than being rebuilt from a number.
+    final length = durationToken is String && '$durationToken'.endsWith('s')
+        ? '$durationToken'
+        : (seconds > 7 ? '9s' : '5s');
 
     final created = await postJson(
       Uri.parse('$_base/generations/video'),
       {
         'model': request.model,
         'prompt': request.prompt,
-        'keyframes': {
-          'frame0': {'type': 'image', 'url': request.imageDataUri},
-        },
-        'resolution': '720p',
-        // "5s" or "9s" -- Luma takes the unit, not a bare number.
-        'duration': request.durationSeconds > 7 ? '9s' : '5s',
-        'aspect_ratio':
-            request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+        // No keyframe at all is a text-to-video request; an empty one would be
+        // a malformed image-to-video request.
+        if (hasOpeningFrame)
+          'keyframes': {
+            'frame0': {'type': 'image', 'url': request.imageDataUri},
+          },
+        'resolution': resolution('720p'),
+        'duration': length,
+        'aspect_ratio': aspectRatio,
       },
       headers: headers,
     );
@@ -702,18 +760,33 @@ class SoraVideoTask extends VideoTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'OpenAI');
-    if (request.imageDataUri.isEmpty) {
-      throw ProviderException(tr('No opening frame to animate.'));
-    }
 
-    final size = _soraSize(request.aspectRatio);
-    final frame = _fitToSize(
-      Http.dataUriPayload(request.imageDataUri),
-      size.width,
-      size.height,
-    );
-    if (frame.isEmpty) {
-      throw ProviderException(tr('Could not prepare the opening frame for Sora.'));
+    final size = _soraSize(aspectRatio);
+
+    // The opening frame is optional: without one Sora shoots from the prompt.
+    // With one it has to match the chosen size exactly, which is why it is
+    // resized here rather than being sent as it came off the canvas.
+    final files = <http.MultipartFile>[];
+    if (hasOpeningFrame) {
+      final frame = _fitToSize(
+        Http.dataUriPayload(request.imageDataUri),
+        size.width,
+        size.height,
+      );
+      if (frame.isEmpty) {
+        throw ProviderException(
+            tr('Could not prepare the opening frame for Sora.'));
+      }
+      files.add(
+        http.MultipartFile.fromBytes(
+          'input_reference',
+          frame,
+          filename: 'frame.png',
+          // _fitToSize re-encodes to PNG; saying so is what keeps the part from
+          // going up as an unnamed binary blob.
+          contentType: Http.mediaType('image/png'),
+        ),
+      );
     }
 
     report(tr('Sending the shot to Sora (%1)...').arg(request.model));
@@ -724,19 +797,10 @@ class SoraVideoTask extends VideoTask {
       fields: {
         'model': request.model,
         'prompt': request.prompt,
-        'seconds': _soraSeconds(request.durationSeconds),
+        'seconds': _soraSeconds(seconds),
         'size': '${size.width}x${size.height}',
       },
-      files: [
-        http.MultipartFile.fromBytes(
-          'input_reference',
-          frame,
-          filename: 'frame.png',
-          // _fitToSize re-encodes to PNG; saying so is what keeps the part from
-          // going up as an unnamed binary blob.
-          contentType: Http.mediaType('image/png'),
-        ),
-      ],
+      files: files,
     );
 
     Object? decoded;

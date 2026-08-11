@@ -53,6 +53,9 @@ class Format {
     return switch (price.unit) {
       //: Price per second of generated video
       'second' => tr('%1/s').arg(value),
+      //: Price per generated clip, for the models that charge a flat fee per
+      //: generation rather than by the second
+      'video' => tr('%1/clip').arg(value),
       //: Price per generated image
       'image' => tr('%1/image').arg(value),
       //: Price per 1000 characters of speech

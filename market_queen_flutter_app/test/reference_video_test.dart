@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:market_queen/providers/fal_schema.dart';
+import 'package:market_queen/providers/capabilities.dart';
+import 'package:market_queen/providers/model_schemas.dart';
 import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/providers/types.dart';
 
@@ -71,7 +72,7 @@ String get _firstFrameSchema => jsonEncode({
 void main() {
   group('schema', () {
     test('a reference endpoint is read as lists, not as a first frame', () {
-      final caps = FalSchemas.parseSchema(_referenceSchema)!;
+      final caps = ModelSchemas.parseSchema(_referenceSchema)!;
 
       expect(caps.takesReferences, isTrue);
       expect(caps.imagesField, 'image_urls');
@@ -89,7 +90,7 @@ void main() {
     });
 
     test('an image-to-video endpoint takes no references', () {
-      final caps = FalSchemas.parseSchema(_firstFrameSchema)!;
+      final caps = ModelSchemas.parseSchema(_firstFrameSchema)!;
 
       expect(caps.takesReferences, isFalse);
       expect(caps.imageField, 'start_image_url');
@@ -99,8 +100,8 @@ void main() {
       // A cache written before the plural fields existed carries no version and
       // must not be trusted, or a reference model reads as an ordinary one for
       // a fortnight.
-      final fresh = FalSchemas.parseSchema(_referenceSchema)!.toJson();
-      expect(fresh['v'], FalCapabilities.cacheVersion);
+      final fresh = ModelSchemas.parseSchema(_referenceSchema)!.toJson();
+      expect(fresh['v'], ModelCapabilities.cacheVersion);
       expect(fresh['videosField'], 'video_urls');
     });
   });

@@ -7,140 +7,470 @@ import 'format.dart';
 import 'icons.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
-import 'widgets/cards.dart';
 import 'widgets/key_field.dart';
 
-/// Where the app is configured: five panels, one per kind of generation.
+/// Where the app is configured: five tabs, one per kind of generation.
 ///
-/// This used to be two screens that never referred to each other -- a wall of
-/// API key fields in Settings, and a wall of model names here -- and nothing on
-/// either said which key unlocked which model. That is not knowable by looking:
-/// one OpenAI key covers the writer, the stills, Sora and the voice-over, while
-/// LTX's covers a single row of one panel.
+/// The shape is doing three jobs that used to be spread across two screens and
+/// a scroll of about four thousand pixels.
 ///
-/// So a panel is now the whole answer for one kind of generation: the providers
-/// that do it, the key each one needs, and which of its models the composer may
-/// offer. Providers are filtered by what they actually do, so nobody scrolls
-/// past a video house looking for somewhere to write a script.
+/// **Tabs, not sections.** Seventeen providers stacked on one page is not a
+/// page anybody reads; it is a page people give up on. Only one shelf is on
+/// screen at a time, and the row of tabs is both the map and the way around.
+///
+/// **One card per account, not per catalogue entry.** The registry splits
+/// providers by what the pipeline asks for, so Bria is two entries -- pictures
+/// and enlarging -- and Ideogram is another two. Drawn straight, the Images tab
+/// listed "Bria" twice with a key field under each, which is one account and
+/// therefore one key. Cards are grouped by credential and the entries inside
+/// become labelled rows.
+///
+/// **The key sits with what it unlocks.** Nothing on a page of key fields ever
+/// said which models a key switched on, and it is not guessable: one OpenAI key
+/// covers the writer, the stills, Sora and the voice-over, while LTX's covers a
+/// single row of one tab. Here the key is a line inside the card whose models
+/// it pays for, and once it is filled in it collapses to that one line.
 ///
 /// Everything is on by default, and a model added in a future release arrives
 /// switched on, because the stored setting is the *hidden* set.
-class ModelsPage extends StatelessWidget {
+class ModelsPage extends StatefulWidget {
   const ModelsPage({super.key, required this.app});
 
   final AppState app;
+
+  @override
+  State<ModelsPage> createState() => _ModelsPageState();
+}
+
+class _ModelsPageState extends State<ModelsPage> {
+  String _panelId = Registry.panels.first.id;
+
+  PanelEntry get _panel => Registry.panels.firstWhere(
+        (panel) => panel.id == _panelId,
+        orElse: () => Registry.panels.first,
+      );
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
       // Providers come and go with the keys that unlock them, and every tick
       // rewrites the stored set.
-      listenable: Listenable.merge([app.settings, app.registry]),
-      builder: (context, _) => SingleChildScrollView(
-        padding: const EdgeInsets.all(MqTheme.pagePadding),
-        child: Column(
+      listenable: Listenable.merge([widget.app.settings, widget.app.registry]),
+      builder: (context, _) {
+        final panel = _panel;
+        final cards = _cardsFor(panel);
+
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PageHeader(
-              title: tr('Models'),
-              subtitle: tr(
-                'Pick a provider, paste its key, tick what you want from it. '
-                'Keys are encrypted on this machine and sent only to the '
-                'provider they belong to.',
+            // The header and the tabs do not scroll. Losing the row of tabs off
+            // the top of a long shelf is what makes a tabbed page feel like the
+            // stack of sections it replaced.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                MqTheme.pagePadding,
+                MqTheme.pagePadding,
+                MqTheme.pagePadding,
+                0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr('Models'),
+                    style: TextStyle(
+                      color: context.mq.textPrimary,
+                      fontSize: MqTheme.fontHeading,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: MqTheme.trackHeading,
+                      height: MqTheme.lineTight,
+                    ),
+                  ),
+                  const SizedBox(height: MqTheme.gap + 2),
+                  _Tabs(
+                    app: widget.app,
+                    current: _panelId,
+                    onPicked: (id) => setState(() => _panelId = id),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: MqTheme.gapLarge),
-            for (final panel in Registry.panels) ...[
-              _Panel(app: app, panel: panel),
-              const SizedBox(height: MqTheme.gapLarge),
-            ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  MqTheme.pagePadding,
+                  MqTheme.gapLarge,
+                  MqTheme.pagePadding,
+                  MqTheme.pagePadding,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr(panel.subtitle),
+                      style: TextStyle(
+                        color: context.mq.textSecondary,
+                        fontSize: MqTheme.fontBody,
+                      ),
+                    ),
+                    const SizedBox(height: MqTheme.gapLarge),
+                    for (final card in cards) ...[
+                      _AccountCard(app: widget.app, card: card),
+                      const SizedBox(height: MqTheme.gap),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
+        );
+      },
     );
+  }
+
+  /// One card per account on this shelf, in the order the registry lists their
+  /// providers, each carrying every catalogue entry that account pays for here.
+  List<_Card> _cardsFor(PanelEntry panel) {
+    final registry = widget.app.registry;
+    final byCredential = <String, List<ProviderEntry>>{};
+    final order = <String>[];
+
+    for (final provider in registry.providersForPanel(panel.id)) {
+      final key = provider.credential;
+      if (!byCredential.containsKey(key)) {
+        byCredential[key] = [];
+        order.add(key);
+      }
+      byCredential[key]!.add(provider);
+    }
+
+    final credentials = {
+      for (final credential in registry.credentials()) credential.id: credential,
+    };
+
+    return [
+      for (final id in order)
+        _Card(credential: credentials[id], providers: byCredential[id]!),
+    ];
   }
 }
 
-class _Panel extends StatelessWidget {
-  const _Panel({required this.app, required this.panel});
+/// One account and everything it pays for on this shelf.
+class _Card {
+  const _Card({required this.credential, required this.providers});
 
-  final AppState app;
-  final PanelEntry panel;
+  final CredentialEntry? credential;
+  final List<ProviderEntry> providers;
 
-  @override
-  Widget build(BuildContext context) {
-    final providers = app.registry.providersForPanel(panel.id);
-    if (providers.isEmpty) return const SizedBox.shrink();
+  /// The account's own name where there is one. A provider with no credential
+  /// -- there are none today -- falls back to its own label.
+  String get label => credential?.label ?? providers.first.label;
 
-    final credentials = app.registry.credentialsForPanel(panel.id);
-
-    return SectionCard(
-      title: tr(panel.title),
-      subtitle: tr(panel.subtitle),
-      children: [
-        // Keys first, models second: a panel reads top to bottom as the order
-        // the work is done in. A key that also unlocks another panel is drawn
-        // in both, editing the one stored value.
-        for (final credential in credentials)
-          KeyField(app: app, credential: credential),
-        if (credentials.isNotEmpty) const SizedBox(height: 2),
+  /// Every model on the card that is actually a model.
+  ///
+  /// "Auto" is excluded throughout this page: it cannot be switched off, so a
+  /// checkbox beside it is a control that does nothing, and counting it made
+  /// four models read as "5 of 5". It is an instruction to the composer -- use
+  /// the best of whatever is left on -- and the composer is where it belongs.
+  List<String> get modelIds => [
         for (final provider in providers)
-          _ProviderBlock(app: app, provider: provider),
-      ],
-    );
-  }
+          for (final model in provider.models)
+            if (!Registry.isAuto(model.id)) model.id,
+      ];
 }
 
-/// One provider and its catalogue.
-class _ProviderBlock extends StatelessWidget {
-  const _ProviderBlock({required this.app, required this.provider});
+// ---------------------------------------------------------------------------
+// The tab row
+// ---------------------------------------------------------------------------
+
+/// The five shelves, as one segmented row.
+///
+/// A tab carries a count of the accounts on it that have a key, which is the
+/// one number that answers "what is left to set up" without opening anything.
+/// It reads "3/4", and it is deliberately not a warning colour: a shelf you
+/// have not funded is a choice, not a fault.
+class _Tabs extends StatelessWidget {
+  const _Tabs({
+    required this.app,
+    required this.current,
+    required this.onPicked,
+  });
 
   final AppState app;
-  final ProviderEntry provider;
+  final String current;
+  final ValueChanged<String> onPicked;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final settings = app.settings;
-
-    final ids = [for (final model in provider.models) model.id];
-    final shown = ids.where((id) => settings.modelShown(provider.id, id)).length;
-    final keyMissing = provider.credential.isNotEmpty &&
-        !settings.hasApiKey(provider.credential);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+      padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radius + 4),
+        border: Border.all(color: mq.border),
+      ),
+      child: Wrap(
+        spacing: 2,
+        runSpacing: 2,
+        children: [
+          for (final panel in Registry.panels)
+            _Tab(
+              panel: panel,
+              selected: panel.id == current,
+              ready: _ready(panel),
+              total: _total(panel),
+              onTap: () => onPicked(panel.id),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Iterable<CredentialEntry> _credentials(PanelEntry panel) =>
+      app.registry.credentialsForPanel(panel.id);
+
+  int _total(PanelEntry panel) => _credentials(panel).length;
+
+  int _ready(PanelEntry panel) => _credentials(panel)
+      .where((credential) => app.settings.hasApiKey(credential.id))
+      .length;
+}
+
+class _Tab extends StatelessWidget {
+  const _Tab({
+    required this.panel,
+    required this.selected,
+    required this.ready,
+    required this.total,
+    required this.onTap,
+  });
+
+  final PanelEntry panel;
+  final bool selected;
+  final int ready;
+  final int total;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      onTap: onTap,
+      // The tabs touch, so hover snaps both ways and only one is ever lit.
+      snap: true,
+      focusRadius: MqTheme.radius,
+      builder: (context, states) {
+        // Filled with ink when it is the one you are on. It is the strongest
+        // contrast a greyscale interface has, and a tab row is exactly where
+        // "you are here" has to be unmistakable.
+        final fill = selected
+            ? mq.primary
+            : states.pressed
+                ? mq.surfaceActive
+                : states.hovered
+                    ? mq.surfaceHover
+                    : Colors.transparent;
+        final ink = selected
+            ? mq.onPrimary
+            : states.active
+                ? mq.textPrimary
+                : mq.textSecondary;
+
+        return AnimatedContainer(
+          duration: states.duration,
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: fill,
+            borderRadius: BorderRadius.circular(MqTheme.radius),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MqIcon(panel.icon, size: 16, color: ink),
+              const SizedBox(width: 8),
+              Text(
+                tr(panel.title),
+                style: TextStyle(
+                  color: ink,
+                  fontSize: MqTheme.fontLabel,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  letterSpacing: MqTheme.trackSmall,
+                ),
+              ),
+              if (total > 0) ...[
+                const SizedBox(width: 8),
+                Text(
+                  //: %1 is how many providers on this tab have a key, %2 how
+                  //: many there are
+                  tr('%1/%2').arg(ready).arg(total),
+                  style: TextStyle(
+                    color: selected
+                        ? mq.onPrimary.withValues(alpha: 0.65)
+                        : mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// One account
+// ---------------------------------------------------------------------------
+
+class _AccountCard extends StatelessWidget {
+  const _AccountCard({required this.app, required this.card});
+
+  final AppState app;
+  final _Card card;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final credential = card.credential;
+
+    final ids = card.modelIds;
+    final shown =
+        ids.where((id) => app.settings.modelShown(_ownerOf(id), id)).length;
+    final hasKey =
+        credential != null && app.settings.hasApiKey(credential.id);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: mq.surface,
         borderRadius: BorderRadius.circular(MqTheme.radius),
         border: Border.all(color: mq.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(
-                provider.label,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontBody,
-                  fontWeight: FontWeight.w600,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: _header(context, hasKey, shown, ids),
+          ),
+          if (credential != null) ...[
+            const SizedBox(height: 12),
+            // The key gets its own band, a step down from the card, so it reads
+            // as the thing the models below it depend on rather than as another
+            // row of them.
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+              decoration: BoxDecoration(
+                color: mq.surfaceSecondary,
+                border: Border.symmetric(
+                  horizontal: BorderSide(color: mq.borderSubtle),
                 ),
               ),
-              const SizedBox(width: 8),
-              // Not an error: a provider whose key is missing is still worth
-              // shortlisting, and the field for it is a few lines up this same
-              // panel now rather than on another screen.
-              if (keyMissing)
-                Text(
-                  tr('no API key'),
-                  style: TextStyle(
-                    color: mq.warningText,
-                    fontSize: MqTheme.fontSmall,
+              child: KeyField(app: app, credential: credential),
+            ),
+          ] else
+            const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < card.providers.length; ++i) ...[
+                  if (i > 0) const SizedBox(height: 14),
+                  _Group(
+                    app: app,
+                    provider: card.providers[i],
+                    // The heading only earns its line when the card holds more
+                    // than one thing: "Images" over the only row on the card
+                    // says nothing the tab has not already said.
+                    named: card.providers.length > 1,
                   ),
-                ),
-              const Spacer(),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Which catalogue entry a model id belongs to. Ids are unique inside a card,
+  /// so the first match is the right one.
+  String _ownerOf(String modelId) {
+    for (final provider in card.providers) {
+      for (final model in provider.models) {
+        if (model.id == modelId) return provider.id;
+      }
+    }
+    return card.providers.first.id;
+  }
+
+  Widget _header(
+    BuildContext context,
+    bool hasKey,
+    int shown,
+    List<String> ids,
+  ) {
+    final mq = context.mq;
+    final credential = card.credential;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          margin: const EdgeInsets.only(top: 6),
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(
+            color: hasKey ? mq.success : mq.borderStrong,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      card.label,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: mq.textPrimary,
+                        fontSize: MqTheme.fontTitle,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: MqTheme.trackTitle,
+                        height: MqTheme.lineTight,
+                      ),
+                    ),
+                  ),
+                  if (credential != null && credential.free) ...[
+                    const SizedBox(width: 8),
+                    _Badge(text: tr('Free tier')),
+                  ],
+                ],
+              ),
+              // What the key is for is said by the key field, and only while it
+              // is open -- which is exactly when you are deciding whether to go
+              // and get one. Repeating it over a card you have already set up
+              // is a second grey line saying what the models under it already
+              // say better.
+            ],
+          ),
+        ),
+        const SizedBox(width: 14),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Row(
+            children: [
               Text(
                 //: %1 is how many models are enabled, %2 how many there are
                 tr('%1 of %2').arg(shown).arg(ids.length),
@@ -153,91 +483,156 @@ class _ProviderBlock extends StatelessWidget {
               const SizedBox(width: 10),
               MqLink(
                 text: shown == ids.length ? tr('None') : tr('All'),
-                onPressed: () => settings.setProviderModelsHidden(
-                  provider.id,
-                  ids,
-                  shown == ids.length,
-                ),
+                onPressed: () {
+                  final hide = shown == ids.length;
+                  for (final provider in card.providers) {
+                    app.settings.setProviderModelsHidden(
+                      provider.id,
+                      [
+                        for (final model in provider.models)
+                          if (!Registry.isAuto(model.id)) model.id,
+                      ],
+                      hide,
+                    );
+                  }
+                },
               ),
             ],
           ),
-          if (provider.note.isNotEmpty) ...[
-            const SizedBox(height: 3),
-            Text(
-              provider.note,
-              style: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontSmall,
-              ),
-            ),
-          ],
-          const SizedBox(height: MqTheme.gap),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final model in provider.models)
-                _ModelToggle(
-                  app: app,
-                  providerId: provider.id,
-                  model: model,
-                  // "Auto" is not a model and cannot be switched off: it is the
-                  // instruction to pick the best of whatever is left on.
-                  fixed: Registry.isAuto(model.id),
-                ),
-            ],
-          ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+/// A quiet, bordered tag. Used for the one claim on this page that can cost
+/// somebody money if it is wrong, so it is drawn to be read rather than to
+/// decorate.
+class _Badge extends StatelessWidget {
+  const _Badge({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: mq.successSubtle,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: mq.successText,
+          fontSize: MqTheme.fontMicro,
+          fontWeight: FontWeight.w600,
+          letterSpacing: MqTheme.trackSmall,
+        ),
       ),
     );
   }
 }
 
+/// One catalogue entry inside an account card: its note, and its models.
+class _Group extends StatelessWidget {
+  const _Group({required this.app, required this.provider, required this.named});
+
+  final AppState app;
+  final ProviderEntry provider;
+
+  /// Whether to caption the row with what it is for.
+  final bool named;
+
+  static String categoryLabel(String category) => switch (category) {
+        'text' => tr('Writing'),
+        'avatar' => tr('Talking actors'),
+        'image' => tr('Images'),
+        'upscale' => tr('Enlarging'),
+        'video' => tr('Video'),
+        'voice' => tr('Voice-over'),
+        'captions' => tr('Subtitles'),
+        _ => category,
+      };
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (named) ...[
+          Text(
+            categoryLabel(provider.category).toUpperCase(),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontMicro,
+              fontWeight: FontWeight.w600,
+              letterSpacing: MqTheme.trackOverline,
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+        if (provider.note.isNotEmpty) ...[
+          Text(
+            provider.note,
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineBody,
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final model in provider.models)
+              if (!Registry.isAuto(model.id))
+                _ModelChip(app: app, providerId: provider.id, model: model),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 /// One model: its name, its unit price, and whether the composer may offer it.
-class _ModelToggle extends StatelessWidget {
-  const _ModelToggle({
+class _ModelChip extends StatelessWidget {
+  const _ModelChip({
     required this.app,
     required this.providerId,
     required this.model,
-    required this.fixed,
   });
 
   final AppState app;
   final String providerId;
   final ModelEntry model;
-  final bool fixed;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final on = fixed || app.settings.modelShown(providerId, model.id);
+    final on = app.settings.modelShown(providerId, model.id);
     final price = Format.unitPriceLabel(app.pricing.unitPrice(model.id));
 
     return Pressable(
-      enabled: !fixed,
-      onTap: () =>
-          app.settings.setModelHidden(providerId, model.id, on),
-      tooltip: fixed
-          ? tr('Auto always stays on: it picks from whatever is enabled.')
-          : '',
+      onTap: () => app.settings.setModelHidden(providerId, model.id, on),
       focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        padding: const EdgeInsets.fromLTRB(9, 7, 12, 7),
+        padding: const EdgeInsets.fromLTRB(8, 6, 11, 6),
         decoration: BoxDecoration(
-          color: !on
-              ? Colors.transparent
-              : states.active
-              ? mq.surfaceActive
-              : mq.surface,
+          // A chip that is switched off is still a chip you can switch on, so
+          // it keeps its outline. Only the fill and the ink recede.
+          color: on
+              ? (states.active ? mq.surfaceActive : mq.surfaceSecondary)
+              : (states.active ? mq.surfaceHover : Colors.transparent),
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          border: Border.all(
-            color: !on
-                ? mq.borderSubtle
-                : states.active
-                ? mq.borderStrong
-                : mq.border,
-          ),
+          border: Border.all(color: on ? mq.borderStrong : mq.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -245,21 +640,19 @@ class _ModelToggle extends StatelessWidget {
             // A filled square with a tick, or an empty outline. The state is
             // the point of the row, so it leads.
             Container(
-              width: 16,
-              height: 16,
+              width: 15,
+              height: 15,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: on ? mq.primary : Colors.transparent,
                 borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: on ? mq.primary : mq.borderStrong,
-                ),
+                border: Border.all(color: on ? mq.primary : mq.borderStrong),
               ),
               child: on
                   ? MqIcon('check-line', size: 11, color: mq.onPrimary)
                   : null,
             ),
-            const SizedBox(width: 9),
+            const SizedBox(width: 8),
             Text(
               model.label,
               style: TextStyle(
@@ -268,22 +661,22 @@ class _ModelToggle extends StatelessWidget {
                 fontWeight: on ? FontWeight.w500 : FontWeight.w400,
               ),
             ),
-            // The price is what the model costs once the free quota is gone,
-            // so the two belong side by side rather than one instead of the
-            // other: "Free tier" alone would read as "this is never billed".
+            // The price is what the model costs once any free quota is gone, so
+            // the two belong side by side rather than one instead of the other:
+            // "Free tier" alone would read as "this is never billed".
             if (model.isFree) ...[
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
                 tr('Free tier'),
                 style: TextStyle(
                   color: on ? mq.successText : mq.textDisabled,
-                  fontSize: MqTheme.fontSmall,
+                  fontSize: MqTheme.fontMicro,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
             if (price.isNotEmpty) ...[
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Text(
                 price,
                 style: TextStyle(

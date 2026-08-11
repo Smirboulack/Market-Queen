@@ -66,14 +66,20 @@ class PanelEntry {
     required this.id,
     required this.title,
     required this.subtitle,
+    required this.icon,
     required this.categories,
   });
 
   final String id;
   final String title;
   final String subtitle;
+  final String icon;
 
   /// Provider categories that belong on this shelf, in display order.
+  ///
+  /// More than one is the exception: enlarging is its own category because the
+  /// pipeline asks for it separately, but it is bought from the same accounts
+  /// as the pictures and belongs on the same shelf as them.
   final List<String> categories;
 }
 
@@ -119,30 +125,35 @@ class Registry extends ChangeNotifier {
       id: 'llm',
       title: 'LLM',
       subtitle: 'The writers. Nothing writes your ad unless you ask it to.',
+      icon: 'draft-line',
       categories: ['text'],
     ),
     PanelEntry(
       id: 'avatar',
       title: 'Talking actors',
       subtitle: 'A face, a voice track, and a clip exactly as long as the line.',
+      icon: 'user-voice-line',
       categories: ['avatar'],
     ),
     PanelEntry(
       id: 'image',
       title: 'Images',
       subtitle: 'Stills, actors, product shots -- and blowing one up.',
+      icon: 'image-line',
       categories: ['image', 'upscale'],
     ),
     PanelEntry(
       id: 'video',
       title: 'Video',
       subtitle: 'Animate a still, or shoot from a prompt.',
+      icon: 'clapperboard-line',
       categories: ['video'],
     ),
     PanelEntry(
       id: 'audio',
       title: 'Audio',
       subtitle: 'Who reads your script, and the subtitles that follow it.',
+      icon: 'volume-up-line',
       categories: ['voice', 'captions'],
     ),
   ];
@@ -398,8 +409,7 @@ class Registry extends ChangeNotifier {
           const ModelEntry('fibo-lite', 'FIBO Lite'),
         ],
         defaultModel: 'auto',
-        note: tr('Trained on licensed material and sold with IP indemnity. '
-            '100 generations free, no card.'),
+        note: tr('Trained on licensed material and sold with IP indemnity.'),
       ),
 
       // Alibaba Qwen Image is missing on purpose, not by oversight. Its prices,
@@ -864,21 +874,24 @@ class Registry extends ChangeNotifier {
           signupUrl: 'https://platform.lumalabs.ai/',
           note: tr('Video, with a closing frame and clip-to-clip continuation.'),
         ),
+        // The account notes answer one question -- what does this key pay for,
+        // and how is it billed -- and stop there. What a model is good at is
+        // the model's own note, a few lines further down the same card, and
+        // saying it twice is how a card ends up with two grey paragraphs that
+        // disagree slightly.
         CredentialEntry(
           id: 'ideogram',
           label: 'Ideogram',
           envVar: 'IDEOGRAM_API_KEY',
           signupUrl: 'https://ideogram.ai/manage-api',
-          note: tr('Images, and the enlarger. Best in the list at text on a '
-              'label.'),
+          note: tr('Images and the enlarger, billed per picture.'),
         ),
         CredentialEntry(
           id: 'bria',
           label: 'Bria',
           envVar: 'BRIA_API_TOKEN',
           signupUrl: 'https://platform.bria.ai/',
-          note: tr('Images and the enlarger. 100 generations free, no card, '
-              'and the output is sold with IP indemnity.'),
+          note: tr('Images and the enlarger. 100 generations free, no card.'),
           free: true,
         ),
         CredentialEntry(
@@ -891,7 +904,11 @@ class Registry extends ChangeNotifier {
         ),
         CredentialEntry(
           id: 'fal',
-          label: 'fal.ai',
+          // Named for what it buys rather than for who sells it. The account is
+          // a fal one, but every model behind it is Kling, and a card headed
+          // "fal.ai" in the middle of a page of first-party providers reads as
+          // an aggregator that got left in.
+          label: 'Kling (via fal.ai)',
           envVar: 'FAL_KEY',
           signupUrl: 'https://fal.ai/dashboard/keys',
           note: tr('Kling only. Everything else calls its provider directly; '

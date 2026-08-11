@@ -14,19 +14,16 @@ Future<void> main() async {
   await windowManager.ensureInitialized();
   await windowManager.waitUntilReadyToShow(
     const WindowOptions(
-      // Two columns now that the rail is gone: a 240 nav and one canvas, whose
-      // content caps itself at 980 and centres. The floor is what the widest
-      // modal (640) plus the nav plus breathing room needs, not a guess.
-      size: Size(1420, 940),
+      size: Size(1900, 1200),
       minimumSize: Size(1020, 700),
       center: true,
-      // Product and company name: neither is translated.
       title: 'Market Queen - SegfaultLabs',
       titleBarStyle: TitleBarStyle.normal,
     ),
     () async {
       await windowManager.show();
       await windowManager.focus();
+      await windowManager.maximize(); // <-- ajout ici
     },
   );
 

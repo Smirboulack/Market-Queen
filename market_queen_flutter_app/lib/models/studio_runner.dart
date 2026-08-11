@@ -11,7 +11,8 @@ import '../core/pricing.dart';
 import '../core/settings_store.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
-import '../providers/fal_schema.dart';
+import '../providers/capabilities.dart';
+import '../providers/model_schemas.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
@@ -91,7 +92,7 @@ class StudioRunner extends ChangeNotifier {
     this._pricing,
     this._log,
     this._casting,
-    this._falSchemas,
+    this._modelSchemas,
     this.feed,
   );
 
@@ -100,7 +101,7 @@ class StudioRunner extends ChangeNotifier {
   final Pricing _pricing;
   final LogModel _log;
   final VoiceCasting _casting;
-  final FalSchemas _falSchemas;
+  final ModelSchemas _modelSchemas;
 
   /// The feed everything lands in. Owned by the ad, not by this object: closing
   /// an ad swaps the feed's contents while a batch may still be in the air, and
@@ -217,14 +218,16 @@ class StudioRunner extends ChangeNotifier {
     }
 
     // Read once per batch: what this model calls its opening frame, which of
-    // duration, resolution and audio it actually declares, and whether it takes
-    // reference material instead of a first frame.
-    // Waited for rather than read: this is the send path, and a reference model
-    // whose schema has not landed yet would be handed an opening frame it does
-    // not take.
-    final capabilities = order.category == 'video' && FalSchemas.handles(providerId)
-        ? await _falSchemas.ensure(model)
-        : const FalCapabilities();
+    // duration, resolution and audio it actually declares, and how much
+    // reference material it will take.
+    //
+    // Waited for rather than read: this is the send path, and a fal model whose
+    // schema has not landed yet would be handed an opening frame it may not
+    // take. A directly-called model answers from the catalogue without a round
+    // trip.
+    final capabilities = order.category == 'video'
+        ? await _modelSchemas.ensure(providerId, model)
+        : const ModelCapabilities();
 
     final shaped = capabilities.known
         ? capabilities.videoInput(
@@ -235,15 +238,28 @@ class StudioRunner extends ChangeNotifier {
           )
         : null;
 
-    // A reference model gets the whole pile, uploaded; everything else gets one
-    // still, inlined. Both are done once and reused by every request in the
-    // batch -- ten variations off the same clip should upload it once.
+    // Which of the three ways to ask, decided by what was dropped in rather
+    // than by which model was picked. One still is an opening frame; a second
+    // picture, a clip or a recording is reference material; nothing at all
+    // shoots from the prompt. The model narrows it further -- Hailuo has no
+    // reference mode however much you attach -- and [modeFor] falls through to
+    // what it can actually do.
+    final counted = _countByKind(order.references);
+    final mode = capabilities.modeFor(
+      images: counted.images,
+      videos: counted.videos,
+      audios: counted.audios,
+    );
+
+    // Done once and reused by every request in the batch -- ten variations off
+    // the same clip should carry it once.
     var references = VideoReferences.none;
     var referenceUri = '';
 
-    if (capabilities.takesReferences) {
+    if (mode == VideoMode.referenceToVideo) {
       try {
-        references = await _uploadReferences(capabilities, order.references, apiKey);
+        references =
+            await _gatherReferences(capabilities, order.references, apiKey, providerId);
       } on ProviderException catch (error) {
         _failWholeBatch(batch, error.message);
         return batch;
@@ -259,8 +275,27 @@ class StudioRunner extends ChangeNotifier {
       //: %1 is a list like "@Image1 = face.png, @Video1 = ad.mp4"
       _log.info(tr('Reference material: %1. Point at it from the prompt.')
           .arg(_handleList(references, order.references)));
-    } else {
+    } else if (mode == VideoMode.imageToVideo) {
       referenceUri = await _firstImageDataUri(order.references);
+      if (order.category == 'video' && referenceUri.isEmpty) {
+        _failWholeBatch(
+          batch,
+          tr('This model animates a still. Drop in the picture it should start '
+              'from, or pick one that shoots from the prompt alone.'),
+        );
+        return batch;
+      }
+    }
+    // textToVideo carries neither, which is the whole point of it.
+
+    if (order.category == 'video') {
+      _log.info(switch (mode) {
+        //: %1 is a model name
+        VideoMode.textToVideo => tr('Shooting from the prompt on %1.').arg(model),
+        VideoMode.imageToVideo => tr('Animating your still on %1.').arg(model),
+        VideoMode.referenceToVideo =>
+          tr('Working from your reference material on %1.').arg(model),
+      });
     }
 
     for (var i = 0; i < batch.items.length; ++i) {
@@ -583,23 +618,118 @@ class StudioRunner extends ChangeNotifier {
   }
 
   // Fal's published ceilings for reference material, and the counts the model
-  // itself declares. Both live on [FalCapabilities] so the bar can draw the
+  // itself declares. Both live on [ModelCapabilities] so the bar can draw the
   // same numbers this enforces: a file over the limit comes back as a rejection
   // from the API halfway through a paid run, so it is stopped here with a
   // sentence that says which file and why.
-  static const _maxImageBytes = FalCapabilities.maxImageBytes;
-  static const _maxVideoBytes = FalCapabilities.maxVideoBytes;
-  static const _maxAudioBytes = FalCapabilities.maxAudioBytes;
+  static const _maxImageBytes = ModelCapabilities.maxImageBytes;
+  static const _maxVideoBytes = ModelCapabilities.maxVideoBytes;
+  static const _maxAudioBytes = ModelCapabilities.maxAudioBytes;
 
-  /// Sorts what was dropped into the bar by modality, puts it in fal's storage
-  /// and returns the urls under the names this model gave its lists.
+  /// How many of each modality were dropped in, before any model has had a say.
+  /// This is what decides whether the request is an opening frame or a pile of
+  /// references, so it counts files rather than what the model would accept.
+  ({int images, int videos, int audios}) _countByKind(List<String> paths) {
+    var images = 0;
+    var videos = 0;
+    var audios = 0;
+
+    for (final path in paths) {
+      if (isVideoPath(path)) {
+        videos += 1;
+      } else if (isAudioPath(path)) {
+        audios += 1;
+      } else {
+        images += 1;
+      }
+    }
+    return (images: images, videos: videos, audios: audios);
+  }
+
+  /// Sorts what was dropped into the bar by modality and hands it over in
+  /// whichever form the provider takes.
+  ///
+  /// Two forms, and it is a question of who is storing the file. fal has its
+  /// own storage, so material bought through it is uploaded and travels as
+  /// urls -- which is the only sane way to move a 200 MB clip. The direct
+  /// providers have no storage this app can write to, so their references are
+  /// inlined as data URIs, and that only stretches to stills.
+  ///
+  /// A modality the model does not declare is dropped rather than sent: an
+  /// endpoint rejects a field it never had.
+  Future<VideoReferences> _gatherReferences(
+    ModelCapabilities capabilities,
+    List<String> paths,
+    String apiKey,
+    String providerId,
+  ) async {
+    return ModelSchemas.fetches(providerId)
+        ? _uploadReferences(capabilities, paths, apiKey)
+        : _inlineReferences(capabilities, paths);
+  }
+
+  /// References for a directly-called provider, as data URIs.
+  ///
+  /// Stills only, and the refusal is deliberate rather than a silent drop: a
+  /// clip the user attached and paid to have ignored is worse than being told
+  /// it cannot be sent. Every one of these APIs takes a reference video as a
+  /// url it can fetch, and this app has nowhere to put one -- so the honest
+  /// answer is that it is not wired yet, not that the model cannot do it.
+  Future<VideoReferences> _inlineReferences(
+    ModelCapabilities capabilities,
+    List<String> paths,
+  ) async {
+    final images = <String>[];
+
+    for (final path in paths) {
+      if (isVideoPath(path) || isAudioPath(path)) {
+        throw ProviderException(
+          //: %1 is a file name
+          tr('%1 can only be sent to this provider as a hosted link, which the '
+                  'app cannot make yet. Stills work; clips and recordings do '
+                  'not.')
+              .arg(p.basename(path)),
+        );
+      }
+      if (capabilities.imagesField.isEmpty) continue;
+
+      // Through the same converter the single-reference path uses, so a
+      // screenshot saved as AVIF or HEIC still arrives as something the model
+      // will look at.
+      final uri = await imageDataUri(Ffmpeg.resolve(_settings.ffmpegPath), path);
+      if (uri.isEmpty) throw ProviderException(unreadableImage(path));
+
+      final data = Http.dataUriPayload(uri);
+      if (data.length > _maxImageBytes) {
+        throw ProviderException(_tooBig(path, _maxImageBytes));
+      }
+      images.add(uri);
+    }
+
+    final limit = capabilities.referenceLimits.images;
+    if (images.length > limit) {
+      //: %1 is a number of files
+      _log.warning(tr('Only the first %1 were sent; the rest were left out.')
+          .arg(limit));
+      images.removeRange(limit, images.length);
+    }
+
+    return images.isEmpty
+        ? VideoReferences.none
+        : VideoReferences(
+            images: images,
+            imagesField: capabilities.imagesField,
+          );
+  }
+
+  /// The same pile, put in fal's storage and returned as urls under the names
+  /// this model gave its lists.
   ///
   /// Uploaded rather than inlined because of the clips: a reference video is
   /// allowed to be 200 MB, and base64 in a JSON body is not a serious way to
-  /// move that. A modality the model does not declare is dropped rather than
-  /// sent -- fal rejects a field the endpoint never had.
+  /// move that.
   Future<VideoReferences> _uploadReferences(
-    FalCapabilities capabilities,
+    ModelCapabilities capabilities,
     List<String> paths,
     String apiKey,
   ) async {

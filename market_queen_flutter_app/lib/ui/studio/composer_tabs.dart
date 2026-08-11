@@ -6,7 +6,7 @@ import '../../i18n/translator.dart';
 import '../../models/asset_library.dart' show MediaKind;
 import '../../models/canvas_feed.dart';
 import '../../models/studio_runner.dart';
-import '../../providers/fal_schema.dart';
+import '../../providers/capabilities.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
@@ -546,22 +546,24 @@ class ComposerSettings extends StatelessWidget {
     ];
 
     if (tab == ComposerTab.video) {
-      // What the chosen model actually accepts, read from its own schema
-      // rather than from a list we keep in step by hand. Hailuo offers 6 and
-      // 10 seconds and nothing else; Kling v3 offers every second from 3 to 15;
-      // Veo has three lengths and calls them "4s", "6s", "8s". A fixed menu was
-      // wrong for all three.
-      final capabilities = app.falSchemas.capabilities(
+      // What the chosen model actually accepts, rather than a list kept in step
+      // by hand. Hailuo offers 6 and 10 seconds and nothing between; Seedance
+      // 2.5 takes any whole number up to thirty; Veo has three lengths and
+      // forces the longest above 720p; Luma spells the same idea "5s". A fixed
+      // menu was wrong for all four -- and offering five seconds on a model
+      // that can do thirty is throwing away the reason to pick it.
+      final capabilities = app.modelSchemas.capabilities(
+        app.runner.providerFor('video'),
         app.runner.modelFor('video', _videoSeconds),
       );
 
       final lengths = <MenuOption<String>>[
-        for (final token in capabilities.durations)
-          if (FalCapabilities.secondsOf(token) > 0)
+        for (final token in capabilities.durationChoices)
+          if (ModelCapabilities.secondsOf(token) > 0)
             MenuOption(
               //: %1 is a whole number of seconds
-              tr('%1 s').arg(FalCapabilities.secondsOf(token)),
-              '${FalCapabilities.secondsOf(token)}',
+              tr('%1 s').arg(ModelCapabilities.secondsOf(token)),
+              '${ModelCapabilities.secondsOf(token)}',
             ),
       ];
 
@@ -715,7 +717,7 @@ class ComposerSettings extends StatelessWidget {
   /// the model itself defaults to. Switching from a model with 4k to one
   /// without must not leave "4k" showing under a model that has never heard
   /// of it.
-  String _resolution(FalCapabilities capabilities) {
+  String _resolution(ModelCapabilities capabilities) {
     final saved = app.settings.prefString('videoResolution');
     return capabilities.resolutions.contains(saved)
         ? saved

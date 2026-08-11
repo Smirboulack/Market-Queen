@@ -14,7 +14,7 @@ import '../core/signal.dart';
 import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
-import '../providers/fal_schema.dart';
+import '../providers/model_schemas.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/text_providers.dart';
@@ -129,7 +129,7 @@ class Pipeline extends ChangeNotifier {
     this._pricing,
     this._log,
     this._casting,
-    this._falSchemas,
+    this._modelSchemas,
   ) {
     // Show the plan before anything runs.
     _resetSteps();
@@ -140,7 +140,7 @@ class Pipeline extends ChangeNotifier {
   final Pricing _pricing;
   final LogModel _log;
   final VoiceCasting _casting;
-  final FalSchemas _falSchemas;
+  final ModelSchemas _modelSchemas;
 
   /// (success, outputFile).
   final Event<({bool success, String outputFile})> finished = Event();
@@ -1101,14 +1101,14 @@ class Pipeline extends ChangeNotifier {
             // The b-roll clip is silent: its sound is the voice-over laid over
             // it in the cut, and a model that also generates audio would be
             // paid for a track that is thrown away.
-            final shaped = FalSchemas.handles(providerId)
-                ? _falSchemas.capabilities(model).videoInput(
-                    seconds: clipSeconds,
-                    resolution: _text('videoResolution'),
-                    audio: false,
-                    aspectRatio: aspect,
-                  )
-                : null;
+            final shaped = _modelSchemas
+                .capabilities(providerId, model)
+                .videoInput(
+                  seconds: clipSeconds,
+                  resolution: _text('videoResolution'),
+                  audio: false,
+                  aspectRatio: aspect,
+                );
 
             return VideoRequest(
               apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
@@ -1120,8 +1120,8 @@ class Pipeline extends ChangeNotifier {
                       'nobody on screen.')
                   : shot.videoPrompt,
               durationSeconds: clipSeconds,
-              imageField: shaped?.imageField ?? '',
-              extraInput: shaped?.input ?? const {},
+              imageField: shaped.imageField,
+              extraInput: shaped.input,
             );
           }(),
         );

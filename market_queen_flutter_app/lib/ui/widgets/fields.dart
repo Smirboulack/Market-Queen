@@ -75,6 +75,7 @@ class LabeledField extends StatefulWidget {
     this.placeholder = '',
     this.hint = '',
     this.controller,
+    this.focusNode,
     this.readOnly = false,
     this.obscure = false,
     this.autofocus = false,
@@ -87,6 +88,12 @@ class LabeledField extends StatefulWidget {
   final String placeholder;
   final String hint;
   final TextEditingController? controller;
+
+  /// Supplied when the caller needs to put the caret here itself -- a field
+  /// that appears in answer to a button has to be ready to be typed into, or
+  /// the button has done half its job.
+  final FocusNode? focusNode;
+
   final bool readOnly;
   final bool obscure;
 
@@ -119,7 +126,7 @@ class LabeledField extends StatefulWidget {
 class _LabeledFieldState extends State<LabeledField> {
   late final TextEditingController _controller =
       widget.controller ?? TextEditingController();
-  final FocusNode _focus = FocusNode();
+  late final FocusNode _focus = widget.focusNode ?? FocusNode();
   bool _hovered = false;
 
   @override
@@ -140,7 +147,10 @@ class _LabeledFieldState extends State<LabeledField> {
 
   @override
   void dispose() {
-    _focus.dispose();
+    // Only ours to dispose. A node the caller owns outlives this field -- it is
+    // how the caller puts the caret back after a rebuild -- and disposing it
+    // here would take the owner down on the next frame.
+    if (widget.focusNode == null) _focus.dispose();
     if (widget.controller == null) _controller.dispose();
     super.dispose();
   }

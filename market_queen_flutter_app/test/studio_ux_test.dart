@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:market_queen/app_state.dart';
+import 'package:market_queen/i18n/translator.dart';
 import 'package:market_queen/core/clipboard_media.dart';
 import 'package:market_queen/models/asset_library.dart';
 import 'package:market_queen/models/canvas_feed.dart';
@@ -530,23 +531,35 @@ void main() {
   });
 
   group('the clip shelf says how much it will take', () {
-    testWidgets('the reference well counts each kind separately', (
+    testWidgets('the well offers what the chosen model actually takes', (
       tester,
     ) async {
+      // The wells used to be drawn from fal's platform ceiling -- thirty
+      // pictures, ten clips, ten recordings -- because that was the answer
+      // while a model's schema had not been read. Called directly, every model
+      // states its own limits before anything is dropped, so the well is now
+      // built from the model rather than from a platform.
+      app.settings
+        ..setPref('videoProvider', 'bytedance-video')
+        ..setPref('videoModel', 'dreamina-seedance-2-5-260628');
+
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.video);
 
-      // Every kind is offered here, and each is counted against its own
-      // ceiling -- a row of thumbnails cannot say "one of nine pictures, none
-      // of three clips".
-      expect(find.textContaining('pictures'), findsOneWidget);
-      expect(find.textContaining('clips'), findsOneWidget);
-      expect(find.textContaining('recordings'), findsOneWidget);
+      // Seedance 2.5 takes thirty stills. It takes clips and recordings too,
+      // but only as hosted links, and this app has nowhere to put one -- so
+      // the well does not offer a drop it would have to refuse at send.
+      //
+      // Looked up through `tr` rather than written out: the catalogue that
+      // happens to be loaded depends on the machine's language, and this is a
+      // test about which buttons are there, not about which language they are
+      // labelled in.
+      expect(find.byTooltip(tr('Add pictures')), findsOneWidget);
+      expect(find.byTooltip(tr('Add clips')), findsNothing);
+      expect(find.byTooltip(tr('Add a recording')), findsNothing);
 
-      await drop(tester, [file('a.png'), file('b.png'), file('c.mp4')]);
-
+      await drop(tester, [file('a.png'), file('b.png')]);
       expect(find.textContaining('2/'), findsOneWidget);
-      expect(find.textContaining('1/'), findsOneWidget);
     });
 
     testWidgets('each kind has a button of its own, and only its own', (
