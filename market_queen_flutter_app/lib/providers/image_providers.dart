@@ -28,7 +28,10 @@ abstract class ImageTask extends HttpTask {
     return {'data': data, 'extension': extension};
   }
 
-  Future<Map<String, Object?>> deliverFromUrl(String url, String fallback) async {
+  Future<Map<String, Object?>> deliverFromUrl(
+    String url,
+    String fallback,
+  ) async {
     final (data, contentType) = await download(url);
     return deliver(data, Http.guessExtension(url, contentType, fallback));
   }
@@ -56,9 +59,11 @@ class GeminiImageTask extends ImageTask {
     requireKey(request.apiKey, 'Google Gemini');
 
     final editing = request.referenceImageDataUri.isNotEmpty;
-    report(editing
-        ? tr('Building the opening frame from your product photo...')
-        : tr('Generating the opening frame with %1...').arg(request.model));
+    report(
+      editing
+          ? tr('Building the opening frame from your product photo...')
+          : tr('Generating the opening frame with %1...').arg(request.model),
+    );
 
     final input = <Map<String, Object?>>[
       {'type': 'text', 'text': request.prompt},
@@ -82,15 +87,18 @@ class GeminiImageTask extends ImageTask {
     }
 
     final response = await postJson(
-      Uri.parse('https://generativelanguage.googleapis.com/v1beta/interactions'),
+      Uri.parse(
+        'https://generativelanguage.googleapis.com/v1beta/interactions',
+      ),
       {
         'model': request.model,
         'input': input,
         'response_format': {
           'type': 'image',
           'mime_type': 'image/png',
-          'aspect_ratio':
-              request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+          'aspect_ratio': request.aspectRatio.isEmpty
+              ? '9:16'
+              : request.aspectRatio,
         },
       },
       headers: {'x-goog-api-key': request.apiKey},
@@ -111,9 +119,11 @@ class GeminiImageTask extends ImageTask {
     // that paragraph says exactly what it objected to. Losing it behind
     // "returned no image" costs the user the one clue they had.
     final said = '${response['output_text'] ?? ''}'.trim();
-    throw ProviderException(said.isEmpty
-        ? tr('Gemini returned no image.')
-        : tr('Gemini returned no image: %1').arg(said));
+    throw ProviderException(
+      said.isEmpty
+          ? tr('Gemini returned no image.')
+          : tr('Gemini returned no image: %1').arg(said),
+    );
   }
 
   /// The generated picture, from the shortcut field or from the output list.
@@ -152,12 +162,17 @@ class GeminiImageTask extends ImageTask {
 class OpenAiImageTask extends ImageTask {
   OpenAiImageTask(super.request);
 
+  bool supportsInputFidelity(String model) {
+    return model == 'gpt-image-1';
+  }
+
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'OpenAI');
 
     // With a product photo in hand, editing keeps the real product in frame.
-    final canEdit = request.model.startsWith('gpt-image') &&
+    final canEdit =
+        request.model.startsWith('gpt-image') &&
         request.referenceImageDataUri.isNotEmpty;
     return canEdit ? _edit() : _generate();
   }
@@ -211,15 +226,9 @@ class OpenAiImageTask extends ImageTask {
         'prompt': request.prompt,
         'size': _openAiSize(request.model, request.aspectRatio),
         'n': '1',
-        // Without this the endpoint runs at `low`, which is its default and
-        // which explicitly does not preserve faces: the person comes back
-        // recognisably redrawn rather than edited. That is the whole job here
-        // -- an actor has to still be the same actor, a bottle the same bottle
-        // -- so it is worth the extra input tokens it costs.
-        //
-        // Left off gpt-image-1-mini, which is the one model in the family that
-        // rejects the field.
-        if (!request.model.contains('mini')) 'input_fidelity': 'high',
+        // input_fidelity is supported by gpt-image-1 but not by gpt-image-1-mini
+        // or gpt-image-2.
+        if (supportsInputFidelity(request.model)) 'input_fidelity': 'high',
       },
       files: [
         http.MultipartFile.fromBytes(
@@ -237,7 +246,9 @@ class OpenAiImageTask extends ImageTask {
     } on FormatException {
       decoded = null;
     }
-    final json = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+    final json = decoded is Map<String, dynamic>
+        ? decoded
+        : <String, dynamic>{};
 
     final b64 = HttpTask.jsonPath(json, 'data.0.b64_json');
     if (b64.isNotEmpty) return deliver(base64Decode(b64), 'png');
@@ -246,7 +257,8 @@ class OpenAiImageTask extends ImageTask {
     if (url.isEmpty) {
       final apiError = Http.extractApiError(response.body);
       throw ProviderException(
-          apiError.isEmpty ? tr('OpenAI returned no image.') : apiError);
+        apiError.isEmpty ? tr('OpenAI returned no image.') : apiError,
+      );
     }
     return deliverFromUrl(url, 'png');
   }
@@ -263,10 +275,10 @@ class OpenAiImageTask extends ImageTask {
 /// FLUX.2 takes pixels; FLUX.1 Kontext takes a ratio string. Both are here
 /// because the two generations are on the same key and the same host.
 ({int width, int height}) _fluxSize(String aspect) => switch (aspect) {
-      '16:9' => (width: 1536, height: 864),
-      '1:1' => (width: 1024, height: 1024),
-      _ => (width: 864, height: 1536),
-    };
+  '16:9' => (width: 1536, height: 864),
+  '1:1' => (width: 1024, height: 1024),
+  _ => (width: 864, height: 1536),
+};
 
 class BflImageTask extends ImageTask {
   BflImageTask(super.request);
@@ -277,9 +289,11 @@ class BflImageTask extends ImageTask {
 
     final headers = {'x-key': request.apiKey};
     final editing = request.referenceImageDataUri.isNotEmpty;
-    report(editing
-        ? tr('Building the opening frame from your product photo...')
-        : tr('Generating the opening frame with %1...').arg(request.model));
+    report(
+      editing
+          ? tr('Building the opening frame from your product photo...')
+          : tr('Generating the opening frame with %1...').arg(request.model),
+    );
 
     final body = <String, Object?>{'prompt': request.prompt};
 
@@ -291,8 +305,9 @@ class BflImageTask extends ImageTask {
       body['width'] = size.width;
       body['height'] = size.height;
     } else {
-      body['aspect_ratio'] =
-          request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio;
+      body['aspect_ratio'] = request.aspectRatio.isEmpty
+          ? '9:16'
+          : request.aspectRatio;
     }
 
     if (editing) {
@@ -310,7 +325,9 @@ class BflImageTask extends ImageTask {
 
     final pollingUrl = '${queued['polling_url'] ?? ''}';
     if (pollingUrl.isEmpty) {
-      throw ProviderException(tr('Black Forest Labs did not return a job handle.'));
+      throw ProviderException(
+        tr('Black Forest Labs did not return a job handle.'),
+      );
     }
 
     // The credits are quoted on the way in; one credit is one cent. Worth
@@ -331,7 +348,9 @@ class BflImageTask extends ImageTask {
       // saying which one it was is the difference between fixing the prompt and
       // fixing the photo.
       return PollVerdict(
-          PollState.failed, tr('FLUX reported status "%1".').arg(state));
+        PollState.failed,
+        tr('FLUX reported status "%1".').arg(state),
+      );
     });
 
     final url = HttpTask.jsonPath(finished, 'result.sample');
@@ -352,23 +371,26 @@ class SeedreamImageTask extends ImageTask {
   /// shape the storyboard asked for instead of whatever the model inferred from
   /// the prose. Both are inside ModelArk's published pixel and ratio bounds.
   String get _size => switch (request.aspectRatio) {
-        '16:9' => '2048x1152',
-        '1:1' => '1536x1536',
-        _ => '1152x2048',
-      };
+    '16:9' => '2048x1152',
+    '1:1' => '1536x1536',
+    _ => '1152x2048',
+  };
 
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'BytePlus');
 
     final editing = request.referenceImageDataUri.isNotEmpty;
-    report(editing
-        ? tr('Building the opening frame from your product photo...')
-        : tr('Generating the opening frame with %1...').arg(request.model));
+    report(
+      editing
+          ? tr('Building the opening frame from your product photo...')
+          : tr('Generating the opening frame with %1...').arg(request.model),
+    );
 
     final response = await postJson(
       Uri.parse(
-          'https://ark.ap-southeast.bytepluses.com/api/v3/images/generations'),
+        'https://ark.ap-southeast.bytepluses.com/api/v3/images/generations',
+      ),
       {
         'model': request.model,
         'prompt': request.prompt,
@@ -396,9 +418,11 @@ class SeedreamImageTask extends ImageTask {
       // A refused image comes back as an error object inside data[0] rather
       // than as an HTTP error, so the useful message is in there.
       final refusal = HttpTask.jsonPath(response, 'data.0.error.message');
-      throw ProviderException(refusal.isEmpty
-          ? tr('Seedream returned no image.')
-          : tr('Seedream returned no image: %1').arg(refusal));
+      throw ProviderException(
+        refusal.isEmpty
+            ? tr('Seedream returned no image.')
+            : tr('Seedream returned no image: %1').arg(refusal),
+      );
     }
     return deliverFromUrl(url, 'jpg');
   }
@@ -424,10 +448,10 @@ class IdeogramImageTask extends ImageTask {
 
   /// One of Ideogram's own enumerated sizes -- it rejects anything else.
   String get _resolution => switch (request.aspectRatio) {
-        '16:9' => '1344x768',
-        '1:1' => '1024x1024',
-        _ => '768x1344',
-      };
+    '16:9' => '1344x768',
+    '1:1' => '1024x1024',
+    _ => '768x1344',
+  };
 
   @override
   Future<Map<String, Object?>> execute() async {
@@ -452,17 +476,21 @@ class IdeogramImageTask extends ImageTask {
       );
       if (bytes.isNotEmpty) {
         final contentType = Http.mediaType(mimeType);
-        files.add(http.MultipartFile.fromBytes(
-          'style_reference_images',
-          bytes,
-          filename: 'reference.${contentType.subtype}',
-          contentType: contentType,
-        ));
+        files.add(
+          http.MultipartFile.fromBytes(
+            'style_reference_images',
+            bytes,
+            filename: 'reference.${contentType.subtype}',
+            contentType: contentType,
+          ),
+        );
       }
     }
 
     final response = await postMultipart(
-      Uri.parse('https://api.ideogram.ai/v1/ideogram-${model.version}/generate'),
+      Uri.parse(
+        'https://api.ideogram.ai/v1/ideogram-${model.version}/generate',
+      ),
       headers: {'Api-Key': request.apiKey},
       fields: {
         'prompt': request.prompt,
@@ -522,7 +550,9 @@ class IdeogramImageTask extends ImageTask {
     } on FormatException {
       decoded = null;
     }
-    final json = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+    final json = decoded is Map<String, dynamic>
+        ? decoded
+        : <String, dynamic>{};
 
     final url = HttpTask.jsonPath(json, 'data.0.url');
     if (url.isEmpty) {
@@ -544,9 +574,7 @@ class BriaImageTask extends ImageTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'Bria');
-    return request.model == 'increase_resolution'
-        ? _enlarge()
-        : _generate();
+    return request.model == 'increase_resolution' ? _enlarge() : _generate();
   }
 
   Future<Map<String, Object?>> _generate() async {
@@ -557,8 +585,9 @@ class BriaImageTask extends ImageTask {
       {
         'prompt': request.prompt,
         'model': request.model,
-        'aspect_ratio':
-            request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+        'aspect_ratio': request.aspectRatio.isEmpty
+            ? '9:16'
+            : request.aspectRatio,
         if (request.referenceImageDataUri.isNotEmpty)
           'images': [request.referenceImageDataUri],
       },
@@ -578,10 +607,7 @@ class BriaImageTask extends ImageTask {
     report(tr('Enlarging...'));
     final response = await postJson(
       Uri.parse('$_base/image/increase_resolution'),
-      {
-        'image_url': request.referenceImageDataUri,
-        'desired_increase': 2,
-      },
+      {'image_url': request.referenceImageDataUri, 'desired_increase': 2},
       headers: {'api_token': request.apiKey},
     );
 
@@ -606,22 +632,23 @@ class XaiImageTask extends ImageTask {
     requireKey(request.apiKey, 'xAI');
 
     final editing = request.referenceImageDataUri.isNotEmpty;
-    report(editing
-        ? tr('Building the opening frame from your product photo...')
-        : tr('Generating the opening frame with %1...').arg(request.model));
+    report(
+      editing
+          ? tr('Building the opening frame from your product photo...')
+          : tr('Generating the opening frame with %1...').arg(request.model),
+    );
 
     final response = await postJson(
-      Uri.parse(editing
-          ? 'https://api.x.ai/v1/images/edits'
-          : 'https://api.x.ai/v1/images/generations'),
+      Uri.parse(
+        editing
+            ? 'https://api.x.ai/v1/images/edits'
+            : 'https://api.x.ai/v1/images/generations',
+      ),
       {
         'model': request.model,
         'prompt': request.prompt,
         if (editing)
-          'image': {
-            'url': request.referenceImageDataUri,
-            'type': 'image_url',
-          },
+          'image': {'url': request.referenceImageDataUri, 'type': 'image_url'},
       },
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
     );

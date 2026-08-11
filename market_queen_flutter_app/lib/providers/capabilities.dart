@@ -120,7 +120,9 @@ class ModelCapabilities {
   bool get supportsAudio => audioField.isNotEmpty;
 
   bool get takesReferences =>
-      imagesField.isNotEmpty || videosField.isNotEmpty || audiosField.isNotEmpty;
+      imagesField.isNotEmpty ||
+      videosField.isNotEmpty ||
+      audiosField.isNotEmpty;
 
   /// Platform ceilings, applied on top of whatever a model declares. They live
   /// here rather than in the runner because the bar has to draw the same
@@ -135,10 +137,10 @@ class ModelCapabilities {
   static const maxAudioBytes = 15 * 1024 * 1024;
 
   ({int images, int videos, int audios}) get referenceLimits => (
-        images: _limit(imagesField, imagesMax, platformMaxImages),
-        videos: _limit(videosField, videosMax, platformMaxVideos),
-        audios: _limit(audiosField, audiosMax, platformMaxAudios),
-      );
+    images: _limit(imagesField, imagesMax, platformMaxImages),
+    videos: _limit(videosField, videosMax, platformMaxVideos),
+    audios: _limit(audiosField, audiosMax, platformMaxAudios),
+  );
 
   static int _limit(String field, int declared, int ceiling) {
     if (field.isEmpty) return 0;
@@ -187,26 +189,17 @@ class ModelCapabilities {
 
   /// Every length this model will accept, as tokens in its own spelling.
   ///
-  /// A fixed enum is returned as it stands. A range is turned into a ladder --
-  /// the useful lengths rather than all twenty-seven of them, because a menu
-  /// with an entry for every second between 4 and 30 is a menu nobody reads --
-  /// with the ends always included so the model's real ceiling is reachable.
-  /// That ceiling is the point: Seedance 2.5 runs to thirty seconds and the
-  /// studio was offering it five.
+  /// A range is expanded one second at a time so every supported duration
+  /// is available in the menu.
   List<String> get durationChoices {
     if (durations.isNotEmpty) return durations;
     if (durationMax <= 0) return const [];
 
-    const ladder = [3, 4, 5, 6, 8, 10, 12, 15, 20, 25, 30];
-    final choices = <int>{
-      durationMin > 0 ? durationMin : ladder.first,
-      for (final step in ladder)
-        if (step >= durationMin && step <= durationMax) step,
-      durationMax,
-    }.where((seconds) => seconds >= durationMin && seconds <= durationMax).toList()
-      ..sort();
+    final min = durationMin > 0 ? durationMin : 1;
 
-    return [for (final seconds in choices) '$seconds'];
+    return [
+      for (var seconds = min; seconds <= durationMax; seconds++) '$seconds',
+    ];
   }
 
   /// The token closest to [seconds] that this model will accept.
@@ -253,8 +246,8 @@ class ModelCapabilities {
   String get firstResolution => resolutions.isEmpty
       ? ''
       : (resolutions.contains(defaultResolution)
-          ? defaultResolution
-          : resolutions.first);
+            ? defaultResolution
+            : resolutions.first);
 
   /// Everything this model wants for one clip, in its own spelling.
   ///
@@ -270,8 +263,9 @@ class ModelCapabilities {
 
     final token = durationFor(seconds);
     if (token.isNotEmpty) {
-      input['duration'] =
-          durationIsNumber || durations.isEmpty ? secondsOf(token) : token;
+      input['duration'] = durationIsNumber || durations.isEmpty
+          ? secondsOf(token)
+          : token;
     }
     if (resolutions.contains(resolution)) {
       input['resolution'] = resolution;
@@ -294,29 +288,29 @@ class ModelCapabilities {
   static const cacheVersion = 4;
 
   Map<String, Object?> toJson() => {
-        'v': cacheVersion,
-        'durations': durations,
-        'defaultDuration': defaultDuration,
-        'durationIsNumber': durationIsNumber,
-        'resolutions': resolutions,
-        'defaultResolution': defaultResolution,
-        'aspectRatios': aspectRatios,
-        'audioField': audioField,
-        'defaultAudio': defaultAudio,
-        'imageField': imageField,
-        'imagesField': imagesField,
-        'videosField': videosField,
-        'audiosField': audiosField,
-        'imagesMax': imagesMax,
-        'videosMax': videosMax,
-        'audiosMax': audiosMax,
-      };
+    'v': cacheVersion,
+    'durations': durations,
+    'defaultDuration': defaultDuration,
+    'durationIsNumber': durationIsNumber,
+    'resolutions': resolutions,
+    'defaultResolution': defaultResolution,
+    'aspectRatios': aspectRatios,
+    'audioField': audioField,
+    'defaultAudio': defaultAudio,
+    'imageField': imageField,
+    'imagesField': imagesField,
+    'videosField': videosField,
+    'audiosField': audiosField,
+    'imagesMax': imagesMax,
+    'videosMax': videosMax,
+    'audiosMax': audiosMax,
+  };
 
   factory ModelCapabilities.fromJson(Map<String, Object?> json) {
     List<String> list(Object? value) => [
-          if (value is List)
-            for (final entry in value) '$entry',
-        ];
+      if (value is List)
+        for (final entry in value) '$entry',
+    ];
 
     final imagesField = '${json['imagesField'] ?? ''}';
     final videosField = '${json['videosField'] ?? ''}';
