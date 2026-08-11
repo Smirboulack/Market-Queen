@@ -8,18 +8,20 @@ import 'icons.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 import 'widgets/cards.dart';
+import 'widgets/key_field.dart';
 
-/// Which models the composer is allowed to offer.
+/// Where the app is configured: five panels, one per kind of generation.
 ///
-/// This page used to name a default for each kind of generation, which was the
-/// wrong job in the wrong place: the model is a property of the thing you are
-/// making, so choosing it belongs next to the prompt, and it now lives in the
-/// composer's settings column.
+/// This used to be two screens that never referred to each other -- a wall of
+/// API key fields in Settings, and a wall of model names here -- and nothing on
+/// either said which key unlocked which model. That is not knowable by looking:
+/// one OpenAI key covers the writer, the stills, Sora and the voice-over, while
+/// LTX's covers a single row of one panel.
 ///
-/// What was left is the real problem the catalogue has -- it is a hundred and
-/// twenty entries deep and most of it is last year's. So this is a shortlist
-/// now. Switch off what you will never use and the menu you actually pick from
-/// gets short enough to read.
+/// So a panel is now the whole answer for one kind of generation: the providers
+/// that do it, the key each one needs, and which of its models the composer may
+/// offer. Providers are filtered by what they actually do, so nobody scrolls
+/// past a video house looking for somewhere to write a script.
 ///
 /// Everything is on by default, and a model added in a future release arrives
 /// switched on, because the stored setting is the *hidden* set.
@@ -27,33 +29,6 @@ class ModelsPage extends StatelessWidget {
   const ModelsPage({super.key, required this.app});
 
   final AppState app;
-
-  /// The shelves, in the order they matter to somebody making an ad.
-  static const List<({String id, String title, String subtitle})> _categories = [
-    (
-      id: 'avatar',
-      title: 'Talking actors',
-      subtitle: 'Lip-sync a face to the voice-over.',
-    ),
-    (
-      id: 'video',
-      title: 'Video',
-      subtitle: 'Animate a still, or shoot from a prompt.',
-    ),
-    (id: 'image', title: 'Image', subtitle: 'Stills, actors and scenes.'),
-    (id: 'voice', title: 'Voice', subtitle: 'Who reads your script.'),
-    (
-      id: 'upscale',
-      title: 'Enlarge',
-      subtitle: 'Blow a picture from the canvas up.',
-    ),
-    (
-      id: 'text',
-      title: 'Writing',
-      subtitle: 'The helpers that rework a script. Nothing writes your ad '
-          'unless you ask it to.',
-    ),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -69,13 +44,14 @@ class ModelsPage extends StatelessWidget {
             PageHeader(
               title: tr('Models'),
               subtitle: tr(
-                'Everything the app can call. Switch off what you never use '
-                'and it stops appearing in the composer.',
+                'Pick a provider, paste its key, tick what you want from it. '
+                'Keys are encrypted on this machine and sent only to the '
+                'provider they belong to.',
               ),
             ),
             const SizedBox(height: MqTheme.gapLarge),
-            for (final category in _categories) ...[
-              _CategoryCard(app: app, category: category),
+            for (final panel in Registry.panels) ...[
+              _Panel(app: app, panel: panel),
               const SizedBox(height: MqTheme.gapLarge),
             ],
           ],
@@ -85,21 +61,29 @@ class ModelsPage extends StatelessWidget {
   }
 }
 
-class _CategoryCard extends StatelessWidget {
-  const _CategoryCard({required this.app, required this.category});
+class _Panel extends StatelessWidget {
+  const _Panel({required this.app, required this.panel});
 
   final AppState app;
-  final ({String id, String title, String subtitle}) category;
+  final PanelEntry panel;
 
   @override
   Widget build(BuildContext context) {
-    final providers = app.registry.providers(category.id);
+    final providers = app.registry.providersForPanel(panel.id);
     if (providers.isEmpty) return const SizedBox.shrink();
 
+    final credentials = app.registry.credentialsForPanel(panel.id);
+
     return SectionCard(
-      title: tr(category.title),
-      subtitle: tr(category.subtitle),
+      title: tr(panel.title),
+      subtitle: tr(panel.subtitle),
       children: [
+        // Keys first, models second: a panel reads top to bottom as the order
+        // the work is done in. A key that also unlocks another panel is drawn
+        // in both, editing the one stored value.
+        for (final credential in credentials)
+          KeyField(app: app, credential: credential),
+        if (credentials.isNotEmpty) const SizedBox(height: 2),
         for (final provider in providers)
           _ProviderBlock(app: app, provider: provider),
       ],
@@ -146,7 +130,8 @@ class _ProviderBlock extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               // Not an error: a provider whose key is missing is still worth
-              // shortlisting, and Settings is one click away.
+              // shortlisting, and the field for it is a few lines up this same
+              // panel now rather than on another screen.
               if (keyMissing)
                 Text(
                   tr('no API key'),

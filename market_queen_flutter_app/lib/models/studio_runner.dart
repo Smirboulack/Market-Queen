@@ -148,13 +148,10 @@ class StudioRunner extends ChangeNotifier {
 
   /// The provider the composer's settings column currently names for a
   /// category, falling back to the first one the registry lists.
-  String providerFor(String category) {
-    final saved = _settings.prefString('${category}Provider');
-    final known = _registry
-        .providers(category)
-        .any((provider) => provider.id == saved);
-    return known ? saved : _registry.defaultProvider(category);
-  }
+  String providerFor(String category) => _registry.providerOrDefault(
+        category,
+        _settings.prefString('${category}Provider'),
+      );
 
   /// The model id it names, with "auto" already resolved into something real.
   String modelFor(String category, [int seconds = 0]) {

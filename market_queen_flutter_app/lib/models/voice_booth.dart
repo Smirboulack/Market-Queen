@@ -87,8 +87,8 @@ class VoiceBooth extends ChangeNotifier {
 
   /// What one audition of [text] costs.
   CostEstimate estimate(String text) {
-    var providerId = _settings.prefString('voiceProvider');
-    if (providerId.isEmpty) providerId = _registry.defaultProvider('voice');
+    final providerId = _registry.providerOrDefault(
+        'voice', _settings.prefString('voiceProvider'));
 
     final model =
         _registry.resolveModel(providerId, _settings.prefString('voiceModel'));
@@ -120,8 +120,8 @@ class VoiceBooth extends ChangeNotifier {
       return;
     }
 
-    var providerId = _settings.prefString('voiceProvider');
-    if (providerId.isEmpty) providerId = _registry.defaultProvider('voice');
+    final providerId = _registry.providerOrDefault(
+        'voice', _settings.prefString('voiceProvider'));
 
     final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
     final model =

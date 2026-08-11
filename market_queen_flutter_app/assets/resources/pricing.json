@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-08-10",
+  "updated": "2026-08-11",
   "currency": "USD",
   "_comment": [
     "What each model costs, keyed by the model id the providers actually send.",
-    "Every id in src/providers/Registry.cpp must appear here, either with a price",
-    "or with \"unknown\": true -- tools/check_pricing.py fails the build otherwise.",
+    "Every id in lib/providers/registry.dart should appear here, either with a",
+    "price or with \"unknown\": true. Nothing is ever guessed: a model with no",
+    "published per-request price is marked unknown and left out of the total,",
+    "which is reported to the user rather than hidden.",
     "",
     "unit: tokens  -> in/out are dollars per 1M tokens",
     "      image   -> amount is dollars per generated image",
@@ -17,10 +19,18 @@
     "",
     "approx: the published price depends on resolution, quality or plan, and the",
     "        number here is one representative point. Shown with a ~ in the UI.",
+    "        Every video price below is quoted at the resolution the tasks",
+    "        actually request -- 720p -- because that is what will be billed.",
     "unknown: no public per-request price, or not checked yet. Excluded from the",
-    "         total and reported as such -- never guessed."
+    "         total and reported as such -- never guessed.",
+    "",
+    "Full working, with the source URL behind every number:",
+    "docs/audit-fournisseurs-api.md"
   ],
   "models": {
+
+    "_comment_writers": "---- LLM ----",
+
     "gpt-5.6-terra": {
       "unit": "tokens",
       "in": 2.0,
@@ -45,100 +55,22 @@
       "out": 30.0,
       "source": "https://developers.openai.com/api/docs/pricing"
     },
-    "gpt-5.4": {
+
+    "claude-sonnet-5": { "unit": "tokens", "in": 2.0, "out": 10.0 },
+    "claude-opus-5": { "unit": "tokens", "in": 5.0, "out": 25.0 },
+    "claude-fable-5": { "unit": "tokens", "in": 10.0, "out": 50.0 },
+    "claude-haiku-4-5-20251001": { "unit": "tokens", "in": 1.0, "out": 5.0 },
+
+    "gemini-3.6-flash": {
       "unit": "tokens",
-      "in": 2.5,
-      "out": 15.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-5.2": {
-      "unit": "tokens",
-      "in": 1.75,
-      "out": 14.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-5.1": {
-      "unit": "tokens",
-      "in": 1.25,
-      "out": 10.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-5": {
-      "unit": "tokens",
-      "in": 1.25,
-      "out": 10.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-5-mini": {
-      "unit": "tokens",
-      "in": 0.25,
-      "out": 2.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-5-nano": {
-      "unit": "tokens",
-      "in": 0.05,
-      "out": 0.4,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-4.1": {
-      "unit": "tokens",
-      "in": 2.0,
-      "out": 8.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-4o": {
-      "unit": "tokens",
-      "in": 2.5,
-      "out": 10.0,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-4o-mini": {
-      "unit": "tokens",
-      "in": 0.15,
-      "out": 0.6,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "claude-sonnet-5": {
-      "unit": "tokens",
-      "in": 2.0,
-      "out": 10.0,
-      "source": "https://platform.claude.com/docs/en/about-claude/pricing"
-    },
-    "claude-opus-5": {
-      "unit": "tokens",
-      "in": 5.0,
-      "out": 25.0,
-      "source": "https://claude.com/pricing"
-    },
-    "claude-fable-5": {
-      "unit": "tokens",
-      "in": 10.0,
-      "out": 50.0,
-      "source": "https://claude.com/pricing"
-    },
-    "claude-opus-4-8": {
-      "unit": "tokens",
-      "in": 5.0,
-      "out": 25.0,
-      "source": "https://claude.com/pricing"
-    },
-    "claude-haiku-4-5-20251001": {
-      "unit": "tokens",
-      "in": 1.0,
-      "out": 5.0,
-      "source": "https://claude.com/pricing"
+      "in": 1.5,
+      "out": 7.5,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
     "gemini-3.5-flash": {
       "unit": "tokens",
       "in": 1.5,
       "out": 9.0,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "gemini-3.6-flash": {
-      "unit": "tokens",
-      "in": 1.5,
-      "out": 7.5,
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
     "gemini-3.5-flash-lite": {
@@ -147,440 +79,266 @@
       "out": 2.5,
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "gemini-3.1-pro-preview": {
-      "unit": "tokens",
-      "in": 2.0,
-      "out": 12.0,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing",
-      "approx": true
-    },
     "gemini-3.1-flash-lite": {
       "unit": "tokens",
       "in": 0.25,
       "out": 1.5,
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
+    "gemini-3.1-pro-preview": {
+      "unknown": true,
+      "_note": "Preview. Not on the published pricing table."
+    },
     "gemini-2.5-pro": {
       "unit": "tokens",
       "in": 1.25,
       "out": 10.0,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing",
-      "approx": true
+      "approx": true,
+      "_note": "Doubles above a 200k-token prompt.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "gemini-2.5-flash": {
+
+    "grok-4.5": {
+      "unit": "tokens",
+      "in": 2.0,
+      "out": 6.0,
+      "approx": true,
+      "_note": "Doubles above a 200k-token prompt.",
+      "source": "https://docs.x.ai/developers/pricing"
+    },
+    "grok-4.3": {
+      "unit": "tokens",
+      "in": 1.25,
+      "out": 2.5,
+      "approx": true,
+      "_note": "Doubles above a 200k-token prompt.",
+      "source": "https://docs.x.ai/developers/pricing"
+    },
+
+    "MiniMax-M3": {
       "unit": "tokens",
       "in": 0.3,
-      "out": 2.5,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+      "out": 1.2,
+      "approx": true,
+      "_note": "Doubles above 512k tokens. Rate shown is the current 50% offer.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "gemini-2.5-flash-lite": {
+    "MiniMax-M2.7": {
       "unit": "tokens",
-      "in": 0.1,
-      "out": 0.4,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+      "in": 0.3,
+      "out": 1.2,
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "gemini-2.0-flash": {
-      "unit": "tokens",
-      "in": 0.1,
-      "out": 0.4,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "fal-ai/nano-banana/edit": {
-      "unit": "image",
-      "amount": 0.0398,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/nano-banana-2/edit": {
-      "unit": "image",
-      "amount": 0.08,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/nano-banana-pro/edit": {
-      "unit": "image",
-      "amount": 0.15,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/nano-banana": {
-      "unit": "image",
-      "amount": 0.0398,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/flux-2-pro/edit": {
-      "unit": "image",
-      "amount": 0.054,
-      "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/flux-2-flex/edit": {
-      "unit": "image",
-      "amount": 0.09,
-      "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/bytedance/seedream/v5/lite/edit": {
-      "unit": "image",
-      "amount": 0.035,
-      "source": "https://fal.ai/models/fal-ai/bytedance/seedream/v5/lite/edit"
-    },
-    "openai/gpt-image-2/edit": {
-      "unit": "image",
-      "amount": 0.219,
-      "approx": true,
-      "source": "https://fal.ai/models/openai/gpt-image-2/edit"
-    },
-    "xai/grok-imagine-image/quality/edit": {
-      "unit": "image",
+
+    "_comment_actors": "---- Talking actors ----",
+
+    "avatar_iv": {
+      "unit": "second",
       "amount": 0.05,
       "approx": true,
-      "source": "https://fal.ai/models/xai/grok-imagine-image/quality/edit"
+      "_note": "Photo avatar. A registered digital twin is 0.0667/s.",
+      "source": "https://developers.heygen.com/docs/pricing"
     },
-    "fal-ai/flux-pro/v1.1-ultra": {
-      "unit": "image",
-      "amount": 0.06,
-      "source": "https://api.fal.ai/v1/models/pricing"
+    "avatar_v": {
+      "unit": "second",
+      "amount": 0.0667,
+      "source": "https://developers.heygen.com/docs/pricing"
     },
-    "fal-ai/flux-pro/kontext": {
-      "unit": "image",
-      "amount": 0.04,
-      "source": "https://api.fal.ai/v1/models/pricing"
+    "avatar_iii": {
+      "unit": "second",
+      "amount": 0.0167,
+      "approx": true,
+      "_note": "Digital twin and studio avatar. Photo avatar is 0.0433/s.",
+      "source": "https://developers.heygen.com/docs/pricing"
     },
-    "fal-ai/flux/dev": {
+    "fal-ai/kling-video/ai-avatar/v2/standard": { "unit": "second", "amount": 0.0562 },
+    "fal-ai/kling-video/ai-avatar/v2/pro": { "unit": "second", "amount": 0.115 },
+
+    "_comment_images": "---- Images ----",
+
+    "gemini-3.1-flash-image": {
       "unit": "image",
       "amount": 0.045,
       "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "_note": "0.045 to 0.151 by resolution.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "fal-ai/flux/schnell": {
+    "gemini-3.1-flash-lite-image": { "unit": "image", "amount": 0.0336, "approx": true },
+    "gemini-3-pro-image": { "unknown": true },
+    "gemini-2.5-flash-image": {
       "unit": "image",
-      "amount": 0.0054,
+      "amount": 0.039,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+
+    "flux-2-pro": {
+      "unit": "image",
+      "amount": 0.045,
       "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "_note": "From 0.03/MP; 0.045 is a 1.3MP vertical frame, editing.",
+      "source": "https://docs.bfl.ai/quick_start/pricing"
     },
-    "fal-ai/bytedance/seedream/v4/text-to-image": {
-      "unit": "image",
-      "amount": 0.03,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/imagen4/preview": {
-      "unknown": true
-    },
-    "fal-ai/ideogram/v3": {
-      "unit": "image",
-      "amount": 0.03,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/recraft-v3": {
-      "unknown": true
-    },
-    "fal-ai/qwen-image": {
-      "unit": "image",
-      "amount": 0.036,
-      "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "gpt-image-2": {
-      "unknown": true
-    },
-    "gpt-image-1.5": {
-      "unknown": true
-    },
-    "gpt-image-1": {
-      "unit": "image",
-      "amount": 0.042,
-      "approx": true,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "gpt-image-1-mini": {
-      "unknown": true
-    },
-    "dall-e-3": {
+    "flux-2-flex": { "unit": "image", "amount": 0.05, "approx": true },
+    "flux-2-max": { "unit": "image", "amount": 0.07, "approx": true },
+    "flux-2-klein-9b": { "unit": "image", "amount": 0.015, "approx": true },
+    "flux-2-klein-4b": { "unit": "image", "amount": 0.014, "approx": true },
+    "flux-kontext-pro": {
       "unit": "image",
       "amount": 0.04,
-      "approx": true,
-      "source": "https://developers.openai.com/api/docs/pricing"
+      "source": "https://docs.bfl.ai/quick_start/pricing"
     },
-    "google/nano-banana-2": {
-      "unknown": true
+
+    "seedream-4-5-251128": {
+      "unit": "image",
+      "amount": 0.04,
+      "source": "https://docs.byteplus.com/en/docs/ModelArk/1544106"
     },
-    "google/nano-banana-pro": {
-      "unknown": true
-    },
-    "google/nano-banana": {
-      "unknown": true
-    },
-    "openai/gpt-image-2": {
+    "seedream-5-0-lite-260128": { "unit": "image", "amount": 0.035 },
+    "seedream-5-0-260128": {
       "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "_note": "Only the Lite and Pro variants are on the pricing table."
     },
-    "openai/gpt-image-1.5": {
-      "unknown": true
+    "dola-seedream-5-0-pro-260628": {
+      "unit": "image",
+      "amount": 0.045,
+      "approx": true,
+      "_note": "0.09 above 2.61 megapixels.",
+      "source": "https://docs.byteplus.com/en/docs/ModelArk/1544106"
     },
-    "black-forest-labs/flux-2-pro": {
-      "unknown": true
+    "seededit-3-0-i2i-250628": { "unit": "image", "amount": 0.03 },
+
+    "gpt-image-2": {
+      "unknown": true,
+      "_note": "Billed per token, not per image; no per-image figure published."
     },
-    "black-forest-labs/flux-2-flex": {
-      "unknown": true
+    "gpt-image-1.5": { "unknown": true, "_note": "Billed per token." },
+    "gpt-image-1-mini": { "unknown": true, "_note": "Billed per token." },
+
+    "ideogram-v3:TURBO": {
+      "unit": "image",
+      "amount": 0.03,
+      "source": "https://ideogram.ai/api-pricing"
     },
-    "black-forest-labs/flux-2-max": {
-      "unknown": true
+    "ideogram-v3:DEFAULT": { "unit": "image", "amount": 0.06 },
+    "ideogram-v3:QUALITY": { "unit": "image", "amount": 0.09 },
+    "ideogram-v4:TURBO": { "unit": "image", "amount": 0.03 },
+    "ideogram-v4:DEFAULT": { "unit": "image", "amount": 0.06 },
+    "ideogram-v4:QUALITY": { "unit": "image", "amount": 0.1 },
+
+    "fibo": {
+      "unit": "image",
+      "amount": 0.03,
+      "source": "https://bria.ai/pricing"
     },
-    "bytedance/seedream-4.5": {
-      "unknown": true
-    },
-    "bytedance/seedream-5-lite": {
-      "unknown": true
-    },
-    "xai/grok-imagine-image": {
+    "fibo-lite": { "unit": "image", "amount": 0.02 },
+
+    "grok-imagine-image": {
       "unit": "image",
       "amount": 0.02,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "source": "https://docs.x.ai/developers/pricing"
     },
-    "google/imagen-4-ultra": {
-      "unknown": true
-    },
-    "google/imagen-4-fast": {
-      "unknown": true
-    },
-    "recraft-ai/recraft-v4": {
-      "unknown": true
-    },
-    "wan-video/wan-2.7-image": {
-      "unknown": true
-    },
-    "black-forest-labs/flux-1.1-pro-ultra": {
-      "unknown": true
-    },
-    "black-forest-labs/flux-kontext-pro": {
-      "unknown": true
-    },
-    "black-forest-labs/flux-schnell": {
+    "grok-imagine-image-quality": { "unit": "image", "amount": 0.05 },
+
+    "_comment_upscale": "---- Enlarging ----",
+
+    "increase_resolution": {
       "unit": "image",
-      "amount": 0.003,
-      "source": "https://replicate.com/pricing"
+      "amount": 0.02,
+      "source": "https://bria.ai/pricing"
     },
-    "bytedance/seedream-4": {
-      "unknown": true
-    },
-    "google/imagen-4": {
-      "unknown": true
-    },
-    "ideogram-ai/ideogram-v3-turbo": {
-      "unknown": true
-    },
-    "recraft-ai/recraft-v3": {
+    "upscale": {
       "unit": "image",
+      "amount": 0.06,
+      "source": "https://ideogram.ai/api-pricing"
+    },
+
+    "_comment_video": "---- Video, all quoted at 720p ----",
+
+    "ltx-2-3-fast": {
+      "unit": "second",
+      "amount": 0.03,
+      "source": "https://docs.ltx.io/pricing"
+    },
+    "ltx-2-3-pro": {
+      "unit": "second",
       "amount": 0.04,
-      "source": "https://replicate.com/pricing"
+      "source": "https://docs.ltx.io/pricing"
     },
-    "stability-ai/stable-diffusion-3.5-large": {
-      "unknown": true
-    },
-    "fal-ai/kling-video/ai-avatar/v2/standard": {
+    "ltx-2-5-fast": { "unit": "second", "amount": 0.09 },
+    "ltx-2-5-pro": { "unit": "second", "amount": 0.12 },
+
+    "_comment_seedance": [
+      "Seedance is billed per output token, not per second. These figures are",
+      "BytePlus's own formula evaluated for what the task actually asks for:",
+      "tokens = width x height x fps / 1024 per second of output, so at 720p",
+      "and 24fps that is 21,600 tokens a second, and dollars-per-second is the",
+      "published rate per million times 0.0216. The formula reproduces the",
+      "worked examples on the pricing page exactly, which is why these are",
+      "listed rather than marked unknown. List prices, not the promotion that",
+      "ends 7 September 2026. Anything with a reference video costs more and",
+      "has a token floor -- hence approx.",
+      "https://docs.byteplus.com/en/docs/ModelArk/1544106"
+    ],
+    "dreamina-seedance-2-0-mini-260615": {
       "unit": "second",
-      "amount": 0.0562,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.0756,
+      "approx": true
     },
-    "fal-ai/kling-video/ai-avatar/v2/pro": {
+    "dreamina-seedance-2-0-fast-260128": {
       "unit": "second",
-      "amount": 0.115,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.121,
+      "approx": true
     },
-    "veed/fabric-1.0": {
+    "dreamina-seedance-2-0-260128": {
       "unit": "second",
-      "amount": 0.08,
-      "source": "https://fal.ai/models/veed/fabric-1.0"
+      "amount": 0.1512,
+      "approx": true
     },
-    "fal-ai/infinitalk": {
+    "dreamina-seedance-2-5-260628": {
       "unit": "second",
-      "amount": 0.2,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.2311,
+      "approx": true
     },
-    "fal-ai/kling-video/v3/standard/image-to-video": {
+    "seedance-1-5-pro-251215": {
       "unit": "second",
-      "amount": 0.14,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.0259,
+      "approx": true,
+      "_note": "Silent. Doubles with audio."
     },
-    "fal-ai/kling-video/v3/pro/image-to-video": {
+
+    "veo-3.1-fast-generate-preview": {
       "unit": "second",
-      "amount": 0.14,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.1,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "fal-ai/kling-video/v3/turbo/pro/image-to-video": {
-      "unit": "second",
-      "amount": 0.14,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/kling-video/v3/4k/image-to-video": {
-      "unit": "second",
-      "amount": 0.42,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/kling-video/o3/standard/image-to-video": {
-      "unit": "second",
-      "amount": 0.14,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/veo3.1/lite/image-to-video": {
-      "unit": "second",
-      "amount": 0.05,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/veo3.1/fast/image-to-video": {
-      "unit": "second",
-      "amount": 0.15,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/veo3.1/image-to-video": {
+    "veo-3.1-generate-preview": {
       "unit": "second",
       "amount": 0.4,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "wan/v2.6/image-to-video": {
+
+    "MiniMax-H3": {
       "unit": "second",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "wan/v2.6/image-to-video/flash": {
-      "unit": "second",
-      "amount": 0.05,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/wan/v2.7/image-to-video": {
-      "unit": "second",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "bytedance/seedance-2.0/image-to-video": {
-      "unit": "second",
-      "amount": 0.3034,
+      "amount": 0.08,
       "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.0/image-to-video"
+      "_note": "768P output. 2K is 0.13/s. Reference images beyond the first five are 0.04 each.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/minimax/hailuo-2.3/standard/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/minimax/hailuo-2.3/pro/image-to-video": {
+    "MiniMax-Hailuo-2.3": {
       "unit": "video",
-      "amount": 0.49,
-      "source": "https://fal.ai/models/fal-ai/minimax/hailuo-2.3/pro/image-to-video"
-    },
-    "fal-ai/decart/lucy-5b/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/kling-video/v2.1/master/image-to-video": {
-      "unit": "second",
       "amount": 0.28,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/veo3/image-to-video": {
-      "unit": "second",
-      "amount": 0.2,
-      "source": "https://fal.ai/models/fal-ai/veo3/image-to-video"
-    },
-    "fal-ai/bytedance/seedance/v1/pro/image-to-video": {
-      "unit": "second",
-      "amount": 0.124,
       "approx": true,
-      "source": "https://fal.ai/models/fal-ai/bytedance/seedance/v1/pro/image-to-video"
+      "_note": "768P, 6s. 10s is 0.56, 1080p 6s is 0.49.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "fal-ai/bytedance/seedance/v1/lite/image-to-video": {
-      "unknown": true
-    },
-    "fal-ai/minimax/hailuo-02/pro/image-to-video": {
-      "unit": "second",
-      "amount": 0.08,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/minimax/hailuo-02/standard/image-to-video": {
-      "unit": "second",
-      "amount": 0.045,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/runway-gen3/turbo/image-to-video": {
-      "unknown": true
-    },
-    "fal-ai/luma-dream-machine/ray-2/image-to-video": {
-      "unit": "second",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/wan/v2.2-a14b/image-to-video": {
-      "unit": "second",
-      "amount": 0.08,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/pika/v2.2/image-to-video": {
+    "MiniMax-Hailuo-2.3-Fast": {
       "unit": "video",
-      "amount": 0.2,
-      "source": "https://api.fal.ai/v1/models/pricing"
+      "amount": 0.19,
+      "approx": true,
+      "_note": "768P, 6s. 10s is 0.32, 1080p 6s is 0.33.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "fal-ai/pixverse/v4.5/image-to-video": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "kwaivgi/kling-v3-video": {
-      "unknown": true
-    },
-    "kwaivgi/kling-v3-omni-video": {
-      "unknown": true
-    },
-    "google/veo-3.1-fast": {
-      "unknown": true
-    },
-    "bytedance/seedance-2.0": {
-      "unknown": true
-    },
-    "wan-video/wan-2.7-i2v": {
-      "unknown": true
-    },
-    "minimax/hailuo-2.3-fast": {
-      "unknown": true
-    },
-    "alibaba/happyhorse-1.1": {
-      "unknown": true
-    },
-    "alibaba/happyhorse-1.0": {
-      "unknown": true
-    },
-    "xai/grok-imagine-video": {
-      "unknown": true
-    },
-    "luma/ray-3.2": {
-      "unknown": true
-    },
-    "vidu/q3-pro": {
-      "unknown": true
-    },
-    "prunaai/p-video": {
-      "unknown": true
-    },
-    "kwaivgi/kling-v2.1": {
-      "unknown": true
-    },
-    "google/veo-3": {
-      "unknown": true
-    },
-    "bytedance/seedance-1-pro": {
-      "unknown": true
-    },
-    "bytedance/seedance-1-lite": {
-      "unknown": true
-    },
-    "minimax/hailuo-02": {
-      "unknown": true
-    },
-    "wan-video/wan-2.2-i2v-fast": {
-      "unknown": true
-    },
-    "pixverse/pixverse-v4.5": {
-      "unknown": true
-    },
+
     "sora-2": {
       "unit": "second",
       "amount": 0.1,
@@ -590,188 +348,61 @@
       "unit": "second",
       "amount": 0.3,
       "approx": true,
+      "_note": "720p. 1080p is 0.70/s.",
       "source": "https://developers.openai.com/api/docs/pricing"
     },
+
+    "grok-imagine-video": {
+      "unit": "second",
+      "amount": 0.05,
+      "source": "https://docs.x.ai/developers/pricing"
+    },
+    "grok-imagine-video-1.5": { "unit": "second", "amount": 0.08 },
+
+    "ray-2": {
+      "unknown": true,
+      "_note": "Luma publishes prices for Ray3.2, but ray-2 and ray-flash-2 are the only ids its API reference accepts, and no price is given for them."
+    },
+    "ray-flash-2": { "unknown": true },
+
+    "fal-ai/kling-video/v3/standard/image-to-video": { "unit": "second", "amount": 0.14 },
+    "fal-ai/kling-video/v3/pro/image-to-video": { "unit": "second", "amount": 0.14 },
+    "fal-ai/kling-video/v3/4k/image-to-video": { "unit": "second", "amount": 0.42 },
+    "fal-ai/kling-video/o3/standard/image-to-video": { "unit": "second", "amount": 0.14 },
+
+    "_comment_voice": "---- Voice ----",
+
     "eleven_v3": {
       "unit": "kchars",
       "amount": 0.1,
       "source": "https://elevenlabs.io/pricing/api"
     },
-    "eleven_multilingual_v2": {
-      "unit": "kchars",
-      "amount": 0.1,
-      "source": "https://elevenlabs.io/pricing/api"
+    "eleven_multilingual_v2": { "unit": "kchars", "amount": 0.1 },
+    "eleven_flash_v2_5": { "unit": "kchars", "amount": 0.05 },
+
+    "speech-2.8-hd": {
+      "unknown": true,
+      "_note": "MiniMax publishes speech only as monthly audio-point tiers, with no per-character rate."
     },
-    "eleven_turbo_v2_5": {
-      "unit": "kchars",
-      "amount": 0.05,
-      "source": "https://elevenlabs.io/pricing/api"
+    "speech-2.8-turbo": { "unknown": true },
+
+    "gemini-2.5-flash-preview-tts": {
+      "unknown": true,
+      "_note": "Billed per output audio token (10.00/M), which has no published characters-per-token ratio to convert from."
     },
-    "eleven_flash_v2_5": {
-      "unit": "kchars",
-      "amount": 0.05,
-      "source": "https://elevenlabs.io/pricing/api"
-    },
-    "gpt-4o-mini-tts": {
-      "unit": "kchars",
-      "amount": 0.017,
-      "approx": true,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "tts-1-hd": {
-      "unit": "kchars",
-      "amount": 0.03,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "tts-1": {
-      "unit": "kchars",
-      "amount": 0.015,
-      "source": "https://developers.openai.com/api/docs/pricing"
-    },
-    "fal-ai/elevenlabs/tts/eleven-v3": {
-      "unit": "kchars",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/minimax/speech-02-hd": {
-      "unit": "kchars",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/minimax/speech-02-turbo": {
-      "unit": "kchars",
-      "amount": 0.06,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/elevenlabs/tts/multilingual-v2": {
-      "unit": "kchars",
-      "amount": 0.1,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/elevenlabs/tts/turbo-v2.5": {
-      "unit": "kchars",
-      "amount": 0.05,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/kokoro/american-english": {
-      "unit": "kchars",
-      "amount": 0.02,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/chatterbox/text-to-speech": {
-      "unit": "kchars",
-      "amount": 0.025,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
+    "gemini-2.5-pro-preview-tts": { "unknown": true },
+
+    "gpt-4o-mini-tts": { "unit": "kchars", "amount": 0.017, "approx": true },
+    "tts-1-hd": { "unit": "kchars", "amount": 0.03 },
+
+    "_comment_captions": "---- Subtitles ----",
+
     "whisper-1": {
       "unit": "minute",
       "amount": 0.006,
       "source": "https://developers.openai.com/api/docs/pricing"
     },
-    "whisper-large-v3-turbo": {
-      "unit": "minute",
-      "amount": 0.00067,
-      "minUnits": 0.167,
-      "source": "https://console.groq.com/docs/speech-to-text"
-    },
-    "whisper-large-v3": {
-      "unit": "minute",
-      "amount": 0.00185,
-      "minUnits": 0.167,
-      "source": "https://console.groq.com/docs/speech-to-text"
-    },
-    "gemini-3.1-flash-image": {
-      "unit": "image",
-      "amount": 0.067,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "gemini-3.1-flash-lite-image": {
-      "unit": "image",
-      "amount": 0.0336,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "gemini-3-pro-image": {
-      "unknown": true,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "gemini-2.5-flash-image": {
-      "unknown": true,
-      "source": "https://ai.google.dev/gemini-api/docs/pricing"
-    },
-    "bytedance/seedream/v5/lite/edit": {
-      "unit": "image",
-      "amount": 0.035,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "bytedance/seedream/v5/pro/edit": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/recraft/v4/text-to-image": {
-      "unit": "image",
-      "amount": 0.04,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/recraft/v3/text-to-image": {
-      "unit": "image",
-      "amount": 0.04,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/clarity-upscaler": {
-      "unit": "image",
-      "amount": 0.054,
-      "approx": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/aura-sr": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "fal-ai/esrgan": {
-      "unknown": true,
-      "source": "https://api.fal.ai/v1/models/pricing"
-    },
-    "_comment_seedance": [
-      "The Seedance 2.x endpoints are billed by token, not by the second:",
-      "tokens = height * width * seconds * 24 / 1024, then the rate below per",
-      "1000 of them. That makes the per-second figure a function of resolution,",
-      "so these are the 720p 9:16 numbers -- 21,600 tokens a second -- and they",
-      "are marked approx because 480p is roughly half.",
-      "",
-      "They were 'unknown' before, which meant the confirmation modal said",
-      "'price unknown' on the single most expensive thing the app can buy: a",
-      "30s 720p clip on Seedance 2.5 is $13.87, and nobody should meet that",
-      "figure for the first time on their fal invoice."
-    ],
-    "bytedance/seedance-2.5/image-to-video": {
-      "unit": "second",
-      "amount": 0.4622,
-      "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.5/image-to-video"
-    },
-    "bytedance/seedance-2.5/reference-to-video": {
-      "unit": "second",
-      "amount": 0.4622,
-      "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.5/reference-to-video"
-    },
-    "bytedance/seedance-2.0/reference-to-video": {
-      "unit": "second",
-      "amount": 0.3024,
-      "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.0/reference-to-video"
-    },
-    "bytedance/seedance-2.0/fast/image-to-video": {
-      "unit": "second",
-      "amount": 0.2419,
-      "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.0/fast/image-to-video"
-    },
-    "bytedance/seedance-2.0/fast/reference-to-video": {
-      "unit": "second",
-      "amount": 0.2419,
-      "approx": true,
-      "source": "https://fal.ai/models/bytedance/seedance-2.0/fast/reference-to-video"
-    }
+    "whisper-large-v3-turbo": { "unit": "minute", "amount": 0.00067 },
+    "whisper-large-v3": { "unit": "minute", "amount": 0.00185 }
   }
 }

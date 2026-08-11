@@ -48,7 +48,7 @@ class Http {
     }
     if (error is String && error.isNotEmpty) return error;
 
-    // {"detail": "..."} or {"detail": [{"msg": "..."}]} - fal, Replicate
+    // {"detail": "..."} or {"detail": [{"msg": "..."}]} - fal, BFL, Ideogram
     final detail = decoded['detail'];
     if (detail is String && detail.isNotEmpty) return detail;
     if (detail is List && detail.isNotEmpty) {

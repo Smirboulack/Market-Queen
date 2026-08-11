@@ -290,19 +290,34 @@ class VoiceCasting {
       (id: 'echo', engine: '', gender: 'male', age: 'middle_aged', tone: 'calm'),
       (id: 'onyx', engine: '', gender: 'male', age: 'old', tone: 'deep'),
     ],
-    'fal-voice': [
-      (id: 'Inspirational_girl', engine: 'minimax', gender: 'female', age: 'young', tone: 'upbeat'),
-      (id: 'Lively_Girl', engine: 'minimax', gender: 'female', age: 'young', tone: 'excited'),
-      (id: 'Calm_Woman', engine: 'minimax', gender: 'female', age: 'middle_aged', tone: 'calm'),
-      (id: 'Wise_Woman', engine: 'minimax', gender: 'female', age: 'old', tone: 'professional'),
-      (id: 'Casual_Guy', engine: 'minimax', gender: 'male', age: 'young', tone: 'casual'),
-      (id: 'Friendly_Person', engine: 'minimax', gender: 'male', age: 'middle_aged', tone: 'chill'),
-      (id: 'Deep_Voice_Man', engine: 'minimax', gender: 'male', age: 'old', tone: 'deep'),
-      (id: 'Aria', engine: 'elevenlabs', gender: 'female', age: 'young', tone: 'upbeat'),
-      (id: 'Rachel', engine: 'elevenlabs', gender: 'female', age: 'middle_aged', tone: 'calm'),
-      (id: 'Josh', engine: 'elevenlabs', gender: 'male', age: 'young', tone: 'confident'),
-      (id: 'af_heart', engine: 'kokoro', gender: 'female', age: 'young', tone: 'chill'),
-      (id: 'am_adam', engine: 'kokoro', gender: 'male', age: 'middle_aged', tone: 'casual'),
+    'minimax-tts': [
+      (id: 'Inspirational_girl', engine: '', gender: 'female', age: 'young', tone: 'upbeat'),
+      (id: 'Lively_Girl', engine: '', gender: 'female', age: 'young', tone: 'excited'),
+      (id: 'Sweet_Girl_2', engine: '', gender: 'female', age: 'young', tone: 'chill'),
+      (id: 'Calm_Woman', engine: '', gender: 'female', age: 'middle_aged', tone: 'calm'),
+      (id: 'Wise_Woman', engine: '', gender: 'female', age: 'old', tone: 'professional'),
+      (id: 'Casual_Guy', engine: '', gender: 'male', age: 'young', tone: 'casual'),
+      (id: 'Young_Knight', engine: '', gender: 'male', age: 'young', tone: 'confident'),
+      (id: 'Friendly_Person', engine: '', gender: 'male', age: 'middle_aged', tone: 'chill'),
+      (id: 'Patient_Man', engine: '', gender: 'male', age: 'middle_aged', tone: 'calm'),
+      (id: 'Elegant_Man', engine: '', gender: 'male', age: 'middle_aged', tone: 'professional'),
+      (id: 'Deep_Voice_Man', engine: '', gender: 'male', age: 'old', tone: 'deep'),
+    ],
+    // Gemini names its voices for the character rather than the speaker, so the
+    // gender column is deliberately blank: the model reads the same voice as a
+    // man or a woman depending on the line, and claiming otherwise here would
+    // send the casting search after a difference that is not there.
+    'gemini-tts': [
+      (id: 'Zephyr', engine: '', gender: '', age: 'young', tone: 'upbeat'),
+      (id: 'Puck', engine: '', gender: '', age: 'young', tone: 'excited'),
+      (id: 'Autonoe', engine: '', gender: '', age: 'young', tone: 'upbeat'),
+      (id: 'Leda', engine: '', gender: '', age: 'young', tone: 'casual'),
+      (id: 'Aoede', engine: '', gender: '', age: 'middle_aged', tone: 'chill'),
+      (id: 'Kore', engine: '', gender: '', age: 'middle_aged', tone: 'confident'),
+      (id: 'Callirrhoe', engine: '', gender: '', age: 'middle_aged', tone: 'calm'),
+      (id: 'Charon', engine: '', gender: '', age: 'middle_aged', tone: 'professional'),
+      (id: 'Iapetus', engine: '', gender: '', age: 'middle_aged', tone: 'calm'),
+      (id: 'Orus', engine: '', gender: '', age: 'old', tone: 'deep'),
     ],
   };
 }

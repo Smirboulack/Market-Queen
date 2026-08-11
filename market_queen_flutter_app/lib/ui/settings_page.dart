@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../core/platform_util.dart';
 import '../i18n/translator.dart';
-import '../providers/registry.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 import 'widgets/cards.dart';
@@ -63,8 +62,6 @@ class _SettingsPageState extends State<SettingsPage> {
               _appearance(context),
               const SizedBox(height: MqTheme.gapLarge),
               _startFree(context),
-              const SizedBox(height: MqTheme.gapLarge),
-              _apiKeys(context),
               const SizedBox(height: MqTheme.gapLarge),
               _files(context),
               const SizedBox(height: MqTheme.gapLarge),
@@ -136,7 +133,11 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  /// The keys that cost nothing, said out loud before the wall of key fields.
+  /// The keys that cost nothing, said out loud on the way past.
+  ///
+  /// The fields themselves moved into the Models menu, next to what each key
+  /// unlocks. What stays here is the offer and its catch, because somebody
+  /// deciding whether to fund anything reads this page first.
   ///
   /// None of this is a Market Queen account, and there is no allowance sitting
   /// on a server somewhere: it is the user's own key on somebody else's free
@@ -160,7 +161,8 @@ class _SettingsPageState extends State<SettingsPage> {
         'These take a Google account and an email address. No card, no trial '
         'clock. Between them they write the script, draw every frame and time '
         'the subtitles -- only the voice-over and the video still need a '
-        'funded provider.',
+        'funded provider. Paste the keys in the Models menu, in the panel for '
+        'what you want them to do.',
       ),
       children: [
         for (final credential in free)
@@ -228,19 +230,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _apiKeys(BuildContext context) {
-    return SectionCard(
-      title: tr('API keys'),
-      subtitle: tr(
-        'You only need the ones you actually use. An empty field '
-        'means the provider is off.',
-      ),
-      children: [
-        for (final credential in widget.app.registry.credentials())
-          KeyField(app: widget.app, credential: credential),
-      ],
-    );
-  }
 
   Widget _files(BuildContext context) {
     final mq = context.mq;
@@ -446,154 +435,3 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
-/// One API key: hidden by default, saved on edit, never leaves the machine.
-class KeyField extends StatefulWidget {
-  const KeyField({super.key, required this.app, required this.credential});
-
-  final AppState app;
-  final CredentialEntry credential;
-
-  @override
-  State<KeyField> createState() => _KeyFieldState();
-}
-
-class _KeyFieldState extends State<KeyField> {
-  final _controller = TextEditingController();
-
-  bool _reveal = false;
-  bool _saved = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.text = widget.app.settings.apiKey(widget.credential.id);
-    widget.app.settings.apiKeysChanged.addListener(_onKeys);
-  }
-
-  @override
-  void dispose() {
-    widget.app.settings.apiKeysChanged.removeListener(_onKeys);
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onKeys() {
-    if (mounted) setState(() {});
-  }
-
-  /// Saves the key and flashes the confirmation. Wired to both Enter and the
-  /// focus leaving the field: pasting a key and clicking away is as common as
-  /// pasting one and pressing Enter, and neither should lose it.
-  void _commit(String text) {
-    widget.app.settings.setApiKey(widget.credential.id, text);
-    setState(() => _saved = true);
-    Future.delayed(const Duration(milliseconds: 1900), () {
-      if (mounted) setState(() => _saved = false);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-    final settings = widget.app.settings;
-    final credential = widget.credential;
-
-    final fromEnvironment = settings.apiKeyFromEnvironment(credential.id);
-    final hasKey = settings.hasApiKey(credential.id);
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radius),
-        border: Border.all(color: mq.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: hasKey ? mq.success : mq.borderStrong,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                credential.label,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontBody,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (credential.free) ...[
-                const SizedBox(width: 8),
-                Text(
-                  tr('Free tier'),
-                  style: TextStyle(
-                    color: mq.successText,
-                    fontSize: MqTheme.fontSmall,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  credential.note,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: mq.textTertiary,
-                    fontSize: MqTheme.fontSmall,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GhostButton(
-                text: credential.free ? tr('Get a free key') : tr('Get a key'),
-                onPressed: () =>
-                    PlatformUtil.openExternal(credential.signupUrl),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: LabeledField(
-                  controller: _controller,
-                  obscure: !_reveal,
-                  placeholder: fromEnvironment
-                      ? tr(
-                          'Using %1 from your environment',
-                        ).arg(credential.envVar)
-                      : tr('Paste your key'),
-                  onEditingComplete: _commit,
-                  onSubmitted: _commit,
-                ),
-              ),
-              const SizedBox(width: 8),
-              GhostButton(
-                text: _reveal ? tr('Hide') : tr('Show'),
-                checked: _reveal,
-                onPressed: () => setState(() => _reveal = !_reveal),
-              ),
-            ],
-          ),
-          AnimatedOpacity(
-            opacity: _saved ? 1 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: Text(
-              tr('Saved.'),
-              style: TextStyle(color: mq.success, fontSize: MqTheme.fontSmall),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

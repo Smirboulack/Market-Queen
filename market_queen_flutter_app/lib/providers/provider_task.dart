@@ -256,10 +256,11 @@ abstract class HttpTask extends ProviderTask {
     }
   }
 
-  // ---- Queue-based platforms --------------------------------------------
+  // ---- fal.ai -------------------------------------------------------------
   //
-  // fal.ai and Replicate both work the same way: submit a job, poll a status
-  // url, then read the payload. Images and video share this code.
+  // The one reseller left in the app, and only for Kling: submit a job, poll a
+  // status url, then read the payload. Every other provider is called directly
+  // on its own host with the user's own key.
 
   /// Puts a file in fal's own storage and returns the url it landed on.
   ///
@@ -346,80 +347,6 @@ abstract class HttpTask extends ProviderTask {
     });
 
     return getJson(Uri.parse(responseUrl), headers: headers);
-  }
-
-  /// Accepts "owner/name" or "owner/name:version"; returns the succeeded
-  /// prediction object.
-  Future<Map<String, dynamic>> submitReplicate(
-    String apiToken,
-    String model,
-    Map<String, Object?> input,
-  ) async {
-    final headers = {'Authorization': 'Bearer $apiToken'};
-
-    final Uri submitUrl;
-    final body = <String, Object?>{'input': input};
-
-    final colon = model.indexOf(':');
-    if (colon > 0) {
-      submitUrl = Uri.parse('https://api.replicate.com/v1/predictions');
-      body['version'] = model.substring(colon + 1);
-    } else {
-      submitUrl =
-          Uri.parse('https://api.replicate.com/v1/models/$model/predictions');
-    }
-
-    report(tr('Submitting to Replicate (%1)...').arg(model));
-
-    final prediction = await postJson(submitUrl, body, headers: headers);
-    final urls = prediction['urls'];
-    final statusUrl = urls is Map ? '${urls['get'] ?? ''}' : '';
-    if (statusUrl.isEmpty) {
-      throw ProviderException(tr('Replicate did not return a prediction url.'));
-    }
-
-    return pollUntil(Uri.parse(statusUrl), headers, (status) {
-      final state = '${status['status'] ?? ''}';
-      if (state == 'succeeded') return PollVerdict.done;
-      if (state == 'starting' || state == 'processing') {
-        report(state == 'starting' ? tr('Starting up...') : tr('Generating...'));
-        return PollVerdict.pending;
-      }
-      final error = '${status['error'] ?? ''}';
-      return PollVerdict(
-        PollState.failed,
-        error.isEmpty ? tr('Replicate reported status "%1".').arg(state) : error,
-      );
-    });
-  }
-
-  /// First http(s) url in a Replicate `output` (string, array or object).
-  static String replicateOutputUrl(Map<String, dynamic> prediction) {
-    final output = prediction['output'];
-
-    String asUrl(Object? value) {
-      final text = value is String ? value : '';
-      return text.startsWith('http') ? text : '';
-    }
-
-    if (output is String) return asUrl(output);
-
-    if (output is List) {
-      // Last entry first: models that stream partial results append the final
-      // asset at the end.
-      for (var i = output.length - 1; i >= 0; --i) {
-        final url = asUrl(output[i]);
-        if (url.isNotEmpty) return url;
-      }
-    }
-
-    if (output is Map) {
-      for (final key in ['video', 'url', 'image', 'output', 'audio']) {
-        final url = asUrl(output[key]);
-        if (url.isNotEmpty) return url;
-      }
-    }
-    return '';
   }
 
   /// Reads a dotted path out of a decoded response: "choices.0.message.content".

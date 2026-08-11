@@ -66,10 +66,10 @@ class ImageForge extends ChangeNotifier {
     return CostEstimate(true, unit.amount * count);
   }
 
-  String _provider() {
-    final saved = _settings.prefString('imageProvider');
-    return saved.isEmpty ? _registry.defaultProvider('image') : saved;
-  }
+  String _provider() => _registry.providerOrDefault(
+        'image',
+        _settings.prefString('imageProvider'),
+      );
 
   String _model() =>
       _registry.resolveModel(_provider(), _settings.prefString('imageModel'));

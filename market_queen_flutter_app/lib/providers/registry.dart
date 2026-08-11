@@ -42,13 +42,39 @@ class ProviderEntry {
 
   final String id;
 
-  /// "text", "image", "video", "avatar", "voice", "captions".
+  /// "text", "image", "video", "avatar", "voice", "captions", "upscale".
+  /// What the pipeline asks for. The Models menu groups these into the five
+  /// panels below, which is a different cut: subtitles and voice-over are two
+  /// categories but one panel, because both are "Audio" to somebody choosing.
   final String category;
   final String label;
   final String credential;
   final List<ModelEntry> models;
   final String defaultModel;
   final String note;
+}
+
+/// One shelf of the Models menu.
+///
+/// Configuration used to be two screens: keys in Settings, shortlists in
+/// Models, and nothing said which key unlocked which model. A panel puts the
+/// two together -- pick a provider, type its key, tick what you want from it --
+/// and the providers are filtered by what they actually do, so nobody has to
+/// scroll past a video house looking for somewhere to write a script.
+class PanelEntry {
+  const PanelEntry({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.categories,
+  });
+
+  final String id;
+  final String title;
+  final String subtitle;
+
+  /// Provider categories that belong on this shelf, in display order.
+  final List<String> categories;
 }
 
 class CredentialEntry {
@@ -68,19 +94,58 @@ class CredentialEntry {
   final String note;
 
   /// True when the signup page hands back a working key for nothing: a Google
-  /// account, no card, no trial clock. Those are the two the first run points
+  /// account, no card, no trial clock. Those are the ones the first run points
   /// at, so somebody can make an ad before deciding whether to fund anything.
   final bool free;
 }
 
 /// Catalogue of everything the app can talk to, plus the factory that turns a
-/// provider id into a running task. Adding a provider means adding one entry
-/// here and one class in the matching *_providers.dart -- nothing in the UI or
-/// the pipeline changes.
+/// provider id into a running task.
+///
+/// Every entry here calls the provider's own API with the user's own key. There
+/// is exactly one exception, and it is deliberate: Kling sells API access in
+/// packs starting at several hundred dollars with an expiry date, which is the
+/// wrong shape for somebody trying the app out, so Kling -- and only Kling --
+/// is reached through fal.ai, which resells it by the second. Nothing else is
+/// allowed on that path.
 class Registry extends ChangeNotifier {
   Registry() {
     _build();
   }
+
+  /// The five shelves of the Models menu, in the order they are drawn.
+  static const List<PanelEntry> panels = [
+    PanelEntry(
+      id: 'llm',
+      title: 'LLM',
+      subtitle: 'The writers. Nothing writes your ad unless you ask it to.',
+      categories: ['text'],
+    ),
+    PanelEntry(
+      id: 'avatar',
+      title: 'Talking actors',
+      subtitle: 'A face, a voice track, and a clip exactly as long as the line.',
+      categories: ['avatar'],
+    ),
+    PanelEntry(
+      id: 'image',
+      title: 'Images',
+      subtitle: 'Stills, actors, product shots -- and blowing one up.',
+      categories: ['image', 'upscale'],
+    ),
+    PanelEntry(
+      id: 'video',
+      title: 'Video',
+      subtitle: 'Animate a still, or shoot from a prompt.',
+      categories: ['video'],
+    ),
+    PanelEntry(
+      id: 'audio',
+      title: 'Audio',
+      subtitle: 'Who reads your script, and the subtitles that follow it.',
+      categories: ['voice', 'captions'],
+    ),
+  ];
 
   List<ProviderEntry> _entries = const [];
 
@@ -98,7 +163,7 @@ class Registry extends ChangeNotifier {
     final auto = ModelEntry('auto', tr('Auto - best model for this shot'));
 
     _entries = <ProviderEntry>[
-      // ---- Script writers -----------------------------------------------
+      // ---- LLM -----------------------------------------------------------
       // Gemini leads because it is the only writer that costs nothing to try:
       // the first entry of a category is what a fresh install picks, and a
       // first run that ends at "add a funded API key" is a first run nobody
@@ -111,21 +176,16 @@ class Registry extends ChangeNotifier {
         label: 'Google Gemini',
         credential: 'gemini',
         models: const [
-          // Only Flash and Flash-Lite are on the free tier. The two Pro models
-          // are on the same key and bill from the first token, so they are
-          // deliberately left unmarked.
-          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash', tier: ModelTier.free),
+          // Flash and Flash-Lite are on the free tier. Pro is on the same key
+          // and bills from the first token, so it is deliberately unmarked.
           ModelEntry('gemini-3.6-flash', 'Gemini 3.6 Flash', tier: ModelTier.free),
+          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash', tier: ModelTier.free),
           ModelEntry('gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite',
               tier: ModelTier.free),
-          ModelEntry('gemini-3.1-pro-preview', 'Gemini 3.1 Pro'),
           ModelEntry('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite',
               tier: ModelTier.free),
+          ModelEntry('gemini-3.1-pro-preview', 'Gemini 3.1 Pro'),
           ModelEntry('gemini-2.5-pro', 'Gemini 2.5 Pro'),
-          ModelEntry('gemini-2.5-flash', 'Gemini 2.5 Flash', tier: ModelTier.free),
-          ModelEntry('gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite',
-              tier: ModelTier.free),
-          ModelEntry('gemini-2.0-flash', 'Gemini 2.0 Flash'),
         ],
         defaultModel: 'gemini-3.5-flash',
         note: tr('Free tier, no card. Google reads what you send on it.'),
@@ -138,18 +198,9 @@ class Registry extends ChangeNotifier {
         credential: 'openai',
         models: const [
           ModelEntry('gpt-5.6-terra', 'GPT-5.6 Terra'),
-          ModelEntry('gpt-5.6-sol', 'GPT-5.6 Sol'),
           ModelEntry('gpt-5.6-luna', 'GPT-5.6 Luna'),
+          ModelEntry('gpt-5.6-sol', 'GPT-5.6 Sol'),
           ModelEntry('gpt-5.5', 'GPT-5.5'),
-          ModelEntry('gpt-5.4', 'GPT-5.4'),
-          ModelEntry('gpt-5.2', 'GPT-5.2'),
-          ModelEntry('gpt-5.1', 'GPT-5.1'),
-          ModelEntry('gpt-5', 'GPT-5'),
-          ModelEntry('gpt-5-mini', 'GPT-5 mini'),
-          ModelEntry('gpt-5-nano', 'GPT-5 nano'),
-          ModelEntry('gpt-4.1', 'GPT-4.1'),
-          ModelEntry('gpt-4o', 'GPT-4o'),
-          ModelEntry('gpt-4o-mini', 'GPT-4o mini'),
         ],
         defaultModel: 'gpt-5.6-terra',
         note: tr('Reads the product photo when the model supports vision.'),
@@ -164,14 +215,78 @@ class Registry extends ChangeNotifier {
           ModelEntry('claude-sonnet-5', 'Claude Sonnet 5'),
           ModelEntry('claude-opus-5', 'Claude Opus 5'),
           ModelEntry('claude-fable-5', 'Claude Fable 5'),
-          ModelEntry('claude-opus-4-8', 'Claude Opus 4.8'),
           ModelEntry('claude-haiku-4-5-20251001', 'Claude Haiku 4.5'),
         ],
         defaultModel: 'claude-sonnet-5',
         note: tr('Strong at short, natural-sounding ad copy.'),
       ),
 
-      // ---- Image ---------------------------------------------------------
+      ProviderEntry(
+        id: 'xai-chat',
+        category: 'text',
+        label: 'xAI (Grok)',
+        credential: 'xai',
+        models: const [
+          ModelEntry('grok-4.5', 'Grok 4.5'),
+          ModelEntry('grok-4.3', 'Grok 4.3'),
+        ],
+        defaultModel: 'grok-4.5',
+        note: tr('One key also covers Grok Imagine for stills and clips.'),
+      ),
+
+      ProviderEntry(
+        id: 'minimax-chat',
+        category: 'text',
+        label: 'MiniMax',
+        credential: 'minimax',
+        models: const [
+          ModelEntry('MiniMax-M3', 'MiniMax M3'),
+          ModelEntry('MiniMax-M2.7', 'MiniMax M2.7'),
+        ],
+        defaultModel: 'MiniMax-M3',
+        note: tr('Same key as MiniMax video and voice.'),
+      ),
+
+      // ---- Talking actors --------------------------------------------------
+      // These take the audio as an input, so the clip comes back exactly as
+      // long as the line and the mouth actually matches.
+      ProviderEntry(
+        id: 'heygen-avatar',
+        category: 'avatar',
+        label: 'HeyGen',
+        credential: 'heygen',
+        models: [
+          auto,
+          // The engine, not a model id: HeyGen has one endpoint and picks the
+          // renderer from `engine.type`. Avatar IV is their default for new
+          // integrations and the only one that animates an arbitrary photo, so
+          // it leads -- the others need an avatar registered on the account.
+          const ModelEntry('avatar_iv', 'Avatar IV'),
+          const ModelEntry('avatar_v', 'Avatar V'),
+          const ModelEntry('avatar_iii', 'Avatar III (4K)'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Animates a photo you supply. Avatar V and III need an avatar '
+            'registered on your HeyGen account first.'),
+      ),
+
+      ProviderEntry(
+        id: 'fal-avatar',
+        category: 'avatar',
+        label: 'Kling Avatar (via fal.ai)',
+        credential: 'fal',
+        models: const [
+          ModelEntry('fal-ai/kling-video/ai-avatar/v2/standard',
+              'Kling AI Avatar v2 Standard'),
+          ModelEntry(
+              'fal-ai/kling-video/ai-avatar/v2/pro', 'Kling AI Avatar v2 Pro'),
+        ],
+        defaultModel: 'fal-ai/kling-video/ai-avatar/v2/standard',
+        note: tr('Kling sells its own API in packs of several hundred dollars, '
+            'so it is the one model reached through a reseller.'),
+      ),
+
+      // ---- Images ----------------------------------------------------------
       // Ordered best-first: "Auto" takes the first concrete entry, so the head
       // of this list is what most runs will actually use.
       //
@@ -184,9 +299,6 @@ class Registry extends ChangeNotifier {
         credential: 'gemini',
         models: [
           auto,
-          // Nano Banana 2 and its Lite sibling are on the free tier; Pro and
-          // the legacy 2.5 are not, and sit here for the key that is already
-          // typed in rather than for the quota.
           const ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2',
               tier: ModelTier.free),
           const ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite',
@@ -200,38 +312,42 @@ class Registry extends ChangeNotifier {
       ),
 
       ProviderEntry(
-        id: 'fal-image',
+        id: 'bfl-image',
         category: 'image',
-        label: 'fal.ai',
-        credential: 'fal',
+        label: 'Black Forest Labs (FLUX)',
+        credential: 'bfl',
         models: [
           auto,
-          const ModelEntry('fal-ai/nano-banana/edit', 'Nano Banana (edit)'),
-          const ModelEntry('fal-ai/nano-banana-2/edit', 'Nano Banana 2 (edit)'),
-          const ModelEntry('fal-ai/nano-banana-pro/edit', 'Nano Banana Pro (edit)'),
-          const ModelEntry('fal-ai/nano-banana', 'Nano Banana'),
-          const ModelEntry('fal-ai/flux-2-pro/edit', 'FLUX.2 Pro (edit)'),
-          const ModelEntry('fal-ai/flux-2-flex/edit', 'FLUX.2 Flex (edit)'),
-          const ModelEntry(
-              'bytedance/seedream/v5/lite/edit', 'Seedream 5.0 Lite (edit)'),
-          const ModelEntry(
-              'bytedance/seedream/v5/pro/edit', 'Seedream 5.0 Pro (edit)'),
-          const ModelEntry('openai/gpt-image-2/edit', 'GPT Image 2 (edit)'),
-          const ModelEntry(
-              'xai/grok-imagine-image/quality/edit', 'Grok Imagine (edit)'),
-          const ModelEntry('fal-ai/flux-pro/v1.1-ultra', 'FLUX 1.1 Pro Ultra'),
-          const ModelEntry('fal-ai/flux-pro/kontext', 'FLUX.1 Kontext Pro'),
-          const ModelEntry('fal-ai/flux/dev', 'FLUX.1 dev'),
-          const ModelEntry('fal-ai/flux/schnell', 'FLUX.1 schnell'),
-          const ModelEntry(
-              'fal-ai/bytedance/seedream/v4/text-to-image', 'Seedream 4.0'),
-          const ModelEntry('fal-ai/ideogram/v3', 'Ideogram 3.0'),
-          const ModelEntry('fal-ai/recraft/v4/text-to-image', 'Recraft V4'),
-          const ModelEntry('fal-ai/recraft/v3/text-to-image', 'Recraft V3'),
-          const ModelEntry('fal-ai/qwen-image', 'Qwen Image'),
+          // Up to eight reference images on the API, which is what keeps a
+          // product looking like itself across a whole ad.
+          const ModelEntry('flux-2-pro', 'FLUX.2 [pro]'),
+          const ModelEntry('flux-2-flex', 'FLUX.2 [flex]'),
+          const ModelEntry('flux-2-max', 'FLUX.2 [max]'),
+          const ModelEntry('flux-2-klein-9b', 'FLUX.2 [klein] 9B'),
+          const ModelEntry('flux-2-klein-4b', 'FLUX.2 [klein] 4B'),
+          const ModelEntry('flux-kontext-pro', 'FLUX.1 Kontext [pro]'),
         ],
         defaultModel: 'auto',
-        note: tr('The widest catalogue. Any model id from fal.ai/models also works.'),
+        note: tr('Priced by the megapixel, and the exact cost comes back with '
+            'the job rather than being estimated.'),
+      ),
+
+      ProviderEntry(
+        id: 'bytedance-image',
+        category: 'image',
+        label: 'BytePlus (Seedream)',
+        credential: 'bytedance',
+        models: [
+          auto,
+          const ModelEntry('seedream-4-5-251128', 'Seedream 4.5'),
+          const ModelEntry('seedream-5-0-lite-260128', 'Seedream 5.0 Lite'),
+          const ModelEntry('seedream-5-0-260128', 'Seedream 5.0'),
+          const ModelEntry('dola-seedream-5-0-pro-260628', 'Seedream 5.0 Pro'),
+          const ModelEntry('seededit-3-0-i2i-250628', 'SeedEdit 3.0'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Reference images cost nothing to send, so multi-reference '
+            'product shots stay cheap.'),
       ),
 
       ProviderEntry(
@@ -243,189 +359,173 @@ class Registry extends ChangeNotifier {
           auto,
           const ModelEntry('gpt-image-2', 'GPT Image 2'),
           const ModelEntry('gpt-image-1.5', 'GPT Image 1.5'),
-          const ModelEntry('gpt-image-1', 'GPT Image 1'),
           const ModelEntry('gpt-image-1-mini', 'GPT Image 1 mini'),
-          const ModelEntry('dall-e-3', 'DALL-E 3'),
         ],
         defaultModel: 'auto',
         note: tr('gpt-image models can edit your product photo directly.'),
       ),
 
       ProviderEntry(
-        id: 'replicate-image',
+        id: 'ideogram-image',
         category: 'image',
-        label: 'Replicate',
-        credential: 'replicate',
+        label: 'Ideogram',
+        credential: 'ideogram',
         models: [
           auto,
-          const ModelEntry('google/nano-banana-2', 'Nano Banana 2'),
-          const ModelEntry('google/nano-banana-pro', 'Nano Banana Pro'),
-          const ModelEntry('google/nano-banana', 'Nano Banana'),
-          const ModelEntry('openai/gpt-image-2', 'GPT Image 2'),
-          const ModelEntry('openai/gpt-image-1.5', 'GPT Image 1.5'),
-          const ModelEntry('black-forest-labs/flux-2-pro', 'FLUX.2 Pro'),
-          const ModelEntry('black-forest-labs/flux-2-flex', 'FLUX.2 Flex'),
-          const ModelEntry('black-forest-labs/flux-2-max', 'FLUX.2 Max'),
-          const ModelEntry('bytedance/seedream-4.5', 'Seedream 4.5'),
-          const ModelEntry('bytedance/seedream-5-lite', 'Seedream 5 Lite'),
-          const ModelEntry('xai/grok-imagine-image', 'Grok Imagine'),
-          const ModelEntry('google/imagen-4-ultra', 'Imagen 4 Ultra'),
-          const ModelEntry('google/imagen-4-fast', 'Imagen 4 Fast'),
-          const ModelEntry('recraft-ai/recraft-v4', 'Recraft V4'),
-          const ModelEntry('wan-video/wan-2.7-image', 'Wan 2.7 Image'),
-          const ModelEntry(
-              'black-forest-labs/flux-1.1-pro-ultra', 'FLUX 1.1 Pro Ultra'),
-          const ModelEntry(
-              'black-forest-labs/flux-kontext-pro', 'FLUX.1 Kontext Pro'),
-          const ModelEntry('black-forest-labs/flux-schnell', 'FLUX.1 schnell'),
-          const ModelEntry('bytedance/seedream-4', 'Seedream 4.0'),
-          const ModelEntry('google/imagen-4', 'Imagen 4'),
-          const ModelEntry('ideogram-ai/ideogram-v3-turbo', 'Ideogram 3.0 Turbo'),
-          const ModelEntry('recraft-ai/recraft-v3', 'Recraft V3'),
-          const ModelEntry('stability-ai/stable-diffusion-3.5-large',
-              'Stable Diffusion 3.5 Large'),
+          // Ideogram bills by rendering speed rather than by model, and the
+          // speed is a separate field on the request, so the two travel here as
+          // one id and are split apart again in the task.
+          const ModelEntry('ideogram-v3:TURBO', 'Ideogram 3.0 Turbo'),
+          const ModelEntry('ideogram-v3:DEFAULT', 'Ideogram 3.0'),
+          const ModelEntry('ideogram-v3:QUALITY', 'Ideogram 3.0 Quality'),
+          const ModelEntry('ideogram-v4:TURBO', 'Ideogram 4.0 Turbo'),
+          const ModelEntry('ideogram-v4:DEFAULT', 'Ideogram 4.0'),
+          const ModelEntry('ideogram-v4:QUALITY', 'Ideogram 4.0 Quality'),
         ],
         defaultModel: 'auto',
-        note: tr('Use owner/name, or owner/name:version to pin a version.'),
+        note: tr('The one that gets text on a label right. 3.0 also takes a '
+            'character reference.'),
+      ),
+
+      ProviderEntry(
+        id: 'bria-image',
+        category: 'image',
+        label: 'Bria',
+        credential: 'bria',
+        models: [
+          auto,
+          const ModelEntry('fibo', 'FIBO'),
+          const ModelEntry('fibo-lite', 'FIBO Lite'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Trained on licensed material and sold with IP indemnity. '
+            '100 generations free, no card.'),
+      ),
+
+      // Alibaba Qwen Image is missing on purpose, not by oversight. Its prices,
+      // model ids and free quota are all published, but the request path for
+      // image generation is not on any page reachable without a Model Studio
+      // login -- and the host carries a workspace id, so there is no way to
+      // pattern-match it from a neighbouring endpoint either. Adding it needs
+      // one line from the console's own API reference: the path that follows
+      // https://{WorkspaceId}.ap-southeast-1.maas.aliyuncs.com. Everything
+      // else for it is already in docs/audit-fournisseurs-api.md.
+
+      ProviderEntry(
+        id: 'xai-image',
+        category: 'image',
+        label: 'xAI (Grok Imagine)',
+        credential: 'xai',
+        models: [
+          auto,
+          const ModelEntry('grok-imagine-image-quality', 'Grok Imagine Quality'),
+          const ModelEntry('grok-imagine-image', 'Grok Imagine'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Two cents an image, and the same key runs Grok video.'),
       ),
 
       // ---- Enlarging -------------------------------------------------------
       // Its own category rather than another image model, because it is the one
       // generation with no prompt: you hand it a picture from the canvas and
-      // get the same picture, bigger. The task underneath is the ordinary fal
-      // image task -- these endpoints read `image_url` and ignore the rest.
+      // get the same picture, bigger.
       ProviderEntry(
-        id: 'fal-upscale',
+        id: 'bria-upscale',
         category: 'upscale',
-        label: 'fal.ai',
-        credential: 'fal',
+        label: 'Bria',
+        credential: 'bria',
         models: const [
-          ModelEntry('fal-ai/clarity-upscaler', 'Clarity Upscaler'),
-          ModelEntry('fal-ai/aura-sr', 'Aura SR'),
-          ModelEntry('fal-ai/esrgan', 'Real-ESRGAN'),
+          ModelEntry('increase_resolution', 'Increase Resolution'),
         ],
-        defaultModel: 'fal-ai/clarity-upscaler',
+        defaultModel: 'increase_resolution',
         note: tr('Enlarges a picture from the canvas. No prompt needed.'),
       ),
 
-      // ---- Video (image to video) ----------------------------------------
-      // Video is almost the whole bill, so the head of this list is the single
-      // most expensive default in the app. Kling v3 Standard leads: current
-      // generation, and a third of the price of the 2.x Master tier it
-      // replaces.
       ProviderEntry(
-        id: 'fal-video',
+        id: 'ideogram-upscale',
+        category: 'upscale',
+        label: 'Ideogram',
+        credential: 'ideogram',
+        models: const [ModelEntry('upscale', 'Ideogram Upscale')],
+        defaultModel: 'upscale',
+        note: tr('Takes an optional prompt to steer what it invents.'),
+      ),
+
+      // ---- Video -----------------------------------------------------------
+      // Video is almost the whole bill, so the head of this list is the single
+      // most expensive default in the app. LTX leads: three cents a second at
+      // 720p, billed by the second with no minimum, which is both the cheapest
+      // current-generation clip on the list and the only one whose price can be
+      // quoted exactly before you press send.
+      ProviderEntry(
+        id: 'ltx-video',
         category: 'video',
-        label: 'fal.ai',
-        credential: 'fal',
+        label: 'LTX (Lightricks)',
+        credential: 'ltx',
         models: [
           auto,
-          // Kling 3.0 Standard stays at the head, and it is a pricing decision
-          // rather than a quality one: "Auto" takes the first concrete entry,
-          // so whatever sits here is what most runs buy -- and it is the newest
-          // generation that fal still bills by the second, which is the only
-          // shape the estimate can turn into a figure before you press send.
-          // Seedance is billed in token buckets, so it is one click away
-          // instead of the default nobody could price.
-          const ModelEntry(
-              'fal-ai/kling-video/v3/standard/image-to-video', 'Kling 3.0 Standard'),
-          const ModelEntry(
-              'bytedance/seedance-2.5/image-to-video', 'Seedance 2.5'),
-
-          // The reference models. Not the head of the list and never what
-          // "Auto" picks, because they are useless without material: they take
-          // no opening frame, but up to fifty files across stills, clips and
-          // recordings, and the prompt points at each one by handle -- @Image1,
-          // @Video1, @Audio1.
-          //
-          // What that buys is the one thing an image-to-video model cannot do:
-          // hand it a finished ad as @Video1 and a face as @Image1, and the
-          // cuts, the b-roll and the pacing come back with the face swapped.
-          const ModelEntry('bytedance/seedance-2.5/reference-to-video',
-              'Seedance 2.5 Reference'),
-          const ModelEntry('bytedance/seedance-2.0/reference-to-video',
-              'Seedance 2.0 Reference'),
-          const ModelEntry('bytedance/seedance-2.0/fast/reference-to-video',
-              'Seedance 2.0 Fast Reference'),
-
-          const ModelEntry(
-              'bytedance/seedance-2.0/fast/image-to-video', 'Seedance 2.0 Fast'),
-          const ModelEntry(
-              'fal-ai/kling-video/v3/pro/image-to-video', 'Kling 3.0 Pro'),
-          const ModelEntry('fal-ai/kling-video/v3/turbo/pro/image-to-video',
-              'Kling 3.0 Turbo Pro'),
-          const ModelEntry(
-              'fal-ai/kling-video/v3/4k/image-to-video', 'Kling 3.0 Native 4K'),
-          const ModelEntry(
-              'fal-ai/kling-video/o3/standard/image-to-video', 'Kling O3 Standard'),
-          const ModelEntry(
-              'fal-ai/veo3.1/lite/image-to-video', 'Google Veo 3.1 Lite'),
-          const ModelEntry(
-              'fal-ai/veo3.1/fast/image-to-video', 'Google Veo 3.1 Fast'),
-          const ModelEntry('fal-ai/veo3.1/image-to-video', 'Google Veo 3.1'),
-          const ModelEntry('wan/v2.6/image-to-video', 'Wan 2.6'),
-          const ModelEntry('wan/v2.6/image-to-video/flash', 'Wan 2.6 Flash'),
-          const ModelEntry('fal-ai/wan/v2.7/image-to-video', 'Wan 2.7'),
-          const ModelEntry(
-              'bytedance/seedance-2.0/image-to-video', 'Seedance 2.0'),
-          const ModelEntry(
-              'fal-ai/minimax/hailuo-2.3-fast/standard/image-to-video',
-              'Hailuo 2.3 Fast'),
-          const ModelEntry('fal-ai/minimax/hailuo-2.3/standard/image-to-video',
-              'Hailuo 2.3 Standard'),
-          const ModelEntry(
-              'fal-ai/minimax/hailuo-2.3/pro/image-to-video', 'Hailuo 2.3 Pro'),
-          const ModelEntry(
-              'fal-ai/decart/lucy-5b/image-to-video', 'Decart Lucy 5B'),
-          const ModelEntry(
-              'fal-ai/kling-video/v2.1/master/image-to-video', 'Kling 2.1 Master'),
-          const ModelEntry('fal-ai/bytedance/seedance/v1/pro/image-to-video',
-              'Seedance 1.0 Pro'),
-          const ModelEntry(
-              'fal-ai/minimax/hailuo-02/pro/image-to-video', 'Hailuo 02 Pro'),
-          const ModelEntry('fal-ai/minimax/hailuo-02/standard/image-to-video',
-              'Hailuo 02 Standard'),
-          const ModelEntry(
-              'fal-ai/luma-dream-machine/ray-2/image-to-video', 'Luma Ray 2'),
-          const ModelEntry('fal-ai/wan/v2.2-a14b/image-to-video', 'Wan 2.2 A14B'),
-          const ModelEntry('fal-ai/pika/v2.2/image-to-video', 'Pika 2.2'),
-          const ModelEntry('fal-ai/pixverse/v4.5/image-to-video', 'PixVerse 4.5'),
+          const ModelEntry('ltx-2-3-fast', 'LTX-2.3 Fast'),
+          const ModelEntry('ltx-2-3-pro', 'LTX-2.3 Pro'),
+          const ModelEntry('ltx-2-5-fast', 'LTX-2.5 Fast'),
+          const ModelEntry('ltx-2-5-pro', 'LTX-2.5 Pro'),
         ],
         defaultModel: 'auto',
-        note: tr('Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for '
-            'all. On the Reference models, point at what you dropped in from '
-            'the prompt: @Image1, @Video1, @Audio1.'),
+        note: tr('Per second, no minimum. Audio is generated with the picture.'),
       ),
 
       ProviderEntry(
-        id: 'replicate-video',
+        id: 'bytedance-video',
         category: 'video',
-        label: 'Replicate',
-        credential: 'replicate',
+        label: 'BytePlus (Seedance)',
+        credential: 'bytedance',
         models: [
           auto,
-          const ModelEntry('kwaivgi/kling-v3-video', 'Kling 3.0'),
-          const ModelEntry('kwaivgi/kling-v3-omni-video', 'Kling 3.0 Omni'),
-          const ModelEntry('google/veo-3.1-fast', 'Google Veo 3.1 Fast'),
-          const ModelEntry('bytedance/seedance-2.0', 'Seedance 2.0'),
-          const ModelEntry('wan-video/wan-2.7-i2v', 'Wan 2.7'),
-          const ModelEntry('minimax/hailuo-2.3-fast', 'Hailuo 2.3 Fast'),
-          const ModelEntry('alibaba/happyhorse-1.1', 'HappyHorse 1.1'),
-          const ModelEntry('alibaba/happyhorse-1.0', 'HappyHorse 1.0'),
-          const ModelEntry('xai/grok-imagine-video', 'Grok Imagine Video'),
-          const ModelEntry('luma/ray-3.2', 'Luma Ray 3.2'),
-          const ModelEntry('vidu/q3-pro', 'Vidu Q3 Pro'),
-          const ModelEntry('prunaai/p-video', 'Pruna P-Video'),
-          const ModelEntry('kwaivgi/kling-v2.1', 'Kling 2.1'),
-          const ModelEntry('google/veo-3', 'Google Veo 3'),
-          const ModelEntry('bytedance/seedance-1-pro', 'Seedance 1 Pro'),
-          const ModelEntry('bytedance/seedance-1-lite', 'Seedance 1 Lite'),
-          const ModelEntry('minimax/hailuo-02', 'Hailuo 02'),
-          const ModelEntry('wan-video/wan-2.2-i2v-fast', 'Wan 2.2 I2V Fast'),
-          const ModelEntry('pixverse/pixverse-v4.5', 'PixVerse 4.5'),
+          // Seedance 2.5 is the reference model of the list: thirty images,
+          // ten clips and ten recordings in one request, addressed from the
+          // prompt by handle. Hand it a finished ad and a face and the cuts
+          // come back with the face in them.
+          const ModelEntry(
+              'dreamina-seedance-2-0-mini-260615', 'Seedance 2.0 Mini'),
+          const ModelEntry(
+              'dreamina-seedance-2-0-fast-260128', 'Seedance 2.0 Fast'),
+          const ModelEntry('dreamina-seedance-2-5-260628', 'Seedance 2.5'),
+          const ModelEntry('dreamina-seedance-2-0-260128', 'Seedance 2.0'),
+          const ModelEntry('seedance-1-5-pro-251215', 'Seedance 1.5 Pro'),
         ],
         defaultModel: 'auto',
-        note: tr('Pay per second, no subscription.'),
+        note: tr('Billed by output tokens, so the estimate is a range. '
+            'Seedance 2.x needs a funded BytePlus account to switch on.'),
+      ),
+
+      ProviderEntry(
+        id: 'gemini-video',
+        category: 'video',
+        label: 'Google Veo',
+        credential: 'gemini',
+        models: [
+          auto,
+          const ModelEntry('veo-3.1-fast-generate-preview', 'Veo 3.1 Fast'),
+          const ModelEntry('veo-3.1-generate-preview', 'Veo 3.1'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Audio and picture in one pass. Clips are 4, 6 or 8 seconds; '
+            '1080p and 4K are 8 seconds only.'),
+      ),
+
+      ProviderEntry(
+        id: 'minimax-video',
+        category: 'video',
+        label: 'MiniMax (Hailuo)',
+        credential: 'minimax',
+        models: [
+          auto,
+          const ModelEntry('MiniMax-Hailuo-2.3-Fast', 'Hailuo 2.3 Fast'),
+          const ModelEntry('MiniMax-Hailuo-2.3', 'Hailuo 2.3'),
+          const ModelEntry('MiniMax-H3', 'MiniMax H3'),
+        ],
+        defaultModel: 'auto',
+        note: tr('H3 takes reference images, clips and recordings together. '
+            'The Hailuo models take one opening frame.'),
       ),
 
       ProviderEntry(
@@ -441,25 +541,55 @@ class Registry extends ChangeNotifier {
         note: tr("The opening frame is resized to Sora's format automatically."),
       ),
 
-      // ---- Talking shots ---------------------------------------------------
-      // These take the audio as an input, so the clip comes back exactly as
-      // long as the line and the mouth actually matches.
       ProviderEntry(
-        id: 'fal-avatar',
-        category: 'avatar',
-        label: 'fal.ai avatars',
+        id: 'xai-video',
+        category: 'video',
+        label: 'xAI (Grok Imagine)',
+        credential: 'xai',
+        models: [
+          auto,
+          const ModelEntry('grok-imagine-video', 'Grok Imagine Video'),
+          const ModelEntry('grok-imagine-video-1.5', 'Grok Imagine Video 1.5'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Five cents a second, and the job tells you what it cost.'),
+      ),
+
+      ProviderEntry(
+        id: 'luma-video',
+        category: 'video',
+        label: 'Luma',
+        credential: 'luma',
+        models: [
+          auto,
+          const ModelEntry('ray-flash-2', 'Ray Flash 2'),
+          const ModelEntry('ray-2', 'Ray 2'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Takes a closing frame as well as an opening one, and can '
+            'carry on from a clip it made earlier.'),
+      ),
+
+      ProviderEntry(
+        id: 'fal-video',
+        category: 'video',
+        label: 'Kling (via fal.ai)',
         credential: 'fal',
         models: [
           auto,
-          const ModelEntry('fal-ai/kling-video/ai-avatar/v2/standard',
-              'Kling AI Avatar v2 Standard'),
           const ModelEntry(
-              'fal-ai/kling-video/ai-avatar/v2/pro', 'Kling AI Avatar v2 Pro'),
-          const ModelEntry('veed/fabric-1.0', 'VEED Fabric 1.0'),
-          const ModelEntry('fal-ai/infinitalk', 'InfiniTalk'),
+              'fal-ai/kling-video/v3/standard/image-to-video', 'Kling 3.0 Standard'),
+          const ModelEntry(
+              'fal-ai/kling-video/v3/pro/image-to-video', 'Kling 3.0 Pro'),
+          const ModelEntry(
+              'fal-ai/kling-video/v3/4k/image-to-video', 'Kling 3.0 Native 4K'),
+          const ModelEntry(
+              'fal-ai/kling-video/o3/standard/image-to-video', 'Kling O3 Standard'),
         ],
         defaultModel: 'auto',
-        note: tr('Lip-synced talking shots. The clip lasts exactly as long as the line.'),
+        note: tr("Kling's own API is sold in packs of several hundred dollars "
+            'with an expiry date, so this is the one model bought through a '
+            'reseller, by the second.'),
       ),
 
       // ---- Voice -----------------------------------------------------------
@@ -471,11 +601,36 @@ class Registry extends ChangeNotifier {
         models: const [
           ModelEntry('eleven_v3', 'Eleven v3'),
           ModelEntry('eleven_multilingual_v2', 'Multilingual v2'),
-          ModelEntry('eleven_turbo_v2_5', 'Turbo v2.5'),
           ModelEntry('eleven_flash_v2_5', 'Flash v2.5'),
         ],
         defaultModel: 'eleven_multilingual_v2',
         note: tr('Best UGC-sounding voices. Load your voice list below.'),
+      ),
+
+      ProviderEntry(
+        id: 'minimax-tts',
+        category: 'voice',
+        label: 'MiniMax Speech',
+        credential: 'minimax',
+        models: const [
+          ModelEntry('speech-2.8-hd', 'Speech 2.8 HD'),
+          ModelEntry('speech-2.8-turbo', 'Speech 2.8 Turbo'),
+        ],
+        defaultModel: 'speech-2.8-hd',
+        note: tr('Emotion and speed are per-request, not baked into the voice.'),
+      ),
+
+      ProviderEntry(
+        id: 'gemini-tts',
+        category: 'voice',
+        label: 'Google Gemini TTS',
+        credential: 'gemini',
+        models: const [
+          ModelEntry('gemini-2.5-flash-preview-tts', 'Gemini 2.5 Flash TTS'),
+          ModelEntry('gemini-2.5-pro-preview-tts', 'Gemini 2.5 Pro TTS'),
+        ],
+        defaultModel: 'gemini-2.5-flash-preview-tts',
+        note: tr('On the same free-tier key as the writer and the images.'),
       ),
 
       ProviderEntry(
@@ -486,29 +641,9 @@ class Registry extends ChangeNotifier {
         models: const [
           ModelEntry('gpt-4o-mini-tts', 'GPT-4o mini TTS'),
           ModelEntry('tts-1-hd', 'TTS-1 HD'),
-          ModelEntry('tts-1', 'TTS-1'),
         ],
         defaultModel: 'gpt-4o-mini-tts',
         note: tr('Cheap and fast, fixed set of voices.'),
-      ),
-
-      ProviderEntry(
-        id: 'fal-voice',
-        category: 'voice',
-        label: 'fal.ai voices',
-        credential: 'fal',
-        models: const [
-          ModelEntry('fal-ai/elevenlabs/tts/eleven-v3', 'ElevenLabs v3'),
-          ModelEntry('fal-ai/minimax/speech-02-hd', 'MiniMax Speech 02 HD'),
-          ModelEntry('fal-ai/minimax/speech-02-turbo', 'MiniMax Speech 02 Turbo'),
-          ModelEntry(
-              'fal-ai/elevenlabs/tts/multilingual-v2', 'ElevenLabs Multilingual v2'),
-          ModelEntry('fal-ai/elevenlabs/tts/turbo-v2.5', 'ElevenLabs Turbo v2.5'),
-          ModelEntry('fal-ai/kokoro/american-english', 'Kokoro (American English)'),
-          ModelEntry('fal-ai/chatterbox/text-to-speech', 'Chatterbox'),
-        ],
-        defaultModel: 'fal-ai/elevenlabs/tts/eleven-v3',
-        note: tr('Several voice engines behind the fal key you already have.'),
       ),
 
       // ---- Captions --------------------------------------------------------
@@ -562,11 +697,9 @@ class Registry extends ChangeNotifier {
         if (isAuto(model.id)) continue;
         if (firstConcrete.isEmpty) firstConcrete = model.id;
         if (!needsLongClip) return model.id;
-        if (model.id.contains('kling') ||
-            model.id.contains('hailuo') ||
-            model.id.contains('seedance')) {
-          return model.id;
-        }
+        // Veo tops out at eight seconds and Sora at twelve; the rest of the
+        // list runs to fifteen or beyond, so a long shot skips past Veo.
+        if (!model.id.startsWith('veo-')) return model.id;
       }
       return firstConcrete;
     }
@@ -575,6 +708,31 @@ class Registry extends ChangeNotifier {
 
   List<ProviderEntry> providers(String category) =>
       [for (final entry in _entries) if (entry.category == category) entry];
+
+  /// Everything on one shelf of the Models menu, categories in their declared
+  /// order.
+  List<ProviderEntry> providersForPanel(String panelId) {
+    for (final panel in panels) {
+      if (panel.id != panelId) continue;
+      return [
+        for (final category in panel.categories) ...providers(category),
+      ];
+    }
+    return const [];
+  }
+
+  /// The keys a shelf needs, each listed once even when two providers on it
+  /// share one account.
+  List<CredentialEntry> credentialsForPanel(String panelId) {
+    final wanted = <String>{
+      for (final entry in providersForPanel(panelId))
+        if (entry.credential.isNotEmpty) entry.credential,
+    };
+    return [
+      for (final credential in credentials())
+        if (wanted.contains(credential.id)) credential,
+    ];
+  }
 
   ProviderEntry? provider(String id) {
     for (final entry in _entries) {
@@ -590,6 +748,24 @@ class Registry extends ChangeNotifier {
       if (entry.category == category) return entry.id;
     }
     return '';
+  }
+
+  /// A saved provider choice, or the category's default when that choice is no
+  /// longer in the catalogue.
+  ///
+  /// It has to be asked rather than assumed: an install that had Replicate
+  /// picked for its stills still has `imageProvider = "replicate-image"` in its
+  /// preferences, and handing that to the factory returns null -- which the
+  /// pipeline can only report as a failure with no obvious cause. Falling back
+  /// is the difference between "your old choice is gone, here is the new
+  /// default" and an ad that will not render and will not say why.
+  String providerOrDefault(String category, String savedId) {
+    if (savedId.isNotEmpty) {
+      for (final entry in _entries) {
+        if (entry.id == savedId && entry.category == category) return savedId;
+      }
+    }
+    return defaultProvider(category);
   }
 
   /// Readable name for a model, or the id itself when it came from "Other...".
@@ -611,7 +787,17 @@ class Registry extends ChangeNotifier {
           label: 'OpenAI',
           envVar: 'OPENAI_API_KEY',
           signupUrl: 'https://platform.openai.com/api-keys',
-          note: tr('Scripts, images, Sora video, voice-over and subtitles.'),
+          note: tr('Scripts, images, Sora video, voice-over and subtitles. '
+              'Credits from \$5.'),
+        ),
+        CredentialEntry(
+          id: 'gemini',
+          label: 'Google Gemini',
+          envVar: 'GEMINI_API_KEY',
+          signupUrl: 'https://aistudio.google.com/apikey',
+          note: tr('Scripts, images, Veo video and voice-over. Free tier, no '
+              'card -- video and images are billed, the rest is not.'),
+          free: true,
         ),
         CredentialEntry(
           id: 'anthropic',
@@ -621,11 +807,78 @@ class Registry extends ChangeNotifier {
           note: tr('Scripts.'),
         ),
         CredentialEntry(
-          id: 'gemini',
-          label: 'Google Gemini',
-          envVar: 'GEMINI_API_KEY',
-          signupUrl: 'https://aistudio.google.com/apikey',
-          note: tr('Scripts and images. Free tier, no card.'),
+          id: 'xai',
+          label: 'xAI',
+          envVar: 'XAI_API_KEY',
+          signupUrl: 'https://console.x.ai/',
+          note: tr('Scripts, stills and clips on one prepaid balance.'),
+        ),
+        CredentialEntry(
+          id: 'minimax',
+          label: 'MiniMax',
+          envVar: 'MINIMAX_API_KEY',
+          signupUrl:
+              'https://platform.minimax.io/user-center/basic-information/interface-key',
+          note: tr('Video, voice-over and scripts. Pay as you go.'),
+        ),
+        CredentialEntry(
+          id: 'ltx',
+          label: 'LTX (Lightricks)',
+          envVar: 'LTXV_API_KEY',
+          signupUrl: 'https://console.ltx.io/',
+          note: tr('Video, billed by the second with no minimum.'),
+        ),
+        CredentialEntry(
+          id: 'bytedance',
+          label: 'BytePlus ModelArk',
+          envVar: 'ARK_API_KEY',
+          signupUrl: 'https://console.byteplus.com/ark',
+          note: tr('Seedance video and Seedream images. Seedance 2.x needs a '
+              'funded balance before it can be switched on.'),
+        ),
+        CredentialEntry(
+          id: 'bfl',
+          label: 'Black Forest Labs',
+          envVar: 'BFL_API_KEY',
+          signupUrl: 'https://dashboard.bfl.ai/',
+          note: tr('FLUX images. Top up any amount; one credit is one cent.'),
+        ),
+        CredentialEntry(
+          id: 'heygen',
+          label: 'HeyGen',
+          envVar: 'HEYGEN_API_KEY',
+          signupUrl: 'https://app.heygen.com/settings?nav=API',
+          note: tr('Talking actors. Pay as you go from a USD balance.'),
+        ),
+        CredentialEntry(
+          id: 'elevenlabs',
+          label: 'ElevenLabs',
+          envVar: 'ELEVENLABS_API_KEY',
+          signupUrl: 'https://elevenlabs.io/app/settings/api-keys',
+          note: tr('Voice-over.'),
+        ),
+        CredentialEntry(
+          id: 'luma',
+          label: 'Luma',
+          envVar: 'LUMAAI_API_KEY',
+          signupUrl: 'https://platform.lumalabs.ai/',
+          note: tr('Video, with a closing frame and clip-to-clip continuation.'),
+        ),
+        CredentialEntry(
+          id: 'ideogram',
+          label: 'Ideogram',
+          envVar: 'IDEOGRAM_API_KEY',
+          signupUrl: 'https://ideogram.ai/manage-api',
+          note: tr('Images, and the enlarger. Best in the list at text on a '
+              'label.'),
+        ),
+        CredentialEntry(
+          id: 'bria',
+          label: 'Bria',
+          envVar: 'BRIA_API_TOKEN',
+          signupUrl: 'https://platform.bria.ai/',
+          note: tr('Images and the enlarger. 100 generations free, no card, '
+              'and the output is sold with IP indemnity.'),
           free: true,
         ),
         CredentialEntry(
@@ -641,21 +894,9 @@ class Registry extends ChangeNotifier {
           label: 'fal.ai',
           envVar: 'FAL_KEY',
           signupUrl: 'https://fal.ai/dashboard/keys',
-          note: tr('Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).'),
-        ),
-        CredentialEntry(
-          id: 'replicate',
-          label: 'Replicate',
-          envVar: 'REPLICATE_API_TOKEN',
-          signupUrl: 'https://replicate.com/account/api-tokens',
-          note: tr('Images and video.'),
-        ),
-        CredentialEntry(
-          id: 'elevenlabs',
-          label: 'ElevenLabs',
-          envVar: 'ELEVENLABS_API_KEY',
-          signupUrl: 'https://elevenlabs.io/app/settings/api-keys',
-          note: tr('Voice-over.'),
+          note: tr('Kling only. Everything else calls its provider directly; '
+              "Kling's own API is sold in packs of several hundred dollars, so "
+              'it is bought by the second here instead.'),
         ),
       ];
 }
@@ -669,6 +910,12 @@ class ProviderFactory {
         'openai-chat' => OpenAiScriptTask(request),
         'anthropic-messages' => AnthropicScriptTask(request),
         'gemini-generate' => GeminiScriptTask(request),
+        // Both speak the OpenAI wire format on their own host, so the OpenAI
+        // task drives them with nothing but a different base url.
+        'xai-chat' =>
+          OpenAiScriptTask(request, host: 'https://api.x.ai/v1', vendor: 'xAI'),
+        'minimax-chat' => OpenAiScriptTask(request,
+            host: 'https://api.minimax.io/v1', vendor: 'MiniMax'),
         _ => null,
       };
 
@@ -676,24 +923,34 @@ class ProviderFactory {
       switch (providerId) {
         'gemini-image' => GeminiImageTask(request),
         'openai-image' => OpenAiImageTask(request),
-        'fal-image' => FalImageTask(request),
-        'replicate-image' => ReplicateImageTask(request),
-        // The upscalers take the picture as `image_url` and hand one back the
-        // same way an image model does, so they need no task of their own.
-        'fal-upscale' => FalImageTask(request),
+        'bfl-image' => BflImageTask(request),
+        'bytedance-image' => SeedreamImageTask(request),
+        'ideogram-image' => IdeogramImageTask(request),
+        'bria-image' => BriaImageTask(request),
+        'xai-image' => XaiImageTask(request),
+        // The enlargers take the picture and hand one back the same way an
+        // image model does, so they need no task of their own.
+        'bria-upscale' => BriaImageTask(request),
+        'ideogram-upscale' => IdeogramImageTask(request),
         _ => null,
       };
 
   static ProviderTask? video(String providerId, VideoRequest request) =>
       switch (providerId) {
-        'fal-video' => FalVideoTask(request),
-        'replicate-video' => ReplicateVideoTask(request),
+        'ltx-video' => LtxVideoTask(request),
+        'bytedance-video' => SeedanceVideoTask(request),
+        'gemini-video' => VeoVideoTask(request),
+        'minimax-video' => MiniMaxVideoTask(request),
         'openai-video' => SoraVideoTask(request),
+        'xai-video' => XaiVideoTask(request),
+        'luma-video' => LumaVideoTask(request),
+        'fal-video' => FalVideoTask(request),
         _ => null,
       };
 
   static ProviderTask? avatar(String providerId, AvatarRequest request) =>
       switch (providerId) {
+        'heygen-avatar' => HeyGenAvatarTask(request),
         'fal-avatar' => FalAvatarTask(request),
         _ => null,
       };
@@ -702,7 +959,8 @@ class ProviderFactory {
       switch (providerId) {
         'elevenlabs' => ElevenLabsVoiceTask(request),
         'openai-tts' => OpenAiVoiceTask(request),
-        'fal-voice' => FalVoiceTask(request),
+        'minimax-tts' => MiniMaxVoiceTask(request),
+        'gemini-tts' => GeminiVoiceTask(request),
         _ => null,
       };
 
@@ -713,12 +971,13 @@ class ProviderFactory {
         _ => null,
       };
 
-  /// Lists the voices available on the user's account (ElevenLabs / OpenAI).
+  /// Lists the voices available on the user's account.
   static ProviderTask? voiceCatalog(String providerId, String apiKey) =>
       switch (providerId) {
         'elevenlabs' => ElevenLabsVoiceListTask(apiKey),
         'openai-tts' => OpenAiVoiceListTask(),
-        'fal-voice' => FalVoiceListTask(),
+        'minimax-tts' => MiniMaxVoiceListTask(),
+        'gemini-tts' => GeminiVoiceListTask(),
         _ => null,
       };
 }

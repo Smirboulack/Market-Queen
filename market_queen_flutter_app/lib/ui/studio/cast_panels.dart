@@ -119,10 +119,10 @@ class _CastPanelState extends State<CastPanel> {
 
   // ---- the voice -----------------------------------------------------------
 
-  String get _voiceProvider {
-    final id = widget.app.settings.prefString('voiceProvider');
-    return id.isEmpty ? widget.app.registry.defaultProvider('voice') : id;
-  }
+  String get _voiceProvider => widget.app.registry.providerOrDefault(
+        'voice',
+        widget.app.settings.prefString('voiceProvider'),
+      );
 
   /// Runs the actor's brief past the provider. Cached for a day unless
   /// [refresh].

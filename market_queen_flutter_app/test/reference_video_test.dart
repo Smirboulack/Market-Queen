@@ -139,20 +139,42 @@ void main() {
     final registry = Registry();
 
     test('the reference models are offered', () {
+      // Reference-to-video used to be a separate endpoint on a reseller, which
+      // meant "Auto" had to be kept away from it: picked with nothing dropped
+      // in, it was a guaranteed failure. Called directly, Seedance takes the
+      // material and an opening frame through the same model id and the same
+      // endpoint, so the split is gone and there is nothing left to avoid.
       final ids = [
-        for (final model in registry.provider('fal-video')!.models) model.id,
+        for (final model in registry.provider('bytedance-video')!.models)
+          model.id,
       ];
-      expect(ids, contains('bytedance/seedance-2.5/reference-to-video'));
+      expect(ids, contains('dreamina-seedance-2-5-260628'));
+      expect(ids, contains('dreamina-seedance-2-0-260128'));
     });
 
-    test('but Auto never picks one', () {
-      // "Auto" takes the head of the list, and a reference model with nothing
-      // dropped in is a guaranteed failure. It has to be chosen deliberately.
+    test('Auto always resolves to something concrete', () {
       for (final seconds in [5, 10, 30]) {
-        expect(
-          registry.resolveModel('fal-video', 'auto', seconds),
-          isNot(contains('reference-to-video')),
-        );
+        final picked = registry.resolveModel('bytedance-video', 'auto', seconds);
+        expect(picked, isNotEmpty);
+        expect(picked, isNot('auto'));
+      }
+    });
+
+    test('fal carries Kling and nothing else', () {
+      // The one reseller left in the app, and it is a funding decision: Kling
+      // sells its own API in packs of several hundred dollars that expire.
+      // Every other provider is called directly on its own host. This is the
+      // line that keeps a second aggregator from creeping back in.
+      final onFal = [
+        for (final entry in registry.entries)
+          if (entry.credential == 'fal')
+            for (final model in entry.models) model.id,
+      ];
+
+      expect(onFal, isNotEmpty);
+      for (final id in onFal) {
+        if (Registry.isAuto(id)) continue;
+        expect(id, contains('kling'), reason: '$id is on fal but is not Kling');
       }
     });
   });

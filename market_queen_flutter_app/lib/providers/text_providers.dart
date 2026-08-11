@@ -368,17 +368,28 @@ abstract class ScriptTask extends HttpTask {
 
 // ---------------------------------------------------------------------------
 // OpenAI - POST /v1/chat/completions
+//
+// Also drives xAI and MiniMax. Both publish an endpoint that speaks this exact
+// wire format on their own host, so what would otherwise be two more writers is
+// one line in the factory: the same body, the same parsing, a different address
+// and the user's key for that provider.
 // ---------------------------------------------------------------------------
 class OpenAiScriptTask extends ScriptTask {
-  OpenAiScriptTask(super.request);
+  OpenAiScriptTask(super.request, {this.host = '', this.vendor = 'OpenAI'});
+
+  /// Set by the factory for the compatible providers. The request's own
+  /// [ScriptRequest.baseUrl] still wins, so a user-configured gateway is not
+  /// overridden by the provider we think we are talking to.
+  final String host;
+  final String vendor;
 
   @override
   Future<Map<String, Object?>> execute() async {
-    requireKey(request.apiKey, 'OpenAI');
+    requireKey(request.apiKey, vendor);
     report(progressLabel);
 
-    final base =
-        request.baseUrl.isEmpty ? 'https://api.openai.com/v1' : request.baseUrl;
+    final fallback = host.isEmpty ? 'https://api.openai.com/v1' : host;
+    final base = request.baseUrl.isEmpty ? fallback : request.baseUrl;
 
     final userContent = <Map<String, Object?>>[
       {'type': 'text', 'text': userPrompt},

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -176,48 +177,154 @@ class OpenAiVoiceTask extends VoiceTask {
 }
 
 // ---------------------------------------------------------------------------
-// fal.ai voices
+// MiniMax Speech - POST /v1/t2a_v2
+//
+// The audio comes back hex-encoded inside the JSON rather than as a file, which
+// is unusual but saves a round trip. `emotion` and `speed` are per request
+// rather than baked into the voice, so the same voice can read one line warmly
+// and the next one flat.
 // ---------------------------------------------------------------------------
-class FalVoiceTask extends VoiceTask {
-  FalVoiceTask(super.request);
+class MiniMaxVoiceTask extends VoiceTask {
+  MiniMaxVoiceTask(super.request);
+
+  /// Hex, not base64. Empty when the string is not a whole number of bytes.
+  static Uint8List _decodeHex(String hex) {
+    if (hex.isEmpty || hex.length.isOdd) return Uint8List(0);
+    final out = Uint8List(hex.length ~/ 2);
+    for (var i = 0; i < out.length; ++i) {
+      final byte = int.tryParse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+      if (byte == null) return Uint8List(0);
+      out[i] = byte;
+    }
+    return out;
+  }
 
   @override
   Future<Map<String, Object?>> execute() async {
-    requireKey(request.apiKey, 'fal.ai');
+    requireKey(request.apiKey, 'MiniMax');
     report(tr('Recording the voice-over...'));
 
-    final model = request.model;
-    final input = <String, Object?>{};
+    final response = await postJson(
+      Uri.parse('https://api.minimax.io/v1/t2a_v2'),
+      {
+        'model': request.model,
+        'text': request.text,
+        'stream': false,
+        'output_format': 'hex',
+        'voice_setting': {
+          'voice_id': request.voiceId.isEmpty ? 'Friendly_Person' : request.voiceId,
+          'speed': request.speed,
+        },
+        'audio_setting': {
+          'format': 'mp3',
+          'sample_rate': 44100,
+          'bitrate': 128000,
+          'channel': 1,
+        },
+      },
+      headers: {'Authorization': 'Bearer ${request.apiKey}'},
+    );
 
-    if (model.contains('minimax')) {
-      input['text'] = request.text;
-      if (request.voiceId.isNotEmpty) {
-        input['voice_setting'] = {'voice_id': request.voiceId};
-      }
-    } else if (model.contains('elevenlabs')) {
-      input['text'] = request.text;
-      if (request.voiceId.isNotEmpty) input['voice'] = request.voiceId;
-    } else if (model.contains('kokoro')) {
-      input['prompt'] = request.text;
-      if (request.voiceId.isNotEmpty) input['voice'] = request.voiceId;
-    } else {
-      input['text'] = request.text;
+    final audio = _decodeHex(HttpTask.jsonPath(response, 'data.audio'));
+    if (audio.isEmpty) {
+      // MiniMax answers 200 with the failure inside base_resp, so an HTTP-level
+      // check would report success on an empty file.
+      final message = HttpTask.jsonPath(response, 'base_resp.status_msg');
+      throw ProviderException(message.isEmpty
+          ? tr('MiniMax returned no audio.')
+          : tr('MiniMax returned no audio: %1').arg(message));
     }
 
-    final result = await submitFal(request.apiKey, model, input);
+    return {'data': audio, 'extension': 'mp3'};
+  }
+}
 
-    var url = HttpTask.jsonPath(result, 'audio.url');
-    if (url.isEmpty) url = HttpTask.jsonPath(result, 'audio_url');
-    if (url.isEmpty) url = HttpTask.jsonPath(result, 'url');
-    if (url.isEmpty) throw ProviderException(tr('fal.ai returned no audio.'));
+// ---------------------------------------------------------------------------
+// Google Gemini TTS - :generateContent with an audio response.
+//
+// Not a speech endpoint but the ordinary text endpoint told to answer in audio,
+// which is why the voice is nested three levels down in a speech config. Comes
+// back as raw 24 kHz PCM with no container, so it is wrapped in a WAV header
+// here rather than handed to ffmpeg as a headerless blob.
+// ---------------------------------------------------------------------------
+class GeminiVoiceTask extends VoiceTask {
+  GeminiVoiceTask(super.request);
 
-    final (data, contentType) = await download(url);
-    if (data.isEmpty) throw ProviderException(tr('fal.ai returned no audio.'));
+  static const _sampleRate = 24000;
 
-    return {
-      'data': data,
-      'extension': Http.guessExtension(url, contentType, 'mp3'),
-    };
+  /// A 44-byte canonical WAV header in front of the samples. Without it the
+  /// file plays as noise in every player that does not guess the format.
+  static Uint8List _wrapPcm(Uint8List pcm) {
+    final header = BytesBuilder();
+    void ascii(String text) => header.add(text.codeUnits);
+    void u32(int value) => header.add([
+          value & 0xff,
+          (value >> 8) & 0xff,
+          (value >> 16) & 0xff,
+          (value >> 24) & 0xff,
+        ]);
+    void u16(int value) => header.add([value & 0xff, (value >> 8) & 0xff]);
+
+    ascii('RIFF');
+    u32(36 + pcm.length);
+    ascii('WAVE');
+    ascii('fmt ');
+    u32(16); // PCM header size
+    u16(1); // uncompressed
+    u16(1); // mono
+    u32(_sampleRate);
+    u32(_sampleRate * 2); // byte rate: mono, 16-bit
+    u16(2); // block align
+    u16(16); // bits per sample
+    ascii('data');
+    u32(pcm.length);
+
+    return Uint8List.fromList(header.toBytes() + pcm);
+  }
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'Google Gemini');
+    report(tr('Recording the voice-over...'));
+
+    final response = await postJson(
+      Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/'
+          '${request.model}:generateContent'),
+      {
+        'contents': [
+          {
+            'parts': [
+              {'text': request.text},
+            ],
+          },
+        ],
+        'generationConfig': {
+          'responseModalities': ['AUDIO'],
+          'speechConfig': {
+            'voiceConfig': {
+              'prebuiltVoiceConfig': {
+                'voiceName': request.voiceId.isEmpty ? 'Kore' : request.voiceId,
+              },
+            },
+          },
+        },
+      },
+      headers: {'x-goog-api-key': request.apiKey},
+    );
+
+    final b64 = HttpTask.jsonPath(
+        response, 'candidates.0.content.parts.0.inlineData.data');
+    if (b64.isEmpty) throw ProviderException(tr('Gemini returned no audio.'));
+
+    Uint8List pcm;
+    try {
+      pcm = base64Decode(b64);
+    } on FormatException {
+      throw ProviderException(tr('Gemini returned no audio.'));
+    }
+    if (pcm.isEmpty) throw ProviderException(tr('Gemini returned no audio.'));
+
+    return {'data': _wrapPcm(pcm), 'extension': 'wav'};
   }
 }
 
@@ -728,23 +835,44 @@ class OpenAiVoiceListTask extends ProviderTask {
   Future<Map<String, Object?>> execute() async => {'voices': _voices};
 }
 
-/// fal has no voices endpoint either: each engine ships its own named set.
-/// These are the MiniMax, ElevenLabs and Kokoro presets; any other id can be
-/// typed in.
-class FalVoiceListTask extends ProviderTask {
+/// MiniMax ships a fixed set of system voices, named rather than numbered.
+/// A cloned voice's id can be typed in instead.
+class MiniMaxVoiceListTask extends ProviderTask {
   static const _voices = <VoiceOption>[
-    VoiceOption('Wise_Woman', 'Wise_Woman', 'MiniMax - warm, mature'),
-    VoiceOption('Friendly_Person', 'Friendly_Person', 'MiniMax - upbeat, casual'),
-    VoiceOption('Inspirational_girl', 'Inspirational_girl', 'MiniMax - young, energetic'),
-    VoiceOption('Deep_Voice_Man', 'Deep_Voice_Man', 'MiniMax - deep, male'),
-    VoiceOption('Calm_Woman', 'Calm_Woman', 'MiniMax - calm, female'),
-    VoiceOption('Casual_Guy', 'Casual_Guy', 'MiniMax - relaxed, male'),
-    VoiceOption('Lively_Girl', 'Lively_Girl', 'MiniMax - lively, female'),
-    VoiceOption('Rachel', 'Rachel', 'ElevenLabs - natural, female'),
-    VoiceOption('Aria', 'Aria', 'ElevenLabs - expressive, female'),
-    VoiceOption('Josh', 'Josh', 'ElevenLabs - young, male'),
-    VoiceOption('af_heart', 'af_heart', 'Kokoro - American female'),
-    VoiceOption('am_adam', 'am_adam', 'Kokoro - American male'),
+    VoiceOption('Friendly_Person', 'Friendly_Person', 'upbeat, casual'),
+    VoiceOption('Wise_Woman', 'Wise_Woman', 'warm, mature'),
+    VoiceOption('Inspirational_girl', 'Inspirational_girl', 'young, energetic'),
+    VoiceOption('Lively_Girl', 'Lively_Girl', 'lively, female'),
+    VoiceOption('Calm_Woman', 'Calm_Woman', 'calm, female'),
+    VoiceOption('Casual_Guy', 'Casual_Guy', 'relaxed, male'),
+    VoiceOption('Deep_Voice_Man', 'Deep_Voice_Man', 'deep, male'),
+    VoiceOption('Young_Knight', 'Young_Knight', 'bright, male'),
+    VoiceOption('Determined_Man', 'Determined_Man', 'firm, male'),
+    VoiceOption('Elegant_Man', 'Elegant_Man', 'polished, male'),
+    VoiceOption('Sweet_Girl_2', 'Sweet_Girl_2', 'soft, female'),
+    VoiceOption('Patient_Man', 'Patient_Man', 'measured, male'),
+  ];
+
+  @override
+  Future<Map<String, Object?>> execute() async => {'voices': _voices};
+}
+
+/// Gemini's prebuilt voices. Same set on both TTS models, and each one is
+/// named for the character it plays rather than for a gender.
+class GeminiVoiceListTask extends ProviderTask {
+  static const _voices = <VoiceOption>[
+    VoiceOption('Kore', 'Kore', 'firm, even'),
+    VoiceOption('Puck', 'Puck', 'upbeat'),
+    VoiceOption('Zephyr', 'Zephyr', 'bright'),
+    VoiceOption('Leda', 'Leda', 'youthful'),
+    VoiceOption('Aoede', 'Aoede', 'breezy'),
+    VoiceOption('Charon', 'Charon', 'informative'),
+    VoiceOption('Fenrir', 'Fenrir', 'excitable'),
+    VoiceOption('Orus', 'Orus', 'firm'),
+    VoiceOption('Callirrhoe', 'Callirrhoe', 'easy-going'),
+    VoiceOption('Autonoe', 'Autonoe', 'bright'),
+    VoiceOption('Enceladus', 'Enceladus', 'breathy'),
+    VoiceOption('Iapetus', 'Iapetus', 'clear'),
   ];
 
   @override

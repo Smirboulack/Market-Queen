@@ -248,10 +248,10 @@ class AdProject extends ChangeNotifier {
   }) {
     // Model choices live in the preferences the Models page writes, so the
     // studio and that page agree on what "your usual models" means.
-    String pickedProvider(String category) {
-      final saved = _settings.prefString('${category}Provider');
-      return saved.isEmpty ? _registry.defaultProvider(category) : saved;
-    }
+    String pickedProvider(String category) => _registry.providerOrDefault(
+          category,
+          _settings.prefString('${category}Provider'),
+        );
 
     String pickedModel(String category, String providerId) {
       final saved = _settings.prefString('${category}Model');

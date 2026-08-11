@@ -8,6 +8,7 @@ import 'package:market_queen/providers/types.dart';
 import 'package:market_queen/ui/models_page.dart';
 import 'package:market_queen/ui/settings_page.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/key_field.dart';
 
 /// What the app promises about money, asserted rather than trusted.
 ///
@@ -79,7 +80,7 @@ void main() {
     );
   });
 
-  testWidgets('settings offers the free keys and names the catch', (
+  testWidgets('settings names the offer and its catch, but takes no keys', (
     tester,
   ) async {
     await pump(tester, SettingsPage(app: app));
@@ -89,9 +90,18 @@ void main() {
     // happens to be loaded depends on the machine's language, and this is a
     // test about what the page says, not about which language it says it in.
     expect(find.text(tr('Start for free')), findsOneWidget);
-    // Twice in the free card, twice more on the key fields below it.
-    expect(find.text(tr('Get a free key')), findsNWidgets(4));
-    expect(find.text(tr('Free tier')), findsNWidgets(2));
+
+    // One row per provider that hands out a key for nothing. Asserted by name,
+    // because the button beside it reads "Key added" once a key is there and
+    // the machine running this may well have one.
+    for (final credential in app.registry.credentials()) {
+      if (!credential.free) continue;
+      expect(
+        find.text(credential.label),
+        findsOneWidget,
+        reason: '${credential.id} is free but is not on the Settings card',
+      );
+    }
 
     // The data-usage disclosure sits in the same card as the offer.
     expect(
@@ -103,11 +113,44 @@ void main() {
       )),
       findsOneWidget,
     );
+
+    // The keys themselves moved to the Models menu. A second place to type
+    // them is how two fields disagree about what the key is.
+    expect(find.text(tr('Paste your key')), findsNothing);
   });
 
   testWidgets('the models page badges the free entries', (tester) async {
     await pump(tester, ModelsPage(app: app));
     expect(tester.takeException(), isNull);
     expect(find.text(tr('Free tier')), findsWidgets);
+  });
+
+  testWidgets('every shelf is drawn, with the keys it needs on it', (
+    tester,
+  ) async {
+    await pump(tester, ModelsPage(app: app));
+    expect(tester.takeException(), isNull);
+
+    // The five shelves, and inside each one the providers that fill it. A
+    // panel that renders its title but none of its providers is the failure
+    // this catches -- it looks configured and offers nothing.
+    for (final panel in Registry.panels) {
+      expect(find.text(tr(panel.title)), findsOneWidget);
+      expect(app.registry.providersForPanel(panel.id), isNotEmpty);
+    }
+
+    // One key field per shelf that needs it, which means OpenAI is drawn four
+    // times on purpose -- it unlocks the writer, the stills, Sora and the
+    // voice-over, and each panel has to be usable without leaving it.
+    final expected = [
+      for (final panel in Registry.panels)
+        ...app.registry.credentialsForPanel(panel.id),
+    ].length;
+
+    expect(find.byType(KeyField), findsNWidgets(expected));
+    expect(
+      app.registry.credentialsForPanel('llm'),
+      contains(isA<CredentialEntry>().having((c) => c.id, 'id', 'openai')),
+    );
   });
 }

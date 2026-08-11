@@ -1070,10 +1070,11 @@ class Pipeline extends ChangeNotifier {
       final ProviderTask? task;
 
       if (talking) {
-        providerId = _request['avatarProvider'] == null ||
-                '${_request['avatarProvider']}'.isEmpty
-            ? 'fal-avatar'
-            : '${_request['avatarProvider']}';
+        // The default is asked for rather than named: hardcoding one here is
+        // how a provider that has since been dropped stays wired into the one
+        // path nobody reads until a render fails.
+        providerId = _registry.providerOrDefault(
+            'avatar', '${_request['avatarProvider'] ?? ''}');
         model = _pickModel(providerId, _text('avatarModel'));
         task = ProviderFactory.avatar(
           providerId,

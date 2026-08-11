@@ -231,9 +231,18 @@ class SettingsStore extends ChangeNotifier {
     'openai': 'OPENAI_API_KEY',
     'anthropic': 'ANTHROPIC_API_KEY',
     'gemini': 'GEMINI_API_KEY',
-    'fal': 'FAL_KEY',
-    'replicate': 'REPLICATE_API_TOKEN',
+    'xai': 'XAI_API_KEY',
+    'minimax': 'MINIMAX_API_KEY',
+    'ltx': 'LTXV_API_KEY',
+    'bytedance': 'ARK_API_KEY',
+    'bfl': 'BFL_API_KEY',
+    'heygen': 'HEYGEN_API_KEY',
+    'luma': 'LUMAAI_API_KEY',
+    'ideogram': 'IDEOGRAM_API_KEY',
+    'bria': 'BRIA_API_TOKEN',
+    'groq': 'GROQ_API_KEY',
     'elevenlabs': 'ELEVENLABS_API_KEY',
+    'fal': 'FAL_KEY',
   };
 
   String apiKey(String credentialId) {

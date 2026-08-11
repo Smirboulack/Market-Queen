@@ -263,10 +263,11 @@ class FalSchemas extends ChangeNotifier {
   /// than starting another one -- or, for [ensure], waits on it.
   final Map<String, Future<void>> _inFlight = {};
 
-  /// Only fal endpoints have a schema to read. Everything else is left to its
-  /// provider's own defaults.
-  static bool handles(String providerId) =>
-      providerId.startsWith('fal-') || providerId == 'fal-upscale';
+  /// Only fal endpoints have a schema to read, which since the move to direct
+  /// APIs means the two Kling ones. Everything else is called on its provider's
+  /// own host, where the parameters are known at build time and live in the
+  /// task rather than being discovered.
+  static bool handles(String providerId) => providerId.startsWith('fal-');
 
   /// What we know about [endpointId] right now.
   ///
