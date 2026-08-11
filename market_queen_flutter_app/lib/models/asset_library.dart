@@ -174,6 +174,36 @@ const _audioExtensions = <String>{
 bool isAudioPath(String path) =>
     _audioExtensions.contains(p.extension(path).toLowerCase());
 
+/// Wider than what the file dialog offers on purpose: this is the test applied
+/// to things arriving from outside the app -- a path pasted as text, a file
+/// copied out of a browser -- where AVIF and HEIC are as common as PNG, and
+/// [imageDataUri] converts either.
+const _imageExtensions = <String>{
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.webp',
+  '.gif',
+  '.bmp',
+  '.tif',
+  '.tiff',
+  '.avif',
+  '.heic',
+  '.heif',
+};
+
+/// Whether a path names a picture.
+///
+/// Not the complement of the two above: "neither a clip nor a recording" is
+/// what the send path assumes of a reference it has already accepted, which is
+/// a different question from whether a stray path is worth accepting at all.
+bool isImagePath(String path) =>
+    _imageExtensions.contains(p.extension(path).toLowerCase());
+
+/// Whether a path is something the composer can take as a reference.
+bool isMediaPath(String path) =>
+    isImagePath(path) || isVideoPath(path) || isAudioPath(path);
+
 /// A folder of reusable assets on disk.
 ///
 /// Saving copies the still out of the scratch folder into the library's own

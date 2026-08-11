@@ -39,7 +39,15 @@ class PlatformUtil {
 
     try {
       if (Platform.isWindows) {
-        await Process.start('explorer.exe', ['/select,${p.normalize(local)}']);
+        // Two arguments rather than one, and the difference is not cosmetic.
+        // Explorer takes everything after `/select,` as the path, but Dart
+        // wraps any single argument containing a space in quotes -- and the
+        // projects folder is `...\Videos\Market Queen\...` by default, so it
+        // always has one. Explorer does not parse a quoted `/select,`: it gave
+        // up silently and opened Documents instead, every single time. Split in
+        // two, only the path carries the space, and the quotes land where
+        // Explorer expects them.
+        await Process.start('explorer.exe', ['/select,', p.normalize(local)]);
         return;
       }
       if (Platform.isMacOS) {

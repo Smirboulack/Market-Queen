@@ -5,8 +5,10 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
 
 import '../../app_state.dart';
+import '../../core/clipboard_media.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../../models/canvas_feed.dart';
@@ -20,6 +22,7 @@ import '../widgets/chip.dart';
 import '../widgets/media_drop.dart';
 import 'cast_panels.dart';
 import 'composer_tabs.dart';
+import 'mentions.dart';
 
 /// The bar the whole studio is driven from.
 ///
@@ -54,8 +57,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   /// One controller per tab, so switching to check a setting and coming back
   /// does not lose a half-written prompt.
-  final Map<ComposerTab, TextEditingController> _prompts = {
-    for (final tab in ComposerTab.values) tab: TextEditingController(),
+  ///
+  /// They colour the handles they recognise as you type -- see
+  /// [MentionController]. The set of handles is rewritten on every build from
+  /// what is actually attached, so a reference removed unlights the token that
+  /// named it in the same frame.
+  final Map<ComposerTab, MentionController> _prompts = {
+    for (final tab in ComposerTab.values) tab: MentionController(),
   };
 
   /// What was dropped into the bar, per tab. Session-local on purpose: a
@@ -170,7 +178,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   // ---- sending -------------------------------------------------------------
 
-  TextEditingController get _prompt => _prompts[_tab]!;
+  MentionController get _prompt => _prompts[_tab]!;
 
   /// What is attached to the bar on this tab.
   ///
@@ -183,6 +191,101 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       _tab == ComposerTab.actors ? app.project.media : _references[_tab]!;
 
   ComposerSpec get _spec => ComposerSpec.of(_tab);
+
+  // ---- what the prompt can point at ---------------------------------------
+
+  /// Whether this tab's field names the things attached to it.
+  ///
+  /// Every free prompt does. The talking-actor tab does not, and must not: its
+  /// field is the script -- words somebody is about to say out loud -- and
+  /// "@Image1" in the middle of a sentence is a thing that gets read aloud.
+  bool get _namesReferences => _spec.prompted && _tab != ComposerTab.actors;
+
+  /// The actor and the scene the ad is cast with, in that order.
+  List<LibraryAsset> get _castAssets {
+    final project = app.project;
+    final actor = project.actorIds.isEmpty
+        ? null
+        : app.actors.byId(project.actorIds.first);
+    final scene = app.scenes.byId(project.sceneId);
+
+    return [
+      for (final asset in [actor, scene])
+        if (asset != null && asset.name.trim().isNotEmpty) asset,
+    ];
+  }
+
+  /// Everything the current prompt can address by name: each reference in the
+  /// bar under the handle the runner will send it as, then the cast.
+  List<Mention> get _mentions {
+    if (!_namesReferences) return const [];
+
+    final handles = referenceHandles(_refs);
+    return [
+      for (var i = 0; i < _refs.length; ++i)
+        Mention(handle: handles[i], label: p.basename(_refs[i])),
+      for (final asset in _castAssets)
+        Mention(handle: castHandle(asset.name), label: asset.name),
+    ];
+  }
+
+  /// The references this send actually carries.
+  ///
+  /// What is in the bar, plus a still of any cast the prompt named. Pointing at
+  /// "@Marie" has to put Marie in front of the model or the handle is
+  /// decoration -- so her portrait goes in as one more reference, appended at
+  /// the end where it cannot displace the picture chosen as the opening frame.
+  List<String> _referencesForSend() {
+    final references = List.of(_refs);
+    if (!_namesReferences) return references;
+
+    for (final asset in _castAssets) {
+      if (!promptMentions(_prompt.text, castHandle(asset.name))) continue;
+      final still = asset.thumbnail;
+      if (still.isEmpty || references.contains(still)) continue;
+      references.add(still);
+    }
+    return references;
+  }
+
+  /// Types a handle at the caret, spaced the way somebody would have typed it.
+  ///
+  /// The tiles and the cast chips both lead here, because the alternative is
+  /// remembering whether the clip dropped in second was @Video1 or @Video2.
+  void _insertHandle(String handle) {
+    final text = _prompt.text;
+    final selection = _prompt.selection;
+    final start = selection.isValid ? selection.start : text.length;
+    final end = selection.isValid ? selection.end : text.length;
+
+    final lead = start > 0 && !_isBlank(text.codeUnitAt(start - 1)) ? ' ' : '';
+    final trail = end < text.length && _isBlank(text.codeUnitAt(end)) ? '' : ' ';
+    final inserted = '$lead$handle$trail';
+
+    _rewrite(text.replaceRange(start, end, inserted), start + inserted.length);
+    _focus.requestFocus();
+  }
+
+  /// Writes a new value into the prompt from outside the keyboard.
+  ///
+  /// Everything that edits the field by hand goes through here, because two
+  /// things have to happen together: the controller takes the text and the
+  /// caret, and -- on the script tab -- so does the ad. `onChanged` fires for
+  /// typing only, so a programmatic edit that skipped this would be lost at the
+  /// next save.
+  void _rewrite(String text, int caret) {
+    _prompt.value = TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(offset: caret),
+    );
+    if (_tab == ComposerTab.actors) app.project.setScript(text);
+  }
+
+  static bool _isBlank(int codeUnit) =>
+      codeUnit == 0x20 ||
+      codeUnit == 0x09 ||
+      codeUnit == 0x0A ||
+      codeUnit == 0x0D;
 
   int get _count {
     if (!_spec.batched) return 1;
@@ -272,7 +375,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       kind: _spec.kind,
       category: _spec.category,
       prompt: _prompt.text.trim(),
-      references: List.of(_refs),
+      references: _referencesForSend(),
       aspectRatio: _aspect,
       seconds: _seconds,
       count: _count,
@@ -314,6 +417,42 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     final files = await openFiles(acceptedTypeGroups: const [mediaTypeGroup]);
     if (files.isEmpty) return;
     _addReferences([for (final file in files) file.path]);
+  }
+
+  /// Ctrl+V, taken over from the text field.
+  ///
+  /// Text still pastes as text, and that path is checked first: it is one
+  /// platform-channel call, so an ordinary paste waits on nothing. Only when
+  /// the clipboard holds no text at all is the shell asked -- and that is
+  /// exactly the case where it holds a screenshot or a file copied out of the
+  /// file manager, the two things people try to paste into a prompt bar and the
+  /// two things that used to silently do nothing.
+  Future<void> _paste() async {
+    final clipboard = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = clipboard?.text ?? '';
+
+    if (text.trim().isNotEmpty) {
+      // A path copied out of an address bar or a chat message is a file, not a
+      // sentence, and pasting it as prose is never what was meant.
+      final paths = _spec.takesReferences
+          ? ClipboardMedia.pathsIn(text)
+          : const <String>[];
+      if (paths.isNotEmpty) {
+        _addReferences(paths);
+        return;
+      }
+
+      final current = _prompt.text;
+      final selection = _prompt.selection;
+      final start = selection.isValid ? selection.start : current.length;
+      final end = selection.isValid ? selection.end : current.length;
+      _rewrite(current.replaceRange(start, end, text), start + text.length);
+      return;
+    }
+
+    if (!_spec.takesReferences) return;
+    final files = await ClipboardMedia.readFiles();
+    if (files.isNotEmpty && mounted) _addReferences(files);
   }
 
   void _addReferences(List<String> paths) {
@@ -528,7 +667,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             children: [
               if (_spec.prompted) _field(),
               if (_refs.isNotEmpty) ...[
-                if (_spec.prompted) const SizedBox(height: 10),
+                if (_spec.prompted) const SizedBox(height: 12),
                 _referenceRow(),
               ],
               if (!_spec.prompted && _refs.isEmpty) _dropInvitation(),
@@ -543,6 +682,11 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   Widget _field() {
     final mq = context.mq;
+
+    // Rewritten rather than kept in step: it is a plain field on the
+    // controller, read while the text is painted, and recomputing it here is
+    // cheaper than remembering every way a reference can come and go.
+    _prompt.handles = [for (final mention in _mentions) mention.handle];
 
     return ConstrainedBox(
       // One floor for every tab, and it is the script's. A 44px prompt and an
@@ -559,12 +703,23 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           SingleActivator(LogicalKeyboardKey.enter, control: true):
               _SendIntent(),
           SingleActivator(LogicalKeyboardKey.enter, meta: true): _SendIntent(),
+          // Taken off the field, which can only ever paste text. This one
+          // decides between text and media itself -- see [_paste].
+          SingleActivator(LogicalKeyboardKey.keyV, control: true):
+              _PasteIntent(),
+          SingleActivator(LogicalKeyboardKey.keyV, meta: true): _PasteIntent(),
         },
         child: Actions(
           actions: {
             _SendIntent: CallbackAction<_SendIntent>(
               onInvoke: (_) {
                 _send();
+                return null;
+              },
+            ),
+            _PasteIntent: CallbackAction<_PasteIntent>(
+              onInvoke: (_) {
+                _paste();
                 return null;
               },
             ),
@@ -635,19 +790,37 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   Widget _referenceRow() {
+    // The handles have to be computed over the whole list rather than per tile:
+    // "@Image2" only means anything relative to the picture that came first.
+    final handles = _namesReferences
+        ? referenceHandles(_refs)
+        : const <String>[];
+
     return Wrap(
       spacing: 8,
       runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.start,
       children: [
         for (var i = 0; i < _refs.length; ++i)
-          MediaTile(
-            path: _refs[i],
-            size: 54,
-            onRemove: () => _removeReference(i),
-          ),
+          if (handles.isEmpty)
+            MediaTile(
+              path: _refs[i],
+              size: _tileSize,
+              onRemove: () => _removeReference(i),
+            )
+          else
+            _NamedReference(
+              path: _refs[i],
+              handle: handles[i],
+              size: _tileSize,
+              onRemove: () => _removeReference(i),
+              onInsert: () => _insertHandle(handles[i]),
+            ),
       ],
     );
   }
+
+  static const double _tileSize = 54;
 
   Widget _footer() {
     final mq = context.mq;
@@ -777,6 +950,22 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         size: 32,
         onPressed: _browse,
       ),
+      // Who the ad is cast with, on a tab that cannot cast anybody. They are
+      // here to be *named*: a still of "@Marie in @Morning kitchen" is the
+      // ordinary next thing to ask for once an ad has a cast, and the
+      // alternative was re-describing her face in prose every time. Pressing
+      // one types its handle; the prompt lights it up, and the send carries
+      // her portrait along with it.
+      if (_namesReferences)
+        for (final asset in _castAssets)
+          MqChip(
+            label: castHandle(asset.name),
+            portrait: asset.thumbnail,
+            active: false,
+            //: %1 is a handle such as "@Marie"
+            tooltip: tr('Write %1 into the prompt').arg(castHandle(asset.name)),
+            onPressed: () => _insertHandle(castHandle(asset.name)),
+          ),
     ];
   }
 
@@ -808,6 +997,72 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
 class _SendIntent extends Intent {
   const _SendIntent();
+}
+
+class _PasteIntent extends Intent {
+  const _PasteIntent();
+}
+
+/// A reference with the name the prompt calls it by written underneath.
+///
+/// The handle is not a label the interface made up: `@Image1` is literally what
+/// the model is handed, in the order the runner uploads them. Putting it on the
+/// tile is the only place it can be checked against the picture it belongs to
+/// -- and pressing the tile types it, because counting which of four dropped
+/// clips is @Video2 is not something anybody should be doing.
+class _NamedReference extends StatelessWidget {
+  const _NamedReference({
+    required this.path,
+    required this.handle,
+    required this.size,
+    required this.onRemove,
+    required this.onInsert,
+  });
+
+  final String path;
+  final String handle;
+  final double size;
+  final VoidCallback onRemove;
+  final VoidCallback onInsert;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      onTap: onInsert,
+      //: %1 is a handle such as "@Image1"
+      tooltip: tr('Write %1 into the prompt').arg(handle),
+      focusRadius: MqTheme.radiusSmall,
+      builder: (context, states) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // The tile keeps its own remove badge: it sits inside this target and
+          // wins the tap for the few pixels it covers, which is what a cross on
+          // a thumbnail is expected to do.
+          MediaTile(path: path, size: size, onRemove: onRemove),
+          const SizedBox(height: 4),
+          SizedBox(
+            width: size,
+            child: Text(
+              handle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              // The same blue the prompt lights the token in, so the two read
+              // as one thing seen twice rather than as two labels.
+              style: TextStyle(
+                color: mq.info,
+                fontSize: MqTheme.fontMicro,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Which of the three panels the slot beside the bar is showing.

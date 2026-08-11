@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 import '../../app_state.dart';
@@ -13,6 +11,7 @@ import '../widgets/buttons.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/mq_dialog.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/video_player.dart';
 import 'studio_card.dart';
 
 /// The middle of the studio: everything this ad has generated, oldest at the
@@ -67,6 +66,31 @@ class _CanvasViewState extends State<CanvasView> {
     _feed.removeListener(_onFeed);
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// The composer changed height under us -- a reference was dropped into it,
+  /// the settings column opened, the prompt grew a third line.
+  ///
+  /// The feed pads itself by exactly that height, so the padding is about to
+  /// change too. Somebody who was watching the newest tile has to still be
+  /// watching it afterwards rather than the bar that has just grown over it,
+  /// which means reading "were we at the bottom" now, before the new padding is
+  /// laid out, and restoring it after.
+  @override
+  void didUpdateWidget(CanvasView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bottomInset == widget.bottomInset) return;
+    if (!_scroll.hasClients) return;
+
+    final position = _scroll.position;
+    if (position.pixels < position.maxScrollExtent - 8) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      // Jumped, not animated: this follows a resize, and a resize that also
+      // slides is two movements where the user made none.
+      _scroll.jumpTo(_scroll.position.maxScrollExtent);
+    });
   }
 
   /// Follows the newest batch down, and only on a new batch.
@@ -367,6 +391,14 @@ class _ResultTile extends StatefulWidget {
 class _ResultTileState extends State<_ResultTile> {
   bool _hovered = false;
 
+  /// Whether the player has been stood up in place of the poster.
+  ///
+  /// One-way: once a clip has been played it keeps its player, so pausing and
+  /// starting again does not reopen the file. It is the press of play that
+  /// mounts it, never the tile appearing -- a feed of twenty clips must not
+  /// stand up twenty decoders to show twenty thumbnails.
+  bool _playing = false;
+
   double get _ratio {
     final parts = widget.batch.aspectRatio.split(':');
     if (parts.length != 2) return 1;
@@ -385,7 +417,11 @@ class _ResultTileState extends State<_ResultTile> {
     if (widget.batch.kind == CanvasKind.audio) return _AudioTile(item: item);
 
     return switch (item.status) {
-      CanvasStatus.pending => SkeletonTile(aspectRatio: _ratio),
+      CanvasStatus.pending => SkeletonTile(
+        aspectRatio: _ratio,
+        glyph: _glyph,
+        label: _pendingLabel,
+      ),
       CanvasStatus.failed => AspectRatio(
         aspectRatio: _ratio,
         child: _Failure(message: item.error, compact: true),
@@ -393,6 +429,22 @@ class _ResultTileState extends State<_ResultTile> {
       CanvasStatus.done => _done(context),
     };
   }
+
+  /// What the tile is waiting for, drawn on the skeleton so a long wait reads
+  /// as a wait rather than as a failure nobody reported.
+  String get _glyph => switch (widget.batch.kind) {
+    CanvasKind.video => 'clapperboard-line',
+    CanvasKind.ad => 'user-voice-line',
+    CanvasKind.audio => 'volume-up-line',
+    CanvasKind.image => 'image-line',
+  };
+
+  String get _pendingLabel => switch (widget.batch.kind) {
+    CanvasKind.video => tr('Filming...'),
+    CanvasKind.ad => tr('Shooting the ad...'),
+    CanvasKind.audio => tr('Recording...'),
+    CanvasKind.image => tr('Drawing...'),
+  };
 
   Widget _done(BuildContext context) {
     final mq = context.mq;
@@ -421,6 +473,8 @@ class _ResultTileState extends State<_ResultTile> {
               children: [
                 if (_isPicture)
                   LocalImage(item.path)
+                else if (_playing)
+                  InlineVideo(path: item.path)
                 else
                   _VideoPoster(
                     app: widget.app,
@@ -440,6 +494,7 @@ class _ResultTileState extends State<_ResultTile> {
                       duration: MqTheme.hoverDuration,
                       child: _TileActions(
                         path: item.path,
+                        onFullscreen: _isPicture ? null : _openFullscreen,
                         onDetail: widget.batch.kind == CanvasKind.ad
                             ? widget.onOpenRender
                             : null,
@@ -456,24 +511,41 @@ class _ResultTileState extends State<_ResultTile> {
   }
 
   /// A still opens in a lightbox, because looking closely at it is the point of
-  /// having generated ten. Anything that moves or makes a noise goes to the
-  /// system player, which can actually play it.
+  /// having generated ten.
+  ///
+  /// A clip plays where it is. It used to be handed to whatever the machine had
+  /// registered for .mp4, which is the wrong answer twice: a second window
+  /// lands on top of the studio, and the thing you were comparing it against is
+  /// now behind it. The tile is the play button, the button in the corner is
+  /// full screen, and both stay inside the app.
   void _open() {
     if (_isPicture) {
       showImageLightbox(context, widget.item.path);
-    } else {
-      PlatformUtil.openPath(widget.item.path);
+      return;
     }
+    // Once the player is up it owns its own taps -- pausing and resuming is its
+    // job, not the tile's.
+    if (!_playing) setState(() => _playing = true);
+  }
+
+  /// Full screen takes the clip off the tile rather than standing beside it.
+  /// Two players on one file is two soundtracks.
+  Future<void> _openFullscreen() async {
+    if (_playing) setState(() => _playing = false);
+    await showVideoLightbox(context, widget.item.path);
   }
 }
 
-/// Play, show in folder, and -- for a finished ad -- the way through to its
-/// run detail.
+/// Full screen, show in folder, the escape hatch to the system player, and --
+/// for a finished ad -- the way through to its run detail.
 class _TileActions extends StatelessWidget {
-  const _TileActions({required this.path, this.onDetail});
+  const _TileActions({required this.path, this.onDetail, this.onFullscreen});
 
   final String path;
   final VoidCallback? onDetail;
+
+  /// Clips only. Stills have the lightbox, which the tile itself opens.
+  final VoidCallback? onFullscreen;
 
   @override
   Widget build(BuildContext context) {
@@ -496,6 +568,16 @@ class _TileActions extends StatelessWidget {
               size: 24,
               onPressed: onDetail,
             ),
+          if (onFullscreen != null)
+            MqIconButton(
+              icon: 'fullscreen-line',
+              tip: tr('Play full screen'),
+              size: 24,
+              onPressed: onFullscreen,
+            ),
+          // Still here, but no longer what pressing play does: an explicit
+          // "somewhere else", for the times you want the file in something
+          // that can scrub it frame by frame.
           MqIconButton(
             icon: 'external-link-line',
             tip: tr('Open in my player'),
@@ -629,7 +711,8 @@ class _Stamp extends StatelessWidget {
   }
 }
 
-/// A voice-over: nothing to look at, so it is a row rather than a tile.
+/// A voice-over: nothing to look at, so it is a row rather than a tile, and it
+/// plays in the row.
 class _AudioTile extends StatelessWidget {
   const _AudioTile({required this.item});
 
@@ -637,49 +720,13 @@ class _AudioTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mq = context.mq;
-
     if (item.status == CanvasStatus.pending) {
-      return const Skeleton(height: 56);
+      return SkeletonBar(glyph: 'volume-up-line', label: tr('Recording...'));
     }
     if (item.status == CanvasStatus.failed) {
       return _Failure(message: item.error);
     }
-
-    return Pressable(
-      onTap: () => PlatformUtil.openPath(item.path),
-      focusRadius: MqTheme.radius,
-      builder: (context, states) => AnimatedContainer(
-        duration: states.duration,
-        height: 56,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
-          borderRadius: BorderRadius.circular(MqTheme.radius),
-          border: Border.all(
-            color: states.active ? mq.borderStrong : mq.border,
-          ),
-        ),
-        child: Row(
-          children: [
-            MqIcon('play-fill', size: 20, color: mq.textPrimary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                item.path.split(Platform.pathSeparator).last,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textSecondary,
-                  fontSize: MqTheme.fontSmall,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            MqIcon('sound-module-line', size: 18, color: mq.textTertiary),
-          ],
-        ),
-      ),
-    );
+    return InlineAudio(path: item.path);
   }
 }
 

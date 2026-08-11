@@ -26,6 +26,8 @@ const _iconByName = <String, IconData>{
   'external-link-line': Icons.open_in_new,
   'flashlight-line': Icons.bolt_outlined,
   'folder-line': Icons.folder_outlined,
+  'fullscreen-exit-line': Icons.fullscreen_exit,
+  'fullscreen-line': Icons.fullscreen,
   'gallery-line': Icons.photo_library_outlined,
   'image-add-line': Icons.add_photo_alternate_outlined,
   'image-line': Icons.image_outlined,

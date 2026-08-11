@@ -91,7 +91,8 @@ class ComposerSpec {
       category: 'video',
       kind: CanvasKind.video,
       placeholder: tr(
-        'Describe the shot. Drop a picture in to use as its first frame.',
+        'Describe the shot. Drop pictures and clips in and point at them: '
+        '@Image1, @Video1, or an actor by name.',
       ),
       batched: true,
       maxCount: 4,
@@ -103,7 +104,10 @@ class ComposerSpec {
       icon: 'image-line',
       category: 'image',
       kind: CanvasKind.image,
-      placeholder: tr('Describe the picture. Drop references in to guide it.'),
+      placeholder: tr(
+        'Describe the picture. Drop references in and point at them: @Image1, '
+        'or an actor by name.',
+      ),
       batched: true,
       maxCount: 10,
       picksAspect: true,
