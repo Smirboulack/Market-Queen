@@ -36,6 +36,9 @@ class FalCapabilities {
     this.imagesField = '',
     this.videosField = '',
     this.audiosField = '',
+    this.imagesMax = 0,
+    this.videosMax = 0,
+    this.audiosMax = 0,
     this.known = false,
   });
 
@@ -76,6 +79,16 @@ class FalCapabilities {
   final String videosField;
   final String audiosField;
 
+  /// How many of each the endpoint will take, off its own `maxItems`.
+  ///
+  /// They differ by a lot -- one model takes nine pictures and three clips,
+  /// the next takes four and one -- and the only place that number was written
+  /// down was the rejection that came back after the upload. Zero means the
+  /// schema did not say, and the caller falls back to fal's platform ceiling.
+  final int imagesMax;
+  final int videosMax;
+  final int audiosMax;
+
   /// False when no schema could be read -- the caller then falls back to what
   /// it did before rather than pretending the model has no options.
   final bool known;
@@ -85,6 +98,32 @@ class FalCapabilities {
   /// Whether this endpoint takes reference material rather than a first frame.
   bool get takesReferences =>
       imagesField.isNotEmpty || videosField.isNotEmpty || audiosField.isNotEmpty;
+
+  // fal's own platform ceilings, which apply on top of whatever a model
+  // declares. They live here rather than in the runner because the bar has to
+  // draw the same numbers the send path enforces -- a counter that says 0/30
+  // over a request that is trimmed at 9 is worse than no counter.
+  static const platformMaxImages = 30;
+  static const platformMaxVideos = 10;
+  static const platformMaxAudios = 10;
+
+  static const maxImageBytes = 30 * 1024 * 1024;
+  static const maxVideoBytes = 200 * 1024 * 1024;
+  static const maxAudioBytes = 15 * 1024 * 1024;
+
+  /// How many of each modality this endpoint takes: what it declared, capped by
+  /// the platform, and zero for a list it does not have at all.
+  ({int images, int videos, int audios}) get referenceLimits => (
+    images: _limit(imagesField, imagesMax, platformMaxImages),
+    videos: _limit(videosField, videosMax, platformMaxVideos),
+    audios: _limit(audiosField, audiosMax, platformMaxAudios),
+  );
+
+  static int _limit(String field, int declared, int ceiling) {
+    if (field.isEmpty) return 0;
+    if (declared <= 0) return ceiling;
+    return declared < ceiling ? declared : ceiling;
+  }
 
   /// The seconds a duration token stands for, for pricing and planning.
   /// Returns 0 for "auto" and anything unparseable.
@@ -158,7 +197,7 @@ class FalCapabilities {
   /// Bumped whenever a new field is read out of the schema. A cache written by
   /// an older build knows nothing about it, and silently answering "this model
   /// takes no references" for a fortnight is worse than one extra fetch.
-  static const cacheVersion = 2;
+  static const cacheVersion = 3;
 
   Map<String, Object?> toJson() => {
     'v': cacheVersion,
@@ -174,6 +213,9 @@ class FalCapabilities {
     'imagesField': imagesField,
     'videosField': videosField,
     'audiosField': audiosField,
+    'imagesMax': imagesMax,
+    'videosMax': videosMax,
+    'audiosMax': audiosMax,
   };
 
   factory FalCapabilities.fromJson(Map<String, Object?> json) {
@@ -195,6 +237,9 @@ class FalCapabilities {
       imagesField: '${json['imagesField'] ?? ''}',
       videosField: '${json['videosField'] ?? ''}',
       audiosField: '${json['audiosField'] ?? ''}',
+      imagesMax: (json['imagesMax'] as num?)?.toInt() ?? 0,
+      videosMax: (json['videosMax'] as num?)?.toInt() ?? 0,
+      audiosMax: (json['audiosMax'] as num?)?.toInt() ?? 0,
       known: true,
     );
   }
@@ -380,6 +425,30 @@ class FalSchemas extends ChangeNotifier {
       return '';
     }
 
+    /// How many the endpoint says it will take. Absent on some schemas, which
+    /// is why zero has to mean "it did not say" rather than "none".
+    int maxItems(String name) {
+      if (name.isEmpty) return 0;
+      final declared = field(name)?['maxItems'];
+      return declared is num ? declared.toInt() : 0;
+    }
+
+    final imagesField = listField([
+      'image_urls',
+      'reference_image_urls',
+      'images',
+    ]);
+    final videosField = listField([
+      'video_urls',
+      'reference_video_urls',
+      'videos',
+    ]);
+    final audiosField = listField([
+      'audio_urls',
+      'reference_audio_urls',
+      'audios',
+    ]);
+
     return FalCapabilities(
       durations: enumOf(duration),
       defaultDuration: '${duration?['default'] ?? ''}',
@@ -391,9 +460,12 @@ class FalSchemas extends ChangeNotifier {
       audioField: audioField,
       defaultAudio: (field(audioField)?['default']) != false,
       imageField: imageField,
-      imagesField: listField(['image_urls', 'reference_image_urls', 'images']),
-      videosField: listField(['video_urls', 'reference_video_urls', 'videos']),
-      audiosField: listField(['audio_urls', 'reference_audio_urls', 'audios']),
+      imagesField: imagesField,
+      videosField: videosField,
+      audiosField: audiosField,
+      imagesMax: maxItems(imagesField),
+      videosMax: maxItems(videosField),
+      audiosMax: maxItems(audiosField),
       known: true,
     );
   }

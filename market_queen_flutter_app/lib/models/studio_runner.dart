@@ -585,15 +585,14 @@ class StudioRunner extends ChangeNotifier {
     return Paths.ensureDir(p.join(_settings.projectsDir, 'studio', leaf));
   }
 
-  // Fal's published ceilings for reference material. A file over them comes
-  // back as a rejection from the API halfway through a paid run, so it is
-  // stopped here with a sentence that says which file and why.
-  static const _maxImageBytes = 30 * 1024 * 1024;
-  static const _maxVideoBytes = 200 * 1024 * 1024;
-  static const _maxAudioBytes = 15 * 1024 * 1024;
-  static const _maxImages = 30;
-  static const _maxVideos = 10;
-  static const _maxAudios = 10;
+  // Fal's published ceilings for reference material, and the counts the model
+  // itself declares. Both live on [FalCapabilities] so the bar can draw the
+  // same numbers this enforces: a file over the limit comes back as a rejection
+  // from the API halfway through a paid run, so it is stopped here with a
+  // sentence that says which file and why.
+  static const _maxImageBytes = FalCapabilities.maxImageBytes;
+  static const _maxVideoBytes = FalCapabilities.maxVideoBytes;
+  static const _maxAudioBytes = FalCapabilities.maxAudioBytes;
 
   /// Sorts what was dropped into the bar by modality, puts it in fal's storage
   /// and returns the urls under the names this model gave its lists.
@@ -638,9 +637,10 @@ class StudioRunner extends ChangeNotifier {
       }
     }
 
-    _trim(images, _maxImages);
-    _trim(videos, _maxVideos);
-    _trim(audios, _maxAudios);
+    final limits = capabilities.referenceLimits;
+    _trim(images, limits.images);
+    _trim(videos, limits.videos);
+    _trim(audios, limits.audios);
 
     if (images.isEmpty && videos.isEmpty && audios.isEmpty) {
       return VideoReferences.none;

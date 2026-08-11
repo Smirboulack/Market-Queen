@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 
 import '../../app_state.dart';
 import '../theme.dart';
@@ -40,10 +38,10 @@ class AdEditorPage extends StatefulWidget {
   ///
   /// Only ever the first frame's guess. It used to be the answer for every
   /// frame, and that was the bug: the bar is not one height. A reference row,
-  /// a prompt grown to four lines, or the settings column stacked over it on a
-  /// narrow window all make it taller, and the feed went on reserving 250px for
-  /// a bar that had become 380 -- so the newest result, the one you had just
-  /// waited for, ended up underneath it with no way to scroll it out.
+  /// a prompt grown to four lines, or the reference well on the clip shelf all
+  /// make it taller, and the feed went on reserving 250px for a bar that had
+  /// become 380 -- so the newest result, the one you had just waited for, ended
+  /// up underneath it with no way to scroll it out.
   static const double composerReserve = 250;
 
   @override
@@ -53,9 +51,16 @@ class AdEditorPage extends StatefulWidget {
 class _AdEditorPageState extends State<AdEditorPage> {
   double _reserve = AdEditorPage.composerReserve;
 
-  void _onComposerHeight(double height) {
-    if (!mounted || (height - _reserve).abs() < 0.5) return;
-    setState(() => _reserve = height);
+  /// The prompt block's height, plus the margin it stands on.
+  ///
+  /// Only the prompt block: the settings column and the cast panels grow
+  /// upward over the canvas and are deliberately not counted, because a control
+  /// that changes what the *next* generation looks like must not shift the ones
+  /// already on screen.
+  void _onBarHeight(double height) {
+    final reserve = height + MqTheme.gapLarge;
+    if (!mounted || (reserve - _reserve).abs() < 0.5) return;
+    setState(() => _reserve = reserve);
   }
 
   @override
@@ -105,73 +110,21 @@ class _AdEditorPageState extends State<AdEditorPage> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: _MeasuredHeight(
-            onChanged: _onComposerHeight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                MqTheme.pagePadding,
-                0,
-                MqTheme.pagePadding,
-                MqTheme.gapLarge,
-              ),
-              child: Composer(
-                app: widget.app,
-                onGenerateAd: widget.onGenerate,
-              ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              MqTheme.pagePadding,
+              0,
+              MqTheme.pagePadding,
+              MqTheme.gapLarge,
+            ),
+            child: Composer(
+              app: widget.app,
+              onGenerateAd: widget.onGenerate,
+              onBarHeight: _onBarHeight,
             ),
           ),
         ),
       ],
     );
-  }
-}
-
-/// Reports how tall its child turned out to be, after every layout that
-/// changes it.
-///
-/// A layout that has to know a sibling's height is usually a layout that should
-/// be rearranged instead -- but not here: the composer deliberately floats over
-/// the canvas rather than sitting beside it in a column, precisely so that
-/// growing does not push the feed around. The one thing the feed still has to
-/// know is how much of its bottom edge is covered.
-class _MeasuredHeight extends SingleChildRenderObjectWidget {
-  const _MeasuredHeight({
-    required this.onChanged,
-    required Widget super.child,
-  });
-
-  final ValueChanged<double> onChanged;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      _RenderMeasuredHeight(onChanged);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderMeasuredHeight renderObject,
-  ) {
-    renderObject.onChanged = onChanged;
-  }
-}
-
-class _RenderMeasuredHeight extends RenderProxyBox {
-  _RenderMeasuredHeight(this.onChanged);
-
-  ValueChanged<double> onChanged;
-
-  double _reported = -1;
-
-  @override
-  void performLayout() {
-    super.performLayout();
-    if (size.height == _reported) return;
-    _reported = size.height;
-
-    // After the frame, never during it: the callback rebuilds the page this
-    // render object is inside, and marking a widget dirty in the middle of its
-    // own layout is the one thing the framework will not have.
-    final height = size.height;
-    SchedulerBinding.instance.addPostFrameCallback((_) => onChanged(height));
   }
 }

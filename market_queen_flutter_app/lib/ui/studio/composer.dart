@@ -13,13 +13,17 @@ import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../../models/canvas_feed.dart';
 import '../../models/studio_runner.dart';
+import '../../providers/fal_schema.dart';
 import '../dialogs/asset_gallery.dart';
 import '../dialogs/confirm_generation.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
+import '../widgets/dashed_box.dart';
+import '../widgets/measured.dart';
 import '../widgets/media_drop.dart';
+import '../widgets/media_preview.dart';
 import 'cast_panels.dart';
 import 'composer_tabs.dart';
 import 'mentions.dart';
@@ -37,6 +41,7 @@ class Composer extends StatefulWidget {
     super.key,
     required this.app,
     required this.onGenerateAd,
+    this.onBarHeight,
   });
 
   final AppState app;
@@ -44,6 +49,13 @@ class Composer extends StatefulWidget {
   /// Runs the full pipeline. It stays outside this widget because the window
   /// owns the run -- the composer only says when.
   final VoidCallback onGenerateAd;
+
+  /// How tall the prompt block is, whenever that changes.
+  ///
+  /// The prompt block only: the tab row and the bar. Not the settings column
+  /// and not a cast panel, which are allowed to grow over the canvas and must
+  /// cost the feed underneath nothing at all -- see [MeasuredHeight].
+  final ValueChanged<double>? onBarHeight;
 
   @override
   State<Composer> createState() => _ComposerState();
@@ -196,10 +208,19 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   /// Whether this tab's field names the things attached to it.
   ///
-  /// Every free prompt does. The talking-actor tab does not, and must not: its
-  /// field is the script -- words somebody is about to say out loud -- and
-  /// "@Image1" in the middle of a sentence is a thing that gets read aloud.
-  bool get _namesReferences => _spec.prompted && _tab != ComposerTab.actors;
+  /// Every free prompt does: the handles are what the model is handed, whatever
+  /// shelf it comes off. The two source-only tabs have no prompt to name
+  /// anything in.
+  bool get _namesReferences => _spec.prompted;
+
+  /// Whether the cast is addressable here.
+  ///
+  /// Only in the talking-actor mode, and that is not a detail. That mode runs
+  /// on a different model from the other two -- an avatar model, which is
+  /// handed the actor and the scene as part of the request -- so "@Marie" means
+  /// something there and nothing at all on the picture or the clip shelf, where
+  /// no actor was ever sent.
+  bool get _namesCast => _tab == ComposerTab.actors;
 
   /// The actor and the scene the ad is cast with, in that order.
   List<LibraryAsset> get _castAssets {
@@ -216,7 +237,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   /// Everything the current prompt can address by name: each reference in the
-  /// bar under the handle the runner will send it as, then the cast.
+  /// bar under the handle the runner will send it as, then -- in the
+  /// talking-actor mode only -- the cast.
   List<Mention> get _mentions {
     if (!_namesReferences) return const [];
 
@@ -224,29 +246,85 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     return [
       for (var i = 0; i < _refs.length; ++i)
         Mention(handle: handles[i], label: p.basename(_refs[i])),
-      for (final asset in _castAssets)
-        Mention(handle: castHandle(asset.name), label: asset.name),
+      if (_namesCast)
+        for (final asset in _castAssets)
+          Mention(handle: castHandle(asset.name), label: asset.name),
     ];
   }
 
-  /// The references this send actually carries.
-  ///
-  /// What is in the bar, plus a still of any cast the prompt named. Pointing at
-  /// "@Marie" has to put Marie in front of the model or the handle is
-  /// decoration -- so her portrait goes in as one more reference, appended at
-  /// the end where it cannot displace the picture chosen as the opening frame.
-  List<String> _referencesForSend() {
-    final references = List.of(_refs);
-    if (!_namesReferences) return references;
+  // ---- how much this tab will take ----------------------------------------
 
-    for (final asset in _castAssets) {
-      if (!promptMentions(_prompt.text, castHandle(asset.name))) continue;
-      final still = asset.thumbnail;
-      if (still.isEmpty || references.contains(still)) continue;
-      references.add(still);
+  /// Worked out once per build pass and cleared at the top of it.
+  ({int images, int videos, int audios})? _limitsThisPass;
+
+  /// What the chosen model will accept, per kind.
+  ///
+  /// Only the video shelf has models that disagree: a reference endpoint
+  /// declares three lists and how long each may be, while an ordinary
+  /// image-to-video one takes a single opening frame and no lists at all.
+  /// Everywhere else the answer is the tab's own, because the shelf has one
+  /// shape.
+  ({int images, int videos, int audios}) get _limits =>
+      _limitsThisPass ??= _readLimits();
+
+  ({int images, int videos, int audios}) _readLimits() {
+    final kinds = _spec.referenceKinds;
+
+    if (_tab == ComposerTab.video) {
+      final capabilities = app.falSchemas.capabilities(
+        app.runner.modelFor('video', _seconds),
+      );
+      if (capabilities.takesReferences) return capabilities.referenceLimits;
+
+      // A model whose schema has been read and declares no lists: one opening
+      // frame, which is exactly what the runner sends it.
+      if (capabilities.known) return (images: 1, videos: 0, audios: 0);
+
+      // Nothing read yet -- a fetch still in flight, no network, or a provider
+      // that publishes no schema at all. Locking the bar down on the strength
+      // of not knowing would be the worst of the three answers: the send path
+      // trims what a model will not take anyway, and the counters correct
+      // themselves the moment the schema lands.
+      return (
+        images: FalCapabilities.platformMaxImages,
+        videos: FalCapabilities.platformMaxVideos,
+        audios: FalCapabilities.platformMaxAudios,
+      );
     }
-    return references;
+
+    int room(MediaKind kind) {
+      if (!kinds.contains(kind)) return 0;
+      return _spec.multipleReferences ? _openEnded : 1;
+    }
+
+    return (
+      images: room(MediaKind.image),
+      videos: room(MediaKind.video),
+      audios: room(MediaKind.audio),
+    );
   }
+
+  /// "As many as you like" -- for the shelves that have no declared ceiling.
+  /// High enough never to be reached by hand, and still a number, so the same
+  /// counting code serves every tab.
+  static const int _openEnded = 99;
+
+  /// How many of [kind] are already in the bar.
+  int _countOf(MediaKind kind) =>
+      _refs.where((path) => mediaKindOf(path) == kind).length;
+
+  int _limitOf(MediaKind kind) => switch (kind) {
+    MediaKind.image => _limits.images,
+    MediaKind.video => _limits.videos,
+    MediaKind.audio => _limits.audios,
+  };
+
+  /// The kinds this tab is currently offering, in a fixed order so the buttons
+  /// never reshuffle under the pointer.
+  List<MediaKind> get _acceptedKinds => [
+    for (final kind in MediaKind.values)
+      if (_limitOf(kind) > 0) kind,
+  ];
 
   /// Types a handle at the caret, spaced the way somebody would have typed it.
   ///
@@ -375,7 +453,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       kind: _spec.kind,
       category: _spec.category,
       prompt: _prompt.text.trim(),
-      references: _referencesForSend(),
+      references: List.of(_refs),
       aspectRatio: _aspect,
       seconds: _seconds,
       count: _count,
@@ -413,8 +491,22 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   // ---- references ----------------------------------------------------------
 
-  Future<void> _browse() async {
-    final files = await openFiles(acceptedTypeGroups: const [mediaTypeGroup]);
+  /// Opens a file dialog for one kind, and only that kind.
+  ///
+  /// One button per kind instead of a single paperclip over an "images, video &
+  /// audio" filter: the old dialog let you attach a clip to the picture tab,
+  /// which was then silently dropped on the way out, and gave no hint that the
+  /// video tab took recordings at all.
+  Future<void> _browse(MediaKind kind) async {
+    final files = await openFiles(
+      acceptedTypeGroups: [
+        switch (kind) {
+          MediaKind.image => imageTypeGroup,
+          MediaKind.video => videoTypeGroup,
+          MediaKind.audio => audioTypeGroup,
+        },
+      ],
+    );
     if (files.isEmpty) return;
     _addReferences([for (final file in files) file.path]);
   }
@@ -455,23 +547,52 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     if (files.isNotEmpty && mounted) _addReferences(files);
   }
 
+  /// Takes what it can of [paths] and quietly leaves the rest.
+  ///
+  /// Two filters, and they are different questions. A kind this mode does not
+  /// take is refused outright -- a clip dropped on the picture tab is a
+  /// category error, not a full shelf. A kind it does take but has no room left
+  /// for is refused because the model said so, and the counter under the bar is
+  /// what explains it.
   void _addReferences(List<String> paths) {
+    final accepted = <String>[];
+    final room = {
+      for (final kind in MediaKind.values) kind: _limitOf(kind) - _countOf(kind),
+    };
+
+    for (final path in paths) {
+      if (path.isEmpty || _refs.contains(path) || accepted.contains(path)) {
+        continue;
+      }
+      final kind = mediaKindOf(path);
+      if (_limitOf(kind) <= 0) continue;
+
+      // The single-source tabs take one file and replace it rather than
+      // collecting a pile nobody can tell apart.
+      if (!_spec.multipleReferences) {
+        accepted
+          ..clear()
+          ..add(path);
+        break;
+      }
+
+      if ((room[kind] ?? 0) <= 0) continue;
+      room[kind] = room[kind]! - 1;
+      accepted.add(path);
+    }
+
+    if (accepted.isEmpty) return;
+
     if (_tab == ComposerTab.actors) {
       // Through the ad, which de-duplicates, normalises file:// URLs and marks
       // itself dirty so the reference is saved with the document.
-      app.project.addMedia(paths);
+      app.project.addMedia(accepted);
       return;
     }
 
     setState(() {
-      for (final path in paths) {
-        if (path.isEmpty || _refs.contains(path)) continue;
-        // The single-source tabs take one file and replace it rather than
-        // collecting a pile nobody can tell apart.
-        if (!_spec.multipleReferences) _refs.clear();
-        _refs.add(path);
-        if (!_spec.multipleReferences) break;
-      }
+      if (!_spec.multipleReferences) _refs.clear();
+      _refs.addAll(accepted);
     });
   }
 
@@ -522,59 +643,85 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       //
       // The tab row lives inside the bar's own column rather than above the
       // whole thing, so it stays centred on the bar.
-      builder: (context, _) => LayoutBuilder(
-        builder: (context, constraints) {
-          final total = constraints.maxWidth;
-          final beside = _open && _wideEnough(total);
-          final barWidth = math.min(
-            _barMaxWidth,
-            beside ? total - 2 * _gutter : total,
-          );
+      builder: (context, _) {
+        // Worked out once per pass. The bar asks what the model will take a
+        // dozen times a frame -- for the buttons, for the counters, for every
+        // drop -- and the answer comes from the schema store, which is cheap
+        // but not free. This is the outermost thing that runs on a rebuild, so
+        // it is where the answer goes stale.
+        _limitsThisPass = null;
+        return _layout();
+      },
+    );
+  }
 
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (beside) const SizedBox(width: _gutter),
-              SizedBox(
-                width: barWidth,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (_open && !beside) ...[
-                      // Its own width, off the bar's left corner. Stretched to
-                      // the full bar it read as a second bar rather than as a
-                      // panel that had nowhere else to go.
-                      Align(
-                        alignment: AlignmentDirectional.centerStart,
-                        child: SizedBox(
-                          width: math.min(_panelWidth, barWidth),
-                          child: _panelBody(),
-                        ),
-                      ),
-                      const SizedBox(height: MqTheme.gap),
-                    ],
-                    Center(
-                      child: ComposerTabBar(
-                        current: _tab,
-                        extras: _extras,
-                        onPicked: _pickTab,
-                        onRemoved: _dropTab,
+  Widget _layout() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final total = constraints.maxWidth;
+        final beside = _open && _wideEnough(total);
+        final barWidth = math.min(
+          _barMaxWidth,
+          beside ? total - 2 * _gutter : total,
+        );
+
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (beside) const SizedBox(width: _gutter),
+            SizedBox(
+              width: barWidth,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_open && !beside) ...[
+                    // Its own width, off the bar's left corner. Stretched to
+                    // the full bar it read as a second bar rather than as a
+                    // panel that had nowhere else to go.
+                    Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: SizedBox(
+                        width: math.min(_panelWidth, barWidth),
+                        child: _panelBody(),
                       ),
                     ),
                     const SizedBox(height: MqTheme.gap),
-                    _bar(),
                   ],
-                ),
+                  // Everything above this line is a panel and is deliberately
+                  // outside the measurement: the feed reserves room for the
+                  // prompt block and nothing else, so a panel opening grows
+                  // upward over the canvas and moves not one tile.
+                  MeasuredHeight(
+                    onChanged: (height) => widget.onBarHeight?.call(height),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Center(
+                          child: ComposerTabBar(
+                            current: _tab,
+                            extras: _extras,
+                            onPicked: _pickTab,
+                            onRemoved: _dropTab,
+                          ),
+                        ),
+                        const SizedBox(height: MqTheme.gap),
+                        _bar(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              if (beside) ...[
-                const SizedBox(width: MqTheme.gap),
-                SizedBox(width: _panelWidth, child: _panelBody()),
-              ],
+            ),
+            if (beside) ...[
+              const SizedBox(width: MqTheme.gap),
+              SizedBox(width: _panelWidth, child: _panelBody()),
             ],
-          );
-        },
-      ),
+          ],
+        );
+      },
     );
   }
 
@@ -666,7 +813,16 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (_spec.prompted) _field(),
-              if (_refs.isNotEmpty) ...[
+              // The clip shelf carries its references in a framed well of its
+              // own rather than as a loose row: it is the one mode that takes
+              // all three kinds, each against its own ceiling, and a row of
+              // thumbnails cannot say "three of nine pictures, none of three
+              // clips". Everywhere else that frame would be a box drawn around
+              // one number.
+              if (_showsReferenceWell) ...[
+                if (_spec.prompted) const SizedBox(height: 12),
+                _referenceWell(),
+              ] else if (_refs.isNotEmpty) ...[
                 if (_spec.prompted) const SizedBox(height: 12),
                 _referenceRow(),
               ],
@@ -757,8 +913,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   Widget _dropInvitation() {
     final mq = context.mq;
 
+    // The source-only tabs take exactly one kind, so the invitation opens that
+    // one dialog rather than a filter covering all three.
+    final kind = _acceptedKinds.isEmpty ? MediaKind.image : _acceptedKinds.first;
+
     return Pressable(
-      onTap: _browse,
+      onTap: () => _browse(kind),
       focusRadius: MqTheme.radius,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
@@ -789,6 +949,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     );
   }
 
+  /// Whether this tab draws the framed reference well under its prompt.
+  bool get _showsReferenceWell => _tab == ComposerTab.video;
+
   Widget _referenceRow() {
     // The handles have to be computed over the whole list rather than per tile:
     // "@Image2" only means anything relative to the picture that came first.
@@ -806,6 +969,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             MediaTile(
               path: _refs[i],
               size: _tileSize,
+              ffmpegPath: app.ffmpegPath,
+              onTap: () => showMediaPreview(context, _refs[i]),
               onRemove: () => _removeReference(i),
             )
           else
@@ -813,6 +978,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
               path: _refs[i],
               handle: handles[i],
               size: _tileSize,
+              ffmpegPath: app.ffmpegPath,
+              onOpen: () => showMediaPreview(context, _refs[i]),
               onRemove: () => _removeReference(i),
               onInsert: () => _insertHandle(handles[i]),
             ),
@@ -821,6 +988,68 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   static const double _tileSize = 54;
+
+  /// The framed well under the clip shelf's prompt.
+  ///
+  /// A dashed box, because a dashed box means "put things here" in a way a
+  /// hairline panel does not -- and, along the bottom of it, how many of each
+  /// kind are in and how many the chosen model will take. Those numbers were
+  /// previously discoverable only by sending too many and reading the
+  /// rejection.
+  Widget _referenceWell() {
+    final mq = context.mq;
+    final handles = referenceHandles(_refs);
+
+    return DashedBox(
+      color: _dragging ? mq.textTertiary : mq.borderStrong,
+      radius: MqTheme.radius,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (_refs.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Center(
+                  child: MqIcon(
+                    'image-add-line',
+                    size: 22,
+                    color: mq.textTertiary,
+                  ),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.start,
+                children: [
+                  for (var i = 0; i < _refs.length; ++i)
+                    _NamedReference(
+                      path: _refs[i],
+                      handle: handles[i],
+                      size: _tileSize,
+                      ffmpegPath: app.ffmpegPath,
+                      onOpen: () => showMediaPreview(context, _refs[i]),
+                      onRemove: () => _removeReference(i),
+                      onInsert: () => _insertHandle(handles[i]),
+                    ),
+                ],
+              ),
+            const SizedBox(height: 8),
+            _CounterLine(
+              counts: [
+                for (final kind in _acceptedKinds)
+                  (kind: kind, used: _countOf(kind), limit: _limitOf(kind)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _footer() {
     final mq = context.mq;
@@ -930,42 +1159,59 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         // frame model can only put it on screen if it has been shown it --
         // until this button existed the only way in was the drag-and-drop
         // nobody discovers.
-        MqIconButton(
-          icon: 'attachment-line',
-          tip: tr('Attach a photo or a clip of the product'),
-          size: 32,
-          onPressed: _browse,
-        ),
+        ..._referenceButtons(),
       ];
     }
 
-    if (!_spec.takesReferences) return const [];
+    return _referenceButtons();
+  }
+
+  /// One button per kind of reference this mode takes, each with its own glyph.
+  ///
+  /// There used to be a single paperclip over a filter that accepted all three,
+  /// which said nothing about what the mode wanted, nothing about what the
+  /// model would take, and let you attach a clip to the picture shelf where it
+  /// was silently dropped on the way out. A button that is not there is the
+  /// clearest possible statement that a kind is not accepted.
+  List<Widget> _referenceButtons() {
+    final full = <MediaKind, bool>{
+      for (final kind in MediaKind.values)
+        kind: _spec.multipleReferences && _countOf(kind) >= _limitOf(kind),
+    };
 
     return [
-      MqIconButton(
-        icon: 'image-add-line',
-        tip: _spec.multipleReferences
-            ? tr('Add references')
-            : tr('Choose the source file'),
-        size: 32,
-        onPressed: _browse,
-      ),
-      // Who the ad is cast with, on a tab that cannot cast anybody. They are
-      // here to be *named*: a still of "@Marie in @Morning kitchen" is the
-      // ordinary next thing to ask for once an ad has a cast, and the
-      // alternative was re-describing her face in prose every time. Pressing
-      // one types its handle; the prompt lights it up, and the send carries
-      // her portrait along with it.
-      if (_namesReferences)
-        for (final asset in _castAssets)
-          MqChip(
-            label: castHandle(asset.name),
-            portrait: asset.thumbnail,
-            active: false,
-            //: %1 is a handle such as "@Marie"
-            tooltip: tr('Write %1 into the prompt').arg(castHandle(asset.name)),
-            onPressed: () => _insertHandle(castHandle(asset.name)),
-          ),
+      for (final kind in _acceptedKinds)
+        MqIconButton(
+          icon: switch (kind) {
+            MediaKind.image => 'image-add-line',
+            MediaKind.video => 'file-video-line',
+            MediaKind.audio => 'file-music-line',
+          },
+          tip: full[kind] == true
+              ? switch (kind) {
+                  //: %1 is a number of files
+                  MediaKind.image => tr('%1 pictures is all this model takes')
+                      .arg(_limitOf(kind)),
+                  //: %1 is a number of files
+                  MediaKind.video => tr('%1 clips is all this model takes')
+                      .arg(_limitOf(kind)),
+                  //: %1 is a number of files
+                  MediaKind.audio => tr('%1 recordings is all this model takes')
+                      .arg(_limitOf(kind)),
+                }
+              : switch (kind) {
+                  MediaKind.image => _spec.multipleReferences
+                      ? tr('Add pictures')
+                      : tr('Choose the picture'),
+                  MediaKind.video => _spec.multipleReferences
+                      ? tr('Add clips')
+                      : tr('Choose the clip'),
+                  MediaKind.audio => tr('Add a recording'),
+                },
+          size: 32,
+          enabled: full[kind] != true,
+          onPressed: () => _browse(kind),
+        ),
     ];
   }
 
@@ -1010,18 +1256,29 @@ class _PasteIntent extends Intent {
 /// tile is the only place it can be checked against the picture it belongs to
 /// -- and pressing the tile types it, because counting which of four dropped
 /// clips is @Video2 is not something anybody should be doing.
+/// A reference with the name the prompt calls it by written underneath.
+///
+/// Two targets, one under the other, and they are deliberately not the same
+/// one. The thumbnail opens the file, because that is what pressing a
+/// thumbnail does everywhere; the handle types itself into the prompt, because
+/// that is what a handle is for. Both on the tile would have meant guessing
+/// which of the two somebody wanted every time they clicked.
 class _NamedReference extends StatelessWidget {
   const _NamedReference({
     required this.path,
     required this.handle,
     required this.size,
+    required this.onOpen,
     required this.onRemove,
     required this.onInsert,
+    this.ffmpegPath = '',
   });
 
   final String path;
   final String handle;
   final double size;
+  final String ffmpegPath;
+  final VoidCallback onOpen;
   final VoidCallback onRemove;
   final VoidCallback onInsert;
 
@@ -1029,20 +1286,25 @@ class _NamedReference extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return Pressable(
-      onTap: onInsert,
-      //: %1 is a handle such as "@Image1"
-      tooltip: tr('Write %1 into the prompt').arg(handle),
-      focusRadius: MqTheme.radiusSmall,
-      builder: (context, states) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // The tile keeps its own remove badge: it sits inside this target and
-          // wins the tap for the few pixels it covers, which is what a cross on
-          // a thumbnail is expected to do.
-          MediaTile(path: path, size: size, onRemove: onRemove),
-          const SizedBox(height: 4),
-          SizedBox(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // The tile keeps its own remove badge, which sits inside it and wins
+        // the tap for the few pixels it covers.
+        MediaTile(
+          path: path,
+          size: size,
+          ffmpegPath: ffmpegPath,
+          onTap: onOpen,
+          onRemove: onRemove,
+        ),
+        const SizedBox(height: 3),
+        Pressable(
+          onTap: onInsert,
+          //: %1 is a handle such as "@Image1"
+          tooltip: tr('Write %1 into the prompt').arg(handle),
+          focusRadius: MqTheme.radiusSmall,
+          builder: (context, states) => SizedBox(
             width: size,
             child: Text(
               handle,
@@ -1055,13 +1317,76 @@ class _NamedReference extends StatelessWidget {
                 color: mq.info,
                 fontSize: MqTheme.fontMicro,
                 fontWeight: FontWeight.w600,
-                height: 1.1,
+                height: 1.2,
+                decoration: states.active
+                    ? TextDecoration.underline
+                    : TextDecoration.none,
+                decorationColor: mq.info,
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+}
+
+/// "3/9 pictures · 0/3 clips · 0/3 recordings", under the well they belong to.
+///
+/// The ceilings are the model's own, off its schema. They differ enough between
+/// endpoints -- nine pictures on one, four on the next -- that a fixed number
+/// would be wrong most of the time, and the only place they were written down
+/// before was the rejection that came back after the upload.
+class _CounterLine extends StatelessWidget {
+  const _CounterLine({required this.counts});
+
+  final List<({MediaKind kind, int used, int limit})> counts;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        for (final entry in counts)
+          Tooltip(
+            // The per-file ceiling hangs off each count rather than being
+            // stated once underneath: the three are nowhere near each other --
+            // thirty megabytes for a picture against two hundred for a clip --
+            // so one number for all of them would be wrong twice.
+            //: %1 is a size such as "200 MB"
+            message: tr('Up to %1 a file').arg(_sizeLimit(entry.kind)),
+            child: Text(
+              switch (entry.kind) {
+                //: %1 is how many are attached, %2 how many the model takes
+                MediaKind.image => tr('%1/%2 pictures'),
+                MediaKind.video => tr('%1/%2 clips'),
+                MediaKind.audio => tr('%1/%2 recordings'),
+              }.arg(entry.used).arg(entry.limit),
+              style: TextStyle(
+                color: entry.used >= entry.limit
+                    ? mq.textSecondary
+                    : mq.textTertiary,
+                fontSize: MqTheme.fontMicro,
+                fontWeight: entry.used > 0 ? FontWeight.w600 : FontWeight.w400,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  static String _sizeLimit(MediaKind kind) {
+    final bytes = switch (kind) {
+      MediaKind.image => FalCapabilities.maxImageBytes,
+      MediaKind.video => FalCapabilities.maxVideoBytes,
+      MediaKind.audio => FalCapabilities.maxAudioBytes,
+    };
+    return '${bytes ~/ (1024 * 1024)} MB';
   }
 }
 

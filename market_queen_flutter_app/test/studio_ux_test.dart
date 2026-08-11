@@ -2,20 +2,26 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
+import 'package:flutter/gestures.dart' show kSecondaryButton;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 
 import 'package:market_queen/app_state.dart';
 import 'package:market_queen/core/clipboard_media.dart';
+import 'package:market_queen/models/asset_library.dart';
 import 'package:market_queen/models/canvas_feed.dart';
+import 'package:market_queen/ui/main_window.dart';
+import 'package:market_queen/ui/side_nav.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/canvas_view.dart';
-import 'package:market_queen/ui/studio/composer.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/studio/mentions.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/top_bar.dart';
+import 'package:market_queen/ui/widgets/media_drop.dart';
 import 'package:market_queen/ui/widgets/skeleton.dart';
+import 'package:market_queen/ui/widgets/video_poster.dart';
 
 /// The six studio complaints, each pinned by the thing that was actually wrong.
 ///
@@ -34,6 +40,9 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
     scratch = Directory.systemTemp.createTempSync('mq-studio-ux');
+    // A reference clip would otherwise pull its poster frame with ffmpeg, and
+    // a subprocess started under a test's fake clock outlives the test.
+    VideoPosterImage.extraction = false;
   });
 
   tearDownAll(() {
@@ -55,9 +64,9 @@ void main() {
     return path;
   }
 
-  Future<void> pumpEditor(WidgetTester tester) async {
+  Future<void> pumpEditor(WidgetTester tester, {Size size = window}) async {
     tester.view
-      ..physicalSize = window
+      ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
@@ -202,7 +211,7 @@ void main() {
       tester,
     ) async {
       await pumpEditor(tester);
-      await pickTab(tester, ComposerTab.image);
+      await pickTab(tester, ComposerTab.video);
       await drop(tester, [file('face.png'), file('take.mp4')]);
 
       expect(find.text('@Image1'), findsOneWidget);
@@ -218,9 +227,9 @@ void main() {
       );
     });
 
-    testWidgets('pressing a reference types its handle into the prompt', (
-      tester,
-    ) async {
+    testWidgets('pressing the handle types it into the prompt', (tester) async {
+      // The handle and the thumbnail are two targets on purpose: one types the
+      // name, the other opens the file. This is the typing half.
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.image);
       await drop(tester, [file('one.png')]);
@@ -231,17 +240,74 @@ void main() {
       expect(promptController(tester).text.trim(), '@Image1');
     });
 
-    testWidgets('the script tab names nothing, because it is spoken', (
+    testWidgets('pressing the thumbnail opens it instead of typing', (
       tester,
     ) async {
-      // The one place a handle must never appear: the actor reads this field
-      // out loud, so "@Image1" in the middle of it is a thing that gets said.
+      // The other half, and the one that could have gone wrong: a thumbnail and
+      // the handle under it are two targets on the same little object, and a
+      // press meant for one must never fire the other.
       await pumpEditor(tester);
-      await drop(tester, [file('product.png')]);
-      addTearDown(() => app.project.media.clear());
+      await pickTab(tester, ComposerTab.image);
+      await drop(tester, [file('open-me.png')]);
 
-      expect(find.textContaining('@Image'), findsNothing);
-      expect((promptController(tester) as MentionController).handles, isEmpty);
+      final before = find.byType(LocalImage).evaluate().length;
+      await tester.tap(find.byType(MediaTile));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The lightbox is up, and not one character was typed.
+      expect(find.byType(LocalImage).evaluate().length, greaterThan(before));
+      expect(promptController(tester).text, isEmpty);
+    });
+
+    testWidgets('the picture shelf refuses a clip outright', (tester) async {
+      // Not a full shelf -- a category error. A picture model is handed one
+      // still and drops everything else on the way out, so attaching a clip
+      // there was an invitation to be ignored.
+      await pumpEditor(tester);
+      await pickTab(tester, ComposerTab.image);
+      await drop(tester, [file('kept.png'), file('refused.mp4')]);
+
+      expect(find.text('@Image1'), findsOneWidget);
+      expect(find.text('@Video1'), findsNothing);
+    });
+
+    testWidgets('the cast is addressable in the talking-actor mode only', (
+      tester,
+    ) async {
+      // The modes do not mix: the talking actor runs on an avatar model that is
+      // handed the actor and the scene, and the picture and clip shelves have
+      // never heard of either. A blue "@Marie" on those would be a promise
+      // nothing keeps.
+      final actorId = app.actors.save(LibraryAsset(name: 'Marie Testeuse'));
+      app.project.setActor(actorId);
+      addTearDown(() {
+        app.project.clearActor();
+        app.actors.remove(actorId);
+      });
+
+      await pumpEditor(tester);
+      const handle = '@Marie Testeuse';
+
+      expect(
+        (promptController(tester) as MentionController).handles,
+        contains(handle),
+        reason: 'talking actors',
+      );
+
+      await pickTab(tester, ComposerTab.image);
+      expect(
+        (promptController(tester) as MentionController).handles,
+        isNot(contains(handle)),
+        reason: 'pictures',
+      );
+
+      await pickTab(tester, ComposerTab.video);
+      expect(
+        (promptController(tester) as MentionController).handles,
+        isNot(contains(handle)),
+        reason: 'clips',
+      );
     });
   });
 
@@ -255,7 +321,7 @@ void main() {
       double reserve() =>
           tester.widget<CanvasView>(find.byType(CanvasView)).bottomInset;
       double covered() =>
-          window.height - tester.getRect(find.byType(Composer)).top;
+          window.height - tester.getRect(find.byType(ComposerTabBar)).top;
 
       expect(reserve(), moreOrLessEquals(covered(), epsilon: 0.5));
 
@@ -270,28 +336,39 @@ void main() {
       expect(reserve(), moreOrLessEquals(covered(), epsilon: 0.5));
     });
 
-    testWidgets('opening the settings column widens the reserve too', (
-      tester,
-    ) async {
-      await pumpEditor(tester);
-      await tester.binding.setSurfaceSize(const Size(1040, 900));
-      await tester.pump();
+    testWidgets('opening the settings column moves nothing', (tester) async {
+      // The panel is allowed to grow over the canvas and must cost the feed
+      // nothing: it changes what the *next* generation will look like, so
+      // shifting the ones already on screen is pure noise. Asserted at both
+      // widths, because the panel is laid out two different ways -- beside the
+      // bar when there is room, stacked over it when there is not -- and the
+      // stacked one is what actually regressed.
+      for (final size in [window, const Size(1040, 900)]) {
+        // A fresh tree each time: re-pumping the editor keeps the composer's
+        // own state, and the panel left open by the first pass would make the
+        // second one measure a bar that was never shut.
+        await tester.pumpWidget(const SizedBox.shrink());
+        await pumpEditor(tester, size: size);
 
-      final before = tester
-          .widget<CanvasView>(find.byType(CanvasView))
-          .bottomInset;
+        double reserve() =>
+            tester.widget<CanvasView>(find.byType(CanvasView)).bottomInset;
+        Rect feed() => tester.getRect(find.byType(CanvasView));
 
-      // Narrow enough that the panel stacks over the bar rather than standing
-      // beside it, which is the case where it costs height.
-      await tester.tap(find.byTooltip('Settings'));
-      await tester.pump();
-      await tester.pump();
+        final beforeReserve = reserve();
+        final beforeFeed = feed();
 
-      expect(
-        tester.widget<CanvasView>(find.byType(CanvasView)).bottomInset,
-        greaterThan(before),
-      );
-      addTearDown(() => tester.binding.setSurfaceSize(null));
+        await tester.tap(find.byTooltip('Settings'));
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byType(ComposerSettings), findsOneWidget, reason: '$size');
+        expect(
+          reserve(),
+          moreOrLessEquals(beforeReserve, epsilon: 0.5),
+          reason: '$size',
+        );
+        expect(feed(), beforeFeed, reason: '$size');
+      }
     });
   });
 
@@ -344,6 +421,227 @@ void main() {
 
       expect(find.byType(SkeletonBar), findsOneWidget);
       expect(find.text('Recording...'), findsOneWidget);
+    });
+  });
+
+  group('the feed shows the work and nothing else', () {
+    /// One finished picture in the canvas.
+    Future<CanvasBatch> putResult(WidgetTester tester, {int items = 1}) async {
+      final batch = CanvasBatch(
+        id: 'done',
+        kind: CanvasKind.image,
+        prompt: 'a horse with wings',
+        createdAt: DateTime.now(),
+        modelLabel: 'Nano Banana 2',
+        aspectRatio: '1:1',
+        items: [
+          for (var i = 0; i < items; ++i)
+            CanvasItem(
+              id: 'item$i',
+              status: CanvasStatus.done,
+              path: file('result$i.png'),
+            ),
+        ],
+      );
+      app.project.feed.add(batch);
+      await tester.pump();
+      return batch;
+    }
+
+    testWidgets('the prompt is not repeated over the result', (tester) async {
+      // It is still sitting in the bar three inches below. A feed of pictures
+      // with a caption over every one of them is a feed you read instead of
+      // look at; the only text left is the text of something that failed.
+      await pumpEditor(tester);
+      await putResult(tester);
+
+      expect(find.text('a horse with wings'), findsNothing);
+      expect(find.text('Nano Banana 2'), findsNothing);
+    });
+
+    testWidgets('an error still says what went wrong', (tester) async {
+      await pumpEditor(tester);
+      app.project.feed.add(
+        CanvasBatch(
+          id: 'broken',
+          kind: CanvasKind.image,
+          prompt: 'a horse with wings',
+          createdAt: DateTime.now(),
+          items: [
+            CanvasItem(
+              id: 'item',
+              status: CanvasStatus.failed,
+              error: 'HTTP 400 - image/png is not supported',
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+
+      expect(
+        find.text('HTTP 400 - image/png is not supported'),
+        findsOneWidget,
+      );
+      expect(find.text('a horse with wings'), findsNothing);
+    });
+
+    testWidgets('right-click offers the four file actions', (tester) async {
+      await pumpEditor(tester);
+      await putResult(tester);
+
+      await tester.tapAt(
+        tester.getCenter(find.byType(LocalImage).first),
+        buttons: kSecondaryButton,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      for (final label in [
+        'Show file',
+        'Save as...',
+        'Copy the picture',
+        'Remove from the canvas',
+      ]) {
+        expect(find.text(label), findsOneWidget, reason: label);
+      }
+    });
+
+    testWidgets('removing takes the one tile, not the whole batch', (
+      tester,
+    ) async {
+      // The unit somebody acts on is the tile: asking for three pictures and
+      // wanting rid of the second is the ordinary case.
+      await pumpEditor(tester);
+      final batch = await putResult(tester, items: 3);
+
+      await tester.tapAt(
+        tester.getCenter(find.byType(LocalImage).at(1)),
+        buttons: kSecondaryButton,
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Remove from the canvas'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+
+      expect(batch.items.map((item) => item.id), ['item0', 'item2']);
+      expect(app.project.feed.byId('done'), isNotNull);
+    });
+  });
+
+  group('the clip shelf says how much it will take', () {
+    testWidgets('the reference well counts each kind separately', (
+      tester,
+    ) async {
+      await pumpEditor(tester);
+      await pickTab(tester, ComposerTab.video);
+
+      // Every kind is offered here, and each is counted against its own
+      // ceiling -- a row of thumbnails cannot say "one of nine pictures, none
+      // of three clips".
+      expect(find.textContaining('pictures'), findsOneWidget);
+      expect(find.textContaining('clips'), findsOneWidget);
+      expect(find.textContaining('recordings'), findsOneWidget);
+
+      await drop(tester, [file('a.png'), file('b.png'), file('c.mp4')]);
+
+      expect(find.textContaining('2/'), findsOneWidget);
+      expect(find.textContaining('1/'), findsOneWidget);
+    });
+
+    testWidgets('each kind has a button of its own, and only its own', (
+      tester,
+    ) async {
+      await pumpEditor(tester);
+
+      await pickTab(tester, ComposerTab.video);
+      expect(find.byTooltip('Add pictures'), findsOneWidget);
+      expect(find.byTooltip('Add clips'), findsOneWidget);
+      expect(find.byTooltip('Add a recording'), findsOneWidget);
+
+      // The picture shelf takes pictures. A clip handed to it is dropped on
+      // the way out, so there is no button offering to attach one.
+      await pickTab(tester, ComposerTab.image);
+      expect(find.byTooltip('Add pictures'), findsOneWidget);
+      expect(find.byTooltip('Add clips'), findsNothing);
+      expect(find.byTooltip('Add a recording'), findsNothing);
+    });
+  });
+
+  group('the nav is a way back to the work', () {
+    late String projectId;
+
+    Future<void> pumpWindow(WidgetTester tester) async {
+      tester.view
+        ..physicalSize = window
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final theme = MqTheme(dark: false);
+      await tester.pumpWidget(
+        AppTheme(
+          theme: theme,
+          child: MaterialApp(
+            theme: theme.material,
+            home: Scaffold(body: MainWindow(app: app)),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    Finder navRow(String label) =>
+        find.descendant(of: find.byType(SideNav), matching: find.text(label));
+
+    Finder crumb(String label) =>
+        find.descendant(of: find.byType(TopBar), matching: find.text(label));
+
+    setUp(() {
+      projectId = app.workspace.createProject('Nav project').id;
+      app.workspace.createAd(projectId, 'Nav ad');
+    });
+
+    tearDown(() => app.workspace.removeProject(projectId));
+
+    /// Down the tree to the ad: a project only shows its ads once it is open.
+    ///
+    /// Scoped to the nav, because the project list in the middle of the page
+    /// carries the same names.
+    Future<void> openTheAd(WidgetTester tester) async {
+      Finder treeRow(String label) =>
+          find.descendant(of: find.byType(SideNav), matching: find.text(label));
+
+      await tester.tap(treeRow('Nav project'));
+      await tester.pump();
+      await tester.tap(treeRow('Nav ad'));
+      await tester.pump();
+    }
+
+    testWidgets('Studio goes back to the ad you were in', (tester) async {
+      // It used to be a way to the top of the tree and nothing else, so
+      // stepping out to Settings meant walking back down two screens to the ad
+      // you had been working on all morning.
+      await pumpWindow(tester);
+      await openTheAd(tester);
+      expect(crumb('Nav ad'), findsOneWidget);
+
+      await tester.tap(navRow('Settings'));
+      await tester.pump();
+
+      await tester.tap(navRow('Studio'));
+      await tester.pump();
+      expect(crumb('Nav ad'), findsOneWidget);
+    });
+
+    testWidgets('a tree row renames itself where it stands', (tester) async {
+      await pumpWindow(tester);
+      await openTheAd(tester);
+
+      await tester.tap(find.byTooltip('Rename this ad'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('Rename the ad'), findsOneWidget);
     });
   });
 

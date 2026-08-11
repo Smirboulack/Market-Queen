@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_state.dart';
 import '../../core/pricing.dart';
 import '../../i18n/translator.dart';
+import '../../models/asset_library.dart' show MediaKind;
 import '../../models/canvas_feed.dart';
 import '../../models/studio_runner.dart';
 import '../../providers/fal_schema.dart';
@@ -37,7 +38,7 @@ class ComposerSpec {
     this.tall = false,
     this.batched = false,
     this.maxCount = 1,
-    this.takesReferences = true,
+    this.referenceKinds = const {MediaKind.image},
     this.multipleReferences = true,
     this.picksAspect = false,
     this.picksLength = false,
@@ -65,7 +66,17 @@ class ComposerSpec {
   final bool batched;
   final int maxCount;
 
-  final bool takesReferences;
+  /// What this mode can be handed at all.
+  ///
+  /// The model narrows it further -- an image-to-video endpoint takes one
+  /// opening frame and no clips at all -- but this is the floor, and it is not
+  /// a model's business: dropping a clip on the picture tab is not a limitation
+  /// of some endpoint, it is a category error. Each kind in here earns its own
+  /// button, with its own glyph, so "add a reference" stops meaning four
+  /// different things behind one paperclip.
+  final Set<MediaKind> referenceKinds;
+
+  bool get takesReferences => referenceKinds.isNotEmpty;
 
   /// Off for the tabs that work on exactly one file, where a second reference
   /// would be a second answer to an unambiguous question.
@@ -80,8 +91,16 @@ class ComposerSpec {
       icon: 'user-voice-line',
       category: 'avatar',
       kind: CanvasKind.ad,
-      placeholder: tr('Write the script your actor will read...'),
+      placeholder: tr(
+        'Write the script your actor will read. Point at the cast and your '
+        'files by name: @Marie, @Image1, @Video1.',
+      ),
       tall: true,
+      // The product, as a photo or a clip of it in use. This is the only mode
+      // where the cast is addressable, because it is the only mode that has a
+      // cast: the avatar model is handed the actor and the scene, and the other
+      // two shelves have never heard of either.
+      referenceKinds: const {MediaKind.image, MediaKind.video},
       picksAspect: true,
       picksLength: true,
     ),
@@ -91,11 +110,15 @@ class ComposerSpec {
       category: 'video',
       kind: CanvasKind.video,
       placeholder: tr(
-        'Describe the shot. Drop pictures and clips in and point at them: '
-        '@Image1, @Video1, or an actor by name.',
+        'Describe the shot, and point at what you dropped in: @Image1, '
+        '@Video1, @Audio1.',
       ),
       batched: true,
       maxCount: 4,
+      // The ceiling. What the chosen model actually takes is narrower and is
+      // read off its own schema -- an image-to-video endpoint has one opening
+      // frame and no lists at all.
+      referenceKinds: const {MediaKind.image, MediaKind.video, MediaKind.audio},
       picksAspect: true,
       picksLength: true,
     ),
@@ -105,11 +128,13 @@ class ComposerSpec {
       category: 'image',
       kind: CanvasKind.image,
       placeholder: tr(
-        'Describe the picture. Drop references in and point at them: @Image1, '
-        'or an actor by name.',
+        'Describe the picture, and point at your references: @Image1.',
       ),
       batched: true,
       maxCount: 10,
+      // Pictures only. A clip handed to a picture model is dropped on the way
+      // out, so offering to attach one was an invitation to be ignored.
+      referenceKinds: const {MediaKind.image},
       picksAspect: true,
     ),
     ComposerTab.audio => ComposerSpec(
@@ -119,7 +144,7 @@ class ComposerSpec {
       kind: CanvasKind.audio,
       placeholder: tr('Write what should be said out loud...'),
       tall: true,
-      takesReferences: false,
+      referenceKinds: const {},
     ),
     ComposerTab.captions => ComposerSpec(
       label: tr('Subtitles'),
@@ -128,6 +153,7 @@ class ComposerSpec {
       kind: CanvasKind.video,
       placeholder: tr('Drop in a clip to subtitle it'),
       prompted: false,
+      referenceKinds: const {MediaKind.video},
       multipleReferences: false,
     ),
     ComposerTab.upscale => ComposerSpec(
@@ -137,6 +163,7 @@ class ComposerSpec {
       kind: CanvasKind.image,
       placeholder: tr('Drop in a picture to enlarge it'),
       prompted: false,
+      referenceKinds: const {MediaKind.image},
       multipleReferences: false,
     ),
   };

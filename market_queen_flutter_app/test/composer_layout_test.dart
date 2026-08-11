@@ -154,6 +154,10 @@ void main() {
   });
 
   testWidgets('the prompt is the same height on every tab', (tester) async {
+    // The *prompt*, not the bar around it. The clip shelf now carries a framed
+    // reference well underneath its field, so the bars are deliberately
+    // different heights -- but the thing the caret lands in must not change
+    // size when you switch modes, which is what made the layout jump.
     await pumpEditor(tester);
 
     final heights = <String, double>{};
@@ -161,7 +165,9 @@ void main() {
       final spec = ComposerSpec.of(tab);
       await tester.tap(find.text(spec.label));
       await tester.pump();
-      heights[spec.label] = barRect(tester).height;
+      heights[spec.label] = tester
+          .getRect(find.byType(EditableText).first)
+          .height;
     }
 
     expect(heights.values.toSet(), hasLength(1));

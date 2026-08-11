@@ -10,6 +10,7 @@ import '../../models/asset_library.dart';
 import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
+import 'video_poster.dart';
 
 const imageTypeGroup = XTypeGroup(
   label: 'Images',
@@ -216,9 +217,13 @@ class _MediaDropZoneState extends State<MediaDropZone> {
   }
 }
 
-/// One reference. A picture shows itself; a clip shows a film glyph and its
-/// name, because there is no frame to pull out of it without ffmpeg and a
-/// grey rectangle says less than a filename does.
+/// One reference.
+///
+/// A picture shows itself. A clip shows its own first frame, pulled with
+/// ffmpeg, with a play badge over it -- it used to be a film glyph on grey,
+/// which told you a video was attached but never which one, and four clips in a
+/// row were four identical squares. A recording has no frame to show and keeps
+/// its glyph.
 class MediaTile extends StatefulWidget {
   const MediaTile({
     super.key,
@@ -227,6 +232,8 @@ class MediaTile extends StatefulWidget {
     required this.onRemove,
     this.primary = false,
     this.onPrimary,
+    this.onTap,
+    this.ffmpegPath = '',
   });
 
   final String path;
@@ -234,6 +241,13 @@ class MediaTile extends StatefulWidget {
   final VoidCallback onRemove;
   final bool primary;
   final VoidCallback? onPrimary;
+
+  /// Opens it. Left null where a thumbnail is a label rather than a control.
+  final VoidCallback? onTap;
+
+  /// Needed to pull a clip's poster frame. Without it a clip falls back to the
+  /// glyph, which is what every screen showed before.
+  final String ffmpegPath;
 
   @override
   State<MediaTile> createState() => _MediaTileState();
@@ -245,7 +259,6 @@ class _MediaTileState extends State<MediaTile> {
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final video = isVideoPath(widget.path);
 
     // The badges fade rather than appear: on a grid, a pointer crossing four
     // tiles used to fire eight of them like a string of lights.
@@ -256,7 +269,10 @@ class _MediaTileState extends State<MediaTile> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: Tooltip(
-        message: p.basename(widget.path),
+        message: widget.onTap == null
+            ? p.basename(widget.path)
+            //: %1 is a file name
+            : tr('%1 -- press to open').arg(p.basename(widget.path)),
         child: AnimatedContainer(
           duration: fade,
           width: widget.size,
@@ -276,11 +292,22 @@ class _MediaTileState extends State<MediaTile> {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
-                child: video
-                    ? _VideoTile(path: widget.path)
-                    : LocalImage(widget.path),
+              // The picture is the target, and the badges over it are their
+              // own: pressing a thumbnail opens the file, pressing the cross in
+              // its corner takes it off. Nested, so the badge wins the few
+              // pixels it covers and the rest of the tile opens.
+              Pressable(
+                enabled: widget.onTap != null,
+                onTap: widget.onTap,
+                canRequestFocus: widget.onTap != null,
+                focusRadius: MqTheme.radiusSmall,
+                builder: (context, states) => ClipRRect(
+                  borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 1),
+                  child: _Thumbnail(
+                    path: widget.path,
+                    ffmpegPath: widget.ffmpegPath,
+                  ),
+                ),
               ),
               if (widget.onPrimary != null || widget.primary)
                 Positioned(
@@ -327,20 +354,50 @@ class _MediaTileState extends State<MediaTile> {
   }
 }
 
-class _VideoTile extends StatelessWidget {
-  const _VideoTile({required this.path});
+/// What a reference looks like: itself if it is a picture, its own first frame
+/// if it is a clip, a glyph if it is a recording or there is no ffmpeg to pull
+/// a frame with.
+class _Thumbnail extends StatelessWidget {
+  const _Thumbnail({required this.path, required this.ffmpegPath});
 
   final String path;
+  final String ffmpegPath;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return ColoredBox(
-      color: mq.surfaceTertiary,
-      child: Center(
-        child: MqIcon('movie-2-line', size: 20, color: mq.textSecondary),
-      ),
+    if (!isVideoPath(path) && !isAudioPath(path)) return LocalImage(path);
+
+    final audio = isAudioPath(path);
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ColoredBox(color: mq.surfaceTertiary),
+        if (!audio)
+          VideoPosterImage(ffmpegPath: ffmpegPath, path: path),
+        // A plate under the glyph: it now sits over a real frame rather than
+        // over flat grey, and a bare white play arrow on a bright still is
+        // invisible.
+        Center(
+          child: Container(
+            width: 24,
+            height: 24,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: mq.surface.withValues(alpha: 0.88),
+              shape: BoxShape.circle,
+              border: Border.all(color: mq.border),
+            ),
+            child: MqIcon(
+              audio ? 'sound-module-line' : 'play-fill',
+              size: 13,
+              color: mq.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

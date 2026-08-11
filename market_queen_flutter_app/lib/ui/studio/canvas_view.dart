@@ -1,18 +1,23 @@
+import 'dart:io';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 
 import '../../app_state.dart';
+import '../../core/clipboard_media.dart';
 import '../../core/platform_util.dart';
 import '../../i18n/translator.dart';
-import '../../media/ffmpeg.dart';
+import '../../models/asset_library.dart' show isAudioPath, isVideoPath;
 import '../../models/canvas_feed.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/media_drop.dart';
-import '../widgets/mq_dialog.dart';
+import '../widgets/media_preview.dart';
 import '../widgets/skeleton.dart';
 import '../widgets/video_player.dart';
-import 'studio_card.dart';
+import '../widgets/video_poster.dart';
 
 /// The middle of the studio: everything this ad has generated, oldest at the
 /// top, newest at the bottom.
@@ -52,6 +57,16 @@ class _CanvasViewState extends State<CanvasView> {
 
   int _lastCount = 0;
 
+  /// Whether the newest tile is the one being looked at.
+  ///
+  /// Tracked continuously rather than read when it is needed, and that is the
+  /// whole trick: by the time a resize has happened the old extent is gone, so
+  /// "were we at the bottom" has to have been answered before it.
+  bool _atBottom = true;
+
+  /// The viewport the feed was last laid out in.
+  Size _viewport = Size.zero;
+
   CanvasFeed get _feed => widget.app.project.feed;
 
   @override
@@ -68,29 +83,42 @@ class _CanvasViewState extends State<CanvasView> {
     super.dispose();
   }
 
-  /// The composer changed height under us -- a reference was dropped into it,
-  /// the settings column opened, the prompt grew a third line.
+  /// Something changed the shape of the feed: the composer grew a line, the
+  /// settings column opened, the window was dragged bigger.
   ///
-  /// The feed pads itself by exactly that height, so the padding is about to
-  /// change too. Somebody who was watching the newest tile has to still be
-  /// watching it afterwards rather than the bar that has just grown over it,
-  /// which means reading "were we at the bottom" now, before the new padding is
-  /// laid out, and restoring it after.
-  @override
-  void didUpdateWidget(CanvasView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.bottomInset == widget.bottomInset) return;
-    if (!_scroll.hasClients) return;
-
-    final position = _scroll.position;
-    if (position.pixels < position.maxScrollExtent - 8) return;
+  /// All three move the bottom of the scrollable, and all three should leave
+  /// somebody who was watching the newest tile still watching it. Anywhere else
+  /// in the feed the offset is already preserved for us and is left alone --
+  /// snapping the middle of a list to the end would be worse than the bug.
+  void _keepAnchored() {
+    if (!_atBottom) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
+      final position = _scroll.position;
+      if (position.pixels >= position.maxScrollExtent) return;
       // Jumped, not animated: this follows a resize, and a resize that also
       // slides is two movements where the user made none.
-      _scroll.jumpTo(_scroll.position.maxScrollExtent);
+      _scroll.jumpTo(position.maxScrollExtent);
     });
+  }
+
+  @override
+  void didUpdateWidget(CanvasView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.bottomInset != widget.bottomInset) _keepAnchored();
+  }
+
+  /// Kept up to date by every scroll, so [_keepAnchored] never has to guess.
+  ///
+  /// The slack is a few pixels rather than zero: a feed resting at the end can
+  /// sit a fraction of a pixel short of its own extent, and an equality test
+  /// there would decide you had scrolled away.
+  bool _onScroll(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+    _atBottom = metrics.pixels >= metrics.maxScrollExtent - 8;
+    return false;
   }
 
   /// Follows the newest batch down, and only on a new batch.
@@ -118,31 +146,46 @@ class _CanvasViewState extends State<CanvasView> {
   @override
   Widget build(BuildContext context) {
     return SkeletonScope(
-      child: ListenableBuilder(
-        listenable: _feed,
-        builder: (context, _) {
-          final batches = _feed.batches;
-          if (batches.isEmpty) {
-            return _EmptyCanvas(bottomInset: widget.bottomInset);
+      // The window itself is a thing that resizes the feed, and it does it
+      // without any of our own state changing -- so the viewport is watched
+      // here rather than reacted to somewhere else.
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.biggest != _viewport) {
+            _viewport = constraints.biggest;
+            _keepAnchored();
           }
 
-          return ListView.separated(
-            controller: _scroll,
-            padding: EdgeInsets.fromLTRB(
-              MqTheme.pagePadding,
-              MqTheme.gapLarge,
-              MqTheme.pagePadding,
-              MqTheme.gapLarge + widget.bottomInset,
-            ),
-            itemCount: batches.length,
-            separatorBuilder: (context, _) =>
-                const SizedBox(height: MqTheme.gapLarge + 6),
-            itemBuilder: (context, index) => _BatchBlock(
-              app: widget.app,
-              batch: batches[index],
-              onOpenRender: widget.onOpenRender,
-              onRemove: () => _feed.remove(batches[index].id),
-            ),
+          return ListenableBuilder(
+            listenable: _feed,
+            builder: (context, _) {
+              final batches = _feed.batches;
+              if (batches.isEmpty) {
+                return _EmptyCanvas(bottomInset: widget.bottomInset);
+              }
+
+              return NotificationListener<ScrollNotification>(
+                onNotification: _onScroll,
+                child: ListView.separated(
+                  controller: _scroll,
+                  padding: EdgeInsets.fromLTRB(
+                    MqTheme.pagePadding,
+                    MqTheme.gapLarge,
+                    MqTheme.pagePadding,
+                    MqTheme.gapLarge + widget.bottomInset,
+                  ),
+                  itemCount: batches.length,
+                  separatorBuilder: (context, _) =>
+                      const SizedBox(height: MqTheme.gapLarge + 6),
+                  itemBuilder: (context, index) => _BatchBlock(
+                    app: widget.app,
+                    batch: batches[index],
+                    onOpenRender: widget.onOpenRender,
+                    onRemove: () => _feed.remove(batches[index].id),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -238,7 +281,14 @@ class _EmptyCanvas extends StatelessWidget {
   }
 }
 
-/// One press of the send button: what was asked for, and the tiles it produced.
+/// One press of the send button, and the tiles it produced.
+///
+/// Only the tiles. There used to be a line above them repeating the prompt, the
+/// model and the time -- and the prompt was still sitting in the bar you had
+/// just typed it into, three inches below. A feed of pictures with a caption
+/// over every one of them is a feed you read instead of look at. The only text
+/// left is the text of something that went wrong, which is the one thing the
+/// picture cannot say for itself.
 class _BatchBlock extends StatelessWidget {
   const _BatchBlock({
     required this.app,
@@ -250,6 +300,9 @@ class _BatchBlock extends StatelessWidget {
   final AppState app;
   final CanvasBatch batch;
   final VoidCallback onOpenRender;
+
+  /// Takes the whole batch off the canvas. Reached from the right-click menu of
+  /// a failure, which has no tile of its own to remove.
   final VoidCallback onRemove;
 
   /// How wide a tile wants to be. Below this the grid drops a column rather
@@ -258,117 +311,186 @@ class _BatchBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _header(context),
-        const SizedBox(height: 10),
-        if (batch.allFailed)
-          _Failure(message: batch.firstError)
-        else
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final columns = (constraints.maxWidth / _idealTile)
-                  .floor()
-                  .clamp(1, 5);
-              const gap = 10.0;
-              final width =
-                  (constraints.maxWidth - gap * (columns - 1)) / columns;
+    if (batch.allFailed) {
+      return _MediaMenu(
+        onRemove: batch.running ? null : onRemove,
+        child: _Failure(message: batch.firstError),
+      );
+    }
 
-              return Wrap(
-                spacing: gap,
-                runSpacing: gap,
-                children: [
-                  for (final item in batch.items)
-                    SizedBox(
-                      width: width,
-                      child: _ResultTile(
-                        app: app,
-                        batch: batch,
-                        item: item,
-                        onOpenRender: onOpenRender,
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-      ],
-    );
-  }
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = (constraints.maxWidth / _idealTile).floor().clamp(1, 5);
+        const gap = 10.0;
+        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
 
-  Widget _header(BuildContext context) {
-    final mq = context.mq;
-
-    final facts = <String>[
-      if (batch.modelLabel.isNotEmpty) batch.modelLabel,
-      if (batch.aspectRatio.isNotEmpty) batch.aspectRatio,
-      formatStamp(batch.createdAt),
-    ];
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 2),
-          child: MqIcon(_glyph, size: 15, color: mq.textTertiary),
-        ),
-        const SizedBox(width: 9),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                batch.prompt.isEmpty ? _fallbackTitle : batch.prompt,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontLabel,
-                  height: MqTheme.lineTight,
+        return Wrap(
+          spacing: gap,
+          runSpacing: gap,
+          children: [
+            for (final item in batch.items)
+              SizedBox(
+                width: width,
+                child: _ResultTile(
+                  app: app,
+                  batch: batch,
+                  item: item,
+                  onOpenRender: onOpenRender,
+                  onRemove: () =>
+                      app.project.feed.removeItem(batch.id, item.id),
                 ),
               ),
-              const SizedBox(height: 3),
-              Text(
-                facts.join(' · '),
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontSmall,
-                  height: MqTheme.lineTight,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: MqTheme.gap),
-        MqIconButton(
-          icon: 'delete-bin-line',
-          tip: tr('Remove from the canvas'),
-          destructive: true,
-          // Removing while requests are still out would leave them writing into
-          // a batch nobody can see.
-          enabled: !batch.running,
-          onPressed: onRemove,
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
-
-  String get _glyph => switch (batch.kind) {
-    CanvasKind.video => 'clapperboard-line',
-    CanvasKind.ad => 'user-voice-line',
-    CanvasKind.audio => 'volume-up-line',
-    CanvasKind.image => 'image-line',
-  };
-
-  String get _fallbackTitle => switch (batch.kind) {
-    CanvasKind.video => tr('Video'),
-    CanvasKind.ad => tr('Talking actor'),
-    CanvasKind.audio => tr('Voice-over'),
-    CanvasKind.image => tr('Image'),
-  };
 }
+
+/// The right-click menu on anything the canvas produced.
+///
+/// The file is on disk already -- every generation is written the moment it
+/// lands -- so the four things anybody wants from a result are all file
+/// operations, and none of them belongs on a hover strip that can only hold
+/// three glyphs. A context menu is where a desktop keeps them.
+class _MediaMenu extends StatelessWidget {
+  const _MediaMenu({
+    required this.child,
+    this.path = '',
+    this.onRemove,
+  });
+
+  final Widget child;
+
+  /// Empty while the result is still pending or came back empty: the menu then
+  /// offers only the removal.
+  final String path;
+
+  /// Null while requests are still out for this batch -- removing then would
+  /// leave them writing into something nobody can see.
+  final VoidCallback? onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      // Secondary only: the primary tap belongs to whatever is underneath, and
+      // both gestures can live on the same pixels without an arena between
+      // them.
+      onSecondaryTapDown: (details) => _open(context, details.globalPosition),
+      child: child,
+    );
+  }
+
+  Future<void> _open(BuildContext context, Offset position) async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+    if (overlay == null) return;
+
+    final hasFile = path.isNotEmpty && File(path).existsSync();
+    final picked = await showMenu<_MediaAction>(
+      context: context,
+      // Shape, colour and elevation come from `popupMenuTheme`, like every
+      // other menu in the app.
+      position: RelativeRect.fromRect(
+        position & Size.zero,
+        Offset.zero & overlay.size,
+      ),
+      constraints: const BoxConstraints(minWidth: 240),
+      items: [
+        if (hasFile) ...[
+          _entry(context, _MediaAction.reveal, 'folder-line', tr('Show file')),
+          _entry(
+            context,
+            _MediaAction.saveAs,
+            'download-line',
+            tr('Save as...'),
+          ),
+          _entry(
+            context,
+            _MediaAction.copy,
+            'file-copy-line',
+            isVideoPath(path)
+                ? tr('Copy the video')
+                : isAudioPath(path)
+                ? tr('Copy the recording')
+                : tr('Copy the picture'),
+          ),
+        ],
+        if (hasFile && onRemove != null) const PopupMenuDivider(height: 9),
+        if (onRemove != null)
+          _entry(
+            context,
+            _MediaAction.remove,
+            'delete-bin-line',
+            tr('Remove from the canvas'),
+            destructive: true,
+          ),
+      ],
+    );
+
+    if (picked == null || !context.mounted) return;
+
+    switch (picked) {
+      case _MediaAction.reveal:
+        await PlatformUtil.revealPath(path);
+      case _MediaAction.saveAs:
+        await _saveAs(path);
+      case _MediaAction.copy:
+        await ClipboardMedia.copyFile(path);
+      case _MediaAction.remove:
+        onRemove?.call();
+    }
+  }
+
+  PopupMenuItem<_MediaAction> _entry(
+    BuildContext context,
+    _MediaAction value,
+    String icon,
+    String label, {
+    bool destructive = false,
+  }) {
+    final mq = context.mq;
+    final ink = destructive ? mq.errorText : mq.textPrimary;
+
+    return PopupMenuItem<_MediaAction>(
+      value: value,
+      height: 38,
+      child: Row(
+        children: [
+          MqIcon(icon, size: 16, color: ink),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: TextStyle(color: ink, fontSize: MqTheme.fontLabel),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A copy, wherever they ask for it. The generated file itself stays where it
+  /// was written -- "save as" on something already saved is an export, and
+  /// moving the original would break the tile that points at it.
+  Future<void> _saveAs(String path) async {
+    final extension = p.extension(path).replaceFirst('.', '');
+    final location = await getSaveLocation(
+      suggestedName: p.basename(path),
+      acceptedTypeGroups: [
+        if (extension.isNotEmpty)
+          XTypeGroup(label: extension.toUpperCase(), extensions: [extension]),
+      ],
+    );
+    if (location == null) return;
+
+    try {
+      await File(path).copy(location.path);
+    } on FileSystemException {
+      // The dialog picked somewhere unwritable. Nothing was moved and nothing
+      // was lost; the original is still where it was.
+    }
+  }
+}
+
+enum _MediaAction { reveal, saveAs, copy, remove }
 
 /// One result, at whatever stage it is at.
 class _ResultTile extends StatefulWidget {
@@ -377,12 +499,14 @@ class _ResultTile extends StatefulWidget {
     required this.batch,
     required this.item,
     required this.onOpenRender,
+    required this.onRemove,
   });
 
   final AppState app;
   final CanvasBatch batch;
   final CanvasItem item;
   final VoidCallback onOpenRender;
+  final VoidCallback onRemove;
 
   @override
   State<_ResultTile> createState() => _ResultTileState();
@@ -412,6 +536,18 @@ class _ResultTileState extends State<_ResultTile> {
 
   @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+
+    return _MediaMenu(
+      path: item.status == CanvasStatus.done ? item.path : '',
+      // A tile still being generated is not one to pull out from under the
+      // request that is about to fill it.
+      onRemove: item.status == CanvasStatus.pending ? null : widget.onRemove,
+      child: _body(context),
+    );
+  }
+
+  Widget _body(BuildContext context) {
     final item = widget.item;
 
     if (widget.batch.kind == CanvasKind.audio) return _AudioTile(item: item);
@@ -596,12 +732,12 @@ class _TileActions extends StatelessWidget {
   }
 }
 
-/// A clip's first readable frame, pulled with ffmpeg the first time the tile is
-/// drawn and cached on disk from then on.
+/// A clip at rest: its own first frame, a play badge, and how long it runs.
 ///
-/// Without ffmpeg -- or before the frame comes back -- the tile is a plain
-/// surface with a play badge, which is what it used to be always.
-class _VideoPoster extends StatefulWidget {
+/// The frame comes from the shared extractor, which draws nothing until ffmpeg
+/// has produced one -- so the plate underneath is what shows in the meantime,
+/// and forever on a machine with no ffmpeg.
+class _VideoPoster extends StatelessWidget {
   const _VideoPoster({
     required this.app,
     required this.path,
@@ -613,52 +749,14 @@ class _VideoPoster extends StatefulWidget {
   final double seconds;
 
   @override
-  State<_VideoPoster> createState() => _VideoPosterState();
-}
-
-class _VideoPosterState extends State<_VideoPoster> {
-  /// Extraction is per file and its result never changes, so it is remembered
-  /// for the life of the process: scrolling a long feed must not re-run ffmpeg
-  /// on every tile that leaves and re-enters the viewport.
-  static final Map<String, String> _cache = {};
-
-  String _poster = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void didUpdateWidget(_VideoPoster oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.path != widget.path) _load();
-  }
-
-  Future<void> _load() async {
-    final cached = _cache[widget.path];
-    if (cached != null) {
-      setState(() => _poster = cached);
-      return;
-    }
-
-    final found = await posterFrame(widget.app.ffmpegPath, widget.path);
-    _cache[widget.path] = found;
-    if (mounted) setState(() => _poster = found);
-  }
-
-  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        if (_poster.isEmpty)
-          ColoredBox(color: mq.surfaceTertiary)
-        else
-          LocalImage(_poster),
+        ColoredBox(color: mq.surfaceTertiary),
+        VideoPosterImage(ffmpegPath: app.ffmpegPath, path: path),
         Center(
           child: Container(
             width: 38,
@@ -672,11 +770,11 @@ class _VideoPosterState extends State<_VideoPoster> {
             child: MqIcon('play-fill', size: 18, color: mq.textPrimary),
           ),
         ),
-        if (widget.seconds > 0)
+        if (seconds > 0)
           Positioned(
             left: 6,
             bottom: 6,
-            child: _Stamp(text: '${widget.seconds.round()}s'),
+            child: _Stamp(text: '${seconds.round()}s'),
           ),
       ],
     );
@@ -779,21 +877,3 @@ class _Failure extends StatelessWidget {
   }
 }
 
-/// One picture, as large as the window will allow.
-Future<void> showImageLightbox(BuildContext context, String path) {
-  return showMqModal<void>(
-    context: context,
-    child: Builder(
-      builder: (context) => ConstrainedBox(
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.sizeOf(context).width - 120,
-          maxHeight: MediaQuery.sizeOf(context).height - 120,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
-          child: LocalImage(path, fit: BoxFit.contain),
-        ),
-      ),
-    ),
-  );
-}

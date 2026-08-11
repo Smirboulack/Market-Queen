@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
-import '../models/asset_library.dart' show isMediaPath;
+import '../models/asset_library.dart' show isImagePath, isMediaPath;
 import 'paths.dart';
 
 /// What Ctrl+V can put in the composer.
@@ -101,6 +101,78 @@ class ClipboardMedia {
     } on ProcessException {
       return const [];
     }
+  }
+
+  /// Puts a generated file on the clipboard, both ways at once.
+  ///
+  /// As a file, so it can be dropped into a folder, an upload field or a chat
+  /// window; and -- for a picture -- as a bitmap as well, so it can be pasted
+  /// straight into something that takes an image rather than a path. A clip can
+  /// only ever be the file: no application takes a pasted video frame buffer.
+  ///
+  /// Returns whether it landed, so the caller can say nothing rather than
+  /// claiming a copy that did not happen.
+  static Future<bool> copyFile(String path) async {
+    if (path.isEmpty || !File(path).existsSync()) return false;
+
+    try {
+      return await switch (Platform.operatingSystem) {
+        'windows' => _copyWindows(path),
+        'macos' => _copyMacOS(path),
+        'linux' => _copyLinux(path),
+        _ => Future.value(false),
+      };
+    } on ProcessException {
+      return false;
+    }
+  }
+
+  static Future<bool> _copyWindows(String path) async {
+    // Read through a stream rather than `Image.FromFile`, which holds the file
+    // open for as long as the bitmap lives -- and the bitmap lives as long as
+    // the clipboard does, which would leave the app unable to overwrite its own
+    // output.
+    const script =
+        'Add-Type -AssemblyName System.Windows.Forms,System.Drawing; '
+        r'$p=$env:MQ_COPY_PATH; '
+        r'$o=New-Object Windows.Forms.DataObject; '
+        r'$c=New-Object Collections.Specialized.StringCollection; '
+        r'$c.Add($p) | Out-Null; '
+        r'$o.SetFileDropList($c); '
+        r"if($env:MQ_COPY_IMAGE -eq '1')"
+        r'{ $b=[IO.File]::ReadAllBytes($p); '
+        r'$m=New-Object IO.MemoryStream(,$b); '
+        r'$o.SetImage([Drawing.Image]::FromStream($m)) } '
+        r'[Windows.Forms.Clipboard]::SetDataObject($o,$true)';
+
+    final result = await Process.run(
+      'powershell.exe',
+      const ['-NoProfile', '-NonInteractive', '-STA', '-Command', script],
+      environment: {
+        'MQ_COPY_PATH': path,
+        'MQ_COPY_IMAGE': isImagePath(path) ? '1' : '0',
+      },
+    );
+    return result.exitCode == 0;
+  }
+
+  static Future<bool> _copyMacOS(String path) async {
+    final result = await Process.run('osascript', [
+      '-e',
+      isImagePath(path)
+          ? 'set the clipboard to (read POSIX file "$path" as «class PNGf»)'
+          : 'set the clipboard to POSIX file "$path"',
+    ]);
+    return result.exitCode == 0;
+  }
+
+  static Future<bool> _copyLinux(String path) async {
+    final result = await Process.run('sh', [
+      '-c',
+      'printf "file://%s" "$path" | '
+          'xclip -selection clipboard -t text/uri-list',
+    ]);
+    return result.exitCode == 0;
   }
 
   /// One PowerShell hop: the file drop list if there is one, otherwise the

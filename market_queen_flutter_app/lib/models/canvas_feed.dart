@@ -190,6 +190,29 @@ class CanvasFeed extends ChangeNotifier {
     if (_batches.length != before) notifyListeners();
   }
 
+  /// Takes one result off the canvas.
+  ///
+  /// The unit the user acts on is the tile, not the press of send that produced
+  /// it: asking for four pictures and wanting to be rid of the third is the
+  /// ordinary case. A batch left with nothing in it goes too -- an empty row
+  /// under a prompt is not a record of anything.
+  ///
+  /// The file on disk is left alone. Everything here is already saved, and the
+  /// canvas is a view of what was made rather than the only copy of it.
+  void removeItem(String batchId, String itemId) {
+    final batch = byId(batchId);
+    if (batch == null) return;
+
+    final before = batch.items.length;
+    batch.items.removeWhere((item) => item.id == itemId);
+    if (batch.items.length == before) return;
+
+    if (batch.items.isEmpty) {
+      _batches.remove(batch);
+    }
+    notifyListeners();
+  }
+
   void clear() {
     if (_batches.isEmpty) return;
     _batches.clear();

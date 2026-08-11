@@ -312,7 +312,8 @@ class _InlineAudioState extends State<InlineAudio> {
 ///
 /// The counterpart of the picture lightbox, and the answer to the other half of
 /// the same complaint: full screen should mean full screen *here*, not a second
-/// application.
+/// application. Reached through [showMediaPreview] from everywhere but the
+/// canvas tile's own full-screen button.
 Future<void> showVideoLightbox(BuildContext context, String path) {
   return showMqModal<void>(
     context: context,

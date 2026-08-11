@@ -49,6 +49,16 @@ class _MainWindowState extends State<MainWindow> {
   String _projectId = '';
   String _adId = '';
 
+  /// The last ad that was open, which is what "Studio" goes back to.
+  ///
+  /// The nav row used to be a way to the top of the tree and nothing else, so
+  /// stepping out to Settings and back -- or up to the project list to check
+  /// something -- meant walking back down two screens to the ad you had been
+  /// working on for the last hour. A section in a nav should return you to your
+  /// place in it.
+  String _lastProjectId = '';
+  String _lastAdId = '';
+
   /// Whether the studio is showing the run rather than the ad.
   bool _rendering = false;
 
@@ -67,6 +77,8 @@ class _MainWindowState extends State<MainWindow> {
         onNewAd: _newAd,
         onOpenProject: _openProject,
         onOpenAd: _openAd,
+        onRenameProject: _renameProject,
+        onRenameAd: _renameAd,
       ),
     ),
     NavEntry(label: tr('Library'), icon: 'movie-2-line', page: _library),
@@ -95,8 +107,61 @@ class _MainWindowState extends State<MainWindow> {
       _currentPage = _studio;
       _projectId = projectId;
       _adId = adId;
+      _lastProjectId = projectId;
+      _lastAdId = adId;
       _rendering = false;
     });
+  }
+
+  /// A nav row was pressed.
+  ///
+  /// Every one of them is "go to that section" except this one detail: the
+  /// studio remembers where you were in it, so pressing Studio from anywhere
+  /// puts you back in the ad you were making rather than at the list of
+  /// projects. Walking up to the list is what the crumb trail is for, and it is
+  /// a thing you ask for far less often than you ask to get back to work.
+  void _pickPage(int index) {
+    if (index != _studio) {
+      setState(() => _currentPage = index);
+      return;
+    }
+
+    final remembered = app.workspace.ad(_lastProjectId, _lastAdId);
+    if (_adId.isEmpty && remembered != null) {
+      _openAd(_lastProjectId, _lastAdId);
+      return;
+    }
+    setState(() => _currentPage = _studio);
+  }
+
+  Future<void> _renameProject(String id) async {
+    final project = app.workspace.project(id);
+    if (project == null) return;
+
+    final name = await askForName(
+      context,
+      title: tr('Rename the project'),
+      label: tr('Project name'),
+      placeholder: project.name,
+      confirmLabel: tr('Rename'),
+      initial: project.name,
+    );
+    if (name != null) app.workspace.renameProject(id, name);
+  }
+
+  Future<void> _renameAd(String projectId, String adId) async {
+    final ad = app.workspace.ad(projectId, adId);
+    if (ad == null) return;
+
+    final name = await askForName(
+      context,
+      title: tr('Rename the ad'),
+      label: tr('Ad name'),
+      placeholder: ad.name,
+      confirmLabel: tr('Rename'),
+      initial: ad.name,
+    );
+    if (name != null) app.workspace.renameAd(projectId, adId, name);
   }
 
   void _backToProjects() {
@@ -227,7 +292,7 @@ class _MainWindowState extends State<MainWindow> {
             app: app,
             entries: _entries,
             currentPage: _currentPage,
-            onPicked: (index) => setState(() => _currentPage = index),
+            onPicked: _pickPage,
           ),
           Expanded(
             child: Column(

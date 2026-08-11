@@ -27,6 +27,8 @@ class StudioTree extends StatefulWidget {
     required this.onNewAd,
     required this.onOpenProject,
     required this.onOpenAd,
+    required this.onRenameProject,
+    required this.onRenameAd,
   });
 
   final AppState app;
@@ -39,6 +41,12 @@ class StudioTree extends StatefulWidget {
   final ValueChanged<String> onNewAd;
   final ValueChanged<String> onOpenProject;
   final void Function(String projectId, String adId) onOpenAd;
+
+  /// Renaming from where the name is: the tree is the list of names, and
+  /// walking two screens down to a card menu to fix a typo in one of them was
+  /// the only way to do it.
+  final ValueChanged<String> onRenameProject;
+  final void Function(String projectId, String adId) onRenameAd;
 
   /// As tall as the tree is allowed to get before its rows start scrolling.
   static const double maxHeight = 340;
@@ -102,6 +110,9 @@ class _StudioTreeState extends State<StudioTree> {
                               onFold: project.ads.isEmpty
                                   ? null
                                   : () => _toggle(project.id),
+                              onRename: () =>
+                                  widget.onRenameProject(project.id),
+                              renameTip: tr('Rename this project'),
                             ),
                             if (_isUnfolded(project.id)) ...[
                               for (final ad
@@ -115,6 +126,9 @@ class _StudioTreeState extends State<StudioTree> {
                                   selected: ad.id == widget.openAdId,
                                   onTap: () =>
                                       widget.onOpenAd(project.id, ad.id),
+                                  onRename: () =>
+                                      widget.onRenameAd(project.id, ad.id),
+                                  renameTip: tr('Rename this ad'),
                                 ),
                               _NewRow(
                                 label: tr('+ New ad'),
@@ -143,6 +157,8 @@ class _TreeRow extends StatelessWidget {
     required this.icon,
     required this.selected,
     required this.onTap,
+    required this.onRename,
+    this.renameTip = '',
     this.depth = 0,
     this.unfolded = false,
     this.onFold,
@@ -152,6 +168,12 @@ class _TreeRow extends StatelessWidget {
   final String icon;
   final bool selected;
   final VoidCallback onTap;
+
+  /// The pencil. Its room is held whether or not it is showing, so a row does
+  /// not reflow under the pointer -- the app's one rule about hover is that
+  /// nothing moves.
+  final VoidCallback onRename;
+  final String renameTip;
 
   /// 0 for a project, 1 for one of its ads.
   final int depth;
@@ -220,6 +242,22 @@ class _TreeRow extends StatelessWidget {
                       : mq.textSecondary,
                   fontSize: MqTheme.fontLabel,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 22,
+              child: IgnorePointer(
+                ignoring: !states.active && !selected,
+                child: AnimatedOpacity(
+                  opacity: states.active || selected ? 1 : 0,
+                  duration: MqTheme.hoverDuration,
+                  child: MqIconButton(
+                    icon: 'edit-line',
+                    tip: renameTip,
+                    size: 22,
+                    onPressed: onRename,
+                  ),
                 ),
               ),
             ),

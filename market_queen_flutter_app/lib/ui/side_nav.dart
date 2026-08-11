@@ -79,29 +79,40 @@ class SideNav extends StatelessWidget {
                     children: [
                       const BrandMark(size: 70),
                       const SizedBox(width: 11),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            // Product name: never translated.
-                            'Market Queen',
-                            style: TextStyle(
-                              color: mq.textPrimary,
-                              fontSize: MqTheme.fontTitle,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: MqTheme.trackTitle,
-                              height: MqTheme.lineTight,
+                      // Flexible, because the column it sits in is a fixed 240
+                      // and the wordmark beside a 70px mark has very little
+                      // room left: a system font wider than the bundled Inter
+                      // -- or a translation of "studio" longer than the word --
+                      // used to run straight off the edge.
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              // Product name: never translated.
+                              'Market Queen',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: mq.textPrimary,
+                                fontSize: MqTheme.fontTitle,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: MqTheme.trackTitle,
+                                height: MqTheme.lineTight,
+                              ),
                             ),
-                          ),
-                          Text(
-                            tr('studio'),
-                            style: TextStyle(
-                              color: mq.textTertiary,
-                              fontSize: MqTheme.fontSmall,
-                              height: MqTheme.lineTight,
+                            Text(
+                              tr('studio'),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: mq.textTertiary,
+                                fontSize: MqTheme.fontSmall,
+                                height: MqTheme.lineTight,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),

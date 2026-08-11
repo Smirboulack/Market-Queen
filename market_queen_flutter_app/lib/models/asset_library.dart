@@ -204,6 +204,20 @@ bool isImagePath(String path) =>
 bool isMediaPath(String path) =>
     isImagePath(path) || isVideoPath(path) || isAudioPath(path);
 
+/// The three things a model can be handed.
+///
+/// They are not interchangeable and the interface should stop pretending they
+/// are: a picture model has nothing to do with a clip, a reference video model
+/// counts each kind against its own ceiling, and one button labelled "add
+/// references" for all three says none of that.
+enum MediaKind { image, video, audio }
+
+MediaKind mediaKindOf(String path) => isVideoPath(path)
+    ? MediaKind.video
+    : isAudioPath(path)
+    ? MediaKind.audio
+    : MediaKind.image;
+
 /// A folder of reusable assets on disk.
 ///
 /// Saving copies the still out of the scratch folder into the library's own
