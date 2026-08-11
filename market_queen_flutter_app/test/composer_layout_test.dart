@@ -27,9 +27,9 @@ void main() {
     app = await AppState.create();
   });
 
-  Future<void> pumpEditor(WidgetTester tester) async {
+  Future<void> pumpEditor(WidgetTester tester, {Size size = window}) async {
     tester.view
-      ..physicalSize = window
+      ..physicalSize = size
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
@@ -103,45 +103,43 @@ void main() {
     expect(barRect(tester).bottom, moreOrLessEquals(bottom, epsilon: 0.5));
   });
 
+  testWidgets('a wide window keeps the panel welded to the bar', (
+    tester,
+  ) async {
+    // The failure this catches: with the bar capped and the middle of the row
+    // stretched, a 2200px window left half a monitor of background between the
+    // prompt and the column that belongs to it.
+    const wide = Size(2200, 940);
+    await pumpEditor(tester, size: wide);
+    await openSettings(tester);
+
+    final bar = barRect(tester);
+    final panel = tester.getRect(find.byType(ComposerSettings));
+
+    expect(panel.left - bar.right, moreOrLessEquals(MqTheme.gap, epsilon: 0.5));
+    expect(bar.center.dx, moreOrLessEquals(wide.width / 2, epsilon: 1));
+  });
+
   testWidgets('a narrow window stacks the panel instead of squeezing', (
     tester,
   ) async {
-    tester.view
-      ..physicalSize = const Size(1040, 900)
-      ..devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-
-    final theme = MqTheme(dark: false);
-    await tester.pumpWidget(
-      AppTheme(
-        theme: theme,
-        child: MaterialApp(
-          theme: theme.material,
-          home: Scaffold(
-            body: AdEditorPage(
-              app: app,
-              onGenerate: () {},
-              onOpenRender: () {},
-            ),
-          ),
-        ),
-      ),
-    );
-    await tester.pump();
+    await pumpEditor(tester, size: const Size(1040, 900));
 
     final shut = barRect(tester);
-    await tester.tap(find.byTooltip('Settings'));
-    await tester.pump();
+    await openSettings(tester);
 
     expect(find.byType(ComposerSettings), findsOneWidget);
-    // The panel went above the bar rather than beside it, so the prompt is
-    // exactly as wide as it was.
     final open = barRect(tester);
+    final panel = tester.getRect(find.byType(ComposerSettings));
+
+    // The panel went above the bar rather than beside it, so the prompt is
+    // exactly as wide as it was...
     expect(open.width, moreOrLessEquals(shut.width, epsilon: 0.5));
-    expect(
-      tester.getRect(find.byType(ComposerSettings)).bottom,
-      lessThan(open.top),
-    );
+    expect(panel.bottom, lessThan(open.top));
+    // ...and it kept its own width off the bar's left corner rather than
+    // stretching into a second bar.
+    expect(panel.left, moreOrLessEquals(open.left, epsilon: 0.5));
+    expect(panel.width, lessThan(open.width * 0.6));
   });
 
   testWidgets('the panel hangs off the bar\'s own bottom edge', (tester) async {

@@ -584,8 +584,7 @@ class _FilterPill extends StatelessWidget {
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
         height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 11),
-        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: selected
               ? mq.primary
@@ -601,13 +600,22 @@ class _FilterPill extends StatelessWidget {
                 : mq.border,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? mq.onPrimary : mq.textSecondary,
-            fontSize: MqTheme.fontSmall,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-          ),
+        // A row rather than `alignment: center`: a Container that is given an
+        // alignment and no width expands to fill whatever it is handed, which
+        // in a Wrap is the whole rail -- so every pill came out full width and
+        // stacked. A min-size row shrink-wraps to the word and centres it.
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: selected ? mq.onPrimary : mq.textSecondary,
+                fontSize: MqTheme.fontSmall,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              ),
+            ),
+          ],
         ),
       ),
     );

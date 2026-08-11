@@ -888,5 +888,7 @@
   "Listening…": "Écoute…",
   "Add a scene": "Ajouter une scène",
   "Take this scene off the ad": "Retirer cette scène de la pub",
-  "Which model this is generated with": "Le modèle utilisé pour la génération"
+  "Which model this is generated with": "Le modèle utilisé pour la génération",
+  "Voice and delivery": "Voix et interprétation",
+  "Light and mood": "Lumière et ambiance"
 }

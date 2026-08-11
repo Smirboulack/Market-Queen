@@ -116,16 +116,16 @@ void main() {
     expect(find.text('Create the actor'), findsOneWidget);
   });
 
-  testWidgets('a cast actor opens its own panel rather than the library', (
+  testWidgets("the cast actor's cog opens the read, its name swaps them", (
     tester,
   ) async {
     app.actors.save(LibraryAsset(name: 'Camille', prompt: 'A woman, 30s'));
     app.project.setActor(app.actors.assets.first.id);
+    addTearDown(app.project.clearActor);
 
     await pumpEditor(tester);
 
-    // The chip now carries the name, and pressing it opens the dials.
-    await tester.tap(find.text('Camille').first);
+    await tester.tap(find.byTooltip('Voice and delivery'));
     await settle(tester);
 
     expect(find.byType(CastPanel), findsOneWidget);
@@ -139,22 +139,24 @@ void main() {
       expect(find.text(dial), findsOneWidget, reason: dial);
     }
 
-    app.project.clearActor();
+    // The name is the other door: it goes to the library to swap them.
+    await tester.tap(find.text('Camille').first);
+    await settle(tester);
+    expect(find.text('Select an actor'), findsOneWidget);
   });
 
-  testWidgets('a cast scene opens its four dials', (tester) async {
+  testWidgets("the cast scene's cog opens its four dials", (tester) async {
     app.scenes.save(LibraryAsset(name: 'Kitchen', prompt: 'A small kitchen'));
     app.project.setScene(app.scenes.assets.first.id);
+    addTearDown(app.project.clearScene);
 
     await pumpEditor(tester);
-    await tester.tap(find.text('Kitchen').first);
+    await tester.tap(find.byTooltip('Light and mood'));
     await settle(tester);
 
     expect(find.byType(CastPanel), findsOneWidget);
     for (final tweak in SceneTweak.all) {
       expect(find.text(tweak.label), findsOneWidget, reason: tweak.label);
     }
-
-    app.project.clearScene();
   });
 }

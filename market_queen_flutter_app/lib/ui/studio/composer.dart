@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -357,65 +360,78 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       ]),
       // The panels live beside the bar rather than inside it: they are read
       // once and the prompt is rewritten twenty times, so they must not take
-      // room from it. Two rules hold the row together, and one changes shape:
+      // room from it. Three rules hold the row together, and one changes shape:
       //
-      //  - the panel is the third child of one row, hung off a shared bottom
-      //    edge by [CrossAxisAlignment.end], so it grows upward instead of
-      //    leaving the bar floating with a hole underneath it;
+      //  - the bar and the panel are laid out as one group with fixed widths,
+      //    centred as a unit. The empty gutter on the left is the panel's own
+      //    width mirrored, which is what puts the *bar's* middle on the page's
+      //    middle while leaving the panel welded to the bar's right edge --
+      //    stretching the middle child instead left the two drifting apart by
+      //    half the window on a wide monitor;
+      //  - the panel hangs off a shared bottom edge by [CrossAxisAlignment.end],
+      //    so it grows upward instead of leaving the bar floating with a hole
+      //    underneath it;
       //  - the whole row is bottom-anchored over the canvas by the page, so a
       //    tall panel takes its room from empty background rather than from the
       //    feed. Opening one moves nothing;
       //  - and when the window cannot afford a column beside a readable bar,
-      //    the panel comes out of the row and stacks above it instead. See
-      //    [_wideEnough]: the prompt keeps the whole width either way, which is
-      //    the point -- a permanently half-width prompt bar to hold room for a
-      //    panel that is shut nine tenths of the time is a bad trade.
+      //    the panel comes out of the row and stacks over the bar's left corner
+      //    instead. See [_wideEnough]: the prompt keeps the whole width either
+      //    way, which is the point -- a permanently half-width prompt bar to
+      //    hold room for a panel that is shut nine tenths of the time is a bad
+      //    trade.
       //
       // The tab row lives inside the bar's own column rather than above the
       // whole thing, so it stays centred on the bar.
       builder: (context, _) => LayoutBuilder(
         builder: (context, constraints) {
-          final beside = _open && _wideEnough(constraints.maxWidth);
-          final gutter = beside ? _gutter : 0.0;
+          final total = constraints.maxWidth;
+          final beside = _open && _wideEnough(total);
+          final barWidth = math.min(
+            _barMaxWidth,
+            beside ? total - 2 * _gutter : total,
+          );
 
           return Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              SizedBox(width: gutter),
-              Expanded(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: _barMaxWidth),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (_open && !beside) ...[
-                          _panelBody(),
-                          const SizedBox(height: MqTheme.gap),
-                        ],
-                        Center(
-                          child: ComposerTabBar(
-                            current: _tab,
-                            extras: _extras,
-                            onPicked: _pickTab,
-                            onRemoved: _dropTab,
-                          ),
+              if (beside) const SizedBox(width: _gutter),
+              SizedBox(
+                width: barWidth,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_open && !beside) ...[
+                      // Its own width, off the bar's left corner. Stretched to
+                      // the full bar it read as a second bar rather than as a
+                      // panel that had nowhere else to go.
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: SizedBox(
+                          width: math.min(_panelWidth, barWidth),
+                          child: _panelBody(),
                         ),
-                        const SizedBox(height: MqTheme.gap),
-                        _bar(),
-                      ],
+                      ),
+                      const SizedBox(height: MqTheme.gap),
+                    ],
+                    Center(
+                      child: ComposerTabBar(
+                        current: _tab,
+                        extras: _extras,
+                        onPicked: _pickTab,
+                        onRemoved: _dropTab,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: MqTheme.gap),
+                    _bar(),
+                  ],
                 ),
               ),
-              if (beside)
-                SizedBox(
-                  width: gutter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: MqTheme.gap),
-                    child: _panelBody(),
-                  ),
-                ),
+              if (beside) ...[
+                const SizedBox(width: MqTheme.gap),
+                SizedBox(width: _panelWidth, child: _panelBody()),
+              ],
             ],
           );
         },
@@ -701,21 +717,21 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       final scene = app.scenes.byId(project.sceneId);
 
       return [
-        // Empty, the chip opens the gallery. Cast, it opens that actor's own
-        // panel -- the voice and the four dials the read is shaped with -- and
-        // swapping them is a button inside it. Which way round is deliberate:
-        // once somebody is cast you tune them twenty times and replace them
-        // once.
+        // Three things you can do to a cast actor, and all three are on the one
+        // bubble: press the name to swap them, the cog for the read, the cross
+        // to take them off. Nothing is behind a menu, because all three are
+        // single clicks you make constantly.
         _CastChip(
           label: tr('Add an actor'),
           emptyIcon: 'user-add-line',
           name: actor?.name ?? '',
           portrait: actor?.thumbnail ?? '',
+          replaceTip: tr('Cast somebody else'),
+          settingsTip: tr('Voice and delivery'),
           clearTip: tr('Take this actor off the ad'),
           lit: _panel == _Panel.actor,
-          onPressed: actor == null
-              ? () => _cast(AssetKind.actor)
-              : () => _show(_Panel.actor),
+          onPressed: () => _cast(AssetKind.actor),
+          onSettings: () => _show(_Panel.actor),
           onCleared: () {
             project.clearActor();
             if (_panel == _Panel.actor) setState(() => _panel = _Panel.none);
@@ -726,11 +742,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           emptyIcon: 'scene-line',
           name: scene?.name ?? '',
           portrait: scene?.thumbnail ?? '',
+          replaceTip: tr('Film somewhere else'),
+          settingsTip: tr('Light and mood'),
           clearTip: tr('Take this scene off the ad'),
           lit: _panel == _Panel.scene,
-          onPressed: scene == null
-              ? () => _cast(AssetKind.scene)
-              : () => _show(_Panel.scene),
+          onPressed: () => _cast(AssetKind.scene),
+          onSettings: () => _show(_Panel.scene),
           onCleared: () {
             project.clearScene();
             if (_panel == _Panel.scene) setState(() => _panel = _Panel.none);
@@ -764,16 +781,24 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   Future<void> _cast(AssetKind kind) async {
+    final project = app.project;
+    final first = kind == AssetKind.actor
+        ? project.actorIds.isEmpty
+        : project.sceneId.isEmpty;
+
     final id = await showAssetGallery(context, app: app, kind: kind);
     if (id == null) return;
     if (kind == AssetKind.actor) {
-      app.project.setActor(id);
+      project.setActor(id);
     } else {
-      app.project.setScene(id);
+      project.setScene(id);
     }
-    // Straight into its panel: something has just been cast, and the next
-    // question is always how it should sound or how it should look.
-    if (mounted) {
+
+    // Straight into its panel the first time, because the next question after
+    // casting somebody is always how they should sound. Not on a swap: by then
+    // you know where the cog is, and a panel opening on every replacement is a
+    // panel you close on every replacement.
+    if (first && mounted) {
       setState(
         () => _panel = kind == AssetKind.actor ? _Panel.actor : _Panel.scene,
       );
@@ -788,19 +813,23 @@ class _SendIntent extends Intent {
 /// Which of the three panels the slot beside the bar is showing.
 enum _Panel { none, settings, actor, scene }
 
-/// The actor or the scene on the ad: a chip that casts one, and once one is
-/// cast, the way into its settings.
+/// The actor or the scene on the ad.
 ///
-/// The cross is a second target rather than a second meaning for the chip,
-/// because casting one used to be a one-way door: the picker could replace it
-/// and nothing could empty it.
-class _CastChip extends StatelessWidget {
+/// Empty, it is a plain chip that opens the library. Cast, it is one bubble
+/// carrying all three things you do to a casting: the face and the name swap
+/// them, the cog opens their settings, the cross takes them off. They used to
+/// be a chip with a cross floating beside it, which read as two controls that
+/// happened to be adjacent, and the settings were reachable from neither.
+class _CastChip extends StatefulWidget {
   const _CastChip({
     required this.label,
     required this.emptyIcon,
     required this.name,
+    required this.replaceTip,
+    required this.settingsTip,
     required this.clearTip,
     required this.onPressed,
+    required this.onSettings,
     required this.onCleared,
     this.portrait = '',
     this.lit = false,
@@ -810,41 +839,126 @@ class _CastChip extends StatelessWidget {
   final String emptyIcon;
   final String name;
   final String portrait;
+
+  final String replaceTip;
+  final String settingsTip;
   final String clearTip;
+
   final VoidCallback onPressed;
+  final VoidCallback onSettings;
   final VoidCallback onCleared;
 
   /// True while this chip's panel is the one open, so the bar says which of the
-  /// two the column on the right belongs to.
+  /// two the column belongs to.
   final bool lit;
 
   @override
+  State<_CastChip> createState() => _CastChipState();
+}
+
+class _CastChipState extends State<_CastChip> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final chip = MqChip(
-      label: label,
-      value: name,
-      icon: name.isEmpty ? emptyIcon : '',
-      portrait: portrait,
-      opensMenu: name.isNotEmpty,
-      active: lit ? true : null,
-      onPressed: onPressed,
-    );
+    final mq = context.mq;
 
-    if (name.isEmpty) return chip;
+    if (widget.name.isEmpty) {
+      return MqChip(
+        label: widget.label,
+        icon: widget.emptyIcon,
+        onPressed: widget.onPressed,
+      );
+    }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        chip,
-        const SizedBox(width: 2),
-        MqIconButton(
-          icon: 'close-line',
-          tip: clearTip,
-          size: 24,
-          destructive: true,
-          onPressed: onCleared,
+    // One frame around the three targets. Hover lights the whole bubble, and
+    // each button lights itself inside it, so it is always clear both that the
+    // bubble is live and which part of it is under the pointer.
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: _hovered ? Duration.zero : MqTheme.hoverDuration,
+        height: 30,
+        padding: const EdgeInsets.only(left: 5, right: 3),
+        decoration: BoxDecoration(
+          color: widget.lit
+              ? mq.surfaceActive
+              : _hovered
+              ? mq.surfaceHover
+              : mq.surfaceSecondary,
+          borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+          border: Border.all(
+            color: widget.lit || _hovered ? mq.borderStrong : mq.border,
+          ),
         ),
-      ],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Pressable(
+                onTap: widget.onPressed,
+                tooltip: widget.replaceTip,
+                focusRadius: MqTheme.radiusPill,
+                builder: (context, states) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.portrait.isNotEmpty) ...[
+                        ClipOval(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: File(widget.portrait).existsSync()
+                                ? Image.file(
+                                    File(widget.portrait),
+                                    fit: BoxFit.cover,
+                                  )
+                                : ColoredBox(color: mq.surfaceTertiary),
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                      ],
+                      Flexible(
+                        child: Text(
+                          widget.name,
+                          overflow: TextOverflow.ellipsis,
+                          softWrap: false,
+                          style: TextStyle(
+                            color: states.active
+                                ? mq.textPrimary
+                                : mq.textSecondary,
+                            fontSize: MqTheme.fontLabel,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: MqTheme.trackSmall,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 4),
+            Container(width: 1, height: 16, color: mq.border),
+            const SizedBox(width: 2),
+            MqIconButton(
+              icon: 'settings-3-line',
+              tip: widget.settingsTip,
+              size: 22,
+              onPressed: widget.onSettings,
+            ),
+            MqIconButton(
+              icon: 'close-line',
+              tip: widget.clearTip,
+              size: 22,
+              destructive: true,
+              onPressed: widget.onCleared,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
