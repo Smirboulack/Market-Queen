@@ -283,6 +283,20 @@ class _ModelToggle extends StatelessWidget {
                 fontWeight: on ? FontWeight.w500 : FontWeight.w400,
               ),
             ),
+            // The price is what the model costs once the free quota is gone,
+            // so the two belong side by side rather than one instead of the
+            // other: "Free tier" alone would read as "this is never billed".
+            if (model.isFree) ...[
+              const SizedBox(width: 10),
+              Text(
+                tr('Free tier'),
+                style: TextStyle(
+                  color: on ? mq.successText : mq.textDisabled,
+                  fontSize: MqTheme.fontSmall,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
             if (price.isNotEmpty) ...[
               const SizedBox(width: 10),
               Text(

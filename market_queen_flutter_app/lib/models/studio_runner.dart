@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 
-import '../core/http_util.dart' show ProviderException, TaskCancelled;
+import '../core/http_util.dart' show Http, ProviderException, TaskCancelled;
 import '../core/log_model.dart';
 import '../core/paths.dart';
 import '../core/pricing.dart';
@@ -15,8 +15,9 @@ import '../providers/fal_schema.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
+import '../providers/video_providers.dart' show FalReferenceUploadTask;
 import '../providers/voice_casting.dart';
-import 'asset_library.dart' show isVideoPath;
+import 'asset_library.dart' show isAudioPath, isVideoPath;
 import 'canvas_feed.dart';
 
 /// What the composer hands over when the send button is pressed.
@@ -213,30 +214,60 @@ class StudioRunner extends ChangeNotifier {
 
     final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
 
-    // Read once and reused by every request in the batch: ten videos off the
-    // same opening frame should not decode and re-encode that frame ten times.
-    final referenceUri = order.category == 'voice'
-        ? ''
-        : await _firstImageDataUri(order.references);
-
     if (order.category == 'voice') {
       await _sendVoice(batch, order, providerId, model, apiKey, dir);
       return batch;
     }
 
+    // Read once per batch: what this model calls its opening frame, which of
+    // duration, resolution and audio it actually declares, and whether it takes
+    // reference material instead of a first frame.
+    // Waited for rather than read: this is the send path, and a reference model
+    // whose schema has not landed yet would be handed an opening frame it does
+    // not take.
+    final capabilities = order.category == 'video' && FalSchemas.handles(providerId)
+        ? await _falSchemas.ensure(model)
+        : const FalCapabilities();
+
+    final shaped = capabilities.known
+        ? capabilities.videoInput(
+            seconds: order.seconds,
+            resolution: order.resolution,
+            audio: order.audio,
+            aspectRatio: order.aspectRatio,
+          )
+        : null;
+
+    // A reference model gets the whole pile, uploaded; everything else gets one
+    // still, inlined. Both are done once and reused by every request in the
+    // batch -- ten variations off the same clip should upload it once.
+    var references = VideoReferences.none;
+    var referenceUri = '';
+
+    if (capabilities.takesReferences) {
+      try {
+        references = await _uploadReferences(capabilities, order.references, apiKey);
+      } on ProviderException catch (error) {
+        _failWholeBatch(batch, error.message);
+        return batch;
+      }
+      if (references.isEmpty) {
+        _failWholeBatch(
+          batch,
+          tr('This model works from reference material. Drop in the picture, '
+              'the clip or the recording it should work from.'),
+        );
+        return batch;
+      }
+      //: %1 is a list like "@Image1 = face.png, @Video1 = ad.mp4"
+      _log.info(tr('Reference material: %1. Point at it from the prompt.')
+          .arg(_handleList(references, order.references)));
+    } else {
+      referenceUri = await _firstImageDataUri(order.references);
+    }
+
     for (var i = 0; i < batch.items.length; ++i) {
       final item = batch.items[i];
-
-      // Read once per batch: what this model calls its opening frame, and which
-      // of duration, resolution and audio it actually declares.
-      final shaped = order.category == 'video' && FalSchemas.handles(providerId)
-          ? _falSchemas.capabilities(model).videoInput(
-              seconds: order.seconds,
-              resolution: order.resolution,
-              audio: order.audio,
-              aspectRatio: order.aspectRatio,
-            )
-          : null;
 
       final task = switch (order.category) {
         'video' => ProviderFactory.video(
@@ -250,6 +281,7 @@ class StudioRunner extends ChangeNotifier {
             durationSeconds: order.seconds,
             imageField: shaped?.imageField ?? '',
             extraInput: shaped?.input ?? const {},
+            references: references,
           ),
         ),
         _ => ProviderFactory.image(
@@ -551,6 +583,136 @@ class StudioRunner extends ChangeNotifier {
       _ => 'stills',
     };
     return Paths.ensureDir(p.join(_settings.projectsDir, 'studio', leaf));
+  }
+
+  // Fal's published ceilings for reference material. A file over them comes
+  // back as a rejection from the API halfway through a paid run, so it is
+  // stopped here with a sentence that says which file and why.
+  static const _maxImageBytes = 30 * 1024 * 1024;
+  static const _maxVideoBytes = 200 * 1024 * 1024;
+  static const _maxAudioBytes = 15 * 1024 * 1024;
+  static const _maxImages = 30;
+  static const _maxVideos = 10;
+  static const _maxAudios = 10;
+
+  /// Sorts what was dropped into the bar by modality, puts it in fal's storage
+  /// and returns the urls under the names this model gave its lists.
+  ///
+  /// Uploaded rather than inlined because of the clips: a reference video is
+  /// allowed to be 200 MB, and base64 in a JSON body is not a serious way to
+  /// move that. A modality the model does not declare is dropped rather than
+  /// sent -- fal rejects a field the endpoint never had.
+  Future<VideoReferences> _uploadReferences(
+    FalCapabilities capabilities,
+    List<String> paths,
+    String apiKey,
+  ) async {
+    final images = <UploadFile>[];
+    final videos = <UploadFile>[];
+    final audios = <UploadFile>[];
+
+    for (final path in paths) {
+      final file = File(path);
+      if (!file.existsSync()) continue;
+
+      if (isVideoPath(path)) {
+        if (capabilities.videosField.isEmpty) continue;
+        videos.add(_readForUpload(file, _maxVideoBytes));
+      } else if (isAudioPath(path)) {
+        if (capabilities.audiosField.isEmpty) continue;
+        audios.add(_readForUpload(file, _maxAudioBytes));
+      } else {
+        if (capabilities.imagesField.isEmpty) continue;
+        // Through the same converter the single-reference path uses, so a
+        // screenshot saved as AVIF or HEIC still arrives as something the model
+        // will look at.
+        final uri = await imageDataUri(Ffmpeg.resolve(_settings.ffmpegPath), path);
+        if (uri.isEmpty) throw ProviderException(unreadableImage(path));
+
+        var mimeType = '';
+        final data = Http.dataUriPayload(uri, mimeType: (value) => mimeType = value);
+        if (data.length > _maxImageBytes) {
+          throw ProviderException(_tooBig(path, _maxImageBytes));
+        }
+        images.add(UploadFile(data, mimeType, p.basename(path)));
+      }
+    }
+
+    _trim(images, _maxImages);
+    _trim(videos, _maxVideos);
+    _trim(audios, _maxAudios);
+
+    if (images.isEmpty && videos.isEmpty && audios.isEmpty) {
+      return VideoReferences.none;
+    }
+
+    final task = FalReferenceUploadTask(
+      apiKey: apiKey,
+      images: images,
+      videos: videos,
+      audios: audios,
+    );
+    task.onProgress(_log.info);
+    _tasks.add(task);
+
+    final result = await task.run();
+    List<String> urls(String key) => [
+      for (final url in (result[key] as List? ?? const [])) '$url',
+    ];
+
+    return VideoReferences(
+      images: urls('images'),
+      videos: urls('videos'),
+      audios: urls('audios'),
+      imagesField: capabilities.imagesField,
+      videosField: capabilities.videosField,
+      audiosField: capabilities.audiosField,
+    );
+  }
+
+  UploadFile _readForUpload(File file, int maxBytes) {
+    final data = file.readAsBytesSync();
+    if (data.length > maxBytes) throw ProviderException(_tooBig(file.path, maxBytes));
+    return UploadFile(
+      data,
+      Http.mediaTypeOf(file.path, data).toString(),
+      p.basename(file.path),
+    );
+  }
+
+  String _tooBig(String path, int maxBytes) =>
+      //: %1 is a file name, %2 a size such as "200 MB"
+      tr('%1 is too large to send as a reference. The limit is %2.')
+          .arg(p.basename(path))
+          .arg('${maxBytes ~/ (1024 * 1024)} MB');
+
+  /// Keeps the first [limit] and says so, rather than letting the API refuse
+  /// the whole request over the eleventh file.
+  void _trim(List<UploadFile> files, int limit) {
+    if (files.length <= limit) return;
+    //: %1 is a number of files
+    _log.warning(tr('Only the first %1 were sent; the rest were left out.')
+        .arg(limit));
+    files.removeRange(limit, files.length);
+  }
+
+  /// "@Image1 = face.png, @Video1 = ad.mp4" -- the mapping the prompt has to
+  /// use, which is otherwise invisible.
+  String _handleList(VideoReferences references, List<String> paths) {
+    final names = [
+      for (final path in paths)
+        if (!isVideoPath(path) && !isAudioPath(path)) p.basename(path),
+      for (final path in paths)
+        if (isVideoPath(path)) p.basename(path),
+      for (final path in paths)
+        if (isAudioPath(path)) p.basename(path),
+    ];
+
+    final handles = references.handles;
+    return [
+      for (var i = 0; i < handles.length && i < names.length; ++i)
+        '${handles[i]} = ${names[i]}',
+    ].join(', ');
   }
 
   Future<String> _firstImageDataUri(List<String> references) async {

@@ -62,6 +62,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
               _appearance(context),
               const SizedBox(height: MqTheme.gapLarge),
+              _startFree(context),
+              const SizedBox(height: MqTheme.gapLarge),
               _apiKeys(context),
               const SizedBox(height: MqTheme.gapLarge),
               _files(context),
@@ -129,6 +131,98 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const Spacer(),
           ],
+        ),
+      ],
+    );
+  }
+
+  /// The keys that cost nothing, said out loud before the wall of key fields.
+  ///
+  /// None of this is a Market Queen account, and there is no allowance sitting
+  /// on a server somewhere: it is the user's own key on somebody else's free
+  /// quota. That is the only version of "free" an app with no backend can
+  /// honestly offer, and it is worth one paragraph rather than a badge, because
+  /// the alternative -- shipping our key inside the binary -- would be a
+  /// funded account handed to whoever ran `strings` on it first.
+  Widget _startFree(BuildContext context) {
+    final mq = context.mq;
+    final app = widget.app;
+
+    final free = [
+      for (final credential in app.registry.credentials())
+        if (credential.free) credential,
+    ];
+    if (free.isEmpty) return const SizedBox.shrink();
+
+    return SectionCard(
+      title: tr('Start for free'),
+      subtitle: tr(
+        'These take a Google account and an email address. No card, no trial '
+        'clock. Between them they write the script, draw every frame and time '
+        'the subtitles -- only the voice-over and the video still need a '
+        'funded provider.',
+      ),
+      children: [
+        for (final credential in free)
+          Row(
+            children: [
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: app.settings.hasApiKey(credential.id)
+                      ? mq.success
+                      : mq.borderStrong,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 130,
+                child: Text(
+                  credential.label,
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  credential.note,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GhostButton(
+                text: app.settings.hasApiKey(credential.id)
+                    ? tr('Key added')
+                    : tr('Get a free key'),
+                onPressed: () =>
+                    PlatformUtil.openExternal(credential.signupUrl),
+              ),
+            ],
+          ),
+        // The catch, in the same card as the offer rather than three screens
+        // away in a terms page nobody opens. Somebody uploading a client's
+        // product photo is entitled to know this before they pick the free
+        // model, not after.
+        Text(
+          tr(
+            'What free costs instead: Google says content sent on the free '
+            'Gemini tier is used to improve its products, and the paid tier '
+            'is not. That covers your brief, your script and any product '
+            'photo you attach. Enable billing on the key to opt out.',
+          ),
+          style: TextStyle(
+            color: mq.textSecondary,
+            fontSize: MqTheme.fontSmall,
+          ),
         ),
       ],
     );
@@ -436,6 +530,17 @@ class _KeyFieldState extends State<KeyField> {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+              if (credential.free) ...[
+                const SizedBox(width: 8),
+                Text(
+                  tr('Free tier'),
+                  style: TextStyle(
+                    color: mq.successText,
+                    fontSize: MqTheme.fontSmall,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -449,7 +554,7 @@ class _KeyFieldState extends State<KeyField> {
               ),
               const SizedBox(width: 8),
               GhostButton(
-                text: tr('Get a key'),
+                text: credential.free ? tr('Get a free key') : tr('Get a key'),
                 onPressed: () =>
                     PlatformUtil.openExternal(credential.signupUrl),
               ),

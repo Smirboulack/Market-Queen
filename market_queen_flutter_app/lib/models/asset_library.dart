@@ -160,6 +160,20 @@ const _videoExtensions = <String>{
 bool isVideoPath(String path) =>
     _videoExtensions.contains(p.extension(path).toLowerCase());
 
+const _audioExtensions = <String>{
+  '.mp3',
+  '.wav',
+  '.m4a',
+  '.aac',
+  '.ogg',
+  '.flac',
+};
+
+/// Whether a reference is a recording. Only the reference video models take
+/// one; everywhere else it is neither a picture nor a clip and is skipped.
+bool isAudioPath(String path) =>
+    _audioExtensions.contains(p.extension(path).toLowerCase());
+
 /// A folder of reusable assets on disk.
 ///
 /// Saving copies the still out of the scratch folder into the library's own

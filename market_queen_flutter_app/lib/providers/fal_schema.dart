@@ -33,6 +33,9 @@ class FalCapabilities {
     this.audioField = '',
     this.defaultAudio = true,
     this.imageField = '',
+    this.imagesField = '',
+    this.videosField = '',
+    this.audiosField = '',
     this.known = false,
   });
 
@@ -59,11 +62,29 @@ class FalCapabilities {
   /// What the opening frame is called here.
   final String imageField;
 
+  /// The list inputs of a multimodal endpoint, when it has them.
+  ///
+  /// A reference model is a different animal from an image-to-video one: it has
+  /// no opening frame at all. It takes up to fifty files across the three
+  /// modalities, and the prompt addresses them by handle -- `@Image1`,
+  /// `@Video1`, `@Audio1`. That is what makes it possible to hand it a real ad
+  /// and a new face and ask for the same ad with that face in it.
+  ///
+  /// Empty for every ordinary model, so the caller can tell the two apart
+  /// without a table of model ids.
+  final String imagesField;
+  final String videosField;
+  final String audiosField;
+
   /// False when no schema could be read -- the caller then falls back to what
   /// it did before rather than pretending the model has no options.
   final bool known;
 
   bool get supportsAudio => audioField.isNotEmpty;
+
+  /// Whether this endpoint takes reference material rather than a first frame.
+  bool get takesReferences =>
+      imagesField.isNotEmpty || videosField.isNotEmpty || audiosField.isNotEmpty;
 
   /// The seconds a duration token stands for, for pricing and planning.
   /// Returns 0 for "auto" and anything unparseable.
@@ -134,7 +155,13 @@ class FalCapabilities {
     return (imageField: imageField, input: input);
   }
 
+  /// Bumped whenever a new field is read out of the schema. A cache written by
+  /// an older build knows nothing about it, and silently answering "this model
+  /// takes no references" for a fortnight is worse than one extra fetch.
+  static const cacheVersion = 2;
+
   Map<String, Object?> toJson() => {
+    'v': cacheVersion,
     'durations': durations,
     'defaultDuration': defaultDuration,
     'durationIsNumber': durationIsNumber,
@@ -144,6 +171,9 @@ class FalCapabilities {
     'audioField': audioField,
     'defaultAudio': defaultAudio,
     'imageField': imageField,
+    'imagesField': imagesField,
+    'videosField': videosField,
+    'audiosField': audiosField,
   };
 
   factory FalCapabilities.fromJson(Map<String, Object?> json) {
@@ -162,6 +192,9 @@ class FalCapabilities {
       audioField: '${json['audioField'] ?? ''}',
       defaultAudio: json['defaultAudio'] != false,
       imageField: '${json['imageField'] ?? ''}',
+      imagesField: '${json['imagesField'] ?? ''}',
+      videosField: '${json['videosField'] ?? ''}',
+      audiosField: '${json['audiosField'] ?? ''}',
       known: true,
     );
   }
@@ -180,7 +213,10 @@ class FalSchemas extends ChangeNotifier {
   static const _life = Duration(days: 14);
 
   final Map<String, FalCapabilities> _memory = {};
-  final Set<String> _inFlight = {};
+
+  /// The fetch running for each endpoint, so a second caller joins it rather
+  /// than starting another one -- or, for [ensure], waits on it.
+  final Map<String, Future<void>> _inFlight = {};
 
   /// Only fal endpoints have a schema to read. Everything else is left to its
   /// provider's own defaults.
@@ -209,9 +245,34 @@ class FalSchemas extends ChangeNotifier {
     return const FalCapabilities();
   }
 
-  Future<void> _fetch(String endpointId) async {
-    if (!_inFlight.add(endpointId)) return;
+  /// The same answer, but waited for.
+  ///
+  /// [capabilities] never blocks because it is read from `build`. Sending has
+  /// the opposite need: a model whose schema has not landed yet gets the
+  /// substring guesswork instead, and for a reference model that means an
+  /// `image_url` it never declared and a rejected request. So the first
+  /// generation of the session waits for the answer rather than being the one
+  /// that fails.
+  Future<FalCapabilities> ensure(String endpointId) async {
+    final known = capabilities(endpointId);
+    if (known.known) return known;
 
+    await _fetch(endpointId);
+    return _memory[endpointId] ?? const FalCapabilities();
+  }
+
+  /// Starts a fetch for [endpointId], or hands back the one already running.
+  Future<void> _fetch(String endpointId) {
+    final running = _inFlight[endpointId];
+    if (running != null) return running;
+
+    final future = _read(endpointId)
+        .whenComplete(() => _inFlight.remove(endpointId));
+    _inFlight[endpointId] = future;
+    return future;
+  }
+
+  Future<void> _read(String endpointId) async {
     try {
       final uri = Uri.parse(
         'https://fal.ai/api/openapi/queue/openapi.json'
@@ -223,7 +284,7 @@ class FalSchemas extends ChangeNotifier {
 
       if (response.statusCode != 200) return;
 
-      final parsed = _parse(response.body);
+      final parsed = parseSchema(response.body);
       if (parsed == null) return;
 
       _memory[endpointId] = parsed;
@@ -235,13 +296,19 @@ class FalSchemas extends ChangeNotifier {
       // Same.
     } on FormatException {
       // A schema we cannot read is no worse than no schema.
-    } finally {
-      _inFlight.remove(endpointId);
     }
+    // The in-flight entry is cleared by [_fetch], which owns it: clearing it
+    // here as well would free the slot a moment before the future settles, and
+    // a caller arriving in that gap would start a second fetch.
   }
 
-  /// Pulls the four things the studio offers out of an OpenAPI document.
-  static FalCapabilities? _parse(String body) {
+  /// Pulls the things the studio offers out of an OpenAPI document.
+  ///
+  /// Visible for testing: telling a list input apart from a singular one is the
+  /// difference between feeding a reference model and sending a field the
+  /// endpoint rejects, and it is worth pinning to a real schema.
+  @visibleForTesting
+  static FalCapabilities? parseSchema(String body) {
     final Object? decoded = jsonDecode(body);
     if (decoded is! Map) return null;
 
@@ -302,6 +369,17 @@ class FalSchemas extends ChangeNotifier {
       }
     }
 
+    // The list inputs of a reference model. The array check is what keeps them
+    // apart from the singular ones: `audio_url` on a lip-sync model is one file
+    // and belongs nowhere near this, while `audio_urls` on Seedance is a list
+    // the prompt addresses by handle.
+    String listField(List<String> candidates) {
+      for (final candidate in candidates) {
+        if ('${field(candidate)?['type'] ?? ''}' == 'array') return candidate;
+      }
+      return '';
+    }
+
     return FalCapabilities(
       durations: enumOf(duration),
       defaultDuration: '${duration?['default'] ?? ''}',
@@ -313,6 +391,9 @@ class FalSchemas extends ChangeNotifier {
       audioField: audioField,
       defaultAudio: (field(audioField)?['default']) != false,
       imageField: imageField,
+      imagesField: listField(['image_urls', 'reference_image_urls', 'images']),
+      videosField: listField(['video_urls', 'reference_video_urls', 'videos']),
+      audiosField: listField(['audio_urls', 'reference_audio_urls', 'audios']),
       known: true,
     );
   }
@@ -336,6 +417,7 @@ class FalSchemas extends ChangeNotifier {
       }
       final decoded = jsonDecode(file.readAsStringSync());
       if (decoded is! Map) return null;
+      if (decoded['v'] != FalCapabilities.cacheVersion) return null;
       return FalCapabilities.fromJson(decoded.cast<String, Object?>());
     } on FileSystemException {
       return null;

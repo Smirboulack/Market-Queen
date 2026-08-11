@@ -9,6 +9,46 @@ import '../i18n/translator.dart';
 import 'provider_task.dart';
 import 'types.dart';
 
+/// Puts reference material in fal's storage and hands back the urls, grouped
+/// the way the endpoint wants them.
+///
+/// A task of its own rather than a step inside the video task, because it
+/// happens once for a whole batch: ten variations off the same reference clip
+/// should upload it once, and a cancelled batch should stop mid-upload rather
+/// than finish pushing 200 MB nobody is waiting for.
+class FalReferenceUploadTask extends HttpTask {
+  FalReferenceUploadTask({
+    required this.apiKey,
+    this.images = const [],
+    this.videos = const [],
+    this.audios = const [],
+  });
+
+  final String apiKey;
+  final List<UploadFile> images;
+  final List<UploadFile> videos;
+  final List<UploadFile> audios;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'fal.ai');
+    return {
+      'images': await _upload(images),
+      'videos': await _upload(videos),
+      'audios': await _upload(audios),
+    };
+  }
+
+  Future<List<String>> _upload(List<UploadFile> files) async {
+    final urls = <String>[];
+    for (final file in files) {
+      report(tr('Uploading %1...').arg(file.name));
+      urls.add(await uploadToFal(apiKey, file.data, file.contentType, file.name));
+    }
+    return urls;
+  }
+}
+
 abstract class VideoTask extends HttpTask {
   VideoTask(this.request);
 
@@ -41,14 +81,22 @@ class FalVideoTask extends VideoTask {
   @override
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'fal.ai');
-    if (request.imageDataUri.isEmpty) {
+
+    final references = request.references;
+    if (references.isEmpty && request.imageDataUri.isEmpty) {
       throw ProviderException(tr('No opening frame to animate.'));
     }
 
     final model = request.model;
     final input = <String, Object?>{'prompt': request.prompt};
 
-    if (request.extraInput.isNotEmpty || request.imageField.isNotEmpty) {
+    if (!references.isEmpty) {
+      // A reference model has no opening frame to place: the material is the
+      // input, and the prompt reaches it by handle. Sending an `image_url` here
+      // as well would be a field the endpoint never declared.
+      input.addAll(references.toInput());
+      input.addAll(request.extraInput);
+    } else if (request.extraInput.isNotEmpty || request.imageField.isNotEmpty) {
       // The caller read this model's own schema. It knows what the opening
       // frame is called here and which of duration, resolution and audio the
       // model actually declares, so nothing is added on top of it.

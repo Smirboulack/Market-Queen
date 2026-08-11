@@ -261,6 +261,50 @@ abstract class HttpTask extends ProviderTask {
   // fal.ai and Replicate both work the same way: submit a job, poll a status
   // url, then read the payload. Images and video share this code.
 
+  /// Puts a file in fal's own storage and returns the url it landed on.
+  ///
+  /// Everything else in this app travels as a data: URI, which works because a
+  /// still is a couple of megabytes. A reference clip is not: fal takes them up
+  /// to 200 MB, base64 adds a third on top, and the whole thing would have to
+  /// sit in memory as one JSON string. So the heavy modalities go through here
+  /// instead -- two calls, one to ask where to put it and one to put it there.
+  Future<String> uploadToFal(
+    String apiKey,
+    Uint8List data,
+    String contentType,
+    String fileName,
+  ) async {
+    final initiated = await postJson(
+      Uri.parse('https://rest.fal.ai/storage/upload/initiate'
+          '?storage_type=fal-cdn-v3'),
+      {'content_type': contentType, 'file_name': fileName},
+      headers: {'Authorization': 'Key $apiKey'},
+    );
+
+    final uploadUrl = '${initiated['upload_url'] ?? ''}';
+    final fileUrl = '${initiated['file_url'] ?? ''}';
+    if (uploadUrl.isEmpty || fileUrl.isEmpty) {
+      throw ProviderException(tr('fal.ai would not accept the upload.'));
+    }
+
+    throwIfCancelled();
+    final response = await _send(
+      http.Request('PUT', Uri.parse(uploadUrl))
+        ..headers.addAll({
+          'Content-Type': contentType,
+          'User-Agent': Http.userAgent,
+        })
+        ..bodyBytes = data,
+      const Duration(minutes: 10),
+    );
+    if (response.statusCode >= 400) {
+      throw ProviderException(
+          Http.describeError(response.statusCode, response.body));
+    }
+
+    return fileUrl;
+  }
+
   /// Returns the completed fal payload, e.g. {"images":[{"url":...}]}.
   Future<Map<String, dynamic>> submitFal(
     String apiKey,

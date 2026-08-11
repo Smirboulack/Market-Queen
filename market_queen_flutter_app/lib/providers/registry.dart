@@ -9,12 +9,24 @@ import 'types.dart';
 import 'video_providers.dart';
 import 'voice_providers.dart';
 
+/// Whether a model can be run without paying, which is a different question
+/// from what it costs.
+///
+/// [free] means the provider publishes a free quota for it and hands out the
+/// key without a card -- the user still brings their own, we still pay nothing.
+/// The price in pricing.json is what happens once that quota is spent, so this
+/// marks the door rather than a zero on the bill.
+enum ModelTier { paid, free }
+
 /// A model the user can pick: technical id + something readable.
 class ModelEntry {
-  const ModelEntry(this.id, this.label);
+  const ModelEntry(this.id, this.label, {this.tier = ModelTier.paid});
 
   final String id;
   final String label;
+  final ModelTier tier;
+
+  bool get isFree => tier == ModelTier.free;
 }
 
 class ProviderEntry {
@@ -46,6 +58,7 @@ class CredentialEntry {
     required this.envVar,
     required this.signupUrl,
     required this.note,
+    this.free = false,
   });
 
   final String id;
@@ -53,6 +66,11 @@ class CredentialEntry {
   final String envVar;
   final String signupUrl;
   final String note;
+
+  /// True when the signup page hands back a working key for nothing: a Google
+  /// account, no card, no trial clock. Those are the two the first run points
+  /// at, so somebody can make an ad before deciding whether to fund anything.
+  final bool free;
 }
 
 /// Catalogue of everything the app can talk to, plus the factory that turns a
@@ -81,6 +99,38 @@ class Registry extends ChangeNotifier {
 
     _entries = <ProviderEntry>[
       // ---- Script writers -----------------------------------------------
+      // Gemini leads because it is the only writer that costs nothing to try:
+      // the first entry of a category is what a fresh install picks, and a
+      // first run that ends at "add a funded API key" is a first run nobody
+      // finishes. Move this block down to hand the default back to OpenAI --
+      // anyone who has already chosen keeps their choice either way, since a
+      // saved preference wins over this order.
+      ProviderEntry(
+        id: 'gemini-generate',
+        category: 'text',
+        label: 'Google Gemini',
+        credential: 'gemini',
+        models: const [
+          // Only Flash and Flash-Lite are on the free tier. The two Pro models
+          // are on the same key and bill from the first token, so they are
+          // deliberately left unmarked.
+          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash', tier: ModelTier.free),
+          ModelEntry('gemini-3.6-flash', 'Gemini 3.6 Flash', tier: ModelTier.free),
+          ModelEntry('gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite',
+              tier: ModelTier.free),
+          ModelEntry('gemini-3.1-pro-preview', 'Gemini 3.1 Pro'),
+          ModelEntry('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite',
+              tier: ModelTier.free),
+          ModelEntry('gemini-2.5-pro', 'Gemini 2.5 Pro'),
+          ModelEntry('gemini-2.5-flash', 'Gemini 2.5 Flash', tier: ModelTier.free),
+          ModelEntry('gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite',
+              tier: ModelTier.free),
+          ModelEntry('gemini-2.0-flash', 'Gemini 2.0 Flash'),
+        ],
+        defaultModel: 'gemini-3.5-flash',
+        note: tr('Free tier, no card. Google reads what you send on it.'),
+      ),
+
       ProviderEntry(
         id: 'openai-chat',
         category: 'text',
@@ -121,29 +171,34 @@ class Registry extends ChangeNotifier {
         note: tr('Strong at short, natural-sounding ad copy.'),
       ),
 
-      ProviderEntry(
-        id: 'gemini-generate',
-        category: 'text',
-        label: 'Google Gemini',
-        credential: 'gemini',
-        models: const [
-          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash'),
-          ModelEntry('gemini-3.6-flash', 'Gemini 3.6 Flash'),
-          ModelEntry('gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite'),
-          ModelEntry('gemini-3.1-pro-preview', 'Gemini 3.1 Pro'),
-          ModelEntry('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite'),
-          ModelEntry('gemini-2.5-pro', 'Gemini 2.5 Pro'),
-          ModelEntry('gemini-2.5-flash', 'Gemini 2.5 Flash'),
-          ModelEntry('gemini-2.5-flash-lite', 'Gemini 2.5 Flash Lite'),
-          ModelEntry('gemini-2.0-flash', 'Gemini 2.0 Flash'),
-        ],
-        defaultModel: 'gemini-3.5-flash',
-        note: tr('Free tier available in most regions.'),
-      ),
-
       // ---- Image ---------------------------------------------------------
       // Ordered best-first: "Auto" takes the first concrete entry, so the head
       // of this list is what most runs will actually use.
+      //
+      // Gemini leads the category for the same reason it leads the writers: it
+      // is the only one that draws anything without a funded account.
+      ProviderEntry(
+        id: 'gemini-image',
+        category: 'image',
+        label: 'Google Gemini',
+        credential: 'gemini',
+        models: [
+          auto,
+          // Nano Banana 2 and its Lite sibling are on the free tier; Pro and
+          // the legacy 2.5 are not, and sit here for the key that is already
+          // typed in rather than for the quota.
+          const ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2',
+              tier: ModelTier.free),
+          const ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite',
+              tier: ModelTier.free),
+          const ModelEntry('gemini-3-pro-image', 'Nano Banana Pro'),
+          const ModelEntry('gemini-2.5-flash-image', 'Nano Banana'),
+        ],
+        defaultModel: 'auto',
+        note: tr('Free tier, no card. Edits your product photo directly. '
+            'Every picture carries an invisible SynthID watermark.'),
+      ),
+
       ProviderEntry(
         id: 'fal-image',
         category: 'image',
@@ -276,6 +331,23 @@ class Registry extends ChangeNotifier {
               'fal-ai/kling-video/v3/standard/image-to-video', 'Kling 3.0 Standard'),
           const ModelEntry(
               'bytedance/seedance-2.5/image-to-video', 'Seedance 2.5'),
+
+          // The reference models. Not the head of the list and never what
+          // "Auto" picks, because they are useless without material: they take
+          // no opening frame, but up to fifty files across stills, clips and
+          // recordings, and the prompt points at each one by handle -- @Image1,
+          // @Video1, @Audio1.
+          //
+          // What that buys is the one thing an image-to-video model cannot do:
+          // hand it a finished ad as @Video1 and a face as @Image1, and the
+          // cuts, the b-roll and the pacing come back with the face swapped.
+          const ModelEntry('bytedance/seedance-2.5/reference-to-video',
+              'Seedance 2.5 Reference'),
+          const ModelEntry('bytedance/seedance-2.0/reference-to-video',
+              'Seedance 2.0 Reference'),
+          const ModelEntry('bytedance/seedance-2.0/fast/reference-to-video',
+              'Seedance 2.0 Fast Reference'),
+
           const ModelEntry(
               'bytedance/seedance-2.0/fast/image-to-video', 'Seedance 2.0 Fast'),
           const ModelEntry(
@@ -320,7 +392,9 @@ class Registry extends ChangeNotifier {
           const ModelEntry('fal-ai/pixverse/v4.5/image-to-video', 'PixVerse 4.5'),
         ],
         defaultModel: 'auto',
-        note: tr('Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.'),
+        note: tr('Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for '
+            'all. On the Reference models, point at what you dropped in from '
+            'the prompt: @Image1, @Video1, @Audio1.'),
       ),
 
       ProviderEntry(
@@ -438,6 +512,24 @@ class Registry extends ChangeNotifier {
       ),
 
       // ---- Captions --------------------------------------------------------
+      // Groq serves the same Whisper weights as OpenAI on a free tier, which
+      // makes subtitles the one step of a run that can be had for nothing
+      // without giving anything up.
+      ProviderEntry(
+        id: 'groq-whisper',
+        category: 'captions',
+        label: 'Groq Whisper',
+        credential: 'groq',
+        models: const [
+          ModelEntry('whisper-large-v3-turbo', 'Whisper Large v3 Turbo',
+              tier: ModelTier.free),
+          ModelEntry('whisper-large-v3', 'Whisper Large v3', tier: ModelTier.free),
+        ],
+        defaultModel: 'whisper-large-v3-turbo',
+        note: tr('Free tier, no card. Turbo is faster, v3 is a little more '
+            'accurate.'),
+      ),
+
       ProviderEntry(
         id: 'openai-whisper',
         category: 'captions',
@@ -533,7 +625,16 @@ class Registry extends ChangeNotifier {
           label: 'Google Gemini',
           envVar: 'GEMINI_API_KEY',
           signupUrl: 'https://aistudio.google.com/apikey',
-          note: tr('Scripts.'),
+          note: tr('Scripts and images. Free tier, no card.'),
+          free: true,
+        ),
+        CredentialEntry(
+          id: 'groq',
+          label: 'Groq',
+          envVar: 'GROQ_API_KEY',
+          signupUrl: 'https://console.groq.com/keys',
+          note: tr('Subtitles. Free tier, no card.'),
+          free: true,
         ),
         CredentialEntry(
           id: 'fal',
@@ -573,6 +674,7 @@ class ProviderFactory {
 
   static ProviderTask? image(String providerId, ImageRequest request) =>
       switch (providerId) {
+        'gemini-image' => GeminiImageTask(request),
         'openai-image' => OpenAiImageTask(request),
         'fal-image' => FalImageTask(request),
         'replicate-image' => ReplicateImageTask(request),
@@ -606,6 +708,7 @@ class ProviderFactory {
 
   static ProviderTask? transcribe(String providerId, TranscribeRequest request) =>
       switch (providerId) {
+        'groq-whisper' => GroqCaptionTask(request),
         'openai-whisper' => WhisperCaptionTask(request),
         _ => null,
       };

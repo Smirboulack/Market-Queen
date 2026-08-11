@@ -21,10 +21,19 @@ const videoTypeGroup = XTypeGroup(
   extensions: ['mp4', 'mov', 'm4v', 'webm', 'mkv'],
 );
 
-/// Pictures and clips in one dialog: the two are dropped into the same place,
-/// so they should be browsed for in the same place too.
+const audioTypeGroup = XTypeGroup(
+  label: 'Audio',
+  extensions: ['mp3', 'wav', 'm4a', 'aac', 'ogg', 'flac'],
+);
+
+/// Pictures, clips and recordings in one dialog: they are dropped into the same
+/// place, so they should be browsed for in the same place too.
+///
+/// Audio is here for the reference video models, which take a recording as one
+/// more thing the prompt can point at -- the read to match, or the track to cut
+/// to. Every other model simply never asks for it.
 const mediaTypeGroup = XTypeGroup(
-  label: 'Images & video',
+  label: 'Images, video & audio',
   extensions: [
     'png',
     'jpg',
@@ -35,6 +44,12 @@ const mediaTypeGroup = XTypeGroup(
     'm4v',
     'webm',
     'mkv',
+    'mp3',
+    'wav',
+    'm4a',
+    'aac',
+    'ogg',
+    'flac',
   ],
 );
 

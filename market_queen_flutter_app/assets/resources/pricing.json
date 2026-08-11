@@ -668,6 +668,36 @@
       "amount": 0.006,
       "source": "https://developers.openai.com/api/docs/pricing"
     },
+    "whisper-large-v3-turbo": {
+      "unit": "minute",
+      "amount": 0.00067,
+      "minUnits": 0.167,
+      "source": "https://console.groq.com/docs/speech-to-text"
+    },
+    "whisper-large-v3": {
+      "unit": "minute",
+      "amount": 0.00185,
+      "minUnits": 0.167,
+      "source": "https://console.groq.com/docs/speech-to-text"
+    },
+    "gemini-3.1-flash-image": {
+      "unit": "image",
+      "amount": 0.067,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    "gemini-3.1-flash-lite-image": {
+      "unit": "image",
+      "amount": 0.0336,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    "gemini-3-pro-image": {
+      "unknown": true,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    "gemini-2.5-flash-image": {
+      "unknown": true,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
     "bytedance/seedream/v5/lite/edit": {
       "unit": "image",
       "amount": 0.035,
@@ -708,6 +738,18 @@
     "bytedance/seedance-2.0/fast/image-to-video": {
       "unknown": true,
       "source": "https://api.fal.ai/v1/models/pricing"
+    },
+    "bytedance/seedance-2.5/reference-to-video": {
+      "unknown": true,
+      "source": "https://fal.ai/models/bytedance/seedance-2.5/reference-to-video"
+    },
+    "bytedance/seedance-2.0/reference-to-video": {
+      "unknown": true,
+      "source": "https://fal.ai/models/bytedance/seedance-2.0/reference-to-video"
+    },
+    "bytedance/seedance-2.0/fast/reference-to-video": {
+      "unknown": true,
+      "source": "https://fal.ai/models/bytedance/seedance-2.0/fast/reference-to-video"
     }
   }
 }

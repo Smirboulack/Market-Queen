@@ -2,6 +2,8 @@
 /// providers never read settings or touch the filesystem themselves.
 library;
 
+import 'dart:typed_data';
+
 /// Two jobs, one transport. Writing a scenario from nothing and reworking one
 /// the user already wrote differ only in the prompt, and are otherwise the same
 /// call to the same three providers, returning the same `shots` shape.
@@ -90,6 +92,70 @@ class ImageRequest {
   final String referenceImageDataUri;
 }
 
+/// One file on its way to a provider's storage: the bytes, what they are, and
+/// what to call them once they are there.
+class UploadFile {
+  const UploadFile(this.data, this.contentType, this.name);
+
+  final Uint8List data;
+  final String contentType;
+  final String name;
+}
+
+/// The reference material a multimodal video model is handed.
+///
+/// This is a different way of asking for a clip. An image-to-video model takes
+/// one still and animates forward from it; a reference model takes a pile of
+/// material -- stills, clips, recordings -- and the prompt points at each piece
+/// by handle: `@Image1`, `@Video1`, `@Audio1`. Handing it a real ad as `@Video1`
+/// and a new face as `@Image1` is what reproduces the ad with that face in it,
+/// cuts and b-roll included.
+///
+/// The urls are real http urls rather than data: URIs. A thirty-second clip is
+/// an order of magnitude past what can be inlined, so the caller uploads first
+/// and passes what it got back.
+class VideoReferences {
+  const VideoReferences({
+    this.images = const [],
+    this.videos = const [],
+    this.audios = const [],
+    this.imagesField = '',
+    this.videosField = '',
+    this.audiosField = '',
+  });
+
+  static const none = VideoReferences();
+
+  final List<String> images;
+  final List<String> videos;
+  final List<String> audios;
+
+  /// What this model calls each list, read from its own schema.
+  final String imagesField;
+  final String videosField;
+  final String audiosField;
+
+  bool get isEmpty => images.isEmpty && videos.isEmpty && audios.isEmpty;
+
+  /// Only the lists the model actually declares, and only the non-empty ones:
+  /// fal rejects a field the endpoint does not know, and an empty array is not
+  /// the same request as no array.
+  Map<String, Object?> toInput() => {
+        if (imagesField.isNotEmpty && images.isNotEmpty) imagesField: images,
+        if (videosField.isNotEmpty && videos.isNotEmpty) videosField: videos,
+        if (audiosField.isNotEmpty && audios.isNotEmpty) audiosField: audios,
+      };
+
+  /// The handles the prompt should use, in the order the lists were sent:
+  /// "@Image1 = face.png, @Video1 = original.mp4". Logged before a run so the
+  /// mapping is visible rather than guessed at.
+  List<String> get handles => [
+        for (var i = 0; i < images.length; ++i) '@Image${i + 1}',
+        for (var i = 0; i < videos.length; ++i) '@Video${i + 1}',
+        for (var i = 0; i < audios.length; ++i) '@Audio${i + 1}',
+      ];
+}
+
 class VideoRequest {
   VideoRequest({
     this.apiKey = '',
@@ -100,6 +166,7 @@ class VideoRequest {
     this.durationSeconds = 5,
     this.imageField = '',
     this.extraInput = const {},
+    this.references = VideoReferences.none,
   });
 
   final String apiKey;
@@ -127,6 +194,11 @@ class VideoRequest {
   /// this is non-empty the provider sends it as given and adds nothing of its
   /// own.
   final Map<String, Object?> extraInput;
+
+  /// Set instead of [imageDataUri] for the models that take reference material.
+  /// When it is non-empty there is no opening frame: the references are the
+  /// input, and the prompt addresses them by handle.
+  final VideoReferences references;
 }
 
 /// A talking shot: a still plus the audio it should be saying.

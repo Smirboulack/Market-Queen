@@ -48,6 +48,7 @@ class ModelChip extends StatelessWidget {
                 [
                   if (named) '${provider.label} · ',
                   model.label,
+                  if (model.isFree) '   ${tr('Free tier')}',
                   if (price.isNotEmpty) '   $price',
                 ].join(),
                 '${provider.id}|${model.id}',
@@ -184,7 +185,11 @@ class _ModelPickerState extends State<ModelPicker> {
               final price = Format.unitPriceLabel(
                 widget.app.pricing.unitPrice(model.id),
               );
-              return price.isEmpty ? model.label : '${model.label}   $price';
+              return [
+                model.label,
+                if (model.isFree) '   ${tr('Free tier')}',
+                if (price.isNotEmpty) '   $price',
+              ].join();
             }(),
             model.id,
           ),

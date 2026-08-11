@@ -224,6 +224,100 @@ class FalVoiceTask extends VoiceTask {
 // ---------------------------------------------------------------------------
 // Whisper subtitles
 // ---------------------------------------------------------------------------
+
+/// "00:00:03,300" -- the timestamp shape SRT insists on.
+String _srtStamp(double seconds) {
+  final total = (seconds * 1000).round().clamp(0, 359999999);
+  String pad(int value, int width) => '$value'.padLeft(width, '0');
+  return '${pad(total ~/ 3600000, 2)}:${pad((total ~/ 60000) % 60, 2)}:'
+      '${pad((total ~/ 1000) % 60, 2)},${pad(total % 1000, 3)}';
+}
+
+/// Groq serves the same Whisper weights as OpenAI, on a free tier.
+///
+/// The one thing it will not do is hand back SRT: `json`, `verbose_json` and
+/// `text` are the whole list, so the timings come as segments and the file is
+/// cut here. That is the only difference from [WhisperCaptionTask] -- the
+/// result is the same subtitle file the pipeline was already burning in.
+class GroqCaptionTask extends HttpTask {
+  GroqCaptionTask(this.request);
+
+  final TranscribeRequest request;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'Groq');
+
+    final audio = File(request.audioPath);
+    if (!audio.existsSync()) {
+      throw ProviderException(tr('Could not read the voice-over file.'));
+    }
+    final audioData = audio.readAsBytesSync();
+
+    report(tr('Timing the subtitles...'));
+
+    final response = await postMultipart(
+      Uri.parse('https://api.groq.com/openai/v1/audio/transcriptions'),
+      headers: {'Authorization': 'Bearer ${request.apiKey}'},
+      fields: {
+        'model': request.model,
+        'response_format': 'verbose_json',
+        if (request.language.isNotEmpty) 'language': request.language,
+      },
+      files: [
+        http.MultipartFile.fromBytes(
+          'file',
+          audioData,
+          filename: p.basename(request.audioPath),
+          contentType: Http.mediaTypeOf(request.audioPath, audioData),
+        ),
+      ],
+    );
+
+    if (response.statusCode >= 400) {
+      throw ProviderException(
+          Http.describeError(response.statusCode, response.body));
+    }
+
+    // Decoded from the bytes rather than from `body`: without a charset on the
+    // response, `http` falls back to latin-1 and every accent in the subtitles
+    // comes out mangled.
+    Object? decoded;
+    try {
+      decoded = jsonDecode(utf8.decode(response.bodyBytes, allowMalformed: true));
+    } on FormatException {
+      decoded = null;
+    }
+    final segments = decoded is Map ? decoded['segments'] : null;
+
+    final srt = StringBuffer();
+    var index = 0;
+
+    if (segments is List) {
+      for (final segment in segments) {
+        if (segment is! Map) continue;
+        final text = '${segment['text'] ?? ''}'.trim();
+        if (text.isEmpty) continue;
+
+        final start = (segment['start'] as num?)?.toDouble() ?? 0;
+        final end = (segment['end'] as num?)?.toDouble() ?? start;
+
+        index += 1;
+        srt
+          ..writeln(index)
+          ..writeln('${_srtStamp(start)} --> ${_srtStamp(end)}')
+          ..writeln(text)
+          ..writeln();
+      }
+    }
+
+    if (index == 0) {
+      throw ProviderException(tr('Whisper returned an empty transcript.'));
+    }
+    return {'srt': srt.toString()};
+  }
+}
+
 class WhisperCaptionTask extends HttpTask {
   WhisperCaptionTask(this.request);
 

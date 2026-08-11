@@ -41,6 +41,118 @@ abstract class ImageTask extends HttpTask {
 }
 
 // ---------------------------------------------------------------------------
+// Google Gemini - POST /v1beta/interactions
+// ---------------------------------------------------------------------------
+/// Nano Banana straight from Google rather than through a reseller.
+///
+/// It is here because it is the only way to draw a frame in this app without a
+/// funded account: fal and Replicate both want money on the table before they
+/// render anything, and this wants a Google account. Same models, same
+/// pictures -- the difference is who is billed and whether there is a quota.
+///
+/// Note the endpoint. Images moved to the Interactions API, so this does not
+/// share a shape with the `:generateContent` call the script writer makes on
+/// the very same key: the prompt and the photo go in a flat `input` list of
+/// typed blocks, and the picture comes back at the top level.
+class GeminiImageTask extends ImageTask {
+  GeminiImageTask(super.request);
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'Google Gemini');
+
+    final editing = request.referenceImageDataUri.isNotEmpty;
+    report(editing
+        ? tr('Building the opening frame from your product photo...')
+        : tr('Generating the opening frame with %1...').arg(request.model));
+
+    final input = <Map<String, Object?>>[
+      {'type': 'text', 'text': request.prompt},
+    ];
+
+    // The photo rides along as a block of its own, which is what turns this
+    // from "draw something like the product" into an edit of the real one.
+    if (editing) {
+      var mimeType = '';
+      final bytes = Http.dataUriPayload(
+        request.referenceImageDataUri,
+        mimeType: (value) => mimeType = value,
+      );
+      if (bytes.isNotEmpty && mimeType.isNotEmpty) {
+        input.add({
+          'type': 'image',
+          'mime_type': mimeType,
+          'data': base64Encode(bytes),
+        });
+      }
+    }
+
+    final response = await postJson(
+      Uri.parse('https://generativelanguage.googleapis.com/v1beta/interactions'),
+      {
+        'model': request.model,
+        'input': input,
+        'response_format': {
+          'type': 'image',
+          'mime_type': 'image/png',
+          'aspect_ratio':
+              request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+        },
+      },
+      headers: {'x-goog-api-key': request.apiKey},
+    );
+
+    final image = _imageBlock(response);
+    if (image != null) {
+      final data = _decodeBase64('${image['data'] ?? ''}');
+      if (data.isNotEmpty) {
+        return deliver(
+          data,
+          Http.guessExtension('', '${image['mime_type'] ?? ''}', 'png'),
+        );
+      }
+    }
+
+    // A refusal is a paragraph of prose where the picture should have been, and
+    // that paragraph says exactly what it objected to. Losing it behind
+    // "returned no image" costs the user the one clue they had.
+    final said = '${response['output_text'] ?? ''}'.trim();
+    throw ProviderException(said.isEmpty
+        ? tr('Gemini returned no image.')
+        : tr('Gemini returned no image: %1').arg(said));
+  }
+
+  /// The generated picture, from the shortcut field or from the output list.
+  Map<String, Object?>? _imageBlock(Map<String, dynamic> response) {
+    final shortcut = response['output_image'];
+    if (shortcut is Map && '${shortcut['data'] ?? ''}'.isNotEmpty) {
+      return shortcut.cast<String, Object?>();
+    }
+
+    final output = response['output'];
+    if (output is List) {
+      for (final block in output) {
+        if (block is Map &&
+            block['type'] == 'image' &&
+            '${block['data'] ?? ''}'.isNotEmpty) {
+          return block.cast<String, Object?>();
+        }
+      }
+    }
+    return null;
+  }
+
+  Uint8List _decodeBase64(String value) {
+    if (value.isEmpty) return Uint8List(0);
+    try {
+      return base64Decode(value);
+    } on FormatException {
+      return Uint8List(0);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // OpenAI Images
 // ---------------------------------------------------------------------------
 class OpenAiImageTask extends ImageTask {
