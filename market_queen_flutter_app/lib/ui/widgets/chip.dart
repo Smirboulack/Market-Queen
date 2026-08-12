@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../i18n/translator.dart';
+import '../brand.dart';
 import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
@@ -187,11 +188,24 @@ class MqChip extends StatelessWidget {
 }
 
 class MenuOption<T> {
-  const MenuOption(this.label, this.value);
+  const MenuOption(this.label, this.value, {this.mark = ''});
 
   final String label;
   final T value;
+
+  /// A credential id, for the menus whose entries belong to an account: the
+  /// model list is a hundred names off fifteen shelves, and the mark is what
+  /// tells you which shelf you are looking at without reading the prefix.
+  /// Empty everywhere else, and the menu then has no glyph column at all.
+  final String mark;
 }
+
+/// The entry's own label inside a menu row.
+///
+/// Keyed because it is no longer the only text in the row: an account with no
+/// logo dropped in draws its initials beside the name, and anything looking for
+/// "the label of this menu entry" would otherwise find the two letters first.
+const Key chipMenuLabelKey = ValueKey('mq.chipMenu.label');
 
 /// Opens [options] under [anchor] and returns what was picked.
 ///
@@ -229,16 +243,29 @@ Future<T?> showChipMenu<T>(
         PopupMenuItem<T>(
           value: option.value,
           height: 34,
-          child: Text(
-            option.label,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: option.value == current ? mq.primaryText : mq.textPrimary,
-              fontSize: MqTheme.fontLabel,
-              fontWeight: option.value == current
-                  ? FontWeight.w600
-                  : FontWeight.w400,
-            ),
+          child: Row(
+            children: [
+              if (option.mark.isNotEmpty) ...[
+                ProviderMark(credential: option.mark, size: 18),
+                const SizedBox(width: 9),
+              ],
+              Expanded(
+                child: Text(
+                  option.label,
+                  key: chipMenuLabelKey,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: option.value == current
+                        ? mq.primaryText
+                        : mq.textPrimary,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: option.value == current
+                        ? FontWeight.w600
+                        : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
     ],

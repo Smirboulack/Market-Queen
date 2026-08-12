@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +110,17 @@ class _CanvasViewState extends State<CanvasView> {
     if (oldWidget.bottomInset != widget.bottomInset) _keepAnchored();
   }
 
+  /// The tallest a single result is allowed to be drawn.
+  ///
+  /// Sized from what is actually on screen -- the canvas less the composer
+  /// standing in front of it -- because the point of the ceiling is that a
+  /// result you have just waited for fits in the space you are looking at. A
+  /// vertical 9:16 frame given the whole feed width comes out over two thousand
+  /// pixels tall, which is a result you have to scroll to see rather than one
+  /// that has arrived.
+  double _maxTileHeight(double viewportHeight) =>
+      math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78);
+
   /// Kept up to date by every scroll, so [_keepAnchored] never has to guess.
   ///
   /// The slack is a few pixels rather than zero: a feed resting at the end can
@@ -164,14 +176,24 @@ class _CanvasViewState extends State<CanvasView> {
                 return _EmptyCanvas(bottomInset: widget.bottomInset);
               }
 
+              // Centred on the same axis as the prompt bar and capped to the
+              // same width, so the two are one column rather than a feed that
+              // spans the monitor with a bar floating in the middle of it. The
+              // padding does the centring rather than a SizedBox inside the
+              // list, which keeps the scrollbar on the window's own edge.
+              final side = math.max(
+                MqTheme.pagePadding,
+                (constraints.maxWidth - MqTheme.contentMaxWidth) / 2,
+              );
+
               return NotificationListener<ScrollNotification>(
                 onNotification: _onScroll,
                 child: ListView.separated(
                   controller: _scroll,
                   padding: EdgeInsets.fromLTRB(
-                    MqTheme.pagePadding,
+                    side,
                     MqTheme.gapLarge,
-                    MqTheme.pagePadding,
+                    side,
                     MqTheme.gapLarge + widget.bottomInset,
                   ),
                   itemCount: batches.length,
@@ -180,6 +202,7 @@ class _CanvasViewState extends State<CanvasView> {
                   itemBuilder: (context, index) => _BatchBlock(
                     app: widget.app,
                     batch: batches[index],
+                    maxTileHeight: _maxTileHeight(constraints.maxHeight),
                     onOpenRender: widget.onOpenRender,
                     onRemove: () => _feed.remove(batches[index].id),
                   ),
@@ -293,12 +316,18 @@ class _BatchBlock extends StatelessWidget {
   const _BatchBlock({
     required this.app,
     required this.batch,
+    required this.maxTileHeight,
     required this.onOpenRender,
     required this.onRemove,
   });
 
   final AppState app;
   final CanvasBatch batch;
+
+  /// The ceiling on one tile, worked out by the feed from how much of the
+  /// canvas is actually visible.
+  final double maxTileHeight;
+
   final VoidCallback onOpenRender;
 
   /// Takes the whole batch off the canvas. Reached from the right-click menu of
@@ -308,6 +337,25 @@ class _BatchBlock extends StatelessWidget {
   /// How wide a tile wants to be. Below this the grid drops a column rather
   /// than shrinking every tile past the point of being readable.
   static const double _idealTile = 210;
+
+  /// Five abreast is as fine as the grid gets. Past it a still is a thumbnail,
+  /// and the whole reason to ask for ten at once is to be able to tell them
+  /// apart.
+  static const int _maxColumns = 5;
+
+  static const double _gap = 10;
+
+  /// How many columns this batch is laid out in.
+  ///
+  /// Driven by how many results there are as much as by how much room there is:
+  /// a batch is a grid whose cell is a share of it, so the more you asked for
+  /// the smaller each one comes back -- ten stills read as a contact sheet
+  /// rather than as ten pages to scroll past. Asking for two must not put two
+  /// tiles in a five-column grid and leave three holes.
+  static int columnsFor(int count, double width) {
+    final room = (width / _idealTile).floor().clamp(1, _maxColumns);
+    return count < room ? math.max(1, count) : room;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -320,13 +368,30 @@ class _BatchBlock extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = (constraints.maxWidth / _idealTile).floor().clamp(1, 5);
-        const gap = 10.0;
-        final width = (constraints.maxWidth - gap * (columns - 1)) / columns;
+        final columns = columnsFor(batch.items.length, constraints.maxWidth);
+        final share =
+            (constraints.maxWidth - _gap * (columns - 1)) / columns;
+
+        // A cell is its share of the grid, until that would make it taller than
+        // the canvas can show -- which is what a single 9:16 result handed the
+        // whole column would be. Capped by the height rather than by a second
+        // width, because the shape is the ad's and a wide frame is nowhere near
+        // as tall at the same width.
+        //
+        // A recording is the exception: it is a row with a play button in it
+        // and has no shape to cap, so squeezing it to the width of a portrait
+        // frame would leave a scrubber nobody can aim at.
+        final width = batch.kind == CanvasKind.audio
+            ? share
+            : math.min(share, maxTileHeight * _ratioOf(batch));
 
         return Wrap(
-          spacing: gap,
-          runSpacing: gap,
+          spacing: _gap,
+          runSpacing: _gap,
+          // Centred, so a batch that does not fill its last row -- or a single
+          // result narrowed by the ceiling above -- sits under the prompt that
+          // asked for it rather than against the left margin.
+          alignment: WrapAlignment.center,
           children: [
             for (final item in batch.items)
               SizedBox(
@@ -345,6 +410,17 @@ class _BatchBlock extends StatelessWidget {
       },
     );
   }
+}
+
+/// Width over height for whatever this batch was asked for, 1 when the ratio
+/// is missing or unreadable.
+double _ratioOf(CanvasBatch batch) {
+  final parts = batch.aspectRatio.split(':');
+  if (parts.length != 2) return 1;
+  final width = double.tryParse(parts[0]) ?? 0;
+  final height = double.tryParse(parts[1]) ?? 0;
+  if (width <= 0 || height <= 0) return 1;
+  return width / height;
 }
 
 /// The right-click menu on anything the canvas produced.
@@ -523,14 +599,7 @@ class _ResultTileState extends State<_ResultTile> {
   /// stand up twenty decoders to show twenty thumbnails.
   bool _playing = false;
 
-  double get _ratio {
-    final parts = widget.batch.aspectRatio.split(':');
-    if (parts.length != 2) return 1;
-    final width = double.tryParse(parts[0]) ?? 0;
-    final height = double.tryParse(parts[1]) ?? 0;
-    if (width <= 0 || height <= 0) return 1;
-    return width / height;
-  }
+  double get _ratio => _ratioOf(widget.batch);
 
   bool get _isPicture => widget.batch.kind == CanvasKind.image;
 

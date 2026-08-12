@@ -196,7 +196,6 @@
   "Paste a voice id": "Wklej identyfikator głosu",
   "fal.ai returned no audio.": "fal.ai nie zwrócił dźwięku.",
   "Auto picked %1.": "Tryb auto wybrał %1.",
-  "Auto - best model for this shot": "Auto - najlepszy model do tego ujęcia",
   "The widest catalogue. Any model id from fal.ai/models also works.": "Najszerszy katalog. Zadziała też dowolny identyfikator z fal.ai/models.",
   "Scripts, images, Sora video, voice-over and subtitles.": "Scenariusze, obrazy, wideo Sora, lektor i napisy.",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "Obrazy, wideo i głosy (Kling, Veo, Seedance, FLUX, MiniMax...).",
@@ -243,6 +242,5 @@
   "No shot was rendered, so there is nothing to cut together.": "Nie powstało żadne ujęcie, więc nie ma czego montować.",
   "The clips are %1s short of the voice-over; the last shot holds.": "Klipom brakuje %1 s względem lektora; ostatnie ujęcie zostaje zatrzymane.",
   "Cutting %1 shot(s) into %2x%3.": "Montaż %1 ujęcia/ujęć w %2x%3.",
-  "gpt-image models can edit your product photo directly.": "Modele gpt-image mogą edytować twoje zdjęcie produktu bezpośrednio.",
   "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - jeden klucz do wszystkich."
 }

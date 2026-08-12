@@ -66,7 +66,12 @@ void main() {
     expect(registry.defaultProvider('image'), 'gemini-image');
     expect(registry.defaultProvider('captions'), 'groq-whisper');
 
-    // "Auto" takes the head of the list, so the head has to be a free one.
+    // The head of the list is the default, so the head has to be a free one --
+    // and an install still carrying the old "Auto" preference lands on it too.
+    expect(
+      registry.provider('gemini-image')!.defaultModel,
+      'gemini-3.1-flash-image',
+    );
     expect(
       registry.resolveModel('gemini-image', 'auto'),
       'gemini-3.1-flash-image',

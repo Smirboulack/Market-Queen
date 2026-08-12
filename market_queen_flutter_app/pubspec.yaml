@@ -59,6 +59,10 @@ flutter:
     # whole install step -- see assets/brand/README.md. The folder is allowed to
     # hold nothing but that README: BrandMark falls back to a drawn tile.
     - assets/brand/
+    # The providers' marks, on the same terms and for the same reason: named
+    # after the credential id, picked up at run time, initials drawn until one
+    # is dropped in. Ships empty -- see assets/brand/providers/README.md.
+    - assets/brand/providers/
 
   # Inter, shipped rather than fetched: an app that promises nothing leaves the
   # machine cannot pull a webfont at startup, and a bundled face renders the

@@ -111,8 +111,6 @@ void main() {
       // whatever it defaulted to.
       for (final provider in registry.providers('video')) {
         for (final model in provider.models) {
-          if (Registry.isAuto(model.id)) continue;
-
           // fal is the exception on purpose: its catalogue moves between our
           // releases, so those two are read at run time instead.
           if (ModelSchemas.fetches(provider.id)) continue;
@@ -217,30 +215,21 @@ void main() {
       final missing = <String>[];
       for (final entry in registry.entries) {
         for (final model in entry.models) {
-          if (Registry.isAuto(model.id)) continue;
           if (pricing.unitPrice(model.id) != null) continue;
           missing.add('${entry.id} / ${model.id}');
         }
       }
 
       // A model with no published price is fine and is reported as unknown in
-      // the estimate. What is not fine is a model nobody looked at: the ones
+      // the estimate. What is not fine is a model nobody looked at: the two
       // below are the ones deliberately recorded as having no public figure,
       // and anything else appearing here means pricing.json fell behind the
       // catalogue.
       const knownUnpriced = {
-        'gemini-3.1-pro-preview',
+        // Preview, and off the published table.
         'gemini-3-pro-image',
+        // BytePlus prices the Lite and the Pro, and not the plain one.
         'seedream-5-0-260128',
-        'gpt-image-2',
-        'gpt-image-1.5',
-        'gpt-image-1-mini',
-        'ray-2',
-        'ray-flash-2',
-        'speech-2.8-hd',
-        'speech-2.8-turbo',
-        'gemini-2.5-flash-preview-tts',
-        'gemini-2.5-pro-preview-tts',
       };
 
       final unexpected = [
@@ -249,6 +238,14 @@ void main() {
       ];
 
       expect(unexpected, isEmpty);
+
+      // And the other way round, so the exemption list cannot outlive the
+      // reason for it: a model that has since been priced must come off it.
+      final stale = [
+        for (final id in knownUnpriced)
+          if (pricing.unitPrice(id) != null) id,
+      ];
+      expect(stale, isEmpty, reason: 'now priced -- drop from knownUnpriced');
     });
   });
 }

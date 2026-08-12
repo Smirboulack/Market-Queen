@@ -196,7 +196,6 @@
   "Paste a voice id": "粘贴语音 ID",
   "fal.ai returned no audio.": "fal.ai 未返回音频。",
   "Auto picked %1.": "自动选择了 %1。",
-  "Auto - best model for this shot": "自动 — 为该镜头挑选最佳模型",
   "The widest catalogue. Any model id from fal.ai/models also works.": "最全的模型库。fal.ai/models 上的任何模型 ID 也都可用。",
   "Scripts, images, Sora video, voice-over and subtitles.": "脚本、图像、Sora 视频、配音和字幕。",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "图像、视频和语音（Kling、Veo、Seedance、FLUX、MiniMax…）。",
@@ -243,6 +242,5 @@
   "No shot was rendered, so there is nothing to cut together.": "没有生成任何镜头，无法剪辑。",
   "The clips are %1s short of the voice-over; the last shot holds.": "片段比配音短 %1 秒，最后一个镜头将定格。",
   "Cutting %1 shot(s) into %2x%3.": "正在将 %1 个镜头剪辑为 %2x%3。",
-  "gpt-image models can edit your product photo directly.": "gpt-image 系列模型可以直接编辑你的产品照片。",
   "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling、Veo、Seedance、Hailuo、Wan、Runway、Luma —— 一个密钥全搞定。"
 }

@@ -25,6 +25,7 @@ import '../widgets/dashed_box.dart';
 import '../widgets/measured.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
+import '../widgets/popover.dart';
 import 'cast_panels.dart';
 import 'composer_tabs.dart';
 import 'mentions.dart';
@@ -87,26 +88,14 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   final FocusNode _focus = FocusNode();
 
-  /// The panel beside the bar. Wide enough for "Kling 3.0 Turbo Pro" without an
-  /// ellipsis, which is about the longest thing that lands in it.
+  /// The panel that hangs over the canvas. Wide enough for "Kling 3.0 Turbo
+  /// Pro" without an ellipsis, which is about the longest thing that lands in
+  /// it.
   static const double _panelWidth = 320;
 
-  /// What that panel costs when it stands beside the bar: itself, plus the same
-  /// again mirrored on the left so the bar's centre is the page's centre.
-  static const double _gutter = _panelWidth + MqTheme.gap;
-
-  /// The bar stops widening here. Past it the send button ends up at the far
-  /// edge of a 27" monitor while the caret is in the middle of the screen, and
-  /// a prompt bar you have to travel to is a prompt bar you stop using.
-  static const double _barMaxWidth = 1180;
-
-  /// The narrowest the bar is allowed to be while a panel stands beside it.
-  ///
-  /// Below this the layout changes shape rather than shrinking: the panel comes
-  /// out of the row and sits above the bar instead. Squeezing was the wrong
-  /// answer twice over -- the prompt ended up narrower than a paragraph, and the
-  /// panel's own rows ended up as a label and an ellipsis.
-  static const double _barComfortable = 640;
+  /// The bar stops widening at the studio's own column width, which the feed
+  /// above it is capped to as well -- see [MqTheme.contentMaxWidth].
+  static const double _barMaxWidth = MqTheme.contentMaxWidth;
 
   /// How much room the prompt gets before it has anything in it. The same on
   /// every tab, so the bar is one shape.
@@ -123,6 +112,15 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// they answer one question -- "what exactly is about to be generated" -- and
   /// two of them open at once would be two answers.
   _Panel _panel = _Panel.none;
+
+  /// The overlay the open panel is drawn in, and the button it is pinned to.
+  ///
+  /// One portal for all three: only one panel is ever up, and it hangs off
+  /// whichever control was pressed.
+  final OverlayPortalController _portal = OverlayPortalController();
+  final Map<_Panel, LayerLink> _anchors = {
+    for (final panel in _Panel.values) panel: LayerLink(),
+  };
 
   bool _hovered = false;
   bool _dragging = false;
@@ -631,28 +629,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         // the model's real list, so the column has to hear about it.
         app.modelSchemas,
       ]),
-      // The panels live beside the bar rather than inside it: they are read
-      // once and the prompt is rewritten twenty times, so they must not take
-      // room from it. Three rules hold the row together, and one changes shape:
+      // The panels are drawn in the overlay rather than in this row, and that
+      // is the whole geometry of the composer now: the bar is one width, always
+      // -- capped, centred, and never asked to make room for anything.
       //
-      //  - the bar and the panel are laid out as one group with fixed widths,
-      //    centred as a unit. The empty gutter on the left is the panel's own
-      //    width mirrored, which is what puts the *bar's* middle on the page's
-      //    middle while leaving the panel welded to the bar's right edge --
-      //    stretching the middle child instead left the two drifting apart by
-      //    half the window on a wide monitor;
-      //  - the panel hangs off a shared bottom edge by [CrossAxisAlignment.end],
-      //    so it grows upward instead of leaving the bar floating with a hole
-      //    underneath it;
-      //  - the whole row is bottom-anchored over the canvas by the page, so a
-      //    tall panel takes its room from empty background rather than from the
-      //    feed. Opening one moves nothing;
-      //  - and when the window cannot afford a column beside a readable bar,
-      //    the panel comes out of the row and stacks over the bar's left corner
-      //    instead. See [_wideEnough]: the prompt keeps the whole width either
-      //    way, which is the point -- a permanently half-width prompt bar to
-      //    hold room for a panel that is shut nine tenths of the time is a bad
-      //    trade.
+      // They used to be a column welded to the bar's right edge, with a
+      // mirrored gutter on the left to keep the bar's middle on the page's
+      // middle, and a second layout underneath for windows too narrow to
+      // afford the column, where the panel stacked over the bar instead. Both
+      // shapes moved the caret when the cog was pressed. A panel that says what
+      // the *next* generation will look like has no business resizing the field
+      // you are typing the current one into -- so it hangs above its own button
+      // now, over the canvas, costing the bar nothing.
       //
       // The tab row lives inside the bar's own column rather than above the
       // whole thing, so it stays centred on the bar.
@@ -669,104 +657,95 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   Widget _layout() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final total = constraints.maxWidth;
-        final beside = _open && _wideEnough(total);
-        final barWidth = math.min(
-          _barMaxWidth,
-          beside ? total - 2 * _gutter : total,
-        );
-
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (beside) const SizedBox(width: _gutter),
-            SizedBox(
-              width: barWidth,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (_open && !beside) ...[
-                    // Its own width, off the bar's left corner. Stretched to
-                    // the full bar it read as a second bar rather than as a
-                    // panel that had nowhere else to go.
-                    Align(
-                      alignment: AlignmentDirectional.centerStart,
-                      child: SizedBox(
-                        width: math.min(_panelWidth, barWidth),
-                        child: _panelBody(),
+    // Escape closes the open panel, the way it closes any menu. Only while one
+    // is open: the rest of the time the key belongs to whatever else wants it.
+    return CallbackShortcuts(
+      bindings: {
+        if (_open) const SingleActivator(LogicalKeyboardKey.escape): _closePanel,
+      },
+      child: OverlayPortal(
+        controller: _portal,
+        overlayChildBuilder: (context) => PopoverLayer(
+          link: _anchors[_panel]!,
+          width: _panelWidth,
+          onDismiss: _closePanel,
+          child: _panelBody(),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) => Center(
+            child: SizedBox(
+              width: math.min(_barMaxWidth, constraints.maxWidth),
+              // The feed reserves room for exactly this much and nothing else.
+              // There is nothing else left to reserve for: the panels are in
+              // the overlay, so opening one moves not one tile.
+              child: MeasuredHeight(
+                onChanged: (height) => widget.onBarHeight?.call(height),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: ComposerTabBar(
+                        current: _tab,
+                        extras: _extras,
+                        onPicked: _pickTab,
+                        onRemoved: _dropTab,
                       ),
                     ),
                     const SizedBox(height: MqTheme.gap),
+                    _bar(),
                   ],
-                  // Everything above this line is a panel and is deliberately
-                  // outside the measurement: the feed reserves room for the
-                  // prompt block and nothing else, so a panel opening grows
-                  // upward over the canvas and moves not one tile.
-                  MeasuredHeight(
-                    onChanged: (height) => widget.onBarHeight?.call(height),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Center(
-                          child: ComposerTabBar(
-                            current: _tab,
-                            extras: _extras,
-                            onPicked: _pickTab,
-                            onRemoved: _dropTab,
-                          ),
-                        ),
-                        const SizedBox(height: MqTheme.gap),
-                        _bar(),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            if (beside) ...[
-              const SizedBox(width: MqTheme.gap),
-              SizedBox(width: _panelWidth, child: _panelBody()),
-            ],
-          ],
-        );
-      },
+          ),
+        ),
+      ),
     );
   }
 
   bool get _open => _panel != _Panel.none;
 
-  /// Whether a column beside the bar still leaves a bar worth typing in.
-  bool _wideEnough(double width) => width - 2 * _gutter >= _barComfortable;
-
-  void _show(_Panel panel) =>
-      setState(() => _panel = _panel == panel ? _Panel.none : panel);
-
-  /// Whichever panel is open, in the slot the layout gave it.
-  Widget _panelBody() {
-    void close() => setState(() => _panel = _Panel.none);
-
-    return switch (_panel) {
-      _Panel.none => const SizedBox.shrink(),
-      _Panel.settings => ComposerSettings(app: app, tab: _tab, onClose: close),
-      _Panel.actor => CastPanel(
-        app: app,
-        kind: AssetKind.actor,
-        onClose: close,
-        onReplace: () => _cast(AssetKind.actor),
-      ),
-      _Panel.scene => CastPanel(
-        app: app,
-        kind: AssetKind.scene,
-        onClose: close,
-        onReplace: () => _cast(AssetKind.scene),
-      ),
-    };
+  /// Toggles a panel. Every change of [_panel] goes through here or
+  /// [_closePanel], because the overlay has to be told as well -- and told from
+  /// outside a build, which is why the portal is driven here rather than read
+  /// off the state in [_layout].
+  void _show(_Panel panel) {
+    if (_panel == panel) {
+      _closePanel();
+      return;
+    }
+    setState(() => _panel = panel);
+    _portal.show();
   }
+
+  void _closePanel() {
+    if (!_open) return;
+    setState(() => _panel = _Panel.none);
+    _portal.hide();
+  }
+
+  /// Whichever panel is open, above the button that opened it.
+  Widget _panelBody() => switch (_panel) {
+    _Panel.none => const SizedBox.shrink(),
+    _Panel.settings => ComposerSettings(
+      app: app,
+      tab: _tab,
+      onClose: _closePanel,
+    ),
+    _Panel.actor => CastPanel(
+      app: app,
+      kind: AssetKind.actor,
+      onClose: _closePanel,
+      onReplace: () => _cast(AssetKind.actor),
+    ),
+    _Panel.scene => CastPanel(
+      app: app,
+      kind: AssetKind.scene,
+      onClose: _closePanel,
+      onReplace: () => _cast(AssetKind.scene),
+    ),
+  };
 
   /// A pill was pressed, or a mode was chosen out of "See more". Either way the
   /// composer switches to it; an advanced one also earns a pill of its own.
@@ -1096,13 +1075,16 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           ),
           const SizedBox(width: 10),
         ],
-        MqIconButton(
-          icon: 'equalizer-line',
-          tip: _panel == _Panel.settings
-              ? tr('Hide the settings')
-              : tr('Settings'),
-          size: 32,
-          onPressed: () => _show(_Panel.settings),
+        CompositedTransformTarget(
+          link: _anchors[_Panel.settings]!,
+          child: MqIconButton(
+            icon: 'equalizer-line',
+            tip: _panel == _Panel.settings
+                ? tr('Hide the settings')
+                : tr('Settings'),
+            size: 32,
+            onPressed: () => _show(_Panel.settings),
+          ),
         ),
         const SizedBox(width: 8),
         Container(width: 1, height: 24, color: mq.divider),
@@ -1145,11 +1127,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           settingsTip: tr('Voice and delivery'),
           clearTip: tr('Take this actor off the ad'),
           lit: _panel == _Panel.actor,
+          settingsLink: _anchors[_Panel.actor]!,
           onPressed: () => _cast(AssetKind.actor),
           onSettings: () => _show(_Panel.actor),
           onCleared: () {
             project.clearActor();
-            if (_panel == _Panel.actor) setState(() => _panel = _Panel.none);
+            if (_panel == _Panel.actor) _closePanel();
           },
         ),
         _CastChip(
@@ -1161,11 +1144,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           settingsTip: tr('Light and mood'),
           clearTip: tr('Take this scene off the ad'),
           lit: _panel == _Panel.scene,
+          settingsLink: _anchors[_Panel.scene]!,
           onPressed: () => _cast(AssetKind.scene),
           onSettings: () => _show(_Panel.scene),
           onCleared: () {
             project.clearScene();
-            if (_panel == _Panel.scene) setState(() => _panel = _Panel.none);
+            if (_panel == _Panel.scene) _closePanel();
           },
         ),
         // The product itself. An ad is usually *about* something, and the
@@ -1247,9 +1231,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     // you know where the cog is, and a panel opening on every replacement is a
     // panel you close on every replacement.
     if (first && mounted) {
-      setState(
-        () => _panel = kind == AssetKind.actor ? _Panel.actor : _Panel.scene,
-      );
+      _show(kind == AssetKind.actor ? _Panel.actor : _Panel.scene);
     }
   }
 }
@@ -1424,6 +1406,7 @@ class _CastChip extends StatefulWidget {
     required this.onPressed,
     required this.onSettings,
     required this.onCleared,
+    required this.settingsLink,
     this.portrait = '',
     this.lit = false,
   });
@@ -1441,8 +1424,12 @@ class _CastChip extends StatefulWidget {
   final VoidCallback onSettings;
   final VoidCallback onCleared;
 
+  /// What the panel hangs off: the cog, not the whole bubble, so it opens over
+  /// the button that was actually pressed.
+  final LayerLink settingsLink;
+
   /// True while this chip's panel is the one open, so the bar says which of the
-  /// two the column belongs to.
+  /// two the panel belongs to.
   final bool lit;
 
   @override
@@ -1536,11 +1523,14 @@ class _CastChipState extends State<_CastChip> {
             const SizedBox(width: 4),
             Container(width: 1, height: 16, color: mq.border),
             const SizedBox(width: 2),
-            MqIconButton(
-              icon: 'settings-3-line',
-              tip: widget.settingsTip,
-              size: 22,
-              onPressed: widget.onSettings,
+            CompositedTransformTarget(
+              link: widget.settingsLink,
+              child: MqIconButton(
+                icon: 'settings-3-line',
+                tip: widget.settingsTip,
+                size: 22,
+                onPressed: widget.onSettings,
+              ),
             ),
             MqIconButton(
               icon: 'close-line',

@@ -903,7 +903,13 @@ class _ModelPicker extends StatelessWidget {
           if (price.isNotEmpty) '   $price',
         ].join();
 
-        options.add(MenuOption(label, '${provider.id}|${model.id}'));
+        options.add(
+          MenuOption(
+            label,
+            '${provider.id}|${model.id}',
+            mark: provider.credential,
+          ),
+        );
       }
     }
 

@@ -7,6 +7,7 @@ import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/canvas_view.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/chip.dart';
 
 /// The three geometric promises the composer makes.
 ///
@@ -103,55 +104,49 @@ void main() {
     expect(barRect(tester).bottom, moreOrLessEquals(bottom, epsilon: 0.5));
   });
 
-  testWidgets('a wide window keeps the panel welded to the bar', (
-    tester,
-  ) async {
-    // The failure this catches: with the bar capped and the middle of the row
-    // stretched, a 2200px window left half a monitor of background between the
-    // prompt and the column that belongs to it.
-    const wide = Size(2200, 940);
-    await pumpEditor(tester, size: wide);
-    await openSettings(tester);
+  testWidgets('opening the panel never changes the bar', (tester) async {
+    // The promise the panel used to break at both ends of the range: a wide
+    // window took 340px off the bar to stand a column beside it, and a narrow
+    // one stacked the column over the prompt. Either way the caret moved when
+    // the cog was pressed. The panel is in the overlay now, so the bar is the
+    // same object before and after on any window.
+    for (final size in [
+      const Size(2200, 940),
+      window,
+      const Size(1040, 900),
+    ]) {
+      await pumpEditor(tester, size: size);
 
-    final bar = barRect(tester);
-    final panel = tester.getRect(find.byType(ComposerSettings));
+      final shut = barRect(tester);
+      await openSettings(tester);
 
-    expect(panel.left - bar.right, moreOrLessEquals(MqTheme.gap, epsilon: 0.5));
-    expect(bar.center.dx, moreOrLessEquals(wide.width / 2, epsilon: 1));
+      expect(find.byType(ComposerSettings), findsOneWidget, reason: '$size');
+      expect(barRect(tester), shut, reason: '$size');
+
+      // And a press anywhere else puts it away, the way a menu does. Also what
+      // leaves the state clean for the next size: the tree survives the next
+      // `pumpWidget`, so a panel left open would still be open in it.
+      await tester.tapAt(const Offset(8, 8));
+      await tester.pump();
+      expect(find.byType(ComposerSettings), findsNothing, reason: '$size');
+    }
   });
 
-  testWidgets('a narrow window stacks the panel instead of squeezing', (
-    tester,
-  ) async {
-    await pumpEditor(tester, size: const Size(1040, 900));
-
-    final shut = barRect(tester);
-    await openSettings(tester);
-
-    expect(find.byType(ComposerSettings), findsOneWidget);
-    final open = barRect(tester);
-    final panel = tester.getRect(find.byType(ComposerSettings));
-
-    // The panel went above the bar rather than beside it, so the prompt is
-    // exactly as wide as it was...
-    expect(open.width, moreOrLessEquals(shut.width, epsilon: 0.5));
-    expect(panel.bottom, lessThan(open.top));
-    // ...and it kept its own width off the bar's left corner rather than
-    // stretching into a second bar.
-    expect(panel.left, moreOrLessEquals(open.left, epsilon: 0.5));
-    expect(panel.width, lessThan(open.width * 0.6));
-  });
-
-  testWidgets('the panel hangs off the bar\'s own bottom edge', (tester) async {
+  testWidgets('the panel hangs above the button that opened it', (tester) async {
     await pumpEditor(tester);
     await openSettings(tester);
 
-    final bar = barRect(tester);
+    final button = tester.getRect(find.byTooltip('Hide the settings'));
     final panel = tester.getRect(find.byType(ComposerSettings));
 
-    expect(panel.bottom, moreOrLessEquals(bar.bottom, epsilon: 0.5));
-    expect(panel.left, greaterThan(bar.right));
+    // Bottom edge just above the cog, right edge lined up with it: it grows
+    // upward over the canvas rather than downward off the page.
+    expect(panel.bottom, lessThanOrEqualTo(button.top));
+    expect(button.top - panel.bottom, lessThan(16));
+    expect(panel.right, moreOrLessEquals(button.right, epsilon: 0.5));
+    expect(panel.top, greaterThan(0));
   });
+
 
   testWidgets('the prompt is the same height on every tab', (tester) async {
     // The *prompt*, not the bar around it. The clip shelf now carries a framed
@@ -234,7 +229,7 @@ void main() {
     await openSettings(tester);
 
     // Worked out the way the row itself works it out: the name of the model
-    // the preference names, before "auto" is resolved into something concrete.
+    // the saved preference names, or the provider's default when there is none.
     String shownModel() {
       final registry = app.registry;
       final providerId = app.runner.providerFor('video');
@@ -252,11 +247,13 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    // Whichever entry in the menu is not the one already showing.
+    // Whichever entry in the menu is not the one already showing. The label
+    // rather than every Text in the row: each entry also carries its account's
+    // mark, which is two letters until a logo is dropped in.
     final other = find
         .descendant(
           of: find.byType(PopupMenuItem<String>),
-          matching: find.byType(Text),
+          matching: find.byKey(chipMenuLabelKey),
         )
         .evaluate()
         .map((element) => (element.widget as Text).data ?? '')
@@ -277,11 +274,16 @@ void main() {
     await pumpEditor(tester);
 
     for (final tab in [ComposerTab.image, ComposerTab.video]) {
+      // The panel is a menu now: it covers the pill row while it is up, so it
+      // has to be put away before the next tab can be reached.
+      if (find.byType(ComposerSettings).evaluate().isNotEmpty) {
+        await tester.tapAt(const Offset(8, 8));
+        await tester.pump();
+      }
+
       await tester.tap(find.text(ComposerSpec.of(tab).label));
       await tester.pump();
-      if (find.byType(ComposerSettings).evaluate().isEmpty) {
-        await openSettings(tester);
-      }
+      await openSettings(tester);
 
       expect(find.text('Cost'), findsOneWidget, reason: '${tab.name} tab');
 

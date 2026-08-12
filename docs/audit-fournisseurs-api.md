@@ -392,7 +392,9 @@ Endpoints : `POST /dream-machine/v1/generations` (guide) et `POST /dream-machine
 `concepts[]` (styles, liste via `/generations/concepts/list`), `loop`, `callback_url`.
 États : `queued` → `dreaming` → `completed` / `failed`.
 
-⚠️ **Écart doc/pricing** : la grille tarifaire officielle facture **Ray3.2** et **Uni-1.1 / Uni-1.1 Max**, alors que l'API reference n'énumère que `ray-2` / `ray-flash-2` et `photon-1` / `photon-flash-1`. Les identifiants API de Ray 3.2 et Uni-1.1 sont **`REQUIRES VERIFICATION`**. Luma redirige aussi vers `docs.agents.lumalabs.ai` (404 sur `llms.txt`).
+Prix (page Ray2) : **`ray-flash-2` 0,015 $/s en 720p, 0,03 $/s en 1080p** ; **`ray-2` 0,048 $/s en 720p, 0,096 $/s en 1080p**. Ce sont les deux lignes retenues dans `pricing.json`, l'app demandant du 720p.
+
+⚠️ **Écart doc/pricing** : la grille tarifaire officielle facture **Ray3.2** et **Uni-1.1 / Uni-1.1 Max**, alors que l'API reference n'énumère que `ray-2` / `ray-flash-2` et `photon-1` / `photon-flash-1`. Les identifiants API de Ray 3.2 et Uni-1.1 sont **`REQUIRES VERIFICATION`**. Luma présente par ailleurs Ray2 comme « available in the Luma API soon » : une requête sur cet id peut être refusée par le compte avant d'être facturée. Luma redirige aussi vers `docs.agents.lumalabs.ai` (404 sur `llms.txt`).
 
 ### Image
 `POST /dream-machine/v1/generations/image` — `model` : `photon-1` / `photon-flash-1` ; `image_ref[]` (url+weight), `style_ref[]`, `character_ref.identity0.images[]`, `modify_image_ref`, `aspect_ratio`, `format` jpg/png, `sync`, `sync_timeout`, `callback_url`.
@@ -597,7 +599,7 @@ Voir §2.15, §2.16, §2.17. PixVerse : `POST https://app-api.pixverse.ai/openap
 
 | Fournisseur | Modèle | Prix |
 |---|---|---|
-| BytePlus | `dola-seedream-5-0-pro` | 0,045 $/img (≤ 2,61 MP) · 0,09 $ (> 1,5K) ; 1re image d'entrée gratuite puis 0,003 $ |
+| BytePlus | `dola-seedream-5-0-pro` | 0,045 $/img (≤ 2,36 MP) · 0,09 $ au-delà ; 1re image d'entrée gratuite puis 0,003 $ |
 | BytePlus | `seedream-5-0-lite` | 0,035 $/img (entrée gratuite) |
 | BytePlus | `seedream-4-5` | 0,04 $/img |
 | BytePlus | `seedream-4-0`, `seededit-3-0-i2i` | 0,03 $/img |
@@ -624,7 +626,8 @@ Voir §2.15, §2.16, §2.17. PixVerse : `POST https://app-api.pixverse.ai/openap
 | Alibaba (SG) | qwen-image-plus / edit-plus | 0,03 $/img · qwen-image-edit 0,045 $ |
 | MiniMax | `image-01` | 0,0035 $/img |
 | xAI | grok-imagine-image / -quality | 0,02 / 0,05 $/img |
-| OpenAI | gpt-image-2 / 1.5 / 1 | facturé **au token** : entrée 8 / 8 / 10 $ par M, sortie 30 / 32 / 40 $ par M (batch -50 %). **Prix par image : NOT DOCUMENTED sur la page pricing consultée → REQUIRES VERIFICATION** |
+| OpenAI | gpt-image-2 / 1.5 / 1 | facturé **au token** : entrée 8 / 8 / 10 $ par M, sortie 30 / 32 / 40 $ par M (batch -50 %) |
+| OpenAI | **gpt-image-2, par image** | 1024² : low 0,006 · medium 0,053 · high 0,211 — 1024×1536 et 1536×1024 : low 0,005 · medium 0,041 · high 0,165. 2K / 4K : calculés aux tokens. Source : `developers.openai.com/api/docs/guides/image-generation` (guide, pas la page pricing) |
 
 ## 4.3 Audio / TTS / STT
 
@@ -639,16 +642,27 @@ Voir §2.15, §2.16, §2.17. PixVerse : `POST https://app-api.pixverse.ai/openap
 | ElevenLabs | Plans | Starter 6 $ · Creator 22 $ · Pro 99 $ · Scale 299 $ · Business 990 $ /mois |
 | OpenAI | tts-1 / tts-1-hd | 15 $ / 30 $ par M caractères |
 | OpenAI | gpt-4o-transcribe, Whisper | 0,006 $/min |
-| Google | Gemini 2.5 Flash TTS | 0,50 $/M in (texte) → 10 $/M out (audio) |
+| Google | Gemini 2.5 Flash TTS | 0,50 $/M in (texte) → 10 $/M out (audio) — batch 0,25 / 5 |
+| Google | Gemini 2.5 Pro TTS | 1,00 $/M in → 20 $/M out — batch 0,50 / 10 |
 | Google | Gemini 3.1 Flash TTS preview | 1,00 $/M in → 20 $/M out |
 | HeyGen | TTS (Starfish) | 0,000667 $/s |
 | Kling (CN) | 语音合成 (synthèse) | 0,05 ¥/appel · SFX text/video 0,25 ¥ · voice cloning 0,05 ¥ · lip-sync 0,5 ¥/5 s |
-| MiniMax | speech-* | **`NOT DOCUMENTED`** au niveau unitaire (page pricing-speech ne montre que des paliers d'abonnement : 100 000 → 20 000 000 audio points/mois) |
+| MiniMax | `speech-2.8-turbo` / `speech-2.8-hd` | **60 $ / 100 $ par M de caractères d'entrée** (PAYG, page `pricing-paygo`). Les paliers d'abonnement de `pricing-speech` sont une autre grille, pas la seule |
+
+**Conversion des TTS Google vers le tarif au caractère.** Le reste de l'app
+facture la voix off au caractère, Google au token audio. L'audio Gemini vaut
+**25 tokens par seconde** (1 M de tokens ≈ 11,1 h), et le pipeline lit un script
+à 2,6 mots/s d'environ 6 caractères — donc 1 000 caractères ≈ 64 s ≈ 1 600
+tokens : **0,016 $ Flash, 0,032 $ Pro**. Le texte d'entrée s'ajoute à 0,50 /
+1,00 $ par M de tokens, soit moins d'un dixième de centime pour une pub entière,
+et n'est pas compté. La vitesse de lecture est la nôtre, pas celle de Google :
+le chiffre est marqué `approx` dans `pricing.json`.
 
 ## 4.4 LLM (extraits utiles pour l'écriture de script)
 
 | Modèle | Input / M | Cached / M | Output / M |
 |---|---|---|---|
+| `gemini-3.1-pro-preview` | 2,00 $ | 0,20 $ (cache) | 12,00 $ (réponse + raisonnement ; **pas** de free tier API) |
 | `gemini-3.5-flash` | 1,50 $ | — | 9,00 $ (**free tier**) |
 | `gemini-3.6-flash` | 1,50 $ | — | 7,50 $ (free tier) |
 | `gemini-3.5-flash-lite` | 0,30 $ | — | 2,50 $ (free tier) |
@@ -956,12 +970,12 @@ Endpoints de listing officiellement documentés :
 |---|---|---|
 | 1 | Kling international : domaine + tarifs USD | créer un compte sur `app.klingai.com/global/dev` et relever la page d'authentification + la grille de prix |
 | 2 | MiniMax H3 : prix unitaire | non publié → demander au support ou n'exposer H3 qu'avec la mention « prix non publié » |
-| 3 | MiniMax speech : prix par caractère | idem |
+| 3 | ~~MiniMax speech : prix par caractère~~ | **levé** — 60 $ / 100 $ par M de caractères sur `pricing-paygo` (turbo / hd) |
 | 4 | Alibaba Wan : prix | absent de `model-pricing` → chercher la page dédiée ou marquer non estimable |
 | 5 | Alibaba : obtention du `WorkspaceId` | l'utilisateur devra le saisir en plus de la clé → prévoir un second champ dans la carte fournisseur |
 | 6 | xAI Imagine : chemins d'endpoints image/vidéo | pages non publiques → relever depuis la console |
-| 7 | OpenAI : prix **par image** des `gpt-image-*` | la page pricing ne donne que du par-token |
-| 8 | Luma : IDs API de Ray 3.2 et Uni-1.1 | facturés mais absents de l'API reference |
+| 7 | ~~OpenAI : prix **par image** des `gpt-image-*`~~ | **levé pour gpt-image-2** — la grille par qualité est dans le guide image-generation, pas sur la page pricing. 1.5 et 1 mini sont sortis du catalogue |
+| 8 | Luma : IDs API de Ray 3.2 et Uni-1.1 | facturés mais absents de l'API reference ; `ray-2` / `ray-flash-2` sont en revanche tarifés (0,048 / 0,015 $/s en 720p) |
 | 9 | VEED | décider : exclusion, ou exception fal explicite |
 | 10 | Krea | décider : exclusion, ou fallback agrégateur unique |
 

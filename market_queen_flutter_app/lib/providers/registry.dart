@@ -170,9 +170,12 @@ class Registry extends ChangeNotifier {
   }
 
   void _build() {
-    // Only the "Auto" entry is translated: model names are product names.
-    final auto = ModelEntry('auto', tr('Auto - best model for this shot'));
-
+    // Nothing here is translated: model names are product names, and the one
+    // entry that used to be a phrase -- "Auto - best model for this shot" --
+    // is gone. It sat at the top of every menu, said nothing about what would
+    // actually be billed, and had to be opened and read past to reach the
+    // model you wanted. The head of each list is the default instead, which is
+    // what Auto resolved to anyway.
     _entries = <ProviderEntry>[
       // ---- LLM -----------------------------------------------------------
       // Gemini leads because it is the only writer that costs nothing to try:
@@ -266,17 +269,16 @@ class Registry extends ChangeNotifier {
         category: 'avatar',
         label: 'HeyGen',
         credential: 'heygen',
-        models: [
-          auto,
+        models: const [
           // The engine, not a model id: HeyGen has one endpoint and picks the
           // renderer from `engine.type`. Avatar IV is their default for new
           // integrations and the only one that animates an arbitrary photo, so
           // it leads -- the others need an avatar registered on the account.
-          const ModelEntry('avatar_iv', 'Avatar IV'),
-          const ModelEntry('avatar_v', 'Avatar V'),
-          const ModelEntry('avatar_iii', 'Avatar III (4K)'),
+          ModelEntry('avatar_iv', 'Avatar IV'),
+          ModelEntry('avatar_v', 'Avatar V'),
+          ModelEntry('avatar_iii', 'Avatar III (4K)'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'avatar_iv',
         note: tr('Animates a photo you supply. Avatar V and III need an avatar '
             'registered on your HeyGen account first.'),
       ),
@@ -298,8 +300,8 @@ class Registry extends ChangeNotifier {
       ),
 
       // ---- Images ----------------------------------------------------------
-      // Ordered best-first: "Auto" takes the first concrete entry, so the head
-      // of this list is what most runs will actually use.
+      // Ordered best-first: the head of each list is its default, so it is what
+      // most runs will actually use.
       //
       // Gemini leads the category for the same reason it leads the writers: it
       // is the only one that draws anything without a funded account.
@@ -308,16 +310,15 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'Google Gemini',
         credential: 'gemini',
-        models: [
-          auto,
-          const ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2',
+        models: const [
+          ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2',
               tier: ModelTier.free),
-          const ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite',
+          ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite',
               tier: ModelTier.free),
-          const ModelEntry('gemini-3-pro-image', 'Nano Banana Pro'),
-          const ModelEntry('gemini-2.5-flash-image', 'Nano Banana'),
+          ModelEntry('gemini-3-pro-image', 'Nano Banana Pro'),
+          ModelEntry('gemini-2.5-flash-image', 'Nano Banana'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'gemini-3.1-flash-image',
         note: tr('Free tier, no card. Edits your product photo directly. '
             'Every picture carries an invisible SynthID watermark.'),
       ),
@@ -327,18 +328,17 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'Black Forest Labs (FLUX)',
         credential: 'bfl',
-        models: [
-          auto,
+        models: const [
           // Up to eight reference images on the API, which is what keeps a
           // product looking like itself across a whole ad.
-          const ModelEntry('flux-2-pro', 'FLUX.2 [pro]'),
-          const ModelEntry('flux-2-flex', 'FLUX.2 [flex]'),
-          const ModelEntry('flux-2-max', 'FLUX.2 [max]'),
-          const ModelEntry('flux-2-klein-9b', 'FLUX.2 [klein] 9B'),
-          const ModelEntry('flux-2-klein-4b', 'FLUX.2 [klein] 4B'),
-          const ModelEntry('flux-kontext-pro', 'FLUX.1 Kontext [pro]'),
+          ModelEntry('flux-2-pro', 'FLUX.2 [pro]'),
+          ModelEntry('flux-2-flex', 'FLUX.2 [flex]'),
+          ModelEntry('flux-2-max', 'FLUX.2 [max]'),
+          ModelEntry('flux-2-klein-9b', 'FLUX.2 [klein] 9B'),
+          ModelEntry('flux-2-klein-4b', 'FLUX.2 [klein] 4B'),
+          ModelEntry('flux-kontext-pro', 'FLUX.1 Kontext [pro]'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'flux-2-pro',
         note: tr('Priced by the megapixel, and the exact cost comes back with '
             'the job rather than being estimated.'),
       ),
@@ -348,15 +348,14 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'BytePlus (Seedream)',
         credential: 'bytedance',
-        models: [
-          auto,
-          const ModelEntry('seedream-4-5-251128', 'Seedream 4.5'),
-          const ModelEntry('seedream-5-0-lite-260128', 'Seedream 5.0 Lite'),
-          const ModelEntry('seedream-5-0-260128', 'Seedream 5.0'),
-          const ModelEntry('dola-seedream-5-0-pro-260628', 'Seedream 5.0 Pro'),
-          const ModelEntry('seededit-3-0-i2i-250628', 'SeedEdit 3.0'),
+        models: const [
+          ModelEntry('seedream-4-5-251128', 'Seedream 4.5'),
+          ModelEntry('seedream-5-0-lite-260128', 'Seedream 5.0 Lite'),
+          ModelEntry('seedream-5-0-260128', 'Seedream 5.0'),
+          ModelEntry('dola-seedream-5-0-pro-260628', 'Seedream 5.0 Pro'),
+          ModelEntry('seededit-3-0-i2i-250628', 'SeedEdit 3.0'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'seedream-4-5-251128',
         note: tr('Reference images cost nothing to send, so multi-reference '
             'product shots stay cheap.'),
       ),
@@ -366,14 +365,14 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'OpenAI Images',
         credential: 'openai',
-        models: [
-          auto,
-          const ModelEntry('gpt-image-2', 'GPT Image 2'),
-          const ModelEntry('gpt-image-1.5', 'GPT Image 1.5'),
-          const ModelEntry('gpt-image-1-mini', 'GPT Image 1 mini'),
-        ],
-        defaultModel: 'auto',
-        note: tr('gpt-image models can edit your product photo directly.'),
+        // One entry, on purpose. GPT Image 1.5 and 1 mini were both older and
+        // dearer than the model above them for the same job, and a menu of
+        // three where two are never the right answer is a menu that has to be
+        // read three times.
+        models: const [ModelEntry('gpt-image-2', 'GPT Image 2')],
+        defaultModel: 'gpt-image-2',
+        note: tr('Edits your product photo directly. Billed per generated '
+            'image, by quality.'),
       ),
 
       ProviderEntry(
@@ -381,19 +380,18 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'Ideogram',
         credential: 'ideogram',
-        models: [
-          auto,
+        models: const [
           // Ideogram bills by rendering speed rather than by model, and the
           // speed is a separate field on the request, so the two travel here as
           // one id and are split apart again in the task.
-          const ModelEntry('ideogram-v3:TURBO', 'Ideogram 3.0 Turbo'),
-          const ModelEntry('ideogram-v3:DEFAULT', 'Ideogram 3.0'),
-          const ModelEntry('ideogram-v3:QUALITY', 'Ideogram 3.0 Quality'),
-          const ModelEntry('ideogram-v4:TURBO', 'Ideogram 4.0 Turbo'),
-          const ModelEntry('ideogram-v4:DEFAULT', 'Ideogram 4.0'),
-          const ModelEntry('ideogram-v4:QUALITY', 'Ideogram 4.0 Quality'),
+          ModelEntry('ideogram-v3:TURBO', 'Ideogram 3.0 Turbo'),
+          ModelEntry('ideogram-v3:DEFAULT', 'Ideogram 3.0'),
+          ModelEntry('ideogram-v3:QUALITY', 'Ideogram 3.0 Quality'),
+          ModelEntry('ideogram-v4:TURBO', 'Ideogram 4.0 Turbo'),
+          ModelEntry('ideogram-v4:DEFAULT', 'Ideogram 4.0'),
+          ModelEntry('ideogram-v4:QUALITY', 'Ideogram 4.0 Quality'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'ideogram-v3:TURBO',
         note: tr('The one that gets text on a label right. 3.0 also takes a '
             'character reference.'),
       ),
@@ -403,12 +401,11 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'Bria',
         credential: 'bria',
-        models: [
-          auto,
-          const ModelEntry('fibo', 'FIBO'),
-          const ModelEntry('fibo-lite', 'FIBO Lite'),
+        models: const [
+          ModelEntry('fibo', 'FIBO'),
+          ModelEntry('fibo-lite', 'FIBO Lite'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'fibo',
         note: tr('Trained on licensed material and sold with IP indemnity.'),
       ),
 
@@ -426,12 +423,11 @@ class Registry extends ChangeNotifier {
         category: 'image',
         label: 'xAI (Grok Imagine)',
         credential: 'xai',
-        models: [
-          auto,
-          const ModelEntry('grok-imagine-image-quality', 'Grok Imagine Quality'),
-          const ModelEntry('grok-imagine-image', 'Grok Imagine'),
+        models: const [
+          ModelEntry('grok-imagine-image-quality', 'Grok Imagine Quality'),
+          ModelEntry('grok-imagine-image', 'Grok Imagine'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'grok-imagine-image-quality',
         note: tr('Two cents an image, and the same key runs Grok video.'),
       ),
 
@@ -472,14 +468,13 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'LTX (Lightricks)',
         credential: 'ltx',
-        models: [
-          auto,
-          const ModelEntry('ltx-2-3-fast', 'LTX-2.3 Fast'),
-          const ModelEntry('ltx-2-3-pro', 'LTX-2.3 Pro'),
-          const ModelEntry('ltx-2-5-fast', 'LTX-2.5 Fast'),
-          const ModelEntry('ltx-2-5-pro', 'LTX-2.5 Pro'),
+        models: const [
+          ModelEntry('ltx-2-3-fast', 'LTX-2.3 Fast'),
+          ModelEntry('ltx-2-3-pro', 'LTX-2.3 Pro'),
+          ModelEntry('ltx-2-5-fast', 'LTX-2.5 Fast'),
+          ModelEntry('ltx-2-5-pro', 'LTX-2.5 Pro'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'ltx-2-3-fast',
         note: tr('Per second, no minimum. Audio is generated with the picture.'),
       ),
 
@@ -488,21 +483,18 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'BytePlus (Seedance)',
         credential: 'bytedance',
-        models: [
-          auto,
+        models: const [
           // Seedance 2.5 is the reference model of the list: thirty images,
           // ten clips and ten recordings in one request, addressed from the
           // prompt by handle. Hand it a finished ad and a face and the cuts
           // come back with the face in them.
-          const ModelEntry(
-              'dreamina-seedance-2-0-mini-260615', 'Seedance 2.0 Mini'),
-          const ModelEntry(
-              'dreamina-seedance-2-0-fast-260128', 'Seedance 2.0 Fast'),
-          const ModelEntry('dreamina-seedance-2-5-260628', 'Seedance 2.5'),
-          const ModelEntry('dreamina-seedance-2-0-260128', 'Seedance 2.0'),
-          const ModelEntry('seedance-1-5-pro-251215', 'Seedance 1.5 Pro'),
+          ModelEntry('dreamina-seedance-2-0-mini-260615', 'Seedance 2.0 Mini'),
+          ModelEntry('dreamina-seedance-2-0-fast-260128', 'Seedance 2.0 Fast'),
+          ModelEntry('dreamina-seedance-2-5-260628', 'Seedance 2.5'),
+          ModelEntry('dreamina-seedance-2-0-260128', 'Seedance 2.0'),
+          ModelEntry('seedance-1-5-pro-251215', 'Seedance 1.5 Pro'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'dreamina-seedance-2-0-mini-260615',
         note: tr('Billed by output tokens, so the estimate is a range. '
             'Seedance 2.x needs a funded BytePlus account to switch on.'),
       ),
@@ -512,12 +504,11 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'Google Veo',
         credential: 'gemini',
-        models: [
-          auto,
-          const ModelEntry('veo-3.1-fast-generate-preview', 'Veo 3.1 Fast'),
-          const ModelEntry('veo-3.1-generate-preview', 'Veo 3.1'),
+        models: const [
+          ModelEntry('veo-3.1-fast-generate-preview', 'Veo 3.1 Fast'),
+          ModelEntry('veo-3.1-generate-preview', 'Veo 3.1'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'veo-3.1-fast-generate-preview',
         note: tr('Audio and picture in one pass. Clips are 4, 6 or 8 seconds; '
             '1080p and 4K are 8 seconds only.'),
       ),
@@ -527,13 +518,12 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'MiniMax (Hailuo)',
         credential: 'minimax',
-        models: [
-          auto,
-          const ModelEntry('MiniMax-Hailuo-2.3-Fast', 'Hailuo 2.3 Fast'),
-          const ModelEntry('MiniMax-Hailuo-2.3', 'Hailuo 2.3'),
-          const ModelEntry('MiniMax-H3', 'MiniMax H3'),
+        models: const [
+          ModelEntry('MiniMax-Hailuo-2.3-Fast', 'Hailuo 2.3 Fast'),
+          ModelEntry('MiniMax-Hailuo-2.3', 'Hailuo 2.3'),
+          ModelEntry('MiniMax-H3', 'MiniMax H3'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'MiniMax-Hailuo-2.3-Fast',
         note: tr('H3 takes reference images, clips and recordings together. '
             'The Hailuo models take one opening frame.'),
       ),
@@ -556,12 +546,11 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'xAI (Grok Imagine)',
         credential: 'xai',
-        models: [
-          auto,
-          const ModelEntry('grok-imagine-video', 'Grok Imagine Video'),
-          const ModelEntry('grok-imagine-video-1.5', 'Grok Imagine Video 1.5'),
+        models: const [
+          ModelEntry('grok-imagine-video', 'Grok Imagine Video'),
+          ModelEntry('grok-imagine-video-1.5', 'Grok Imagine Video 1.5'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'grok-imagine-video',
         note: tr('Five cents a second, and the job tells you what it cost.'),
       ),
 
@@ -570,12 +559,11 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'Luma',
         credential: 'luma',
-        models: [
-          auto,
-          const ModelEntry('ray-flash-2', 'Ray Flash 2'),
-          const ModelEntry('ray-2', 'Ray 2'),
+        models: const [
+          ModelEntry('ray-flash-2', 'Ray Flash 2'),
+          ModelEntry('ray-2', 'Ray 2'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'ray-flash-2',
         note: tr('Takes a closing frame as well as an opening one, and can '
             'carry on from a clip it made earlier.'),
       ),
@@ -585,18 +573,17 @@ class Registry extends ChangeNotifier {
         category: 'video',
         label: 'Kling (via fal.ai)',
         credential: 'fal',
-        models: [
-          auto,
-          const ModelEntry(
+        models: const [
+          ModelEntry(
               'fal-ai/kling-video/v3/standard/image-to-video', 'Kling 3.0 Standard'),
-          const ModelEntry(
+          ModelEntry(
               'fal-ai/kling-video/v3/pro/image-to-video', 'Kling 3.0 Pro'),
-          const ModelEntry(
+          ModelEntry(
               'fal-ai/kling-video/v3/4k/image-to-video', 'Kling 3.0 Native 4K'),
-          const ModelEntry(
+          ModelEntry(
               'fal-ai/kling-video/o3/standard/image-to-video', 'Kling O3 Standard'),
         ],
-        defaultModel: 'auto',
+        defaultModel: 'fal-ai/kling-video/v3/standard/image-to-video',
         note: tr("Kling's own API is sold in packs of several hundred dollars "
             'with an expiry date, so this is the one model bought through a '
             'reseller, by the second.'),
@@ -687,10 +674,20 @@ class Registry extends ChangeNotifier {
     ];
   }
 
+  /// A saved preference left over from the builds that offered "Auto".
+  ///
+  /// It is no longer in any menu, but it is in plenty of settings.json files,
+  /// and handing "auto" to a provider as a model id is a rejected request with
+  /// no obvious cause. [resolveModel] is what turns it back into something
+  /// real; this is only how that path recognises it.
   static bool isAuto(String modelId) => modelId == 'auto';
 
-  /// "auto" is a placeholder, not a model id. This turns it into a real one,
-  /// picked from what the shot needs. Returns the id unchanged otherwise.
+  /// The model id to actually send.
+  ///
+  /// Everything the menus offer is already concrete, so this is a pass-through
+  /// for anything chosen today. The one thing it still does is rescue an
+  /// install whose preferences say "auto": that becomes the head of the
+  /// provider's list, which is what the old placeholder resolved to anyway.
   String resolveModel(String providerId, String modelId, [int durationSeconds = 0]) {
     if (!isAuto(modelId)) return modelId;
 

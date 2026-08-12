@@ -208,7 +208,6 @@
   "Paste a voice id": "Collez un id de voix",
   "fal.ai returned no audio.": "fal.ai n'a renvoyé aucun audio.",
   "Auto picked %1.": "Auto a choisi %1.",
-  "Auto - best model for this shot": "Auto - meilleur modèle pour ce plan",
   "The widest catalogue. Any model id from fal.ai/models also works.": "Le catalogue le plus large. N'importe quel id de fal.ai/models fonctionne aussi.",
   "Scripts, images, Sora video, voice-over and subtitles.": "Scripts, images, vidéo Sora, voix off et sous-titres.",
   "Images, video and voices (Kling, Veo, Seedance, FLUX, MiniMax...).": "Images, vidéo et voix (Kling, Veo, Seedance, FLUX, MiniMax...).",
@@ -255,7 +254,6 @@
   "No shot was rendered, so there is nothing to cut together.": "Aucun plan n'a été produit, il n'y a rien à monter.",
   "The clips are %1s short of the voice-over; the last shot holds.": "Il manque %1 s de vidéo par rapport à la voix off ; le dernier plan est figé.",
   "Cutting %1 shot(s) into %2x%3.": "Montage de %1 plan(s) en %2x%3.",
-  "gpt-image models can edit your product photo directly.": "Les modèles gpt-image peuvent retoucher directement votre photo produit.",
   "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - une seule clé.",
   "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all. On the Reference models, point at what you dropped in from the prompt: @Image1, @Video1, @Audio1.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - une seule clé. Sur les modèles Reference, désignez depuis le prompt ce que vous avez déposé : @Image1, @Video1, @Audio1.",
   "Uploading %1...": "Envoi de %1...",
@@ -1021,5 +1019,6 @@
     "Images": "Images",
     "Shooting from the prompt on %1.": "Tournage à partir du prompt sur %1.",
     "This model animates a still. Drop in the picture it should start from, or pick one that shoots from the prompt alone.": "Ce modèle anime une image fixe. Déposez celle par laquelle il doit commencer, ou choisissez-en un qui tourne à partir du prompt seul.",
-    "Working from your reference material on %1.": "Travail à partir de vos références sur %1."
+    "Working from your reference material on %1.": "Travail à partir de vos références sur %1.",
+    "Edits your product photo directly. Billed per generated image, by quality.": "Retouche directement votre photo produit. Facturé à l'image générée, selon la qualité."
 }

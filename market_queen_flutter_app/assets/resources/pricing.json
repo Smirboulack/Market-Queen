@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-08-11",
+  "updated": "2026-08-12",
   "currency": "USD",
   "_comment": [
     "What each model costs, keyed by the model id the providers actually send.",
@@ -86,8 +86,11 @@
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
     "gemini-3.1-pro-preview": {
-      "unknown": true,
-      "_note": "Preview. Not on the published pricing table."
+      "unit": "tokens",
+      "in": 2.0,
+      "out": 12.0,
+      "_note": "Output covers the reasoning tokens as well as the answer. No free tier on the API, unlike the Flash models above.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
     "gemini-2.5-pro": {
       "unit": "tokens",
@@ -193,7 +196,12 @@
       "amount": 0.04,
       "source": "https://docs.byteplus.com/en/docs/ModelArk/1544106"
     },
-    "seedream-5-0-lite-260128": { "unit": "image", "amount": 0.035 },
+    "seedream-5-0-lite-260128": {
+      "unit": "image",
+      "amount": 0.035,
+      "_note": "Flat, whatever the output size. Reference images are free.",
+      "source": "https://docs.byteplus.com/docs/ModelArk/1099320"
+    },
     "seedream-5-0-260128": {
       "unknown": true,
       "_note": "Only the Lite and Pro variants are on the pricing table."
@@ -202,17 +210,18 @@
       "unit": "image",
       "amount": 0.045,
       "approx": true,
-      "_note": "0.09 above 2.61 megapixels.",
-      "source": "https://docs.byteplus.com/en/docs/ModelArk/1544106"
+      "_note": "Up to 2.36 megapixels out; 0.09 above it. The first reference image is free, each one after it 0.003.",
+      "source": "https://docs.byteplus.com/docs/ModelArk/1099320"
     },
     "seededit-3-0-i2i-250628": { "unit": "image", "amount": 0.03 },
 
     "gpt-image-2": {
-      "unknown": true,
-      "_note": "Billed per token, not per image; no per-image figure published."
+      "unit": "image",
+      "amount": 0.053,
+      "approx": true,
+      "_note": "Medium quality at 1024x1024, which is what the API defaults to. Low is 0.006 and high 0.211; the vertical 1024x1536 frame an ad asks for is 0.041 medium, 0.165 high. Underneath it is token billing -- 30.00 per 1M image output tokens -- which is where the 2K and 4K sizes come from.",
+      "source": "https://developers.openai.com/api/docs/guides/image-generation"
     },
-    "gpt-image-1.5": { "unknown": true, "_note": "Billed per token." },
-    "gpt-image-1-mini": { "unknown": true, "_note": "Billed per token." },
 
     "ideogram-v3:TURBO": {
       "unit": "image",
@@ -360,10 +369,17 @@
     "grok-imagine-video-1.5": { "unit": "second", "amount": 0.08 },
 
     "ray-2": {
-      "unknown": true,
-      "_note": "Luma publishes prices for Ray3.2, but ray-2 and ray-flash-2 are the only ids its API reference accepts, and no price is given for them."
+      "unit": "second",
+      "amount": 0.048,
+      "_note": "720p. 1080p is 0.096/s. Luma lists Ray2 as coming to the API rather than on it, so a request for this id may be refused by the account before it is billed.",
+      "source": "https://lumalabs.ai/ray2"
     },
-    "ray-flash-2": { "unknown": true },
+    "ray-flash-2": {
+      "unit": "second",
+      "amount": 0.015,
+      "_note": "720p. 1080p is 0.03/s.",
+      "source": "https://lumalabs.ai/ray2"
+    },
 
     "fal-ai/kling-video/v3/standard/image-to-video": { "unit": "second", "amount": 0.14 },
     "fal-ai/kling-video/v3/pro/image-to-video": { "unit": "second", "amount": 0.14 },
@@ -381,16 +397,41 @@
     "eleven_flash_v2_5": { "unit": "kchars", "amount": 0.05 },
 
     "speech-2.8-hd": {
-      "unknown": true,
-      "_note": "MiniMax publishes speech only as monthly audio-point tiers, with no per-character rate."
+      "unit": "kchars",
+      "amount": 0.1,
+      "_note": "100.00 per 1M input characters, pay as you go.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
     },
-    "speech-2.8-turbo": { "unknown": true },
+    "speech-2.8-turbo": {
+      "unit": "kchars",
+      "amount": 0.06,
+      "_note": "60.00 per 1M input characters, pay as you go.",
+      "source": "https://platform.minimax.io/docs/guides/pricing-paygo"
+    },
 
+    "_comment_gemini_tts": [
+      "Google bills TTS by output audio token -- 10.00 per 1M on Flash, 20.00",
+      "on Pro -- and the app bills voice-over by the character, so these two",
+      "numbers are converted rather than published. Gemini's audio is 25 tokens",
+      "a second, and this app reads a script at 2.6 words a second of about six",
+      "characters each, so 1000 characters is 64 seconds is 1600 tokens:",
+      "0.016 on Flash, 0.032 on Pro. The input text is billed too, at 0.50 and",
+      "1.00 per 1M tokens, which is under a tenth of a cent for a whole ad and",
+      "is left out. Marked approx because the speaking rate is ours, not",
+      "Google's -- a fast read costs less than this says and a slow one more."
+    ],
     "gemini-2.5-flash-preview-tts": {
-      "unknown": true,
-      "_note": "Billed per output audio token (10.00/M), which has no published characters-per-token ratio to convert from."
+      "unit": "kchars",
+      "amount": 0.016,
+      "approx": true,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "gemini-2.5-pro-preview-tts": { "unknown": true },
+    "gemini-2.5-pro-preview-tts": {
+      "unit": "kchars",
+      "amount": 0.032,
+      "approx": true,
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
 
     "gpt-4o-mini-tts": { "unit": "kchars", "amount": 0.017, "approx": true },
     "tts-1-hd": { "unit": "kchars", "amount": 0.03 },

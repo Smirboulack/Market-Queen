@@ -219,6 +219,16 @@ class MqTheme {
   static const double pagePadding = 28;
   static const double fieldHeight = 40;
 
+  /// How wide the studio's own column is allowed to get, whatever the monitor.
+  ///
+  /// The prompt bar and the feed above it are one column and share this number,
+  /// which is what makes them read as one object: a feed that spans a 27" screen
+  /// while the bar underneath stops at 1180 is two things that happen to be on
+  /// the same page. Past this the send button ends up at the far edge of the
+  /// desk while the caret is in the middle of it, and a picture ends up four
+  /// feet from the prompt that asked for it.
+  static const double contentMaxWidth = 1180;
+
   // The three columns of the window. Fixed, because all three carry labels that
   // must not wrap: the nav's own entries, the crumb trail, and the rail's
   // two-across trait pickers.

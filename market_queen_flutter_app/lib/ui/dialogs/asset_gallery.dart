@@ -150,11 +150,26 @@ class _GalleryState extends State<_Gallery> {
 
   // ---- build ---------------------------------------------------------------
 
+  /// The shape of one tile, which is not the same question for the two kinds.
+  ///
+  /// An actor is a person and is photographed as one: a portrait, head and
+  /// shoulders, and a tall narrow tile is exactly the crop you want of it. A
+  /// scene is a room, a street, the inside of a car -- landscape, every time --
+  /// and the same portrait tile was cutting the sides off every one of them and
+  /// then stacking eight of them into a wall of slivers. The card underneath is
+  /// one widget for both; only the cell it is given differs.
+  ({double extent, double height}) get _cell => _isActor
+      ? (extent: 176, height: 226)
+      : (extent: 232, height: 172);
+
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     final width = (screen.width - 96).clamp(560.0, 1020.0);
-    final height = (screen.height - 120).clamp(420.0, 660.0);
+    // A ceiling rather than a height. It used to be both, so a library holding
+    // four scenes opened a modal two thirds of which was empty white, with the
+    // tiles pinned to the top of it.
+    final maxHeight = (screen.height - 120).clamp(360.0, 660.0);
 
     return ListenableBuilder(
       listenable: _library,
@@ -166,18 +181,23 @@ class _GalleryState extends State<_Gallery> {
                 'somebody new.')
             : tr('Everywhere you have filmed before, and one more click to '
                 'build somewhere new.'),
-        child: SizedBox(
-          height: height,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: maxHeight),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // The rail is dropped rather than squeezed on a narrow window:
               // filters are the part of this screen you can do without.
+              //
+              // No rule between the two, and deliberately: everything in this
+              // row shrink-wraps so that four scenes get a short modal, and a
+              // hairline tall enough to look like a divider would be the one
+              // thing in it insisting on the full height.
               if (width > 760) ...[
-                SizedBox(width: 176, child: _rail()),
-                const SizedBox(width: MqTheme.gapLarge),
+                SizedBox(width: 168, child: _rail(context)),
+                const SizedBox(width: MqTheme.gapLarge + 12),
               ],
-              Expanded(child: _grid()),
+              Expanded(child: _grid(context)),
             ],
           ),
         ),
@@ -185,13 +205,17 @@ class _GalleryState extends State<_Gallery> {
     );
   }
 
-  Widget _rail() {
+  Widget _rail(BuildContext context) {
     final groups = _FilterGroup.of(widget.kind);
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
+          // Drops the first label onto the middle of the search box beside it,
+          // instead of level with its top edge.
+          const SizedBox(height: 9),
           for (final group in groups) ...[
             FieldLabel(group.label),
             const SizedBox(height: 8),
@@ -225,12 +249,14 @@ class _GalleryState extends State<_Gallery> {
     );
   }
 
-  Widget _grid() {
+  Widget _grid(BuildContext context) {
     final assets = _shown;
     final hidden = _library.count - assets.length;
+    final cell = _cell;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
         _SearchField(
           controller: _search,
@@ -238,11 +264,15 @@ class _GalleryState extends State<_Gallery> {
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: MqTheme.gap),
-        Expanded(
+        // Shrink-wrapped, and scrolling only once there is more than the
+        // ceiling allows: three scenes take three tiles' worth of modal.
+        Flexible(
           child: GridView.builder(
-            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-              maxCrossAxisExtent: 176,
-              mainAxisExtent: 226,
+            padding: EdgeInsets.zero,
+            shrinkWrap: true,
+            gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+              maxCrossAxisExtent: cell.extent,
+              mainAxisExtent: cell.height,
               crossAxisSpacing: MqTheme.gap,
               mainAxisSpacing: MqTheme.gap,
             ),

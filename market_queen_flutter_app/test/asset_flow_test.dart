@@ -139,6 +139,13 @@ void main() {
       expect(find.text(dial), findsOneWidget, reason: dial);
     }
 
+    // The panel is a menu now: it hangs over the canvas from the cog, and a
+    // press anywhere else puts it away rather than falling through to whatever
+    // was under it.
+    await tester.tapAt(const Offset(8, 8));
+    await settle(tester);
+    expect(find.byType(CastPanel), findsNothing);
+
     // The name is the other door: it goes to the library to swap them.
     await tester.tap(find.text('Camille').first);
     await settle(tester);

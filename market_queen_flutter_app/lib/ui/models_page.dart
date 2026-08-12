@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../i18n/translator.dart';
 import '../providers/registry.dart';
+import 'brand.dart';
 import 'format.dart';
 import 'icons.dart';
 import 'theme.dart';
@@ -166,16 +167,10 @@ class _Card {
   /// -- there are none today -- falls back to its own label.
   String get label => credential?.label ?? providers.first.label;
 
-  /// Every model on the card that is actually a model.
-  ///
-  /// "Auto" is excluded throughout this page: it cannot be switched off, so a
-  /// checkbox beside it is a control that does nothing, and counting it made
-  /// four models read as "5 of 5". It is an instruction to the composer -- use
-  /// the best of whatever is left on -- and the composer is where it belongs.
+  /// Every model on the card.
   List<String> get modelIds => [
         for (final provider in providers)
-          for (final model in provider.models)
-            if (!Registry.isAuto(model.id)) model.id,
+          for (final model in provider.models) model.id,
       ];
 }
 
@@ -423,16 +418,37 @@ class _AccountCard extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          margin: const EdgeInsets.only(top: 6),
-          width: 7,
-          height: 7,
-          decoration: BoxDecoration(
-            color: hasKey ? mq.success : mq.borderStrong,
-            shape: BoxShape.circle,
+        // The account's mark, with the "there is a key in this one" dot pinned
+        // to its corner. The dot used to stand on its own at the head of the
+        // row, which made seventeen cards seventeen identical grey headings
+        // with a full stop in front of them -- nothing to aim at while looking
+        // for the one you came here to set up.
+        SizedBox(
+          width: 30,
+          height: 30,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              ProviderMark(credential: credential?.id ?? ''),
+              PositionedDirectional(
+                end: -2,
+                bottom: -2,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: hasKey ? mq.success : mq.borderStrong,
+                    shape: BoxShape.circle,
+                    // Ringed in the card's own surface so it reads as a badge
+                    // on the mark rather than as a smudge in the corner of it.
+                    border: Border.all(color: mq.surface, width: 2),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,10 +504,7 @@ class _AccountCard extends StatelessWidget {
                   for (final provider in card.providers) {
                     app.settings.setProviderModelsHidden(
                       provider.id,
-                      [
-                        for (final model in provider.models)
-                          if (!Registry.isAuto(model.id)) model.id,
-                      ],
+                      [for (final model in provider.models) model.id],
                       hide,
                     );
                   }
@@ -592,8 +605,7 @@ class _Group extends StatelessWidget {
           runSpacing: 6,
           children: [
             for (final model in provider.models)
-              if (!Registry.isAuto(model.id))
-                _ModelChip(app: app, providerId: provider.id, model: model),
+              _ModelChip(app: app, providerId: provider.id, model: model),
           ],
         ),
       ],

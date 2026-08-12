@@ -153,7 +153,26 @@ void main() {
       expect(ids, contains('dreamina-seedance-2-0-260128'));
     });
 
-    test('Auto always resolves to something concrete', () {
+    test('every menu offers a real model id, never a placeholder', () {
+      for (final entry in registry.entries) {
+        expect(entry.models, isNotEmpty, reason: entry.id);
+        for (final model in entry.models) {
+          expect(
+            Registry.isAuto(model.id),
+            isFalse,
+            reason: '${entry.id} still offers the "Auto" placeholder',
+          );
+        }
+        // And the default is one of them, rather than a fourth thing.
+        expect(
+          [for (final model in entry.models) model.id],
+          contains(entry.defaultModel),
+          reason: entry.id,
+        );
+      }
+    });
+
+    test('a saved "auto" from an older build still resolves', () {
       for (final seconds in [5, 10, 30]) {
         final picked = registry.resolveModel('bytedance-video', 'auto', seconds);
         expect(picked, isNotEmpty);
@@ -174,7 +193,6 @@ void main() {
 
       expect(onFal, isNotEmpty);
       for (final id in onFal) {
-        if (Registry.isAuto(id)) continue;
         expect(id, contains('kling'), reason: '$id is on fal but is not Kling');
       }
     });

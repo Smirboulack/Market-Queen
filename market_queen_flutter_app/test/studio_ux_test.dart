@@ -52,6 +52,25 @@ void main() {
 
   setUp(() => app.project.feed.clear());
 
+  /// Points the clip shelf at a model the app has no schema for yet.
+  ///
+  /// Only fal's endpoints are read at run time, and nothing reads them in a
+  /// test, so this is how to get the composer into the state it is in for the
+  /// first second of a real session: the shelf offering everything it can take
+  /// because no model has said otherwise yet. Restored afterwards -- the
+  /// preference is written to disk and shared by every test in this file.
+  Future<void> onUnreadModel(WidgetTester tester) async {
+    app.settings
+      ..setPref('videoProvider', 'fal-video')
+      ..setPref(
+        'videoModel',
+        'fal-ai/kling-video/v3/standard/image-to-video',
+      );
+    addTearDown(() => app.settings
+      ..setPref('videoProvider', null)
+      ..setPref('videoModel', null));
+  }
+
   // A real 1x1 PNG: the tiles put it through the image decoder, and a file of
   // random bytes turns the test into an exercise in error builders.
   final pixel = base64Decode(
@@ -211,6 +230,13 @@ void main() {
     testWidgets('a dropped picture and clip carry their handles', (
       tester,
     ) async {
+      // On a model whose schema has not landed: the bar takes all three kinds
+      // until something says otherwise, which is the only state in which a
+      // clip and a picture are in the well together. A model that has declared
+      // itself narrows the well to what it will actually accept, and every
+      // declared one takes a single opening frame and no clips at all.
+      await onUnreadModel(tester);
+
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.video);
       await drop(tester, [file('face.png'), file('take.mp4')]);
@@ -542,6 +568,13 @@ void main() {
       app.settings
         ..setPref('videoProvider', 'bytedance-video')
         ..setPref('videoModel', 'dreamina-seedance-2-5-260628');
+      // Put back afterwards. The preference is written to disk and shared by
+      // every test in the file, so a model picked here to prove a point was
+      // still picked three tests later -- which is what made the two that
+      // follow fail on a clean checkout.
+      addTearDown(() => app.settings
+        ..setPref('videoProvider', null)
+        ..setPref('videoModel', null));
 
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.video);
@@ -565,8 +598,10 @@ void main() {
     testWidgets('each kind has a button of its own, and only its own', (
       tester,
     ) async {
+      await onUnreadModel(tester);
       await pumpEditor(tester);
 
+      // The shelf's own ceiling, before a model narrows it.
       await pickTab(tester, ComposerTab.video);
       expect(find.byTooltip('Add pictures'), findsOneWidget);
       expect(find.byTooltip('Add clips'), findsOneWidget);
