@@ -27,3 +27,5 @@ CREATE VOICE
 
 - Ajouter les icônes et logo officiel dans le menu modèles pour aider l'utilisateur à voir trouver tout de suite ce qu'il cherche.
   - La place est faite : `ProviderMark` affiche une pastille par compte sur la page Modèles et dans le menu de modèles du composer. Il reste à déposer les vrais logos dans `assets/brand/providers/<credential>.png` (voir le README du dossier) — en attendant, c'est un monogramme à deux lettres qui est dessiné. Ce sont des marques déposées : le choix de les embarquer dans le dépôt reste à faire.
+
+- gérer aussi la couleur des logos pour le dark mode.
