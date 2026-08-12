@@ -323,3 +323,6 @@ Si ton objectif est de **réduire le coût API de Market Queen**, le prochain tr
 - Il faut ajouter, dans les réglages du modèle d'image, l'option quality et size (1K, 2K, 4K) si ça existe pour le modèle sélectionné etc. Selon le modèle bien vérifié.
 
 - Ajouter l'option de sous-titre automatique dans les réglages de génération de vidéo.
+
+- Dégradation, il faut pouvoir ajouter référence image, vidéos et audio si le modèle le permet, dans le mode vidéo. Par exemple Seedance 2.5 est capable de prendre en référence des images, vidéos et audios. Aussi il faudra détecter dynamiquement si l'utilisateur a ajouter des références (images/vidéos/audios) ou non pour aller taper dans le bon endpoint et pour pas qu'il ait besoin de choisir le modèle 2.5 référence explicitement. Ca va de soit pour tous les modèles bien sûr.
+
