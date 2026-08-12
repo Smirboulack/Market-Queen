@@ -47,12 +47,17 @@ class BrandMark extends StatelessWidget {
 ///
 /// The artwork is a drop-in, exactly like the app's own mark: put a square PNG
 /// at `assets/brand/providers/<credential>.png` -- `openai.png`, `gemini.png`
-/// -- and it is picked up at run time. None ship with the app. They are other
-/// people's trademarks, and bundling fifteen of them into the repository is a
-/// licensing decision for whoever ships the build rather than a detail of the
-/// interface, so until one is dropped in the fallback below is what draws: the
-/// account's initials in a plain tile. That is monochrome on purpose -- see the
-/// palette in [MqTheme] -- so a page of them stays a page of one colour.
+/// -- and it is picked up at run time. An account with no file falls back to
+/// the tile below: its initials, monochrome, so a page of them stays a page of
+/// one colour -- see the palette in [MqTheme].
+///
+/// **Two sheets per account, not one.** Half of these marks are black on
+/// transparent, which is invisible on a dark surface -- and the other half are
+/// full-colour and need no second version. So a `w` file beside the ordinary
+/// one -- `openaiw.png` beside `openai.png` -- is the white sheet, used in the
+/// dark theme and only there. It is looked for and quietly skipped when absent,
+/// which is what makes "does this logo need a light version" a question you
+/// answer by putting a file in a folder rather than by editing a list here.
 class ProviderMark extends StatelessWidget {
   const ProviderMark({super.key, required this.credential, this.size = 30});
 
@@ -63,6 +68,19 @@ class ProviderMark extends StatelessWidget {
 
   static String assetFor(String credential) =>
       'assets/brand/providers/$credential.png';
+
+  /// The white sheet, for the dark theme.
+  static String darkAssetFor(String credential) =>
+      'assets/brand/providers/${credential}w.png';
+
+  /// Accounts whose white sheet has been looked for and is not there.
+  ///
+  /// The asset either exists in the bundle or it does not, and that cannot
+  /// change while the app is running -- so the miss is worth remembering. The
+  /// Models page rebuilds on every settings tick with a dozen marks on it, and
+  /// without this each of those redraws asks the bundle for a dozen files it
+  /// has already been told are absent.
+  static final Set<String> _noDarkSheet = <String>{};
 
   /// Two letters per account, written down rather than sliced off the label:
   /// three different accounts begin with a B, two with a G, and an initial that
@@ -98,17 +116,38 @@ class ProviderMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The ordinary sheet, and the initials when there is no artwork at all.
+    Widget sheet() => Image.asset(
+      assetFor(credential),
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (context, _, _) =>
+          _Monogram(text: initialsFor(credential), size: size),
+    );
+
+    final wantsWhite =
+        context.mq.dark && !_noDarkSheet.contains(credential);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.28),
-      child: Image.asset(
-        assetFor(credential),
-        width: size,
-        height: size,
-        fit: BoxFit.contain,
-        filterQuality: FilterQuality.medium,
-        errorBuilder: (context, _, _) =>
-            _Monogram(text: initialsFor(credential), size: size),
-      ),
+      child: wantsWhite
+          ? Image.asset(
+              darkAssetFor(credential),
+              width: size,
+              height: size,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.medium,
+              // No white sheet for this one: a full-colour mark reads on both
+              // surfaces and only ever needed the one file. Noted so the next
+              // build goes straight to it.
+              errorBuilder: (context, _, _) {
+                _noDarkSheet.add(credential);
+                return sheet();
+              },
+            )
+          : sheet(),
     );
   }
 }

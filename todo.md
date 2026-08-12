@@ -25,7 +25,4 @@ CREATE VOICE
 
 - S'assurer que si on lance les générations en plusieurs exemplaires, ces générations soient bien lancer en même temps/parallèles. Pour ne pas que le temps d'attente soit additionnel. 
 
-- Ajouter les icônes et logo officiel dans le menu modèles pour aider l'utilisateur à voir trouver tout de suite ce qu'il cherche.
-  - La place est faite : `ProviderMark` affiche une pastille par compte sur la page Modèles et dans le menu de modèles du composer. Il reste à déposer les vrais logos dans `assets/brand/providers/<credential>.png` (voir le README du dossier) — en attendant, c'est un monogramme à deux lettres qui est dessiné. Ce sont des marques déposées : le choix de les embarquer dans le dépôt reste à faire.
-
-- gérer aussi la couleur des logos pour le dark mode.
+- `kling.png` est dans `assets/brand/providers/` mais n'est utilisé nulle part : l'id du credential est `fal`, donc c'est `fal.png` que la carte lit. La carte s'appelle pourtant « Kling (via fal.ai) » — si la marque Kling parle plus, renommer `kling.png` par-dessus `fal.png`.

@@ -391,7 +391,7 @@ class _BatchBlock extends StatelessWidget {
           // Centred, so a batch that does not fill its last row -- or a single
           // result narrowed by the ceiling above -- sits under the prompt that
           // asked for it rather than against the left margin.
-          alignment: WrapAlignment.center,
+          alignment: WrapAlignment.end,
           children: [
             for (final item in batch.items)
               SizedBox(
