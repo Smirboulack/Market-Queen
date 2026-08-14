@@ -933,6 +933,20 @@ class ProviderFactory {
         _ => null,
       };
 
+  /// The same five writers, asked one free-form question. Used by the prompt
+  /// doctor; nothing here answers in the shot-list shape.
+  static ProviderTask? text(String providerId, TextRequest request) =>
+      switch (providerId) {
+        'openai-chat' => OpenAiTextTask(request),
+        'anthropic-messages' => AnthropicTextTask(request),
+        'gemini-generate' => GeminiTextTask(request),
+        'xai-chat' =>
+          OpenAiTextTask(request, host: 'https://api.x.ai/v1', vendor: 'xAI'),
+        'minimax-chat' => OpenAiTextTask(request,
+            host: 'https://api.minimax.io/v1', vendor: 'MiniMax'),
+        _ => null,
+      };
+
   static ProviderTask? image(String providerId, ImageRequest request) =>
       switch (providerId) {
         'gemini-image' => GeminiImageTask(request),

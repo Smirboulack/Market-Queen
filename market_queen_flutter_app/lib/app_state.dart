@@ -12,6 +12,7 @@ import 'models/casting.dart';
 import 'models/image_forge.dart';
 import 'models/library_model.dart';
 import 'models/line_doctor.dart';
+import 'models/prompt_doctor.dart';
 import 'models/studio_runner.dart';
 import 'models/voice_booth.dart';
 import 'models/workspace.dart';
@@ -59,6 +60,7 @@ class AppState {
     voiceBooth = VoiceBooth(settings, registry, pricing, log, voiceCasting);
     library = LibraryModel(settings);
     lineDoctor = LineDoctor(settings, registry, pricing, log);
+    promptDoctor = PromptDoctor(settings, registry, log);
     // Fires into the open ad's feed, which is where the canvas reads from. It
     // outlives any one ad: a batch sent just before you step back to the
     // project list still has somewhere to land.
@@ -133,6 +135,9 @@ class AppState {
   late final LineDoctor lineDoctor;
   late final LibraryModel library;
 
+  /// Rewrites the prompt in the bar, on a free writer where there is one.
+  late final PromptDoctor promptDoctor;
+
   /// Raised when the resolved ffmpeg path may have changed.
   final Signal ffmpegPathChanged = Signal();
 
@@ -152,11 +157,9 @@ class AppState {
       project.toRequest(actors: actors, scenes: scenes);
 
   String _lastFfmpegPath = '';
-  String _lastLanguage = '';
 
   void _wire() {
     _lastFfmpegPath = ffmpegPath;
-    _lastLanguage = translator.currentLanguage;
 
     settings.addListener(() {
       final resolved = ffmpegPath;
@@ -164,17 +167,20 @@ class AppState {
         _lastFfmpegPath = resolved;
         ffmpegPathChanged.emit();
       }
-      // Settings owns the choice; the translator carries it out.
-      if (settings.uiLanguage != _lastLanguage &&
-          settings.uiLanguage != translator.currentLanguage) {
-        translator.applyLanguage(settings.uiLanguage);
+      // Settings owns the choice; the translator carries it out. An empty
+      // preference means "follow the system", which was resolved once at
+      // startup -- re-resolving it here would reload the catalogue and
+      // retranslate the whole registry on every preference write, including
+      // the model picks the composer makes constantly.
+      final wanted = settings.uiLanguage;
+      if (wanted.isNotEmpty && wanted != translator.currentLanguage) {
+        translator.applyLanguage(wanted);
       }
     });
 
     // Strings that Dart built once have to be rebuilt by hand; widget text goes
     // through tr() on every build and follows on its own.
     translator.addListener(() {
-      _lastLanguage = translator.currentLanguage;
       registry.retranslate();
       pipeline.retranslate();
     });
@@ -245,6 +251,7 @@ class AppState {
     sceneForge.dispose();
     voiceBooth.dispose();
     lineDoctor.dispose();
+    promptDoctor.dispose();
     library.dispose();
     registry.dispose();
     settings.dispose();

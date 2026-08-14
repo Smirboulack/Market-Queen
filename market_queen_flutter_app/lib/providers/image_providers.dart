@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../core/http_util.dart';
 import '../i18n/translator.dart';
+import 'capabilities.dart';
 import 'provider_task.dart';
 import 'types.dart';
 
@@ -185,6 +186,10 @@ class OpenAiImageTask extends ImageTask {
       'prompt': request.prompt,
       'size': _openAiSize(request.model, request.aspectRatio),
       'n': 1,
+      // Low, medium or high, and the three are a third of a cent, five cents
+      // and twenty -- which is why it is a menu rather than a constant. Only
+      // sent when the model declares it; dall-e has no such field.
+      if (request.quality.isNotEmpty) 'quality': request.quality,
       // gpt-image-1 always answers with base64 and rejects response_format.
       if (request.model.startsWith('dall-e')) 'response_format': 'b64_json',
     };
@@ -226,6 +231,7 @@ class OpenAiImageTask extends ImageTask {
         'prompt': request.prompt,
         'size': _openAiSize(request.model, request.aspectRatio),
         'n': '1',
+        if (request.quality.isNotEmpty) 'quality': request.quality,
         // input_fidelity is supported by gpt-image-1 but not by gpt-image-1-mini
         // or gpt-image-2.
         if (supportsInputFidelity(request.model)) 'input_fidelity': 'high',
@@ -274,11 +280,15 @@ class OpenAiImageTask extends ImageTask {
 
 /// FLUX.2 takes pixels; FLUX.1 Kontext takes a ratio string. Both are here
 /// because the two generations are on the same key and the same host.
-({int width, int height}) _fluxSize(String aspect) => switch (aspect) {
-  '16:9' => (width: 1536, height: 864),
-  '1:1' => (width: 1024, height: 1024),
-  _ => (width: 864, height: 1536),
-};
+///
+/// The pixels come from the model's own declaration -- the long edge the user
+/// picked, laid over the frame they picked, held under the four megapixels
+/// FLUX.2 will produce.
+({int width, int height}) _fluxSize(ImageRequest request) =>
+    ImageCapabilities.of(request.model).pixelsFor(
+      request.size,
+      request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+    );
 
 class BflImageTask extends ImageTask {
   BflImageTask(super.request);
@@ -301,7 +311,7 @@ class BflImageTask extends ImageTask {
     // Kontext is the other way round. Sending the wrong one is a 422, so the
     // two are kept apart rather than sending both and hoping.
     if (request.model.startsWith('flux-2')) {
-      final size = _fluxSize(request.aspectRatio);
+      final size = _fluxSize(request);
       body['width'] = size.width;
       body['height'] = size.height;
     } else {
@@ -369,12 +379,16 @@ class SeedreamImageTask extends ImageTask {
 
   /// Pixel sizes rather than the "2K" shorthand, so the frame comes back in the
   /// shape the storyboard asked for instead of whatever the model inferred from
-  /// the prose. Both are inside ModelArk's published pixel and ratio bounds.
-  String get _size => switch (request.aspectRatio) {
-    '16:9' => '2048x1152',
-    '1:1' => '1536x1536',
-    _ => '1152x2048',
-  };
+  /// the prose -- but the long edge is now the one the user picked, which is
+  /// what the 1K/2K/4K menu writes. All of them are inside ModelArk's published
+  /// pixel and ratio bounds.
+  String get _size {
+    final size = ImageCapabilities.of(request.model).pixelsFor(
+      request.size,
+      request.aspectRatio.isEmpty ? '9:16' : request.aspectRatio,
+    );
+    return '${size.width}x${size.height}';
+  }
 
   @override
   Future<Map<String, Object?>> execute() async {

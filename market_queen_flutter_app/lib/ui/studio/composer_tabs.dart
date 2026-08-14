@@ -545,6 +545,47 @@ class ComposerSettings extends StatelessWidget {
         ),
     ];
 
+    // What the chosen picture model offers, and nothing more. Most of them
+    // have neither -- Gemini and Bria size themselves from the ratio alone,
+    // Ideogram's rendering speed is half of its model id -- so the rows appear
+    // only under the models that actually declare a choice.
+    if (tab == ComposerTab.image) {
+      final picture = ImageCapabilities.of(app.runner.modelFor(spec.category));
+
+      if (picture.picksSize) {
+        rows.add((
+          label: tr('Size'),
+          child: _Pick(
+            value: picture.sizeOr(
+              app.settings.prefString('${spec.category}Size'),
+            ),
+            options: [
+              for (final size in picture.sizes) MenuOption(size, size),
+            ],
+            onPicked: (value) =>
+                app.settings.setPref('${spec.category}Size', value),
+          ),
+        ));
+      }
+
+      if (picture.picksQuality) {
+        rows.add((
+          label: tr('Quality'),
+          child: _Pick(
+            value: picture.qualityOr(
+              app.settings.prefString('${spec.category}Quality'),
+            ),
+            options: [
+              for (final quality in picture.qualities)
+                MenuOption(_qualityLabel(quality), quality),
+            ],
+            onPicked: (value) =>
+                app.settings.setPref('${spec.category}Quality', value),
+          ),
+        ));
+      }
+    }
+
     if (tab == ComposerTab.video) {
       // What the chosen model actually accepts, rather than a list kept in step
       // by hand. Hailuo offers 6 and 10 seconds and nothing between; Seedance
@@ -712,6 +753,16 @@ class ComposerSettings extends StatelessWidget {
 
   void _setSeconds(String value) =>
       app.settings.setPref('videoSeconds', int.tryParse(value) ?? 5);
+
+  /// The provider's own quality value, said in words. They are the same three
+  /// steps everywhere they exist, and they are three prices as much as three
+  /// looks -- a fifth of a cent against twenty on the same model.
+  static String _qualityLabel(String value) => switch (value) {
+    'low' => tr('Draft'),
+    'medium' => tr('Standard'),
+    'high' => tr('Best'),
+    _ => value,
+  };
 
   /// The saved resolution when this model still offers it, otherwise whatever
   /// the model itself defaults to. Switching from a model with 4k to one

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
@@ -39,6 +40,8 @@ class GenerationOrder {
     this.voiceSource = const {},
     this.resolution = '',
     this.audio = true,
+    this.size = '',
+    this.quality = '',
   });
 
   /// How the canvas draws the result.
@@ -76,6 +79,12 @@ class GenerationOrder {
   /// Video only. Whether the model should also generate a soundtrack, for the
   /// ones that can. Ignored by models with no such switch.
   final bool audio;
+
+  /// Pictures only, and only where the model offers a choice: "1K", "2K", "4K".
+  final String size;
+
+  /// Pictures only: the provider's own quality value. Empty everywhere else.
+  final String quality;
 }
 
 /// Fires what the composer ordered and files the results in the feed.
@@ -132,18 +141,31 @@ class StudioRunner extends ChangeNotifier {
 
   // ---- What a batch would cost ------------------------------------------
 
-  /// Priced before it is sent, for the confirmation modal. Unknown when the
-  /// catalogue has no line for the model, which is the honest answer -- a
-  /// made-up figure on a spending confirmation is worse than none.
+  /// Priced before it is sent, for the confirmation modal and the line under
+  /// the prompt. Unknown when the catalogue has no line for the model, or when
+  /// what it bills by is not something the order knows -- which is the honest
+  /// answer either way: a made-up figure next to a spend button is worse than
+  /// none.
   CostEstimate estimate(GenerationOrder order) {
     final unit = _pricing.unitPrice(modelFor(order.category, order.seconds));
     if (unit == null) return CostEstimate.unknown;
 
-    // Video is billed by the second everywhere the catalogue knows about; the
-    // rest are billed per call.
-    final units = order.category == 'video'
-        ? order.seconds * order.count
-        : order.count;
+    final count = order.count < 1 ? 1 : order.count;
+
+    // How many units one press buys, in whatever the model bills by. It used to
+    // be "seconds x count for video, count for everything else", which
+    // overcharged the models that sell a clip flat and quoted the price of one
+    // thousand characters as the price of a reading.
+    final units = switch (unit.unit) {
+      'second' => order.seconds * count.toDouble(),
+      'video' || 'image' => count.toDouble(),
+      'kchars' => math.max(1, order.prompt.trim().length) / 1000.0,
+      // A minute of audio to subtitle, a million tokens: neither is known
+      // before the thing exists.
+      _ => 0.0,
+    };
+    if (units <= 0) return CostEstimate.unknown;
+
     return CostEstimate(true, unit.amount * units);
   }
 
@@ -324,6 +346,8 @@ class StudioRunner extends ChangeNotifier {
             prompt: order.prompt.trim(),
             aspectRatio: order.aspectRatio,
             referenceImageDataUri: referenceUri,
+            size: order.size,
+            quality: order.quality,
           ),
         ),
       };
@@ -418,12 +442,20 @@ class StudioRunner extends ChangeNotifier {
   /// -- bold white with a hard outline, sitting above the bottom edge -- so a
   /// clip captioned here and one captioned by a full render look the same.
   Future<CanvasBatch> burnCaptions({required String videoPath}) async {
+    // The transcriber the Models page has chosen, rather than OpenAI's Whisper
+    // whatever it says. Groq serves the same weights on a free tier, which is
+    // the whole reason that choice exists -- and the bar underneath the prompt
+    // now names the model it is about to use, so naming one and calling another
+    // is no longer merely wasteful.
+    final providerId = providerFor('captions');
+    final model = modelFor('captions');
+
     final batch = CanvasBatch(
       id: CanvasFeed.newId(),
       kind: CanvasKind.video,
       prompt: tr('Subtitles burned in'),
       createdAt: DateTime.now(),
-      modelLabel: 'Whisper',
+      modelLabel: _registry.modelLabel(providerId, model),
       aspectRatio: '',
       references: [videoPath],
       items: [CanvasItem(id: CanvasFeed.newId())],
@@ -458,10 +490,10 @@ class StudioRunner extends ChangeNotifier {
 
     try {
       final transcribe = ProviderFactory.transcribe(
-        'openai-whisper',
+        providerId,
         TranscribeRequest(
-          apiKey: _settings.apiKey('openai'),
-          model: 'whisper-1',
+          apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
+          model: model,
           audioPath: videoPath,
           language: '',
         ),

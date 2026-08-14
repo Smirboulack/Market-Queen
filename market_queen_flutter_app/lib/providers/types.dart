@@ -74,6 +74,36 @@ class ScriptRequest {
   final int shotCount;
 }
 
+/// One free-form question to a writer model, answered as plain text.
+///
+/// The script writers all answer in a fixed JSON shape because everything
+/// downstream of them is a shot list. This is the other kind of call: a
+/// sentence in, a sentence out, no schema -- which is what rewriting somebody's
+/// prompt is.
+class TextRequest {
+  TextRequest({
+    this.apiKey = '',
+    this.model = '',
+    this.baseUrl = '',
+    this.system = '',
+    this.user = '',
+    this.maxTokens = 700,
+  });
+
+  final String apiKey;
+  final String model;
+
+  /// Optional override (OpenAI-compatible gateways).
+  final String baseUrl;
+
+  final String system;
+  final String user;
+
+  /// A rewritten prompt is a paragraph. The ceiling is here so a model that
+  /// decides to explain itself cannot bill for a page of it.
+  final int maxTokens;
+}
+
 class ImageRequest {
   ImageRequest({
     this.apiKey = '',
@@ -81,6 +111,8 @@ class ImageRequest {
     this.prompt = '',
     this.aspectRatio = '9:16',
     this.referenceImageDataUri = '',
+    this.size = '',
+    this.quality = '',
   });
 
   final String apiKey;
@@ -90,6 +122,14 @@ class ImageRequest {
   /// "9:16", "1:1", "16:9".
   final String aspectRatio;
   final String referenceImageDataUri;
+
+  /// "1K", "2K", "4K", or empty for the model's own default. Only the models
+  /// that declare a choice are ever handed one -- see [ImageCapabilities].
+  final String size;
+
+  /// The provider's own quality value, sent verbatim, or empty when the model
+  /// has no such field.
+  final String quality;
 }
 
 /// One file on its way to a provider's storage: the bytes, what they are, and

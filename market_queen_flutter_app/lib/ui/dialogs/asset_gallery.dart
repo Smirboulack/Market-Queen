@@ -105,8 +105,13 @@ class _GalleryState extends State<_Gallery> {
 
   // ---- actions -------------------------------------------------------------
 
-  Future<void> _create() async {
-    final id = await createAsset(context, app: widget.app, kind: widget.kind);
+  Future<void> _create(AssetRoute route) async {
+    final id = await createAsset(
+      context,
+      app: widget.app,
+      kind: widget.kind,
+      route: route,
+    );
     if (id != null && mounted) closeMqModal(context, id);
   }
 
@@ -276,19 +281,30 @@ class _GalleryState extends State<_Gallery> {
               crossAxisSpacing: MqTheme.gap,
               mainAxisSpacing: MqTheme.gap,
             ),
-            // The maker is the first tile rather than a button in the corner:
-            // an empty library then reads as one thing to press instead of an
-            // empty box with an instruction beside it.
-            itemCount: assets.length + 1,
-            itemBuilder: (context, index) => index == 0
-                ? CreateAssetTile(kind: widget.kind, onTap: _create)
-                : AssetCard(
-                    asset: assets[index - 1],
-                    onTap: () =>
-                        closeMqModal(context, assets[index - 1].id),
-                    onEdit: () => _edit(assets[index - 1]),
-                    onDelete: () => _delete(assets[index - 1]),
-                  ),
+            // The two makers are the first two tiles rather than a button in
+            // the corner: an empty library then reads as two things to press
+            // instead of an empty box with an instruction beside it. They used
+            // to be one tile that opened a modal asking which of the two you
+            // meant -- a question with two answers, both of which are right
+            // here, one click earlier.
+            itemCount: assets.length + AssetRoute.values.length,
+            itemBuilder: (context, index) {
+              if (index < AssetRoute.values.length) {
+                final route = AssetRoute.values[index];
+                return CreateAssetTile(
+                  kind: widget.kind,
+                  route: route,
+                  onTap: () => _create(route),
+                );
+              }
+              final asset = assets[index - AssetRoute.values.length];
+              return AssetCard(
+                asset: asset,
+                onTap: () => closeMqModal(context, asset.id),
+                onEdit: () => _edit(asset),
+                onDelete: () => _delete(asset),
+              );
+            },
           ),
         ),
         if (hidden > 0) ...[
@@ -307,75 +323,25 @@ class _GalleryState extends State<_Gallery> {
   }
 }
 
-/// The two ways to make one, and the modal that asks which.
+/// The two ways to make an actor or a scene.
+enum AssetRoute { generate, upload }
+
+/// Opens whichever of the two the user pressed.
 ///
 /// Returns the id of what was made, or null.
+///
+/// There used to be a modal between the tile and this, asking which of the two
+/// was meant -- a question the tile itself now answers, one click and one
+/// window earlier.
 Future<String?> createAsset(
   BuildContext context, {
   required AppState app,
   required AssetKind kind,
-}) async {
-  final route = await showMqModal<_Route>(
-    context: context,
-    child: _HowToCreate(kind: kind),
-  );
-  if (route == null || !context.mounted) return null;
-
-  return route == _Route.generate
+  AssetRoute route = AssetRoute.generate,
+}) {
+  return route == AssetRoute.generate
       ? showAssetStudio(context, app: app, kind: kind)
       : showAssetImport(context, app: app, kind: kind);
-}
-
-enum _Route { generate, upload }
-
-class _HowToCreate extends StatelessWidget {
-  const _HowToCreate({required this.kind});
-
-  final AssetKind kind;
-
-  @override
-  Widget build(BuildContext context) {
-    final actor = kind == AssetKind.actor;
-
-    return MqModalCard(
-      width: 620,
-      title: actor ? tr('Create an actor') : tr('Create a scene'),
-      subtitle: tr('Two ways in. Both end with a picture you keep.'),
-      // Through an [IntrinsicHeight]: the card is inside a scroll view, so its
-      // height is unbounded, and stretching the row is the only way to make the
-      // two doors match without a fixed height that clips the longer one.
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: BigChoice(
-                icon: 'sparkling-line',
-                overline: tr('Generate'),
-                title: tr('From a description and reference pictures'),
-                subtitle: actor
-                    ? tr('Say who they are. Iterate until the face is right.')
-                    : tr('Say where it is. Iterate until the room is right.'),
-                onPressed: () => closeMqModal(context, _Route.generate),
-              ),
-            ),
-            const SizedBox(width: MqTheme.gap),
-            Expanded(
-              child: BigChoice(
-                icon: 'upload-cloud-line',
-                overline: tr('Import'),
-                title: actor
-                    ? tr('Turn a picture into an actor')
-                    : tr('Turn a picture into a scene'),
-                subtitle: tr('One you already have, from your own files.'),
-                onPressed: () => closeMqModal(context, _Route.upload),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// One actor or scene, as a card. Used by the gallery and by both library
@@ -523,17 +489,32 @@ class AssetCard extends StatelessWidget {
   }
 }
 
-/// The first tile of a grid of actors or scenes: the way to make another one.
+/// One of the two tiles at the head of a grid of actors or scenes: the two ways
+/// to make another one.
 class CreateAssetTile extends StatelessWidget {
-  const CreateAssetTile({super.key, required this.kind, required this.onTap});
+  const CreateAssetTile({
+    super.key,
+    required this.kind,
+    required this.onTap,
+    this.route = AssetRoute.generate,
+  });
 
   final AssetKind kind;
+  final AssetRoute route;
   final VoidCallback onTap;
+
+  bool get _generating => route == AssetRoute.generate;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     final actor = kind == AssetKind.actor;
+
+    final label = _generating
+        ? (actor ? tr('Create an actor') : tr('Create a scene'))
+        : (actor
+            ? tr('Turn a picture into an actor')
+            : tr('Turn a picture into a scene'));
 
     return Pressable(
       onTap: onTap,
@@ -568,14 +549,14 @@ class CreateAssetTile extends StatelessWidget {
                 ),
               ),
               child: MqIcon(
-                'add-line',
+                _generating ? 'sparkling-line' : 'upload-cloud-line',
                 size: 20,
                 color: states.active ? mq.textPrimary : mq.textTertiary,
               ),
             ),
             const SizedBox(height: 12),
             Text(
-              actor ? tr('Create an actor') : tr('Create a scene'),
+              label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: mq.textPrimary,
@@ -613,8 +594,13 @@ class _FilterPill extends StatelessWidget {
       focusRadius: MqTheme.radiusPill,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        height: 28,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        // A floor rather than a height. "Lumière du jour par la fenêtre" is
+        // three times the width of the rail it sits in, and a pill that
+        // insists on one line simply overflowed it -- by two hundred pixels,
+        // in stripes, on every frame the modal was open. It wraps now.
+        constraints: const BoxConstraints(minHeight: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected
               ? mq.primary
@@ -630,19 +616,25 @@ class _FilterPill extends StatelessWidget {
                 : mq.border,
           ),
         ),
-        // A row rather than `alignment: center`: a Container that is given an
-        // alignment and no width expands to fill whatever it is handed, which
-        // in a Wrap is the whole rail -- so every pill came out full width and
-        // stacked. A min-size row shrink-wraps to the word and centres it.
+        // A row rather than `alignment: center` alone: a Container that is
+        // given an alignment and no width expands to fill whatever it is
+        // handed, which in a Wrap is the whole rail -- so every pill came out
+        // full width and stacked. A min-size row shrink-wraps to the word and
+        // centres it; the flexible text is what lets a long one fold instead
+        // of running off the end.
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? mq.onPrimary : mq.textSecondary,
-                fontSize: MqTheme.fontSmall,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            Flexible(
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: selected ? mq.onPrimary : mq.textSecondary,
+                  fontSize: MqTheme.fontSmall,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  height: MqTheme.lineTight,
+                ),
               ),
             ),
           ],

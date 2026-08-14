@@ -14,6 +14,7 @@ import '../core/signal.dart';
 import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
+import '../providers/capabilities.dart';
 import '../providers/model_schemas.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
@@ -1014,6 +1015,13 @@ class Pipeline extends ChangeNotifier {
             prompt: shot.imagePrompt.isEmpty
                 ? _defaultFramePrompt(shot.kind)
                 : shot.imagePrompt,
+            // The picture shelf's own two settings: a frame of the ad and a
+            // still asked for by hand come off the same model, and only one of
+            // them having a size would be the odd one out.
+            size: ImageCapabilities.of(model)
+                .sizeOr(_settings.prefString('imageSize')),
+            quality: ImageCapabilities.of(model)
+                .qualityOr(_settings.prefString('imageQuality')),
           ),
         ),
         PipelineStep.frames,

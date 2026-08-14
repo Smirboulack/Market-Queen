@@ -1020,5 +1020,19 @@
     "Shooting from the prompt on %1.": "Tournage à partir du prompt sur %1.",
     "This model animates a still. Drop in the picture it should start from, or pick one that shoots from the prompt alone.": "Ce modèle anime une image fixe. Déposez celle par laquelle il doit commencer, ou choisissez-en un qui tourne à partir du prompt seul.",
     "Working from your reference material on %1.": "Travail à partir de vos références sur %1.",
-    "Edits your product photo directly. Billed per generated image, by quality.": "Retouche directement votre photo produit. Facturé à l'image générée, selon la qualité."
+    "Edits your product photo directly. Billed per generated image, by quality.": "Retouche directement votre photo produit. Facturé à l'image générée, selon la qualité.",
+    "Generate  ·  Enter": "Générer  ·  Entrée",
+    "Generated with this model. Its price is not in the catalogue.": "Généré avec ce modèle. Son tarif ne figure pas au catalogue.",
+    "Generated with %1, for about %2.": "Généré avec %1, pour environ %2.",
+    "Size": "Taille",
+    "Draft": "Brouillon",
+    "Standard": "Standard",
+    "Best": "Maximale",
+    "Improve this prompt with %1 — free": "Améliorer ce prompt avec %1 — gratuit",
+    "Improve this prompt with %1 — billed to your %2 account": "Améliorer ce prompt avec %1 — facturé sur votre compte %2",
+    "Add a key for a writer under Models to improve prompts.": "Ajoutez une clé de rédacteur dans Modèles pour améliorer les prompts.",
+    "Write something first, then let a model widen it.": "Écrivez d’abord quelque chose, un modèle l’étoffera ensuite.",
+    "No writer has a key yet. Add one under Models.": "Aucun rédacteur n’a de clé. Ajoutez-en une dans Modèles.",
+    "No writer called %1.": "Aucun rédacteur nommé %1.",
+    "Could not improve the prompt: %1": "Impossible d’améliorer le prompt : %1"
 }

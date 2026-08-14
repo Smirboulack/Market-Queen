@@ -19,8 +19,6 @@ CREATE VOICE
 
 - Ajouter la possibilité de pouvoir se cloner sois-même grâce à l'api de Heygen en utilisant le modèle Avatar. 
 
-- Ajouter une fonctionnalité pour améliorer le prompt de l'utilisateur dans chaque mode "Acteurs parlants, Image, Vidéo ou dans les options avancés". ça doit utiliser un modèle LLM gratuit et permettre de pouvoir améliorer contextuellement le prompt de l'utilisateur afin d'essayer d'atteindre un meilleur résutlat.
-
 - Améliorer l'UI de réglage de l'acteur pour la voix car actuellement c'est vraiment dégueulasse. 
 
 - S'assurer que si on lance les générations en plusieurs exemplaires, ces générations soient bien lancer en même temps/parallèles. Pour ne pas que le temps d'attente soit additionnel. 
@@ -31,25 +29,11 @@ CREATE VOICE
 
 - Dans le studio, on pourra mettre un bouton qui, lorsqu'on appuie dessus, lance un tutoriel d'un workflow éprouvé et produisant un résultat très correct. Tout sera montrer avec des petites animations à chaque fois pour que ça soit très clair pour l'utilisateur. 
 
-- Il faut corriger la modal d'ajout de scène qui provoque une erreur : Another exception was thrown: 'package:flutter/src/rendering/object.dart': Failed assertion: line 4312 pos 14: 'debugNeedsLayout': is not true.
-Another exception was thrown: A RenderFlex overflowed by 33 pixels on the right.
-Another exception was thrown: A RenderFlex overflowed by 33 pixels on the right.
-
-- Corriger aussi le bouton icon dans les réglages de l'acteur, celui qui permet de changer la sélection (le bouton icon à gauche du bouton fermer), lorsque l'on passe la souris dessus ça fait une erreur ui : 
-Another exception was thrown: The paint transform cannot be reliably computed because of RenderFollowerLayer(s)
-Another exception was thrown: 'package:flutter/src/rendering/object.dart': Failed assertion: line 4312 pos 14: 'debugNeedsLayout': is not true.
-
-- Dans la zone de prompt ça serrait bien que le coût de l'opération ainsi que le modèle utiliser soit affiché juste à côté du bouton réglage/nombre de génération. juste le modèle et le prix de l'opération. Il faut que ça soit dans tous les mode "Acteurs parlants", "Image", "Vidéo"..
-
-- Réparé la fenêtre modal acteur et scène, éviter le sur-ingienerie, faire simple. 
-
 - Il manque encore le tarif sur le modèle Seedream 5.0 il le faut absolument. Je ne veux aucun modèle sans tarif, c'est non négociable.
-
-- Les générations dans la fil de génération sont bien trop grands, il faudrait que ça soit d'une taille raisonnable, comme ce que l'on a dans les fil de chat (chatgpt,gemini) ..
 
 - Il faut aussi ajouter le modèle OmniHuman 1.5 de ByteDance pour les acteurs parlants d'après ce que me dis chatGPT : 
 
-
+```
 Oui. Pour **Market Queen**, je ne chercherais pas à intégrer beaucoup de modèles : il vaut mieux avoir **quelques modèles réellement différenciés**, avec chacun un rôle clair.
 
 Tu as déjà :
@@ -313,14 +297,10 @@ Si ton objectif est de **réduire le coût API de Market Queen**, le prochain tr
 [3]: https://kling.ai/?utm_source=chatgpt.com "Kling AI: Next-Generation AI Creative Studio"
 [4]: https://kling.ai/blog/kling-video-3-omni-native-lip-sync-audio-guide?utm_source=chatgpt.com "Kling Video 3.0 Omni Audio: Native Lip Sync & Multilingual ..."
 [5]: https://kling.ai/quickstart/klingai-video-26-audio-user-guide?utm_source=chatgpt.com "Kling Video 2.6 Audio User Guide"
-
+```
 
 
 - Ajouter la possibilité de pouvoir annuler une génération en cours pour ne pas être facturé. (Si possible, je ne sais pas si c'est possible de le faire).
-
-- Rendre le bouton du clavier Enter fonctionnel pour lancer la génération dans le mode studio. Car actuellement il faut appuyer sur la fléche avec la souris à chaque fois.
-
-- Il faut ajouter, dans les réglages du modèle d'image, l'option quality et size (1K, 2K, 4K) si ça existe pour le modèle sélectionné etc. Selon le modèle bien vérifié.
 
 - Ajouter l'option de sous-titre automatique dans les réglages de génération de vidéo.
 

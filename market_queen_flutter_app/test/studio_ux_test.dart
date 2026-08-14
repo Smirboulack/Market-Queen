@@ -40,6 +40,10 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // The labels asserted below are the English sources. Without this the
+    // catalogue follows the machine's own locale, and the whole file fails on
+    // a French one.
+    await app.translator.applyLanguage('en');
     scratch = Directory.systemTemp.createTempSync('mq-studio-ux');
     // A reference clip would otherwise pull its poster frame with ffmpeg, and
     // a subprocess started under a test's fake clock outlives the test.
@@ -474,6 +478,44 @@ void main() {
       await tester.pump();
       return batch;
     }
+
+    testWidgets('a single result is drawn the size of a chat picture', (
+      tester,
+    ) async {
+      // It used to take its share of the whole column, so one 16:9 clip was
+      // nine hundred pixels wide and a square still five hundred -- two results
+      // and you were scrolling. A generation in the feed is a thumbnail you
+      // open, the way a picture in a chat thread is.
+      await pumpEditor(tester);
+
+      for (final ratio in ['16:9', '1:1', '9:16']) {
+        app.project.feed
+          ..clear()
+          ..add(
+            CanvasBatch(
+              id: 'one-$ratio',
+              kind: CanvasKind.image,
+              prompt: 'a horse with wings',
+              createdAt: DateTime.now(),
+              aspectRatio: ratio,
+              items: [
+                CanvasItem(
+                  id: 'item',
+                  status: CanvasStatus.done,
+                  path: file('single-${ratio.replaceAll(':', '-')}.png'),
+                ),
+              ],
+            ),
+          );
+        await tester.pump();
+
+        final tile = tester.getRect(find.byType(LocalImage).first);
+        expect(tile.width, lessThanOrEqualTo(330), reason: ratio);
+        expect(tile.height, lessThanOrEqualTo(330), reason: ratio);
+        // And not so small it is useless.
+        expect(tile.shortestSide, greaterThan(150), reason: ratio);
+      }
+    });
 
     testWidgets('the prompt is not repeated over the result', (tester) async {
       // It is still sitting in the bar three inches below. A feed of pictures

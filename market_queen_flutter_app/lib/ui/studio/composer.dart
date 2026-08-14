@@ -12,11 +12,13 @@ import '../../core/clipboard_media.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../../models/canvas_feed.dart';
+import '../../models/prompt_doctor.dart';
 import '../../models/studio_runner.dart';
 import '../../providers/capabilities.dart';
 import '../../providers/model_schemas.dart';
 import '../dialogs/asset_gallery.dart';
 import '../dialogs/confirm_generation.dart';
+import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
@@ -113,13 +115,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// two of them open at once would be two answers.
   _Panel _panel = _Panel.none;
 
-  /// The overlay the open panel is drawn in, and the button it is pinned to.
+  /// One portal per panel, each hanging off the button that opens it.
   ///
-  /// One portal for all three: only one panel is ever up, and it hangs off
-  /// whichever control was pressed.
-  final OverlayPortalController _portal = OverlayPortalController();
-  final Map<_Panel, LayerLink> _anchors = {
-    for (final panel in _Panel.values) panel: LayerLink(),
+  /// They are separate rather than one shared portal because the panel is
+  /// positioned from its own button's paint transform, and a portal only knows
+  /// where its own child is.
+  final Map<_Panel, OverlayPortalController> _portals = {
+    for (final panel in _Panel.values) panel: OverlayPortalController(),
   };
 
   bool _hovered = false;
@@ -398,6 +400,19 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     return saved.isEmpty ? app.project.aspectRatio : saved;
   }
 
+  /// The frame size and the quality step, for the picture models that offer
+  /// them. Read through the model's own declaration, so a value saved under one
+  /// model is never sent to another that has never heard of it.
+  ImageCapabilities get _imageModel =>
+      ImageCapabilities.of(app.runner.modelFor(_spec.category));
+
+  String get _imageSize =>
+      _imageModel.sizeOr(app.settings.prefString('${_spec.category}Size'));
+
+  String get _imageQuality => _imageModel.qualityOr(
+    app.settings.prefString('${_spec.category}Quality'),
+  );
+
   /// Whether the send button is live, and why not when it is not.
   ({bool ready, String reason}) get _readiness {
     final project = app.project;
@@ -471,6 +486,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       voiceSource: _tab == ComposerTab.audio ? app.request() : const {},
       resolution: app.settings.prefString('videoResolution'),
       audio: app.settings.pref<bool>('videoAudio', true) ?? true,
+      size: _imageSize,
+      quality: _imageQuality,
     );
 
     // Only video asks twice. It is the only kind where one careless press is
@@ -663,39 +680,30 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       bindings: {
         if (_open) const SingleActivator(LogicalKeyboardKey.escape): _closePanel,
       },
-      child: OverlayPortal(
-        controller: _portal,
-        overlayChildBuilder: (context) => PopoverLayer(
-          link: _anchors[_panel]!,
-          width: _panelWidth,
-          onDismiss: _closePanel,
-          child: _panelBody(),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) => Center(
-            child: SizedBox(
-              width: math.min(_barMaxWidth, constraints.maxWidth),
-              // The feed reserves room for exactly this much and nothing else.
-              // There is nothing else left to reserve for: the panels are in
-              // the overlay, so opening one moves not one tile.
-              child: MeasuredHeight(
-                onChanged: (height) => widget.onBarHeight?.call(height),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: ComposerTabBar(
-                        current: _tab,
-                        extras: _extras,
-                        onPicked: _pickTab,
-                        onRemoved: _dropTab,
-                      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Center(
+          child: SizedBox(
+            width: math.min(_barMaxWidth, constraints.maxWidth),
+            // The feed reserves room for exactly this much and nothing else.
+            // There is nothing else left to reserve for: the panels are in
+            // the overlay, so opening one moves not one tile.
+            child: MeasuredHeight(
+              onChanged: (height) => widget.onBarHeight?.call(height),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: ComposerTabBar(
+                      current: _tab,
+                      extras: _extras,
+                      onPicked: _pickTab,
+                      onRemoved: _dropTab,
                     ),
-                    const SizedBox(height: MqTheme.gap),
-                    _bar(),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: MqTheme.gap),
+                  _bar(),
+                ],
               ),
             ),
           ),
@@ -704,48 +712,48 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     );
   }
 
+  /// Wraps the button a panel hangs off in its own portal.
+  Widget _anchored(_Panel panel, Widget button, Widget Function() body) {
+    return OverlayPortal.overlayChildLayoutBuilder(
+      controller: _portals[panel]!,
+      overlayChildBuilder: (context, info) => PopoverLayer(
+        info: info,
+        width: _panelWidth,
+        onDismiss: _closePanel,
+        child: body(),
+      ),
+      child: button,
+    );
+  }
+
   bool get _open => _panel != _Panel.none;
 
   /// Toggles a panel. Every change of [_panel] goes through here or
   /// [_closePanel], because the overlay has to be told as well -- and told from
-  /// outside a build, which is why the portal is driven here rather than read
+  /// outside a build, which is why the portals are driven here rather than read
   /// off the state in [_layout].
   void _show(_Panel panel) {
     if (_panel == panel) {
       _closePanel();
       return;
     }
+    _hidePortal(_panel);
     setState(() => _panel = panel);
-    _portal.show();
+    _portals[panel]?.show();
   }
 
   void _closePanel() {
     if (!_open) return;
+    _hidePortal(_panel);
     setState(() => _panel = _Panel.none);
-    _portal.hide();
   }
 
-  /// Whichever panel is open, above the button that opened it.
-  Widget _panelBody() => switch (_panel) {
-    _Panel.none => const SizedBox.shrink(),
-    _Panel.settings => ComposerSettings(
-      app: app,
-      tab: _tab,
-      onClose: _closePanel,
-    ),
-    _Panel.actor => CastPanel(
-      app: app,
-      kind: AssetKind.actor,
-      onClose: _closePanel,
-      onReplace: () => _cast(AssetKind.actor),
-    ),
-    _Panel.scene => CastPanel(
-      app: app,
-      kind: AssetKind.scene,
-      onClose: _closePanel,
-      onReplace: () => _cast(AssetKind.scene),
-    ),
-  };
+  /// `hide` on a controller that has never been shown is an assertion failure,
+  /// and [_Panel.none] never is.
+  void _hidePortal(_Panel panel) {
+    final portal = _portals[panel];
+    if (portal != null && portal.isShowing) portal.hide();
+  }
 
   /// A pill was pressed, or a mode was chosen out of "See more". Either way the
   /// composer switches to it; an advanced one also earns a pill of its own.
@@ -842,12 +850,22 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       // page, and switching between them made the bar jump; the taller of the
       // two is also the one that invites a sentence rather than three words.
       constraints: const BoxConstraints(minHeight: _fieldMinHeight, maxHeight: 220),
-      // Enter breaks the line; Ctrl+Enter sends. The other way round is the
-      // chat convention and it is wrong here -- every send costs money, and a
-      // prompt is a paragraph rather than a message.
+      // Enter sends; Shift+Enter breaks the line. The chat convention, and the
+      // one asked for: reaching for the mouse to press an arrow you are looking
+      // straight at, once per generation, is the wrong price for the safety of
+      // a two-key send -- and the send button is disabled until the request is
+      // actually complete, which is the real guard against a careless one.
+      //
+      // Ctrl+Enter still sends, so a hand that learned the old shortcut is not
+      // punished for it. Shift+Enter is deliberately not in this map at all: a
+      // [SingleActivator] only matches when every modifier it does *not* name
+      // is up, so the combination reaches the field untouched and breaks the
+      // line. Binding it to [DoNothingIntent] would have been worse than
+      // useless -- that action consumes the key, which is exactly how Enter
+      // came to do nothing at all here.
       child: Shortcuts(
         shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.enter): DoNothingIntent(),
+          SingleActivator(LogicalKeyboardKey.enter): _SendIntent(),
           SingleActivator(LogicalKeyboardKey.enter, control: true):
               _SendIntent(),
           SingleActivator(LogicalKeyboardKey.enter, meta: true): _SendIntent(),
@@ -1067,6 +1085,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           ),
         ),
         const SizedBox(width: MqTheme.gap),
+        _Meter(model: _meterModel, price: _meterPrice),
+        const SizedBox(width: 10),
         if (_spec.batched) ...[
           _Stepper(
             value: _count,
@@ -1075,9 +1095,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           ),
           const SizedBox(width: 10),
         ],
-        CompositedTransformTarget(
-          link: _anchors[_Panel.settings]!,
-          child: MqIconButton(
+        _anchored(
+          _Panel.settings,
+          MqIconButton(
             icon: 'equalizer-line',
             tip: _panel == _Panel.settings
                 ? tr('Hide the settings')
@@ -1085,6 +1105,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             size: 32,
             onPressed: () => _show(_Panel.settings),
           ),
+          () => ComposerSettings(app: app, tab: _tab, onClose: _closePanel),
         ),
         const SizedBox(width: 8),
         Container(width: 1, height: 24, color: mq.divider),
@@ -1094,11 +1115,55 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           busy: busy,
           spinner: _spinner,
           tooltip: readiness.ready
-              ? tr('Generate  ·  Ctrl+Enter')
+              ? tr('Generate  ·  Enter')
               : readiness.reason,
           onPressed: _send,
         ),
       ],
+    );
+  }
+
+  // ---- what this press will buy --------------------------------------------
+
+  /// The model the send button is about to spend money at, on this tab.
+  ///
+  /// Every mode has one and it was named nowhere near the button: the settings
+  /// panel says it, but the panel is shut, and the whole app is bring-your-own
+  /// keys -- so the one thing that must never be a surprise is which account is
+  /// about to be billed.
+  String get _meterModel => app.runner.modelLabel(_spec.category, _seconds);
+
+  /// What one press costs, as text, or empty when nothing honest can be said.
+  ///
+  /// Three shapes, because the three questions differ. A talking actor buys a
+  /// whole run -- a script pass, a reading, a frame and a clip per shot -- and
+  /// that is the ad's own estimate. A picture or a clip buys exactly what the
+  /// bar is set to. Subtitles buy a minute of transcription of a file that does
+  /// not exist yet, so the rate is the only true thing to show.
+  String get _meterPrice {
+    if (_tab == ComposerTab.actors) {
+      final breakdown = app.pricing.estimate(app.request());
+      return breakdown.lines.length > breakdown.unknownCount
+          ? Format.estimated(breakdown.total)
+          : '';
+    }
+
+    final estimate = app.runner.estimate(
+      GenerationOrder(
+        kind: _spec.kind,
+        category: _spec.category,
+        prompt: _spec.prompted ? _prompt.text : '',
+        aspectRatio: _aspect,
+        seconds: _seconds,
+        count: _count,
+      ),
+    );
+    if (estimate.known) return Format.estimated(estimate.amount);
+
+    // Nothing to multiply, but the rate itself is published: "$0.006/min" says
+    // more than a blank.
+    return Format.unitPriceLabel(
+      app.pricing.unitPrice(app.runner.modelFor(_spec.category, _seconds)),
     );
   }
 
@@ -1127,7 +1192,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           settingsTip: tr('Voice and delivery'),
           clearTip: tr('Take this actor off the ad'),
           lit: _panel == _Panel.actor,
-          settingsLink: _anchors[_Panel.actor]!,
+          settingsPortal: _portals[_Panel.actor]!,
+          settingsPanel: (context, info) => PopoverLayer(
+            info: info,
+            width: _panelWidth,
+            onDismiss: _closePanel,
+            child: CastPanel(
+              app: app,
+              kind: AssetKind.actor,
+              onClose: _closePanel,
+              onReplace: () => _cast(AssetKind.actor),
+            ),
+          ),
           onPressed: () => _cast(AssetKind.actor),
           onSettings: () => _show(_Panel.actor),
           onCleared: () {
@@ -1144,7 +1220,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           settingsTip: tr('Light and mood'),
           clearTip: tr('Take this scene off the ad'),
           lit: _panel == _Panel.scene,
-          settingsLink: _anchors[_Panel.scene]!,
+          settingsPortal: _portals[_Panel.scene]!,
+          settingsPanel: (context, info) => PopoverLayer(
+            info: info,
+            width: _panelWidth,
+            onDismiss: _closePanel,
+            child: CastPanel(
+              app: app,
+              kind: AssetKind.scene,
+              onClose: _closePanel,
+              onReplace: () => _cast(AssetKind.scene),
+            ),
+          ),
           onPressed: () => _cast(AssetKind.scene),
           onSettings: () => _show(_Panel.scene),
           onCleared: () {
@@ -1157,10 +1244,77 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         // until this button existed the only way in was the drag-and-drop
         // nobody discovers.
         ..._referenceButtons(),
+        _improveButton(),
       ];
     }
 
-    return _referenceButtons();
+    return [..._referenceButtons(), if (_spec.prompted) _improveButton()];
+  }
+
+  /// The wand: hands what is written to a writer and puts back a fuller version
+  /// of it.
+  ///
+  /// The tooltip names the model and says whether it is free, because it is a
+  /// button that spends money on some keys and not on others -- and which of
+  /// the two it is depends on what the user has set up, so it cannot be written
+  /// into the label.
+  Widget _improveButton() {
+    final doctor = app.promptDoctor;
+    final rewriter = doctor.writer;
+
+    return ListenableBuilder(
+      listenable: doctor,
+      builder: (context, _) => MqIconButton(
+        icon: doctor.busy ? 'loader-4-line' : 'sparkling-line',
+        tip: !rewriter.exists
+            ? tr('Add a key for a writer under Models to improve prompts.')
+            : rewriter.free
+            //: %1 is a model name
+            ? tr('Improve this prompt with %1 — free').arg(rewriter.label)
+            //: %1 is a model name, %2 an account such as "OpenAI"
+            : tr('Improve this prompt with %1 — billed to your %2 account')
+                  .arg(rewriter.label)
+                  .arg(rewriter.account),
+        size: 32,
+        enabled: rewriter.exists && !doctor.busy,
+        onPressed: _improvePrompt,
+      ),
+    );
+  }
+
+  // ---- the prompt doctor ---------------------------------------------------
+
+  /// What the rewriter is being asked to write, on this tab.
+  PromptKind get _promptKind => switch (_tab) {
+    ComposerTab.actors => PromptKind.script,
+    ComposerTab.audio => PromptKind.voice,
+    ComposerTab.video => PromptKind.video,
+    _ => PromptKind.image,
+  };
+
+  /// Hands the prompt to a writer and puts back what came out.
+  ///
+  /// The caret lands at the end of the new text, and nothing is lost when it
+  /// fails: an empty answer leaves the field exactly as it was and the reason
+  /// goes to the log.
+  Future<void> _improvePrompt() async {
+    final doctor = app.promptDoctor;
+    if (doctor.busy) return;
+
+    final improved = await doctor.improve(
+      prompt: _prompt.text,
+      kind: _promptKind,
+      // What the ad is of, when there is an ad -- the actor and the scene are
+      // in the frame whether or not the prompt says so.
+      context: _tab == ComposerTab.actors
+          ? [
+              for (final asset in _castAssets) '${asset.name}: ${asset.prompt}',
+            ].join('\n')
+          : '',
+    );
+    if (!mounted || improved.isEmpty) return;
+
+    _rewrite(improved, improved.length);
   }
 
   /// One button per kind of reference this mode takes, each with its own glyph.
@@ -1406,7 +1560,8 @@ class _CastChip extends StatefulWidget {
     required this.onPressed,
     required this.onSettings,
     required this.onCleared,
-    required this.settingsLink,
+    required this.settingsPortal,
+    required this.settingsPanel,
     this.portrait = '',
     this.lit = false,
   });
@@ -1424,9 +1579,11 @@ class _CastChip extends StatefulWidget {
   final VoidCallback onSettings;
   final VoidCallback onCleared;
 
-  /// What the panel hangs off: the cog, not the whole bubble, so it opens over
-  /// the button that was actually pressed.
-  final LayerLink settingsLink;
+  /// The panel hangs off the cog, not off the whole bubble, so it opens over
+  /// the button that was actually pressed -- which is why the portal is wrapped
+  /// around that button here rather than around the chip.
+  final OverlayPortalController settingsPortal;
+  final OverlayChildLayoutBuilder settingsPanel;
 
   /// True while this chip's panel is the one open, so the bar says which of the
   /// two the panel belongs to.
@@ -1523,8 +1680,9 @@ class _CastChipState extends State<_CastChip> {
             const SizedBox(width: 4),
             Container(width: 1, height: 16, color: mq.border),
             const SizedBox(width: 2),
-            CompositedTransformTarget(
-              link: widget.settingsLink,
+            OverlayPortal.overlayChildLayoutBuilder(
+              controller: widget.settingsPortal,
+              overlayChildBuilder: widget.settingsPanel,
               child: MqIconButton(
                 icon: 'settings-3-line',
                 tip: widget.settingsTip,
@@ -1540,6 +1698,63 @@ class _CastChipState extends State<_CastChip> {
               onPressed: widget.onCleared,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The model this press will buy from, and what it will cost, beside the button
+/// that presses it.
+///
+/// Quiet on purpose -- it is a fact about the request, not a control -- and one
+/// line, capped, because a model name is whatever the provider called it and
+/// "Kling AI Avatar v2 Standard" must not push the send button off the bar.
+class _Meter extends StatelessWidget {
+  const _Meter({required this.model, required this.price});
+
+  final String model;
+
+  /// Empty when the catalogue has no price for this model, which is said by
+  /// showing nothing rather than a zero.
+  final String price;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    if (model.isEmpty) return const SizedBox.shrink();
+
+    return Tooltip(
+      message: price.isEmpty
+          ? tr('Generated with this model. Its price is not in the catalogue.')
+          //: %1 is a model name, %2 a price such as "~$0.15"
+          : tr('Generated with %1, for about %2.').arg(model).arg(price),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 230),
+        child: RichText(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          text: TextSpan(
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+              fontFamily: MqTheme.fontFamily,
+            ),
+            children: [
+              TextSpan(text: model),
+              if (price.isNotEmpty) ...[
+                const TextSpan(text: '  ·  '),
+                TextSpan(
+                  text: price,
+                  style: TextStyle(
+                    color: mq.textSecondary,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

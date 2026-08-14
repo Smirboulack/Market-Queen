@@ -1,4 +1,185 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
+
+/// What one *image* model accepts beyond the shape of the frame.
+///
+/// The same idea as [ModelCapabilities] and for the same reason: the models
+/// disagree, the disagreements are not guessable, and a field sent to a model
+/// that does not declare it is a paid request that 400s. What differs is that
+/// none of these are fetched -- every image provider in the app is called
+/// directly, so this is written from each one's own API reference.
+///
+/// Deliberately short. A model is in here only when its own documentation says
+/// what it takes: OpenAI publishes three quality steps and prices each of them,
+/// BytePlus and Black Forest Labs both size in pixels with a published ceiling.
+/// Gemini, Ideogram, Bria and xAI are absent because their published request
+/// bodies have no such field -- Ideogram's rendering speed is already half of
+/// its model id, and Grok's two entries are the same model at two qualities.
+/// An absent model simply gets no extra rows in the settings panel, which is
+/// the honest answer rather than a menu that does nothing.
+@immutable
+class ImageCapabilities {
+  const ImageCapabilities({
+    this.sizes = const [],
+    this.defaultSize = '',
+    this.qualities = const [],
+    this.defaultQuality = '',
+    this.maxMegapixels = 0,
+  });
+
+  /// "1K", "2K", "4K" -- the long edge of the frame, in the shorthand people
+  /// actually use. What goes on the wire is worked out from the aspect ratio by
+  /// [pixelsFor], because every model here sizes in pixels.
+  final List<String> sizes;
+  final String defaultSize;
+
+  /// The provider's own quality values, sent verbatim.
+  final List<String> qualities;
+  final String defaultQuality;
+
+  /// The largest frame the model will produce, when it publishes one. A 1:1
+  /// frame at 2K is 4.2 megapixels, which is just past what FLUX.2 will take,
+  /// so the ceiling is applied rather than the request being refused.
+  final double maxMegapixels;
+
+  bool get picksSize => sizes.length > 1;
+  bool get picksQuality => qualities.length > 1;
+
+  static ImageCapabilities of(String modelId) =>
+      declared[modelId] ?? const ImageCapabilities();
+
+  /// The saved value when this model still offers it, otherwise the model's own
+  /// default -- so switching from a model with 4K to one without cannot leave
+  /// "4K" showing under a model that has never heard of it.
+  String sizeOr(String saved) =>
+      sizes.contains(saved) ? saved : (defaultSize.isEmpty ? '' : defaultSize);
+
+  String qualityOr(String saved) => qualities.contains(saved)
+      ? saved
+      : (defaultQuality.isEmpty ? '' : defaultQuality);
+
+  /// The long edge a size token stands for.
+  static int edgeOf(String token) => switch (token) {
+    '1K' => 1024,
+    '2K' => 2048,
+    '4K' => 4096,
+    _ => 0,
+  };
+
+  /// The frame to ask for, in pixels: [token]'s long edge laid over [aspect],
+  /// rounded to a multiple of 32 and pulled back under [maxMegapixels] when the
+  /// model publishes one.
+  ({int width, int height}) pixelsFor(String token, String aspect) {
+    final edge = edgeOf(token) == 0 ? edgeOf(defaultSize) : edgeOf(token);
+    // Nothing picked and nothing declared -- a model id pasted into "Other
+    // model id...". Two thousand is what this app asked every pixel-sized model
+    // for before any of them had a menu, so an unknown one keeps getting it.
+    final long = edge == 0 ? 2048 : edge;
+
+    final ratio = _ratio(aspect);
+    var width = ratio >= 1 ? long.toDouble() : long * ratio;
+    var height = ratio >= 1 ? long / ratio : long.toDouble();
+
+    if (maxMegapixels > 0) {
+      final megapixels = width * height / 1e6;
+      if (megapixels > maxMegapixels) {
+        final scale = math.sqrt(maxMegapixels / megapixels);
+        width *= scale;
+        height *= scale;
+      }
+    }
+
+    return (width: _round32(width), height: _round32(height));
+  }
+
+  /// Width over height, 1 when the ratio is missing or unreadable.
+  static double _ratio(String aspect) {
+    final parts = aspect.split(':');
+    if (parts.length != 2) return 1;
+    final width = double.tryParse(parts[0]) ?? 0;
+    final height = double.tryParse(parts[1]) ?? 0;
+    if (width <= 0 || height <= 0) return 1;
+    return width / height;
+  }
+
+  /// Down to a multiple of 32, which every one of these endpoints is happy
+  /// with, and never below the smallest frame any of them accepts.
+  static int _round32(double value) {
+    final rounded = (value / 32).floor() * 32;
+    return rounded < 256 ? 256 : rounded;
+  }
+
+  // -------------------------------------------------------------------------
+
+  static const Map<String, ImageCapabilities> declared = {
+    // ---- OpenAI ------------------------------------------------------------
+    // Three quality steps, each with its own published price -- low is a third
+    // of a cent and high is twenty. No size row: the guide enumerates the three
+    // 1024-based frames the task already sends, and the larger ones are billed
+    // as tokens without the request field being spelled out anywhere reachable,
+    // so a 2K here would be a guess with a bill attached.
+    'gpt-image-2': ImageCapabilities(
+      qualities: ['low', 'medium', 'high'],
+      defaultQuality: 'medium',
+    ),
+
+    // ---- BytePlus, Seedream ------------------------------------------------
+    // Sized in pixels, and billed in two tiers: flat up to 2.36 megapixels,
+    // roughly double above it. That is exactly the step between 2K and 4K, so
+    // the menu is where the user finds out.
+    'seedream-4-5-251128': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '2K',
+    ),
+    'seedream-5-0-260128': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '2K',
+    ),
+    'seedream-5-0-lite-260128': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '2K',
+    ),
+    'dola-seedream-5-0-pro-260628': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '2K',
+    ),
+    'seededit-3-0-i2i-250628': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '2K',
+    ),
+
+    // ---- Black Forest Labs, FLUX.2 -----------------------------------------
+    // width/height in pixels, 64 minimum, four megapixels of output maximum --
+    // which is why there is no 4K here and why a square 2K frame comes back a
+    // little under 2048.
+    'flux-2-pro': ImageCapabilities(
+      sizes: ['1K', '2K'],
+      defaultSize: '1K',
+      maxMegapixels: 4,
+    ),
+    'flux-2-flex': ImageCapabilities(
+      sizes: ['1K', '2K'],
+      defaultSize: '1K',
+      maxMegapixels: 4,
+    ),
+    'flux-2-max': ImageCapabilities(
+      sizes: ['1K', '2K'],
+      defaultSize: '1K',
+      maxMegapixels: 4,
+    ),
+    'flux-2-klein-9b': ImageCapabilities(
+      sizes: ['1K', '2K'],
+      defaultSize: '1K',
+      maxMegapixels: 4,
+    ),
+    'flux-2-klein-4b': ImageCapabilities(
+      sizes: ['1K', '2K'],
+      defaultSize: '1K',
+      maxMegapixels: 4,
+    ),
+  };
+}
 
 /// Which of the three ways of asking for a clip a model is being used in.
 ///

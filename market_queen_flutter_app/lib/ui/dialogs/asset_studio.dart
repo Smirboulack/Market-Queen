@@ -1,12 +1,14 @@
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../../models/ad_project.dart';
 import '../../models/asset_library.dart';
 import '../../models/image_forge.dart';
+import '../../models/prompt_doctor.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
@@ -192,6 +194,46 @@ class _StudioState extends State<_Studio> {
     return saved.isEmpty ? '9:16' : saved;
   }
 
+  /// The wand, on the same key as the composer's: a description of a person or
+  /// a place is a prompt like any other, and this is the one screen where a
+  /// vague one costs three pictures to find out about.
+  Widget _improveButton() {
+    final doctor = widget.app.promptDoctor;
+    final rewriter = doctor.writer;
+
+    return ListenableBuilder(
+      listenable: doctor,
+      builder: (context, _) => MqIconButton(
+        icon: doctor.busy ? 'loader-4-line' : 'sparkling-line',
+        tip: !rewriter.exists
+            ? tr('Add a key for a writer under Models to improve prompts.')
+            : rewriter.free
+            //: %1 is a model name
+            ? tr('Improve this prompt with %1 — free').arg(rewriter.label)
+            //: %1 is a model name, %2 an account such as "OpenAI"
+            : tr('Improve this prompt with %1 — billed to your %2 account')
+                  .arg(rewriter.label)
+                  .arg(rewriter.account),
+        size: 32,
+        enabled: rewriter.exists && !doctor.busy,
+        onPressed: _improve,
+      ),
+    );
+  }
+
+  Future<void> _improve() async {
+    final improved = await widget.app.promptDoctor.improve(
+      prompt: _prompt.text,
+      kind: _isActor ? PromptKind.actor : PromptKind.scene,
+    );
+    if (!mounted || improved.isEmpty) return;
+
+    _prompt.value = TextEditingValue(
+      text: improved,
+      selection: TextSelection.collapsed(offset: improved.length),
+    );
+  }
+
   Future<void> _browse() async {
     final files = await openFiles(acceptedTypeGroups: const [imageTypeGroup]);
     _addReferences([for (final file in files) file.path]);
@@ -250,8 +292,10 @@ class _StudioState extends State<_Studio> {
           : tr('Describe it, pick the one that is closest, then say what to '
               'change.'),
       actions: [
-        SizedBox(
-          width: 200,
+        // Flexible rather than 200 wide: the two buttons beside it are as long
+        // as whatever language the app is in makes them, and a fixed field is
+        // what pushed the row off the end of the card in French.
+        Expanded(
           child: LabeledField(
             controller: _name,
             placeholder: _library.suggestedName(),
@@ -367,30 +411,39 @@ class _StudioState extends State<_Studio> {
             ],
             ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
-              child: TextField(
-                controller: _prompt,
-                focusNode: _focus,
-                maxLines: null,
-                cursorColor: mq.primary,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontBody,
-                  height: MqTheme.lineBody,
-                ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.zero,
-                  hintText: _rounds.isEmpty
-                      ? (_isActor
-                            ? tr('Young adult, fitness coach, plain grey '
-                                't-shirt…')
-                            : tr('A small kitchen, morning light, worktop a '
-                                'little cluttered…'))
-                      : tr('Say what to change…'),
-                  hintStyle: TextStyle(
-                    color: mq.textTertiary,
+              // Enter generates and Shift+Enter breaks the line, the same way
+              // round as the composer's own bar.
+              child: CallbackShortcuts(
+                bindings: {
+                  const SingleActivator(LogicalKeyboardKey.enter): () {
+                    if (!_forge.running) _generate();
+                  },
+                },
+                child: TextField(
+                  controller: _prompt,
+                  focusNode: _focus,
+                  maxLines: null,
+                  cursorColor: mq.primary,
+                  style: TextStyle(
+                    color: mq.textPrimary,
                     fontSize: MqTheme.fontBody,
+                    height: MqTheme.lineBody,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                    hintText: _rounds.isEmpty
+                        ? (_isActor
+                              ? tr('Young adult, fitness coach, plain grey '
+                                  't-shirt…')
+                              : tr('A small kitchen, morning light, worktop a '
+                                  'little cluttered…'))
+                        : tr('Say what to change…'),
+                    hintStyle: TextStyle(
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontBody,
+                    ),
                   ),
                 ),
               ),
@@ -413,6 +466,7 @@ class _StudioState extends State<_Studio> {
                         size: 32,
                         onPressed: _browse,
                       ),
+                      _improveButton(),
                       MqPickChip(
                         label: tr('Format'),
                         value: _aspect,

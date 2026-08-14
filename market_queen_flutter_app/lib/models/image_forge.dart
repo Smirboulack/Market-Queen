@@ -11,6 +11,7 @@ import '../core/pricing.dart';
 import '../core/settings_store.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
+import '../providers/capabilities.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
@@ -73,6 +74,8 @@ class ImageForge extends ChangeNotifier {
 
   String _model() =>
       _registry.resolveModel(_provider(), _settings.prefString('imageModel'));
+
+  ImageCapabilities get _picture => ImageCapabilities.of(_model());
 
   void reset() {
     cancel();
@@ -171,6 +174,11 @@ class ImageForge extends ChangeNotifier {
           prompt: prompt,
           aspectRatio: aspectRatio,
           referenceImageDataUri: referenceUri,
+          // The same two settings the picture shelf writes: an actor is a
+          // still off the same model, and it would be odd for the studio to
+          // draw one at 4K and the casting room the next one at 1K.
+          size: _picture.sizeOr(_settings.prefString('imageSize')),
+          quality: _picture.qualityOr(_settings.prefString('imageQuality')),
         ),
       );
 

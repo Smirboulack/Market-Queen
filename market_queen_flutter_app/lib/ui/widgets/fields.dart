@@ -345,8 +345,13 @@ class LabeledSlider extends StatelessWidget {
       children: [
         Row(
           children: [
-            FieldLabel(label),
-            const Spacer(),
+            // Expanded rather than a Spacer after it, because the dials sit in
+            // a 320px panel and their names are a third longer in most
+            // languages than in English: "Exagération du style" is one pixel
+            // past the row it is drawn in. The number keeps its room and the
+            // name folds.
+            Expanded(child: FieldLabel(label)),
+            const SizedBox(width: 8),
             Text(
               value.toStringAsFixed(decimals),
               style: TextStyle(

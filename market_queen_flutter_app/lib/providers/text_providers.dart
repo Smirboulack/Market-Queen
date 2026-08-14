@@ -367,6 +367,144 @@ abstract class ScriptTask extends HttpTask {
 }
 
 // ---------------------------------------------------------------------------
+// One question, one paragraph back
+//
+// The same three wire formats as the writers above, without the JSON schema:
+// used by the prompt doctor, which hands a model somebody's half-written prompt
+// and takes back a better one. It is a separate pair of classes rather than a
+// fourth mode on [ScriptTask] because nothing about it is a shot list -- no
+// hook, no caption, no shots, nothing to parse.
+// ---------------------------------------------------------------------------
+
+abstract class TextTask extends HttpTask {
+  TextTask(this.request);
+
+  final TextRequest request;
+
+  /// What came back, trimmed of the quotes and the "Here is your prompt:" a
+  /// model sometimes wraps it in.
+  Map<String, Object?> deliver(String text) {
+    var answer = text.trim();
+    if (answer.isEmpty) {
+      throw ProviderException(tr('The model returned an empty answer.'));
+    }
+
+    // A fenced block is the commonest wrapper, and the fence is never part of
+    // the prompt.
+    if (answer.startsWith('```')) {
+      final firstBreak = answer.indexOf('\n');
+      final lastFence = answer.lastIndexOf('```');
+      if (firstBreak > 0 && lastFence > firstBreak) {
+        answer = answer.substring(firstBreak + 1, lastFence).trim();
+      }
+    }
+    if (answer.length > 1 && answer.startsWith('"') && answer.endsWith('"')) {
+      answer = answer.substring(1, answer.length - 1).trim();
+    }
+
+    return {'text': answer};
+  }
+}
+
+class OpenAiTextTask extends TextTask {
+  OpenAiTextTask(super.request, {this.host = '', this.vendor = 'OpenAI'});
+
+  final String host;
+  final String vendor;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, vendor);
+
+    final fallback = host.isEmpty ? 'https://api.openai.com/v1' : host;
+    final base = request.baseUrl.isEmpty ? fallback : request.baseUrl;
+
+    final response = await postJson(
+      Uri.parse('$base/chat/completions'),
+      {
+        'model': request.model,
+        'messages': [
+          {'role': 'system', 'content': request.system},
+          {'role': 'user', 'content': request.user},
+        ],
+      },
+      headers: {'Authorization': 'Bearer ${request.apiKey}'},
+    );
+
+    return deliver(HttpTask.jsonPath(response, 'choices.0.message.content'));
+  }
+}
+
+class AnthropicTextTask extends TextTask {
+  AnthropicTextTask(super.request);
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'Anthropic');
+
+    final response = await postJson(
+      Uri.parse('https://api.anthropic.com/v1/messages'),
+      {
+        'model': request.model,
+        'max_tokens': request.maxTokens,
+        'system': request.system,
+        'messages': [
+          {'role': 'user', 'content': request.user},
+        ],
+      },
+      headers: {
+        'x-api-key': request.apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+    );
+
+    final blocks = response['content'];
+    if (blocks is List) {
+      for (final block in blocks) {
+        if (block is Map && block['type'] == 'text') {
+          return deliver('${block['text'] ?? ''}');
+        }
+      }
+    }
+    return deliver('');
+  }
+}
+
+class GeminiTextTask extends TextTask {
+  GeminiTextTask(super.request);
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'Google Gemini');
+
+    final response = await postJson(
+      Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/'
+          '${request.model}:generateContent'),
+      {
+        'contents': [
+          {
+            'role': 'user',
+            'parts': [
+              {'text': request.user},
+            ],
+          },
+        ],
+        'systemInstruction': {
+          'parts': [
+            {'text': request.system},
+          ],
+        },
+      },
+      headers: {'x-goog-api-key': request.apiKey},
+    );
+
+    return deliver(
+      HttpTask.jsonPath(response, 'candidates.0.content.parts.0.text'),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // OpenAI - POST /v1/chat/completions
 //
 // Also drives xAI and MiniMax. Both publish an endpoint that speaks this exact

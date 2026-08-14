@@ -112,14 +112,16 @@ class _CanvasViewState extends State<CanvasView> {
 
   /// The tallest a single result is allowed to be drawn.
   ///
-  /// Sized from what is actually on screen -- the canvas less the composer
-  /// standing in front of it -- because the point of the ceiling is that a
-  /// result you have just waited for fits in the space you are looking at. A
-  /// vertical 9:16 frame given the whole feed width comes out over two thousand
-  /// pixels tall, which is a result you have to scroll to see rather than one
-  /// that has arrived.
-  double _maxTileHeight(double viewportHeight) =>
-      math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78);
+  /// Two ceilings, and the smaller of the two wins. [_BatchBlock.maxTileEdge] is
+  /// the one that usually applies: a result in a feed is a thumbnail you glance
+  /// at and open, the way a picture in a chat is, not a page-width poster. The
+  /// other is what is actually on screen -- the canvas less the composer
+  /// standing in front of it -- which only bites on a short window, and keeps a
+  /// result you have just waited for inside the space you are looking at.
+  double _maxTileHeight(double viewportHeight) => math.min(
+    _BatchBlock.maxTileEdge,
+    math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78),
+  );
 
   /// Kept up to date by every scroll, so [_keepAnchored] never has to guess.
   ///
@@ -338,6 +340,16 @@ class _BatchBlock extends StatelessWidget {
   /// than shrinking every tile past the point of being readable.
   static const double _idealTile = 210;
 
+  /// The longest edge any single result is drawn at.
+  ///
+  /// A generation in the feed is the size of a picture in a chat thread, and
+  /// for the same reason: the feed is a record of what you asked for, read by
+  /// scrolling past it, and the way to look closely at one is to open it --
+  /// which is one click on the tile. Without this a single 16:9 clip took the
+  /// entire column and a 1:1 still was five hundred pixels square, so two
+  /// results in a row were already a page of scrolling.
+  static const double maxTileEdge = 320;
+
   /// Five abreast is as fine as the grid gets. Past it a still is a thumbnail,
   /// and the whole reason to ask for ten at once is to be able to tell them
   /// apart.
@@ -372,18 +384,21 @@ class _BatchBlock extends StatelessWidget {
         final share =
             (constraints.maxWidth - _gap * (columns - 1)) / columns;
 
-        // A cell is its share of the grid, until that would make it taller than
-        // the canvas can show -- which is what a single 9:16 result handed the
-        // whole column would be. Capped by the height rather than by a second
-        // width, because the shape is the ad's and a wide frame is nowhere near
-        // as tall at the same width.
+        // A cell is its share of the grid, until that would draw it larger than
+        // a result in a feed should be: capped on the height by the ceiling the
+        // feed works out, and on the width by the same edge, so whatever the
+        // shape the tile fits in one square and a wide clip is no bigger than a
+        // tall one.
         //
         // A recording is the exception: it is a row with a play button in it
         // and has no shape to cap, so squeezing it to the width of a portrait
         // frame would leave a scrubber nobody can aim at.
         final width = batch.kind == CanvasKind.audio
             ? share
-            : math.min(share, maxTileHeight * _ratioOf(batch));
+            : math.min(
+                math.min(share, maxTileEdge),
+                maxTileHeight * _ratioOf(batch),
+              );
 
         return Wrap(
           spacing: _gap,

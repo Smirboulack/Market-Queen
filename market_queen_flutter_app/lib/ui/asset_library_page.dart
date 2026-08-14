@@ -24,8 +24,8 @@ class AssetLibraryPage extends StatelessWidget {
 
   AssetLibrary get _library => _isActor ? app.actors : app.scenes;
 
-  Future<void> _create(BuildContext context) =>
-      createAsset(context, app: app, kind: kind);
+  Future<void> _create(BuildContext context, AssetRoute route) =>
+      createAsset(context, app: app, kind: kind, route: route);
 
   Future<void> _edit(BuildContext context, LibraryAsset asset) =>
       showAssetEditor(context, app: app, kind: kind, asset: asset);
@@ -81,21 +81,27 @@ class AssetLibraryPage extends StatelessWidget {
                         crossAxisSpacing: MqTheme.gap,
                         mainAxisSpacing: MqTheme.gap,
                       ),
-                  // The same first tile as the gallery, for the same reason: an
-                  // empty library reads as one thing to press rather than as an
-                  // empty box with an instruction beside it.
-                  itemCount: assets.length + 1,
-                  itemBuilder: (context, index) => index == 0
-                      ? CreateAssetTile(
-                          kind: kind,
-                          onTap: () => _create(context),
-                        )
-                      : AssetCard(
-                          asset: assets[index - 1],
-                          onTap: () => _edit(context, assets[index - 1]),
-                          onEdit: () => _edit(context, assets[index - 1]),
-                          onDelete: () => _delete(context, assets[index - 1]),
-                        ),
+                  // The same two first tiles as the gallery, for the same
+                  // reason: an empty library reads as something to press rather
+                  // than as an empty box with an instruction beside it.
+                  itemCount: assets.length + AssetRoute.values.length,
+                  itemBuilder: (context, index) {
+                    if (index < AssetRoute.values.length) {
+                      final route = AssetRoute.values[index];
+                      return CreateAssetTile(
+                        kind: kind,
+                        route: route,
+                        onTap: () => _create(context, route),
+                      );
+                    }
+                    final asset = assets[index - AssetRoute.values.length];
+                    return AssetCard(
+                      asset: asset,
+                      onTap: () => _edit(context, asset),
+                      onEdit: () => _edit(context, asset),
+                      onDelete: () => _delete(context, asset),
+                    );
+                  },
                 ),
               ),
             ],

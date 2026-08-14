@@ -26,6 +26,10 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // The labels asserted below are the English sources. Without this the
+    // catalogue follows the machine's own locale, and the whole file fails on
+    // a French one.
+    await app.translator.applyLanguage('en');
   });
 
   Future<void> pumpEditor(WidgetTester tester, {Size size = window}) async {

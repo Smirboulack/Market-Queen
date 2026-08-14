@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -21,6 +22,10 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // The labels asserted below are the English sources. Without this the
+    // catalogue follows the machine's own locale, and the whole file fails on
+    // a French one.
+    await app.translator.applyLanguage('en');
   });
 
   Future<void> pumpEditor(WidgetTester tester) async {
@@ -63,25 +68,21 @@ void main() {
     await tester.tap(find.text('Add an actor'));
     await settle(tester);
 
-    // Straight onto the grid, with the maker as its first tile.
+    // Straight onto the grid, with the two makers as its first tiles.
     expect(find.text('Select an actor'), findsOneWidget);
-    expect(find.byType(CreateAssetTile), findsOneWidget);
+    expect(find.byType(CreateAssetTile), findsNWidgets(2));
     expect(find.text('Search actors'), findsOneWidget);
   });
 
-  testWidgets('creating one asks how, then opens the studio', (tester) async {
+  testWidgets('the maker tile opens the studio straight away', (tester) async {
+    // It used to open a modal asking which of the two ways in you meant. Both
+    // are tiles in the grid now, so the question is answered by the tile that
+    // was pressed rather than by a window in between.
     await pumpEditor(tester);
 
     await tester.tap(find.text('Add an actor'));
     await settle(tester);
-    await tester.tap(find.byType(CreateAssetTile));
-    await settle(tester);
-
-    // Two doors, both named.
-    expect(find.text('GENERATE'), findsOneWidget);
-    expect(find.text('IMPORT'), findsOneWidget);
-
-    await tester.tap(find.text('From a description and reference pictures'));
+    await tester.tap(find.text('Create an actor'));
     await settle(tester);
 
     expect(find.text('Define your actor'), findsOneWidget);
@@ -106,8 +107,6 @@ void main() {
     await pumpEditor(tester);
 
     await tester.tap(find.text('Add an actor'));
-    await settle(tester);
-    await tester.tap(find.byType(CreateAssetTile));
     await settle(tester);
     await tester.tap(find.text('Turn a picture into an actor'));
     await settle(tester);
@@ -150,6 +149,42 @@ void main() {
     await tester.tap(find.text('Camille').first);
     await settle(tester);
     expect(find.text('Select an actor'), findsOneWidget);
+  });
+
+  testWidgets('a tooltip inside the cast panel does not throw', (tester) async {
+    // The panel used to hang off a CompositedTransformFollower, and a tooltip
+    // is an overlay child that has to know where its button is *during layout*
+    // -- which a follower layer cannot say, because it only gets its transform
+    // when the frame is composited. So hovering the swap button next to the
+    // close button threw "the paint transform cannot be reliably computed
+    // because of RenderFollowerLayer(s)" and took the frame with it.
+    app.actors.save(LibraryAsset(name: 'Hovered', prompt: 'A woman, 30s'));
+    app.project.setActor(app.actors.assets.first.id);
+    addTearDown(app.project.clearActor);
+
+    await pumpEditor(tester);
+    await tester.tap(find.byTooltip('Voice and delivery'));
+    await settle(tester);
+
+    final swap = find.descendant(
+      of: find.byType(CastPanel),
+      matching: find.byTooltip('Cast somebody else'),
+    );
+    expect(swap, findsOneWidget);
+
+    final pointer = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await pointer.addPointer(location: Offset.zero);
+    addTearDown(pointer.removePointer);
+    await tester.pump();
+    await pointer.moveTo(tester.getCenter(swap));
+    await settle(tester);
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(tester.takeException(), isNull);
+    // The bubble is really up -- otherwise this would pass by never having
+    // asked the tooltip to place itself.
+    expect(find.text('Cast somebody else'), findsOneWidget);
+    expect(find.byType(CastPanel), findsOneWidget);
   });
 
   testWidgets("the cast scene's cog opens its four dials", (tester) async {
