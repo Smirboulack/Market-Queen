@@ -151,9 +151,11 @@ class UploadFile {
 /// and a new face as `@Image1` is what reproduces the ad with that face in it,
 /// cuts and b-roll included.
 ///
-/// The urls are real http urls rather than data: URIs. A thirty-second clip is
-/// an order of magnitude past what can be inlined, so the caller uploads first
-/// and passes what it got back.
+/// Each entry is whatever the endpoint reads: an http url for a provider with
+/// storage behind it, and a `data:` URI for the ones this app calls directly
+/// and has nowhere to upload to. The caller decides which, per modality, from
+/// what the model declares -- BytePlus reads a still and a recording as base64
+/// but a reference clip only as a url it can fetch.
 class VideoReferences {
   const VideoReferences({
     this.images = const [],

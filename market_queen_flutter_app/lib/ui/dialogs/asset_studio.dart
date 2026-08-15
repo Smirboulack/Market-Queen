@@ -89,8 +89,7 @@ class _StudioState extends State<_Studio> {
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
-  AssetLibrary get _library =>
-      _isActor ? widget.app.actors : widget.app.scenes;
+  AssetLibrary get _library => _isActor ? widget.app.actors : widget.app.scenes;
 
   ImageForge get _forge =>
       _isActor ? widget.app.actorForge : widget.app.sceneForge;
@@ -211,9 +210,9 @@ class _StudioState extends State<_Studio> {
             //: %1 is a model name
             ? tr('Improve this prompt with %1 — free').arg(rewriter.label)
             //: %1 is a model name, %2 an account such as "OpenAI"
-            : tr('Improve this prompt with %1 — billed to your %2 account')
-                  .arg(rewriter.label)
-                  .arg(rewriter.account),
+            : tr(
+                'Improve this prompt with %1 — billed to your %2 account',
+              ).arg(rewriter.label).arg(rewriter.account),
         size: 32,
         enabled: rewriter.exists && !doctor.busy,
         onPressed: _improve,
@@ -287,10 +286,14 @@ class _StudioState extends State<_Studio> {
       width: width,
       title: _isActor ? tr('Define your actor') : tr('Define your scene'),
       subtitle: _isActor
-          ? tr('Describe them, pick the one that is closest, then say what to '
-              'change.')
-          : tr('Describe it, pick the one that is closest, then say what to '
-              'change.'),
+          ? tr(
+              'Describe them, pick the one that is closest, then say what to '
+              'change.',
+            )
+          : tr(
+              'Describe it, pick the one that is closest, then say what to '
+              'change.',
+            ),
       actions: [
         // Flexible rather than 200 wide: the two buttons beside it are as long
         // as whatever language the app is in makes them, and a fixed field is
@@ -301,10 +304,7 @@ class _StudioState extends State<_Studio> {
             placeholder: _library.suggestedName(),
           ),
         ),
-        GhostButton(
-          text: tr('Cancel'),
-          onPressed: () => closeMqModal(context),
-        ),
+        GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
         PrimaryButton(
           text: _isActor ? tr('Select this actor') : tr('Select this scene'),
           enabled: chosen,
@@ -341,8 +341,7 @@ class _StudioState extends State<_Studio> {
             _Candidates(
               paths: round.images,
               chosen: _draft.previewPath,
-              onPicked: (path) =>
-                  setState(() => _draft.previewPath = path),
+              onPicked: (path) => setState(() => _draft.previewPath = path),
             ),
             const SizedBox(height: MqTheme.gapLarge),
           ],
@@ -353,9 +352,9 @@ class _StudioState extends State<_Studio> {
             const SizedBox(height: 8),
             Text(
               //: %1 and %2 are counts of pictures
-              tr('Generating… %1 of %2')
-                  .arg(_forge.received)
-                  .arg(_forge.requested),
+              tr(
+                'Generating… %1 of %2',
+              ).arg(_forge.received).arg(_forge.requested),
               style: TextStyle(
                 color: context.mq.textTertiary,
                 fontSize: MqTheme.fontSmall,
@@ -402,8 +401,7 @@ class _StudioState extends State<_Studio> {
                     MediaTile(
                       path: _references[i],
                       size: 46,
-                      onRemove: () =>
-                          setState(() => _references.removeAt(i)),
+                      onRemove: () => setState(() => _references.removeAt(i)),
                     ),
                 ],
               ),
@@ -435,10 +433,14 @@ class _StudioState extends State<_Studio> {
                     contentPadding: EdgeInsets.zero,
                     hintText: _rounds.isEmpty
                         ? (_isActor
-                              ? tr('Young adult, fitness coach, plain grey '
-                                  't-shirt…')
-                              : tr('A small kitchen, morning light, worktop a '
-                                  'little cluttered…'))
+                              ? tr(
+                                  'Young adult, fitness coach, plain grey '
+                                  't-shirt…',
+                                )
+                              : tr(
+                                  'A small kitchen, morning light, worktop a '
+                                  'little cluttered…',
+                                ))
                         : tr('Say what to change…'),
                     hintStyle: TextStyle(
                       color: mq.textTertiary,
@@ -476,8 +478,8 @@ class _StudioState extends State<_Studio> {
                           MenuOption(tr('Wide 16:9'), '16:9'),
                         ],
                         onPicked: (value) => setState(
-                          () => widget.app.settings
-                              .setPref('assetAspect', value),
+                          () =>
+                              widget.app.settings.setPref('assetAspect', value),
                         ),
                       ),
                       // Bring your own keys means bringing your own model: the
@@ -498,9 +500,7 @@ class _StudioState extends State<_Studio> {
                   GhostButton(
                     text: cost.known
                         //: %1 is a price
-                        ? tr('Generate — %1').arg(
-                            Format.estimated(cost.amount),
-                          )
+                        ? tr('Generate — %1').arg(Format.estimated(cost.amount))
                         : tr('Generate'),
                     enabled: ready,
                     onPressed: _generate,
@@ -558,10 +558,14 @@ class _EmptyStudio extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 420),
           child: Text(
             isActor
-                ? tr('Write who they are underneath. Add a picture to work '
-                    'from if you have one, and press Generate.')
-                : tr('Write where it is underneath. Add a picture to work '
-                    'from if you have one, and press Generate.'),
+                ? tr(
+                    'Write who they are underneath. Add a picture to work '
+                    'from if you have one, and press Generate.',
+                  )
+                : tr(
+                    'Write where it is underneath. Add a picture to work '
+                    'from if you have one, and press Generate.',
+                  ),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: mq.textTertiary,
@@ -633,10 +637,7 @@ class _Candidates extends StatelessWidget {
       children: [
         Text(
           tr('Choose one'),
-          style: TextStyle(
-            color: mq.textTertiary,
-            fontSize: MqTheme.fontSmall,
-          ),
+          style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
         ),
         const SizedBox(height: 8),
         Row(
@@ -656,9 +657,7 @@ class _Candidates extends StatelessWidget {
                       : DecoratedBox(
                           decoration: BoxDecoration(
                             color: mq.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(
-                              MqTheme.radius,
-                            ),
+                            borderRadius: BorderRadius.circular(MqTheme.radius),
                           ),
                         ),
                 ),
@@ -774,8 +773,7 @@ class _ImportState extends State<_Import> {
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
-  AssetLibrary get _library =>
-      _isActor ? widget.app.actors : widget.app.scenes;
+  AssetLibrary get _library => _isActor ? widget.app.actors : widget.app.scenes;
 
   @override
   void dispose() {
@@ -805,13 +803,12 @@ class _ImportState extends State<_Import> {
       title: _isActor
           ? tr('Turn a picture into an actor')
           : tr('Turn a picture into a scene'),
-      subtitle: tr('Nothing is generated here. The file you hand over is the '
-          'picture every shot is built on.'),
+      subtitle: tr(
+        'Nothing is generated here. The file you hand over is the '
+        'picture every shot is built on.',
+      ),
       actions: [
-        GhostButton(
-          text: tr('Cancel'),
-          onPressed: () => closeMqModal(context),
-        ),
+        GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
         PrimaryButton(
           text: _isActor ? tr('Create the actor') : tr('Create the scene'),
           enabled: _picture.isNotEmpty,

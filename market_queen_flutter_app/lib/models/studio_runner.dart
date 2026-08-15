@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -685,7 +686,7 @@ class StudioRunner extends ChangeNotifier {
   /// own storage, so material bought through it is uploaded and travels as
   /// urls -- which is the only sane way to move a 200 MB clip. The direct
   /// providers have no storage this app can write to, so their references are
-  /// inlined as data URIs, and that only stretches to stills.
+  /// inlined as data URIs, as far as each of them will read them.
   ///
   /// A modality the model does not declare is dropped rather than sent: an
   /// endpoint rejects a field it never had.
@@ -702,57 +703,133 @@ class StudioRunner extends ChangeNotifier {
 
   /// References for a directly-called provider, as data URIs.
   ///
-  /// Stills only, and the refusal is deliberate rather than a silent drop: a
-  /// clip the user attached and paid to have ignored is worse than being told
-  /// it cannot be sent. Every one of these APIs takes a reference video as a
-  /// url it can fetch, and this app has nowhere to put one -- so the honest
-  /// answer is that it is not wired yet, not that the model cannot do it.
+  /// Whatever the endpoint reads as base64 goes in this way, and what it does
+  /// not read that way cannot be sent at all: these providers want a url they
+  /// can fetch, and this app has nowhere to put a file. The two disagree about
+  /// which modality that is -- BytePlus inlines a still and a recording but
+  /// takes a reference clip only as a hosted url, MiniMax inlines all three --
+  /// so the answer comes off the model rather than being one rule for the pair.
+  ///
+  /// A modality that cannot go is refused by name rather than dropped: a clip
+  /// the user attached and paid to have ignored is worse than being told it did
+  /// not go.
   Future<VideoReferences> _inlineReferences(
     ModelCapabilities capabilities,
     List<String> paths,
   ) async {
     final images = <String>[];
+    final videos = <String>[];
+    final audios = <String>[];
 
-    for (final path in paths) {
-      if (isVideoPath(path) || isAudioPath(path)) {
+    // Base64 is a third longer than the bytes it stands for, and both providers
+    // publish the ceiling as one number over the whole body. Counted as it is
+    // built, so the twelfth file is named rather than the request coming back
+    // as a bare 413.
+    var weight = 0;
+    void charge(String uri, String path) {
+      weight += uri.length;
+      if (weight > ModelCapabilities.maxInlineBodyBytes) {
         throw ProviderException(
-          //: %1 is a file name
-          tr('%1 can only be sent to this provider as a hosted link, which the '
-                  'app cannot make yet. Stills work; clips and recordings do '
-                  'not.')
-              .arg(p.basename(path)),
+          //: %1 is a file name, %2 a size such as "64 MB"
+          tr('The request got past %2 once %1 was added. Send fewer '
+                  'references, or shorter ones.')
+              .arg(p.basename(path))
+              .arg(_megabytes(ModelCapabilities.maxInlineBodyBytes)),
         );
       }
-      if (capabilities.imagesField.isEmpty) continue;
+    }
 
-      // Through the same converter the single-reference path uses, so a
-      // screenshot saved as AVIF or HEIC still arrives as something the model
-      // will look at.
-      final uri = await imageDataUri(Ffmpeg.resolve(_settings.ffmpegPath), path);
-      if (uri.isEmpty) throw ProviderException(unreadableImage(path));
+    for (final path in paths) {
+      if (isVideoPath(path)) {
+        if (capabilities.videosField.isEmpty) continue;
+        if (!capabilities.inlinesVideos) throw ProviderException(_noInline(path));
+        final uri = _fileDataUri(path, _maxVideoBytes);
+        charge(uri, path);
+        videos.add(uri);
+      } else if (isAudioPath(path)) {
+        if (capabilities.audiosField.isEmpty) continue;
+        if (!capabilities.inlinesAudios) throw ProviderException(_noInline(path));
+        final uri = _fileDataUri(path, _maxAudioBytes);
+        charge(uri, path);
+        audios.add(uri);
+      } else {
+        if (capabilities.imagesField.isEmpty) continue;
+        if (!capabilities.inlinesImages) throw ProviderException(_noInline(path));
 
-      final data = Http.dataUriPayload(uri);
-      if (data.length > _maxImageBytes) {
-        throw ProviderException(_tooBig(path, _maxImageBytes));
+        // Through the same converter the single-reference path uses, so a
+        // screenshot saved as AVIF or HEIC still arrives as something the model
+        // will look at.
+        final uri = await imageDataUri(Ffmpeg.resolve(_settings.ffmpegPath), path);
+        if (uri.isEmpty) throw ProviderException(unreadableImage(path));
+
+        final data = Http.dataUriPayload(uri);
+        if (data.length > _maxImageBytes) {
+          throw ProviderException(_tooBig(path, _maxImageBytes));
+        }
+        charge(uri, path);
+        images.add(uri);
       }
-      images.add(uri);
     }
 
-    final limit = capabilities.referenceLimits.images;
-    if (images.length > limit) {
-      //: %1 is a number of files
-      _log.warning(tr('Only the first %1 were sent; the rest were left out.')
-          .arg(limit));
-      images.removeRange(limit, images.length);
+    final limits = capabilities.referenceLimits;
+    _trim(images, limits.images);
+    _trim(videos, limits.videos);
+    _trim(audios, limits.audios);
+
+    if (images.isEmpty && videos.isEmpty && audios.isEmpty) {
+      return VideoReferences.none;
     }
 
-    return images.isEmpty
-        ? VideoReferences.none
-        : VideoReferences(
-            images: images,
-            imagesField: capabilities.imagesField,
-          );
+    return VideoReferences(
+      images: images,
+      videos: videos,
+      audios: audios,
+      imagesField: capabilities.imagesField,
+      videosField: capabilities.videosField,
+      audiosField: capabilities.audiosField,
+    );
   }
+
+  /// One local file as `data:<mime>;base64,...`, in the spelling these APIs
+  /// ask for: the format lowercase and the plain type, never the `x-` variant
+  /// the system mime table hands back for a .wav.
+  String _fileDataUri(String path, int maxBytes) {
+    final file = File(path);
+    if (!file.existsSync()) {
+      //: %1 is a file name
+      throw ProviderException(tr('Could not read %1.').arg(p.basename(path)));
+    }
+
+    final data = file.readAsBytesSync();
+    if (data.isEmpty) {
+      //: %1 is a file name
+      throw ProviderException(tr('Could not read %1.').arg(p.basename(path)));
+    }
+    if (data.length > maxBytes) throw ProviderException(_tooBig(path, maxBytes));
+
+    return 'data:${_mimeFor(path)};base64,${base64Encode(data)}';
+  }
+
+  /// The four types these endpoints name, by extension. Anything else is sent
+  /// under what the file sniffs as, which is what the upload path does too.
+  static String _mimeFor(String path) =>
+      switch (p.extension(path).toLowerCase()) {
+    '.mp4' => 'video/mp4',
+    '.mov' => 'video/quicktime',
+    '.mp3' => 'audio/mp3',
+    '.wav' => 'audio/wav',
+    _ => Http.mediaTypeOf(path, const []).toString(),
+  };
+
+  /// The refusal for a modality this endpoint only takes as a hosted url.
+  String _noInline(String path) =>
+      //: %1 is a file name
+      tr('%1 can only be sent to this provider as a hosted link, which the app '
+              'cannot make. Pick a model that takes it directly, or leave it '
+              'out.')
+          .arg(p.basename(path));
+
+  String _megabytes(int bytes) => '${bytes ~/ (1024 * 1024)} MB';
 
   /// The same pile, put in fal's storage and returned as urls under the names
   /// this model gave its lists.
@@ -843,11 +920,12 @@ class StudioRunner extends ChangeNotifier {
       //: %1 is a file name, %2 a size such as "200 MB"
       tr('%1 is too large to send as a reference. The limit is %2.')
           .arg(p.basename(path))
-          .arg('${maxBytes ~/ (1024 * 1024)} MB');
+          .arg(_megabytes(maxBytes));
 
   /// Keeps the first [limit] and says so, rather than letting the API refuse
-  /// the whole request over the eleventh file.
-  void _trim(List<UploadFile> files, int limit) {
+  /// the whole request over the eleventh file. Serves both shapes a reference
+  /// travels in: a file waiting to be uploaded, and one already inlined.
+  void _trim<T>(List<T> files, int limit) {
     if (files.length <= limit) return;
     //: %1 is a number of files
     _log.warning(tr('Only the first %1 were sent; the rest were left out.')

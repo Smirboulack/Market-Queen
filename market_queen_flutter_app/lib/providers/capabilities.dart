@@ -236,6 +236,9 @@ class ModelCapabilities {
     this.imagesMax = 0,
     this.videosMax = 0,
     this.audiosMax = 0,
+    this.inlinesImages = false,
+    this.inlinesVideos = false,
+    this.inlinesAudios = false,
     this.known = false,
   });
 
@@ -293,6 +296,22 @@ class ModelCapabilities {
   final int videosMax;
   final int audiosMax;
 
+  /// Which of the three lists this endpoint will take as a `data:` URI.
+  ///
+  /// The distinction only exists for the providers this app calls directly,
+  /// because it has nowhere to host a file: anything it cannot inline, it
+  /// cannot send at all. And the endpoints genuinely differ. BytePlus takes a
+  /// still or a recording as base64 -- `data:image/png;base64,...`,
+  /// `data:audio/wav;base64,...` -- and a reference *video* only as a url it
+  /// can fetch or an asset id from its own library. MiniMax takes all three as
+  /// base64 under the same 64 MB body ceiling.
+  ///
+  /// Left false for the fal endpoints, where it is not consulted: fal has
+  /// storage, so the material is uploaded and travels as urls.
+  final bool inlinesImages;
+  final bool inlinesVideos;
+  final bool inlinesAudios;
+
   /// False when nothing is known -- an unread fal schema. The caller then falls
   /// back to what it did before rather than pretending the model has no
   /// options.
@@ -309,19 +328,41 @@ class ModelCapabilities {
   /// here rather than in the runner because the bar has to draw the same
   /// numbers the send path enforces -- a counter that says 0/30 over a request
   /// that is trimmed at 9 is worse than no counter.
-  static const platformMaxImages = 30;
-  static const platformMaxVideos = 10;
-  static const platformMaxAudios = 10;
+  ///
+  /// Below what the biggest model would take: Seedance 2.5 declares thirty
+  /// stills, ten clips and ten recordings, and a request that size is neither
+  /// something anybody assembles by hand in a prompt bar nor something the
+  /// 64 MB body ceiling leaves room for.
+  static const platformMaxImages = 10;
+  static const platformMaxVideos = 3;
+  static const platformMaxAudios = 3;
 
   static const maxImageBytes = 30 * 1024 * 1024;
   static const maxVideoBytes = 200 * 1024 * 1024;
   static const maxAudioBytes = 15 * 1024 * 1024;
+
+  /// What a whole request may weigh once everything in it is base64. Both
+  /// multimodal providers this app calls directly publish the same number, and
+  /// both say it about the body rather than about any one file.
+  static const maxInlineBodyBytes = 64 * 1024 * 1024;
 
   ({int images, int videos, int audios}) get referenceLimits => (
     images: _limit(imagesField, imagesMax, platformMaxImages),
     videos: _limit(videosField, videosMax, platformMaxVideos),
     audios: _limit(audiosField, audiosMax, platformMaxAudios),
   );
+
+  /// The same, for a provider this app has to inline for: a modality the
+  /// endpoint will not read as base64 is not offered at all, because there is
+  /// no second way to hand it over.
+  ({int images, int videos, int audios}) get inlineLimits {
+    final declared = referenceLimits;
+    return (
+      images: inlinesImages ? declared.images : 0,
+      videos: inlinesVideos ? declared.videos : 0,
+      audios: inlinesAudios ? declared.audios : 0,
+    );
+  }
 
   static int _limit(String field, int declared, int ceiling) {
     if (field.isEmpty) return 0;
@@ -566,6 +607,10 @@ class ModelCapabilities {
       imagesMax: 30,
       videosMax: 10,
       audiosMax: 10,
+      // Stills and recordings go in as base64; a reference clip is a url this
+      // app cannot make. See [inlinesImages].
+      inlinesImages: true,
+      inlinesAudios: true,
       known: true,
     ),
     'dreamina-seedance-2-0-260128': ModelCapabilities(
@@ -588,6 +633,8 @@ class ModelCapabilities {
       imagesMax: 9,
       videosMax: 3,
       audiosMax: 3,
+      inlinesImages: true,
+      inlinesAudios: true,
       known: true,
     ),
     'dreamina-seedance-2-0-fast-260128': ModelCapabilities(
@@ -610,6 +657,8 @@ class ModelCapabilities {
       imagesMax: 9,
       videosMax: 3,
       audiosMax: 3,
+      inlinesImages: true,
+      inlinesAudios: true,
       known: true,
     ),
     'dreamina-seedance-2-0-mini-260615': ModelCapabilities(
@@ -632,6 +681,8 @@ class ModelCapabilities {
       imagesMax: 9,
       videosMax: 3,
       audiosMax: 3,
+      inlinesImages: true,
+      inlinesAudios: true,
       known: true,
     ),
     // The 1.x models take a first frame and a prompt and nothing else.
@@ -753,6 +804,11 @@ class ModelCapabilities {
       imagesMax: 9,
       videosMax: 3,
       audiosMax: 3,
+      // The one endpoint here that reads all three as base64: a public url and
+      // an `mm_file://` id are alternatives rather than the only way in.
+      inlinesImages: true,
+      inlinesVideos: true,
+      inlinesAudios: true,
       known: true,
     ),
     'MiniMax-Hailuo-2.3': ModelCapabilities(

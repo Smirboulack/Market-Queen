@@ -303,6 +303,3 @@ Si ton objectif est de **réduire le coût API de Market Queen**, le prochain tr
 - Ajouter la possibilité de pouvoir annuler une génération en cours pour ne pas être facturé. (Si possible, je ne sais pas si c'est possible de le faire).
 
 - Ajouter l'option de sous-titre automatique dans les réglages de génération de vidéo.
-
-- Dégradation, il faut pouvoir ajouter référence image, vidéos et audio si le modèle le permet, dans le mode vidéo. Par exemple Seedance 2.5 est capable de prendre en référence des images, vidéos et audios. Aussi il faudra détecter dynamiquement si l'utilisateur a ajouter des références (images/vidéos/audios) ou non pour aller taper dans le bon endpoint et pour pas qu'il ait besoin de choisir le modèle 2.5 référence explicitement. Ca va de soit pour tous les modèles bien sûr.
-

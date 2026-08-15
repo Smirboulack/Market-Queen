@@ -279,13 +279,22 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       );
 
       if (capabilities.takesReferences) {
-        final limits = capabilities.referenceLimits;
-        // A directly-called provider has nowhere to host a clip, so the runner
-        // will refuse one. Saying so with the counter is better than accepting
-        // the drop and rejecting it at send.
-        return ModelSchemas.fetches(providerId)
-            ? limits
-            : (images: limits.images, videos: 0, audios: 0);
+        // A directly-called provider has nowhere to host a file, so what it
+        // will read as base64 is what it can be handed at all -- which is per
+        // modality and not the same on the two of them. Saying so with the
+        // counter is better than accepting the drop and refusing it at send.
+        final limits = ModelSchemas.fetches(providerId)
+            ? capabilities.referenceLimits
+            : capabilities.inlineLimits;
+
+        // Every list closed to us, but the model still animates a still: it is
+        // an image-to-video endpoint as far as this bar is concerned.
+        if (limits.images == 0 && limits.videos == 0 && limits.audios == 0) {
+          return capabilities.imageField.isEmpty
+              ? limits
+              : (images: 1, videos: 0, audios: 0);
+        }
+        return limits;
       }
 
       // A model that declares no lists: one opening frame, which is exactly
@@ -1084,9 +1093,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             children: _leadingActions(),
           ),
         ),
-        const SizedBox(width: MqTheme.gap),
-        _Meter(model: _meterModel, price: _meterPrice),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
+        _Meter(
+          model: _meterModel,
+          price: _meterPrice,
+          onPressed: () => _show(_Panel.settings),
+        ),
+        const SizedBox(width: 4),
         if (_spec.batched) ...[
           _Stepper(
             value: _count,
@@ -1707,11 +1720,17 @@ class _CastChipState extends State<_CastChip> {
 /// The model this press will buy from, and what it will cost, beside the button
 /// that presses it.
 ///
-/// Quiet on purpose -- it is a fact about the request, not a control -- and one
-/// line, capped, because a model name is whatever the provider called it and
-/// "Kling AI Avatar v2 Standard" must not push the send button off the bar.
+/// Quiet, and one line, capped, because a model name is whatever the provider
+/// called it and "Kling AI Avatar v2 Standard" must not push the send button
+/// off the bar. Quiet is not the same as inert, though: it names the one thing
+/// the settings panel exists to change, so it opens that panel -- the cog
+/// beside it stays, for anyone looking for a cog.
 class _Meter extends StatelessWidget {
-  const _Meter({required this.model, required this.price});
+  const _Meter({
+    required this.model,
+    required this.price,
+    required this.onPressed,
+  });
 
   final String model;
 
@@ -1719,41 +1738,64 @@ class _Meter extends StatelessWidget {
   /// showing nothing rather than a zero.
   final String price;
 
+  /// Opens the settings panel, the same one the cog opens.
+  final VoidCallback onPressed;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     if (model.isEmpty) return const SizedBox.shrink();
 
-    return Tooltip(
-      message: price.isEmpty
-          ? tr('Generated with this model. Its price is not in the catalogue.')
+    return Pressable(
+      onTap: onPressed,
+      tooltip: price.isEmpty
+          ? tr(
+              'Generated with this model. Its price is not in the catalogue. '
+              'Click to change it.',
+            )
           //: %1 is a model name, %2 a price such as "~$0.15"
-          : tr('Generated with %1, for about %2.').arg(model).arg(price),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 230),
-        child: RichText(
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          text: TextSpan(
-            style: TextStyle(
-              color: mq.textTertiary,
-              fontSize: MqTheme.fontSmall,
-              fontFamily: MqTheme.fontFamily,
-            ),
-            children: [
-              TextSpan(text: model),
-              if (price.isNotEmpty) ...[
-                const TextSpan(text: '  ·  '),
-                TextSpan(
-                  text: price,
-                  style: TextStyle(
-                    color: mq.textSecondary,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+          : tr(
+              'Generated with %1, for about %2. Click to change it.',
+            ).arg(model).arg(price),
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? mq.surfaceTertiary
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 230),
+          child: RichText(
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            text: TextSpan(
+              style: TextStyle(
+                // Lifts a shade under the pointer: enough to read as a target,
+                // not enough to compete with the button next to it.
+                color: states.active ? mq.textSecondary : mq.textTertiary,
+                fontSize: MqTheme.fontSmall,
+                fontFamily: MqTheme.fontFamily,
+              ),
+              children: [
+                TextSpan(text: model),
+                if (price.isNotEmpty) ...[
+                  const TextSpan(text: '  ·  '),
+                  TextSpan(
+                    text: price,
+                    style: TextStyle(
+                      color: states.active ? mq.textPrimary : mq.textSecondary,
+                      fontWeight: FontWeight.w600,
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

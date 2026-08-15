@@ -82,8 +82,7 @@ class _GalleryState extends State<_Gallery> {
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
-  AssetLibrary get _library =>
-      _isActor ? widget.app.actors : widget.app.scenes;
+  AssetLibrary get _library => _isActor ? widget.app.actors : widget.app.scenes;
 
   @override
   void dispose() {
@@ -137,10 +136,14 @@ class _GalleryState extends State<_Gallery> {
       //: %1 is the name of an actor or a scene
       title: tr('Delete "%1"?').arg(asset.name),
       message: _isActor
-          ? tr('It is taken off every ad that cast it. Nothing already '
-              'generated changes.')
-          : tr('It is taken off every ad that used it. Nothing already '
-              'generated changes.'),
+          ? tr(
+              'It is taken off every ad that cast it. Nothing already '
+              'generated changes.',
+            )
+          : tr(
+              'It is taken off every ad that used it. Nothing already '
+              'generated changes.',
+            ),
       confirmLabel: tr('Delete'),
     );
     if (!confirmed || !mounted) return;
@@ -163,18 +166,19 @@ class _GalleryState extends State<_Gallery> {
   /// and the same portrait tile was cutting the sides off every one of them and
   /// then stacking eight of them into a wall of slivers. The card underneath is
   /// one widget for both; only the cell it is given differs.
-  ({double extent, double height}) get _cell => _isActor
-      ? (extent: 176, height: 226)
-      : (extent: 232, height: 172);
+  ({double extent, double height}) get _cell =>
+      _isActor ? (extent: 176, height: 226) : (extent: 232, height: 172);
 
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     final width = (screen.width - 96).clamp(560.0, 1020.0);
-    // A ceiling rather than a height. It used to be both, so a library holding
-    // four scenes opened a modal two thirds of which was empty white, with the
-    // tiles pinned to the top of it.
-    final maxHeight = (screen.height - 120).clamp(360.0, 660.0);
+    // A height, not a ceiling. A window that grows and shrinks with whatever
+    // the search happens to match is a window that moves under the cursor
+    // between two keystrokes; the grid inside scrolls instead. The subtraction
+    // is the room the header, the card padding and the modal's own margin take
+    // around it.
+    final height = (screen.height - 220).clamp(400.0, 640.0);
 
     return ListenableBuilder(
       listenable: _library,
@@ -182,22 +186,21 @@ class _GalleryState extends State<_Gallery> {
         width: width,
         title: _isActor ? tr('Select an actor') : tr('Select a scene'),
         subtitle: _isActor
-            ? tr('Everyone you have cast before, and one more click to make '
-                'somebody new.')
-            : tr('Everywhere you have filmed before, and one more click to '
-                'build somewhere new.'),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: maxHeight),
+            ? tr(
+                'Everyone you have cast before, and one more click to make '
+                'somebody new.',
+              )
+            : tr(
+                'Everywhere you have filmed before, and one more click to '
+                'build somewhere new.',
+              ),
+        child: SizedBox(
+          height: height,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // The rail is dropped rather than squeezed on a narrow window:
               // filters are the part of this screen you can do without.
-              //
-              // No rule between the two, and deliberately: everything in this
-              // row shrink-wraps so that four scenes get a short modal, and a
-              // hairline tall enough to look like a divider would be the one
-              // thing in it insisting on the full height.
               if (width > 760) ...[
                 SizedBox(width: 168, child: _rail(context)),
                 const SizedBox(width: MqTheme.gapLarge + 12),
@@ -261,7 +264,6 @@ class _GalleryState extends State<_Gallery> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
         _SearchField(
           controller: _search,
@@ -269,12 +271,11 @@ class _GalleryState extends State<_Gallery> {
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: MqTheme.gap),
-        // Shrink-wrapped, and scrolling only once there is more than the
-        // ceiling allows: three scenes take three tiles' worth of modal.
-        Flexible(
+        // Takes whatever height is left over and scrolls inside it: the modal
+        // is the same size whether the library holds three faces or ninety.
+        Expanded(
           child: GridView.builder(
             padding: EdgeInsets.zero,
-            shrinkWrap: true,
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: cell.extent,
               mainAxisExtent: cell.height,
@@ -513,8 +514,8 @@ class CreateAssetTile extends StatelessWidget {
     final label = _generating
         ? (actor ? tr('Create an actor') : tr('Create a scene'))
         : (actor
-            ? tr('Turn a picture into an actor')
-            : tr('Turn a picture into a scene'));
+              ? tr('Turn a picture into an actor')
+              : tr('Turn a picture into a scene'));
 
     return Pressable(
       onTap: onTap,
@@ -594,13 +595,13 @@ class _FilterPill extends StatelessWidget {
       focusRadius: MqTheme.radiusPill,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        // A floor rather than a height. "Lumière du jour par la fenêtre" is
-        // three times the width of the rail it sits in, and a pill that
-        // insists on one line simply overflowed it -- by two hundred pixels,
-        // in stripes, on every frame the modal was open. It wraps now.
-        constraints: const BoxConstraints(minHeight: 28),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        alignment: Alignment.center,
+        // Padding and nothing else: no width, no height, no alignment. A
+        // Container given an alignment expands to fill what it is handed --
+        // in a Wrap that is the whole rail -- so every pill used to come out
+        // full width and stack one per line. Sized to its own word, it is a
+        // pill; a long one still folds onto a second line inside the rail
+        // rather than overflowing it.
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: selected
               ? mq.primary
@@ -616,28 +617,15 @@ class _FilterPill extends StatelessWidget {
                 : mq.border,
           ),
         ),
-        // A row rather than `alignment: center` alone: a Container that is
-        // given an alignment and no width expands to fill whatever it is
-        // handed, which in a Wrap is the whole rail -- so every pill came out
-        // full width and stacked. A min-size row shrink-wraps to the word and
-        // centres it; the flexible text is what lets a long one fold instead
-        // of running off the end.
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Flexible(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: selected ? mq.onPrimary : mq.textSecondary,
-                  fontSize: MqTheme.fontSmall,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  height: MqTheme.lineTight,
-                ),
-              ),
-            ),
-          ],
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: selected ? mq.onPrimary : mq.textSecondary,
+            fontSize: MqTheme.fontSmall,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+            height: MqTheme.lineTight,
+          ),
         ),
       ),
     );
