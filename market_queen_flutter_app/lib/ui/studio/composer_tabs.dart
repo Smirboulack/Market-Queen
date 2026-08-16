@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../app_state.dart';
-import '../../core/pricing.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart' show MediaKind;
 import '../../models/canvas_feed.dart';
-import '../../models/studio_runner.dart';
 import '../../providers/capabilities.dart';
 import '../format.dart';
 import '../icons.dart';
@@ -422,18 +420,11 @@ class ComposerSettings extends StatelessWidget {
     required this.app,
     required this.tab,
     required this.onClose,
-    this.order,
   });
 
   final AppState app;
   final ComposerTab tab;
   final VoidCallback onClose;
-
-  /// Exactly what the bar would send, or null when it would send nothing --
-  /// an empty prompt, a shelf with no file dropped on it. The Cost row reads
-  /// it, so the two figures on screen come from one order rather than from
-  /// two reconstructions of it.
-  final GenerationOrder? order;
 
   ComposerSpec get spec => ComposerSpec.of(tab);
 
@@ -708,33 +699,14 @@ class ComposerSettings extends StatelessWidget {
             onChanged: project.setBroll,
           ),
         ),
-        // Zero until the ad has a script and somebody to read it. Before that
-        // the breakdown was quoting a whole run -- a reading, a frame and a
-        // clip per shot -- off the length dial alone, which is a dollar figure
-        // for an ad nobody has written a word of.
-        (label: tr('Cost'), child: _Estimate(app: app, shootable: order != null)),
       ]);
     }
 
-    // What the batch on the bar would cost, in the same place and the same
-    // words as the ad's own estimate. It used to be on the talking-actor column
-    // alone, which left the two tabs where a careless press costs dollars as
-    // the two with no figure anywhere on screen.
-    //
-    // With nothing to send it is zero rather than the model's rate. A price
-    // is a property of a generation, and an empty prompt generates nothing --
-    // what the model charges per second is a property of the model, and it is
-    // already written beside its name in the menu directly above.
-    if (tab == ComposerTab.image || tab == ComposerTab.video) {
-      rows.add((
-        label: tr('Cost'),
-        child: _OrderEstimate(
-          estimate: order == null
-              ? CostEstimate.free
-              : app.runner.estimate(order!),
-        ),
-      ));
-    }
+    // No Cost row on any tab. This column is where you change what will be
+    // generated, and the price of it was already on the bar -- next to the
+    // send button, which is the thing the price is actually about. Saying it
+    // twice made the panel longer without answering a question the meter had
+    // not already answered.
 
     return rows;
   }
@@ -1001,82 +973,3 @@ class _ModelPicker extends StatelessWidget {
   }
 }
 
-/// What the ad would cost if it were shot right now.
-///
-/// An ad with no script is not an ad that costs less -- it is an ad that
-/// cannot be shot, so it costs nothing. [Pricing.estimate] will happily quote
-/// one anyway, because it has a second caller in the old form where the script
-/// is *meant* to be absent and the writer invents it from the brief; there it
-/// falls back to the length dial and is right to. In the studio the script is
-/// the thing you typed, and quoting two dollars against an empty field is a
-/// number attached to nothing.
-class _Estimate extends StatelessWidget {
-  const _Estimate({required this.app, this.shootable = true});
-
-  final AppState app;
-
-  /// Whether the ad has everything it needs to run.
-  final bool shootable;
-
-  @override
-  Widget build(BuildContext context) {
-    if (!shootable) {
-      return Text(
-        Format.money(0),
-        style: TextStyle(
-          color: context.mq.textPrimary,
-          fontSize: MqTheme.fontLabel,
-          fontWeight: FontWeight.w600,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      );
-    }
-
-    final breakdown = app.pricing.estimate(app.request());
-
-    return Text(
-      Format.estimated(breakdown.total),
-      style: TextStyle(
-        color: context.mq.textPrimary,
-        fontSize: MqTheme.fontLabel,
-        fontWeight: FontWeight.w600,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-    );
-  }
-}
-
-/// What one press of send on this tab would cost, at the model, the length and
-/// the count currently set.
-///
-/// A model the catalogue has no line for says so rather than showing a zero:
-/// an invented figure next to a spend button is worse than none.
-class _OrderEstimate extends StatelessWidget {
-  const _OrderEstimate({required this.estimate});
-
-  final CostEstimate estimate;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    // Zero is stated plainly rather than approximated: "~$0" is a hedge about
-    // a number there is nothing uncertain about.
-    final text = !estimate.known
-        ? tr('price unknown')
-        : estimate.amount == 0
-        ? Format.money(0)
-        : Format.estimated(estimate.amount);
-
-    return Text(
-      text,
-      overflow: TextOverflow.ellipsis,
-      style: TextStyle(
-        color: estimate.known ? mq.textPrimary : mq.textTertiary,
-        fontSize: MqTheme.fontLabel,
-        fontWeight: FontWeight.w600,
-        fontFeatures: const [FontFeature.tabularFigures()],
-      ),
-    );
-  }
-}

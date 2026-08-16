@@ -15,7 +15,7 @@ import '../providers/types.dart';
 /// instruction for all three would produce prose that suits none of them.
 enum PromptKind { image, video, script, voice, actor, scene }
 
-/// Who will do the rewriting, and whether it costs anything.
+/// Who will do the rewriting.
 @immutable
 class PromptWriter {
   const PromptWriter({
@@ -23,7 +23,6 @@ class PromptWriter {
     this.modelId = '',
     this.label = '',
     this.account = '',
-    this.free = false,
   });
 
   final String providerId;
@@ -32,25 +31,20 @@ class PromptWriter {
   /// The model's own name, for the tooltip.
   final String label;
 
-  /// The account it will be billed to, when it is billed at all.
+  /// The account it will be billed to.
   final String account;
-
-  /// True when the provider publishes a free quota for this model and hands out
-  /// the key without a card. The user still brings their own key; nobody is
-  /// charged until that quota runs out, which is what the tooltip says.
-  final bool free;
 
   bool get exists => providerId.isNotEmpty && modelId.isNotEmpty;
 }
 
 /// Rewrites the prompt in the bar into one a model can do more with.
 ///
-/// It runs on a writer the user already has a key for, and it prefers a free
-/// one: every provider in the catalogue that publishes a free tier is tried
-/// before the one they picked for writing scripts, because pressing a button
-/// marked "improve this" should not quietly cost money. When only a paid writer
-/// is available it still works -- and says so on the button, before it is
-/// pressed.
+/// It runs on a writer the user already has a key for -- the one they chose
+/// for writing scripts, first refusal -- and it is billed like anything else,
+/// which the button says before it is pressed. It used to hunt for a model on
+/// a free tier before falling back; that preference is gone along with the
+/// rest of the free-tier notion, because "free" was a promotion this app could
+/// neither see nor promise.
 class PromptDoctor extends ChangeNotifier {
   PromptDoctor(this._settings, this._registry, this._log);
 
@@ -78,10 +72,10 @@ class PromptDoctor extends ChangeNotifier {
 
   /// Which writer would run, on the keys that are actually present.
   ///
-  /// Free first, and within that the writer the user has already chosen, so
-  /// somebody who picked Gemini keeps Gemini. Nothing at all when no writer has
-  /// a key -- the button then says what to do about it rather than failing on
-  /// the press.
+  /// The writer the user has already chosen, so somebody who picked Gemini
+  /// keeps Gemini, then whatever else has a key behind it. Nothing at all when
+  /// no writer has one -- the button then says what to do about it rather than
+  /// failing on the press.
   PromptWriter get writer {
     final chosen = _registry.providerOrDefault(
       'text',
@@ -96,22 +90,18 @@ class PromptDoctor extends ChangeNotifier {
         if (entry.id != chosen) entry,
     ];
 
-    for (final wantFree in [true, false]) {
-      for (final provider in providers) {
-        if (!_settings.hasApiKey(provider.credential)) continue;
+    for (final provider in providers) {
+      if (!_settings.hasApiKey(provider.credential)) continue;
 
-        for (final model in provider.models) {
-          if (model.isFree != wantFree) continue;
-          if (_settings.modelHidden(provider.id, model.id)) continue;
+      for (final model in provider.models) {
+        if (_settings.modelHidden(provider.id, model.id)) continue;
 
-          return PromptWriter(
-            providerId: provider.id,
-            modelId: model.id,
-            label: model.label,
-            account: provider.label,
-            free: model.isFree,
-          );
-        }
+        return PromptWriter(
+          providerId: provider.id,
+          modelId: model.id,
+          label: model.label,
+          account: provider.label,
+        );
       }
     }
 

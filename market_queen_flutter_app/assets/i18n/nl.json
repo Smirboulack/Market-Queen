@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper gaf een lege transcriptie terug.",
   "Reads the product photo when the model supports vision.": "Leest de productfoto als het model beeld ondersteunt.",
   "Strong at short, natural-sounding ad copy.": "Sterk in korte, natuurlijk klinkende reclameteksten.",
-  "Free tier available in most regions.": "Gratis niveau beschikbaar in de meeste regio's.",
   "Any fal model id works, paste one from fal.ai/models.": "Elke fal-model-id werkt, plak er een van fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Gebruik owner/name, of owner/name:version om een versie vast te zetten.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - allemaal met één sleutel.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "Eén advertentie. Schrijf, cast en film hem.",
   "Pick an ad on the left, or start a new one.": "Kies links een advertentie of maak een nieuwe.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Plan een advertentie shot voor shot voordat je filmt. In aanbouw.",
-  "Add this account's key to switch it on.": "Voeg de sleutel van dit account toe om het in te schakelen.",
   "%1 · max %2": "%1 · max. %2",
   "Home": "Start",
   "Welcome to Market Queen": "Welkom bij Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "Storyboards openen",
   "Set up the models": "Modellen instellen",
   "What's new": "Wat is er nieuw",
-  "You are on v%1": "Je gebruikt v%1"
+  "You are on v%1": "Je gebruikt v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "Plak een sleutel voor elk account waarvan je wilt afnemen. Alles op de andere tabbladen wordt hierdoor ingeschakeld.",
+  "No key yet": "Nog geen sleutel",
+  "%1  —  %2 models": "%1  —  %2 modellen",
+  "Add this account's key under API keys to switch it on.": "Voeg de sleutel van dit account toe onder API-sleutels om het in te schakelen.",
+  "Save": "Opslaan",
+  "Saved": "Opgeslagen",
+  "Add a key for a writer under API keys to improve prompts.": "Voeg onder API-sleutels een sleutel voor een schrijver toe om prompts te verbeteren.",
+  "What Gemini does with what you send": "Wat Gemini doet met wat je stuurt"
 }

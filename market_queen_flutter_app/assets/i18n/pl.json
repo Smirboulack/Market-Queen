@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper zwrócił pustą transkrypcję.",
   "Reads the product photo when the model supports vision.": "Czyta zdjęcie produktu, jeśli model obsługuje obraz.",
   "Strong at short, natural-sounding ad copy.": "Świetny w krótkich, naturalnie brzmiących tekstach reklamowych.",
-  "Free tier available in most regions.": "Darmowy pakiet dostępny w większości regionów.",
   "Any fal model id works, paste one from fal.ai/models.": "Zadziała każdy identyfikator modelu fal, wklej go z fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Użyj owner/name lub owner/name:version, aby przypiąć wersję.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - wszystkie na jednym kluczu.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "Jedna reklama. Napisz, obsadź, nakręć.",
   "Pick an ad on the left, or start a new one.": "Wybierz reklamę po lewej lub utwórz nową.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Zaplanuj reklamę ujęcie po ujęciu, zanim ją nakręcisz. W budowie.",
-  "Add this account's key to switch it on.": "Dodaj klucz tego konta, aby go włączyć.",
   "%1 · max %2": "%1 · maks. %2",
   "Home": "Start",
   "Welcome to Market Queen": "Witamy w Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "Otwórz storyboardy",
   "Set up the models": "Skonfiguruj modele",
   "What's new": "Nowości",
-  "You are on v%1": "Używasz v%1"
+  "You are on v%1": "Używasz v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "Wklej klucz dla każdego konta, z którego chcesz korzystać. Wszystko na pozostałych kartach jest przez nie odblokowywane.",
+  "No key yet": "Brak klucza",
+  "%1  —  %2 models": "%1  —  %2 modeli",
+  "Add this account's key under API keys to switch it on.": "Dodaj klucz tego konta w sekcji Klucze API, aby go włączyć.",
+  "Save": "Zapisz",
+  "Saved": "Zapisano",
+  "Add a key for a writer under API keys to improve prompts.": "Dodaj klucz modelu piszącego w sekcji Klucze API, aby ulepszać prompty.",
+  "What Gemini does with what you send": "Co Gemini robi z tym, co wysyłasz"
 }

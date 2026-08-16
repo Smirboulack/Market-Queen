@@ -43,6 +43,9 @@ class ModelsPage extends StatefulWidget {
   State<ModelsPage> createState() => _ModelsPageState();
 }
 
+/// The shelf that takes keys rather than model choices.
+const String _keysPanel = 'keys';
+
 class _ModelsPageState extends State<ModelsPage> {
   String _panelId = Registry.panels.first.id;
 
@@ -115,10 +118,13 @@ class _ModelsPageState extends State<ModelsPage> {
                       ),
                     ),
                     const SizedBox(height: MqTheme.gapLarge),
-                    for (final card in cards) ...[
-                      _AccountCard(app: widget.app, card: card),
-                      const SizedBox(height: MqTheme.gap),
-                    ],
+                    if (panel.id == _keysPanel)
+                      _KeyGrid(app: widget.app, cards: cards)
+                    else
+                      for (final card in cards) ...[
+                        _AccountCard(app: widget.app, card: card),
+                        const SizedBox(height: MqTheme.gap),
+                      ],
                   ],
                 ),
               ),
@@ -131,12 +137,21 @@ class _ModelsPageState extends State<ModelsPage> {
 
   /// One card per account on this shelf, in the order the registry lists their
   /// providers, each carrying every catalogue entry that account pays for here.
+  ///
+  /// The keys shelf is the exception: it is about accounts rather than models,
+  /// so it lists every credential there is -- including any whose models all
+  /// live on one other tab -- and each card carries everything that account
+  /// sells, so it can say what the key would switch on.
   List<_Card> _cardsFor(PanelEntry panel) {
     final registry = widget.app.registry;
     final byCredential = <String, List<ProviderEntry>>{};
     final order = <String>[];
 
-    for (final provider in registry.providersForPanel(panel.id)) {
+    final providers = panel.id == _keysPanel
+        ? registry.entries
+        : registry.providersForPanel(panel.id);
+
+    for (final provider in providers) {
       final key = provider.credential;
       if (!byCredential.containsKey(key)) {
         byCredential[key] = [];
@@ -223,8 +238,12 @@ class _Tabs extends StatelessWidget {
     );
   }
 
+  /// The keys shelf counts every account there is; the others count only the
+  /// ones their own models are bought from.
   Iterable<CredentialEntry> _credentials(PanelEntry panel) =>
-      app.registry.credentialsForPanel(panel.id);
+      panel.id == _keysPanel
+      ? app.registry.credentials()
+      : app.registry.credentialsForPanel(panel.id);
 
   int _total(PanelEntry panel) => _credentials(panel).length;
 
@@ -320,6 +339,152 @@ class _Tab extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// The keys shelf
+// ---------------------------------------------------------------------------
+
+/// The accounts, two across.
+///
+/// A key is a 40-pixel box, and a 40-pixel box stretched over a 1180-pixel
+/// column is mostly empty rule. Two per row puts the field at about the width
+/// of the thing it holds and halves the scrolling, and the cards line up in a
+/// grid you can scan for the empty ones rather than a ladder you read.
+class _KeyGrid extends StatelessWidget {
+  const _KeyGrid({required this.app, required this.cards});
+
+  final AppState app;
+  final List<_Card> cards;
+
+  /// Below this, one across: two columns of a narrow window would leave the
+  /// field too short to show a key.
+  static const double _twoColumnsAbove = 720;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns = constraints.maxWidth >= _twoColumnsAbove ? 2 : 1;
+        final width =
+            (constraints.maxWidth - MqTheme.gap * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: MqTheme.gap,
+          runSpacing: MqTheme.gap,
+          children: [
+            for (final card in cards)
+              SizedBox(
+                width: width,
+                child: _KeyCard(app: app, card: card),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// One account: its mark, its name, its key, and what the key buys.
+class _KeyCard extends StatelessWidget {
+  const _KeyCard({required this.app, required this.card});
+
+  final AppState app;
+  final _Card card;
+
+  /// "Writing · Images · Video", the shelves this account sells on.
+  String get _sells {
+    final seen = <String>[];
+    for (final provider in card.providers) {
+      final label = _Group.categoryLabel(provider.category);
+      if (!seen.contains(label)) seen.add(label);
+    }
+    return seen.join('  ·  ');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final credential = card.credential;
+    if (credential == null) return const SizedBox.shrink();
+
+    final hasKey = app.settings.hasApiKey(credential.id);
+
+    return Container(
+      padding: const EdgeInsets.all(MqTheme.gap + 2),
+      decoration: BoxDecoration(
+        color: mq.surface,
+        borderRadius: BorderRadius.circular(MqTheme.radius),
+        border: Border.all(color: mq.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              SizedBox(
+                width: 26,
+                height: 26,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    ProviderMark(credential: credential.id, size: 26),
+                    // The one thing worth seeing from across the grid: which
+                    // accounts are set up.
+                    PositionedDirectional(
+                      end: -2,
+                      bottom: -2,
+                      child: Container(
+                        width: 9,
+                        height: 9,
+                        decoration: BoxDecoration(
+                          color: hasKey ? mq.success : mq.borderStrong,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: mq.surface, width: 2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      card.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: mq.textPrimary,
+                        fontSize: MqTheme.fontLabel,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: MqTheme.trackTitle,
+                        height: MqTheme.lineTight,
+                      ),
+                    ),
+                    Text(
+                      _sells,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: mq.textTertiary,
+                        fontSize: MqTheme.fontMicro,
+                        height: MqTheme.lineTight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: MqTheme.gap),
+          KeyField(app: app, credential: credential),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // One account
 // ---------------------------------------------------------------------------
 
@@ -367,26 +532,9 @@ class _AccountCard extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: _header(context, hasKey, unlocked, shown, ids),
           ),
-          if (credential != null) ...[
-            const SizedBox(height: 12),
-            // The key gets its own band, a step down from the card, so it reads
-            // as the thing the models below it depend on rather than as another
-            // row of them.
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
-              decoration: BoxDecoration(
-                color: mq.surfaceSecondary,
-                border: Border.symmetric(
-                  horizontal: BorderSide(color: mq.borderSubtle),
-                ),
-              ),
-              child: KeyField(app: app, credential: credential),
-            ),
-          ] else
-            const SizedBox(height: 12),
+          const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -484,10 +632,6 @@ class _AccountCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (credential != null && credential.free) ...[
-                    const SizedBox(width: 8),
-                    _Badge(text: tr('Free tier')),
-                  ],
                 ],
               ),
               // What the key is for is said by the key field, and only while it
@@ -532,37 +676,6 @@ class _AccountCard extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// A quiet, bordered tag. Used for the one claim on this page that can cost
-/// somebody money if it is wrong, so it is drawn to be read rather than to
-/// decorate.
-class _Badge extends StatelessWidget {
-  const _Badge({required this.text});
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: mq.successSubtle,
-        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: mq.successText,
-          fontSize: MqTheme.fontMicro,
-          fontWeight: FontWeight.w600,
-          letterSpacing: MqTheme.trackSmall,
-        ),
-      ),
     );
   }
 }
@@ -676,7 +789,11 @@ class _ModelChip extends StatelessWidget {
       onTap: unlocked
           ? () => app.settings.setModelHidden(providerId, model.id, on)
           : null,
-      tooltip: unlocked ? '' : tr('Add this account\'s key to switch it on.'),
+      // Says where, now that the key is not on this tab: a locked chip with no
+      // way onward from it is a dead end.
+      tooltip: unlocked
+          ? ''
+          : tr('Add this account\'s key under API keys to switch it on.'),
       focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
@@ -734,20 +851,6 @@ class _ModelChip extends StatelessWidget {
                 fontWeight: on ? FontWeight.w500 : FontWeight.w400,
               ),
             ),
-            // The price is what the model costs once any free quota is gone, so
-            // the two belong side by side rather than one instead of the other:
-            // "Free tier" alone would read as "this is never billed".
-            if (model.isFree) ...[
-              const SizedBox(width: 8),
-              Text(
-                tr('Free tier'),
-                style: TextStyle(
-                  color: on ? mq.successText : mq.textDisabled,
-                  fontSize: MqTheme.fontMicro,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
             if (price.isNotEmpty) ...[
               const SizedBox(width: 8),
               Text(

@@ -9,24 +9,19 @@ import 'types.dart';
 import 'video_providers.dart';
 import 'voice_providers.dart';
 
-/// Whether a model can be run without paying, which is a different question
-/// from what it costs.
-///
-/// [free] means the provider publishes a free quota for it and hands out the
-/// key without a card -- the user still brings their own, we still pay nothing.
-/// The price in pricing.json is what happens once that quota is spent, so this
-/// marks the door rather than a zero on the bill.
-enum ModelTier { paid, free }
-
 /// A model the user can pick: technical id + something readable.
+///
+/// There used to be a `tier` on here marking the models a provider publishes a
+/// free quota for. It is gone, and deliberately: a free quota is a promotion,
+/// it is metered in units nothing in this app can see, and the moment it runs
+/// out the same model bills like any other. Labelling a model "free" in a menu
+/// somebody spends money from is a claim we cannot stand behind on the one
+/// screen where being wrong costs them.
 class ModelEntry {
-  const ModelEntry(this.id, this.label, {this.tier = ModelTier.paid});
+  const ModelEntry(this.id, this.label);
 
   final String id;
   final String label;
-  final ModelTier tier;
-
-  bool get isFree => tier == ModelTier.free;
 }
 
 class ProviderEntry {
@@ -90,7 +85,6 @@ class CredentialEntry {
     required this.envVar,
     required this.signupUrl,
     required this.note,
-    this.free = false,
   });
 
   final String id;
@@ -98,11 +92,6 @@ class CredentialEntry {
   final String envVar;
   final String signupUrl;
   final String note;
-
-  /// True when the signup page hands back a working key for nothing: a Google
-  /// account, no card, no trial clock. Those are the ones the first run points
-  /// at, so somebody can make an ad before deciding whether to fund anything.
-  final bool free;
 }
 
 /// Catalogue of everything the app can talk to, plus the factory that turns a
@@ -119,8 +108,25 @@ class Registry extends ChangeNotifier {
     _build();
   }
 
-  /// The five shelves of the Models menu, in the order they are drawn.
+  /// The shelves of the Models menu, in the order they are drawn.
+  ///
+  /// Keys come first and are a shelf of their own. They used to be a band
+  /// inside every account card, which meant one account that sells on four
+  /// shelves had its key field drawn four times -- and setting the app up
+  /// meant touring every tab looking for the cards that still had an empty
+  /// one. Keys are a thing you do once; picking models is a thing you come
+  /// back to. Two jobs, two places.
   static const List<PanelEntry> panels = [
+    PanelEntry(
+      id: 'keys',
+      title: 'API keys',
+      subtitle: 'Paste a key for each account you want to buy from. '
+          'Everything on the other tabs is switched on by these.',
+      icon: 'key-line',
+      // No categories: this shelf lists accounts rather than models, and gets
+      // its cards from the credential list directly.
+      categories: [],
+    ),
     PanelEntry(
       id: 'llm',
       title: 'LLM',
@@ -178,31 +184,27 @@ class Registry extends ChangeNotifier {
     // what Auto resolved to anyway.
     _entries = <ProviderEntry>[
       // ---- LLM -----------------------------------------------------------
-      // Gemini leads because it is the only writer that costs nothing to try:
-      // the first entry of a category is what a fresh install picks, and a
-      // first run that ends at "add a funded API key" is a first run nobody
-      // finishes. Move this block down to hand the default back to OpenAI --
-      // anyone who has already chosen keeps their choice either way, since a
-      // saved preference wins over this order.
+      // Gemini leads because its Flash models are the cheapest writers on the
+      // list: the first entry of a category is what a fresh install picks.
+      // Move this block down to hand the default back to OpenAI -- anyone who
+      // has already chosen keeps their choice either way, since a saved
+      // preference wins over this order.
       ProviderEntry(
         id: 'gemini-generate',
         category: 'text',
         label: 'Google Gemini',
         credential: 'gemini',
         models: const [
-          // Flash and Flash-Lite are on the free tier. Pro is on the same key
-          // and bills from the first token, so it is deliberately unmarked.
-          ModelEntry('gemini-3.6-flash', 'Gemini 3.6 Flash', tier: ModelTier.free),
-          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash', tier: ModelTier.free),
-          ModelEntry('gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite',
-              tier: ModelTier.free),
-          ModelEntry('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite',
-              tier: ModelTier.free),
+          ModelEntry('gemini-3.6-flash', 'Gemini 3.6 Flash'),
+          ModelEntry('gemini-3.5-flash', 'Gemini 3.5 Flash'),
+          ModelEntry('gemini-3.5-flash-lite', 'Gemini 3.5 Flash Lite'),
+          ModelEntry('gemini-3.1-flash-lite', 'Gemini 3.1 Flash Lite'),
           ModelEntry('gemini-3.1-pro-preview', 'Gemini 3.1 Pro'),
           ModelEntry('gemini-2.5-pro', 'Gemini 2.5 Pro'),
         ],
         defaultModel: 'gemini-3.5-flash',
-        note: tr('Free tier, no card. Google reads what you send on it.'),
+        note: tr('The cheapest writers here. Google reads what you send on '
+            'this key.'),
       ),
 
       ProviderEntry(
@@ -311,16 +313,14 @@ class Registry extends ChangeNotifier {
         label: 'Google Gemini',
         credential: 'gemini',
         models: const [
-          ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2',
-              tier: ModelTier.free),
-          ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite',
-              tier: ModelTier.free),
+          ModelEntry('gemini-3.1-flash-image', 'Nano Banana 2'),
+          ModelEntry('gemini-3.1-flash-lite-image', 'Nano Banana 2 Lite'),
           ModelEntry('gemini-3-pro-image', 'Nano Banana Pro'),
           ModelEntry('gemini-2.5-flash-image', 'Nano Banana'),
         ],
         defaultModel: 'gemini-3.1-flash-image',
-        note: tr('Free tier, no card. Edits your product photo directly. '
-            'Every picture carries an invisible SynthID watermark.'),
+        note: tr('Edits your product photo directly. Every picture carries '
+            'an invisible SynthID watermark.'),
       ),
 
       ProviderEntry(
@@ -628,7 +628,7 @@ class Registry extends ChangeNotifier {
           ModelEntry('gemini-2.5-pro-preview-tts', 'Gemini 2.5 Pro TTS'),
         ],
         defaultModel: 'gemini-2.5-flash-preview-tts',
-        note: tr('On the same free-tier key as the writer and the images.'),
+        note: tr('On the same key as the writer and the images.'),
       ),
 
       ProviderEntry(
@@ -645,22 +645,19 @@ class Registry extends ChangeNotifier {
       ),
 
       // ---- Captions --------------------------------------------------------
-      // Groq serves the same Whisper weights as OpenAI on a free tier, which
-      // makes subtitles the one step of a run that can be had for nothing
-      // without giving anything up.
+      // Groq serves the same Whisper weights as OpenAI for a fraction of the
+      // price, which makes subtitles the cheapest step of a run.
       ProviderEntry(
         id: 'groq-whisper',
         category: 'captions',
         label: 'Groq Whisper',
         credential: 'groq',
         models: const [
-          ModelEntry('whisper-large-v3-turbo', 'Whisper Large v3 Turbo',
-              tier: ModelTier.free),
-          ModelEntry('whisper-large-v3', 'Whisper Large v3', tier: ModelTier.free),
+          ModelEntry('whisper-large-v3-turbo', 'Whisper Large v3 Turbo'),
+          ModelEntry('whisper-large-v3', 'Whisper Large v3'),
         ],
         defaultModel: 'whisper-large-v3-turbo',
-        note: tr('Free tier, no card. Turbo is faster, v3 is a little more '
-            'accurate.'),
+        note: tr('Turbo is faster, v3 is a little more accurate.'),
       ),
 
       ProviderEntry(
@@ -803,9 +800,7 @@ class Registry extends ChangeNotifier {
           label: 'Google Gemini',
           envVar: 'GEMINI_API_KEY',
           signupUrl: 'https://aistudio.google.com/apikey',
-          note: tr('Scripts, images, Veo video and voice-over. Free tier, no '
-              'card -- video and images are billed, the rest is not.'),
-          free: true,
+          note: tr('Scripts, images, Veo video and voice-over.'),
         ),
         CredentialEntry(
           id: 'anthropic',
@@ -889,16 +884,14 @@ class Registry extends ChangeNotifier {
           label: 'Bria',
           envVar: 'BRIA_API_TOKEN',
           signupUrl: 'https://platform.bria.ai/',
-          note: tr('Images and the enlarger. 100 generations free, no card.'),
-          free: true,
+          note: tr('Images and the enlarger, billed per picture.'),
         ),
         CredentialEntry(
           id: 'groq',
           label: 'Groq',
           envVar: 'GROQ_API_KEY',
           signupUrl: 'https://console.groq.com/keys',
-          note: tr('Subtitles. Free tier, no card.'),
-          free: true,
+          note: tr('Subtitles, billed by the minute of audio.'),
         ),
         CredentialEntry(
           id: 'fal',

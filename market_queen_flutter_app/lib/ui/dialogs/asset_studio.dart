@@ -205,10 +205,7 @@ class _StudioState extends State<_Studio> {
       builder: (context, _) => MqIconButton(
         icon: doctor.busy ? 'loader-4-line' : 'sparkling-line',
         tip: !rewriter.exists
-            ? tr('Add a key for a writer under Models to improve prompts.')
-            : rewriter.free
-            //: %1 is a model name
-            ? tr('Improve this prompt with %1 — free').arg(rewriter.label)
+            ? tr('Add a key for a writer under API keys to improve prompts.')
             //: %1 is a model name, %2 an account such as "OpenAI"
             : tr(
                 'Improve this prompt with %1 — billed to your %2 account',

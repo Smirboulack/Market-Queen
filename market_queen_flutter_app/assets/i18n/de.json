@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper hat ein leeres Transkript geliefert.",
   "Reads the product photo when the model supports vision.": "Liest das Produktfoto, wenn das Modell Bilder versteht.",
   "Strong at short, natural-sounding ad copy.": "Stark bei kurzen, natürlich klingenden Werbetexten.",
-  "Free tier available in most regions.": "Kostenloses Kontingent in den meisten Regionen verfügbar.",
   "Any fal model id works, paste one from fal.ai/models.": "Jede fal-Modell-ID funktioniert, kopiere eine von fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Nutze owner/name oder owner/name:version, um eine Version festzulegen.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - alle mit einem einzigen Schlüssel.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "Eine Werbung. Schreiben, besetzen, drehen.",
   "Pick an ad on the left, or start a new one.": "Wählen Sie links eine Werbung oder erstellen Sie eine neue.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Planen Sie eine Werbung Einstellung für Einstellung, bevor Sie drehen. In Arbeit.",
-  "Add this account's key to switch it on.": "Fügen Sie den Schlüssel dieses Kontos hinzu, um es zu aktivieren.",
   "%1 · max %2": "%1 · max. %2",
   "Home": "Start",
   "Welcome to Market Queen": "Willkommen bei Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "Storyboards öffnen",
   "Set up the models": "Modelle einrichten",
   "What's new": "Neuerungen",
-  "You are on v%1": "Sie nutzen v%1"
+  "You are on v%1": "Sie nutzen v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "Fügen Sie für jedes Konto, bei dem Sie einkaufen möchten, einen Schlüssel ein. Alles auf den anderen Tabs wird dadurch freigeschaltet.",
+  "No key yet": "Noch kein Schlüssel",
+  "%1  —  %2 models": "%1  —  %2 Modelle",
+  "Add this account's key under API keys to switch it on.": "Fügen Sie den Schlüssel dieses Kontos unter API-Schlüssel hinzu, um es zu aktivieren.",
+  "Save": "Speichern",
+  "Saved": "Gespeichert",
+  "Add a key for a writer under API keys to improve prompts.": "Fügen Sie unter API-Schlüssel einen Schlüssel für einen Autor hinzu, um Prompts zu verbessern.",
+  "What Gemini does with what you send": "Was Gemini mit dem macht, was Sie senden"
 }

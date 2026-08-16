@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper 返回了空的转写结果。",
   "Reads the product photo when the model supports vision.": "当模型支持视觉时会读取产品照片。",
   "Strong at short, natural-sounding ad copy.": "擅长简短自然的广告文案。",
-  "Free tier available in most regions.": "多数地区提供免费额度。",
   "Any fal model id works, paste one from fal.ai/models.": "任何 fal 模型 ID 均可，从 fal.ai/models 复制即可。",
   "Use owner/name, or owner/name:version to pin a version.": "使用 owner/name，或用 owner/name:version 锁定版本。",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling、Hailuo、Wan、Luma，一个密钥全都能用。",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "一个广告。撰写、选角、拍摄。",
   "Pick an ad on the left, or start a new one.": "在左侧选择一个广告，或新建一个。",
   "Plan an ad shot by shot before you shoot it. Being built.": "在拍摄前逐个镜头规划广告。开发中。",
-  "Add this account's key to switch it on.": "添加此账户的密钥即可启用。",
   "%1 · max %2": "%1 · 最长 %2",
   "Home": "首页",
   "Welcome to Market Queen": "欢迎使用 Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "打开分镜",
   "Set up the models": "设置模型",
   "What's new": "更新内容",
-  "You are on v%1": "当前版本 v%1"
+  "You are on v%1": "当前版本 v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "为你想使用的每个账户粘贴一个密钥。其他标签页中的内容都由这些密钥启用。",
+  "No key yet": "尚无密钥",
+  "%1  —  %2 models": "%1  —  %2 个模型",
+  "Add this account's key under API keys to switch it on.": "在「API 密钥」中添加此账户的密钥即可启用。",
+  "Save": "保存",
+  "Saved": "已保存",
+  "Add a key for a writer under API keys to improve prompts.": "在「API 密钥」中添加一个写作模型的密钥即可优化提示词。",
+  "What Gemini does with what you send": "Gemini 会如何处理你发送的内容"
 }

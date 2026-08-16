@@ -4,21 +4,23 @@ import '../../app_state.dart';
 import '../../core/platform_util.dart';
 import '../../i18n/translator.dart';
 import '../../providers/registry.dart';
+import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
-import 'fields.dart';
 
-/// One API key, in the panel that uses it.
+/// One API key: a label, a field, and an eye inside its right edge.
 ///
-/// Two shapes, because the two states are not equally interesting. A key that
-/// is missing is the only thing on the card worth doing something about, so it
-/// gets the field, the placeholder and the button. A key that is already there
-/// is settled, and a 40px input repeating forty dots is forty pixels of noise
-/// on every provider you have already configured -- so it collapses to a line
-/// saying which key it is, with a way back into editing.
+/// It used to be two different controls -- a full-width input while the key was
+/// missing, collapsing to a line of dots with Change and Show links once it was
+/// there. Two shapes meant two sets of behaviour to keep straight, and it is
+/// where the show/hide bug lived: revealing moved the focus, losing the focus
+/// counted as finishing, and finishing swapped the control out from under the
+/// press.
 ///
-/// The same key can be on screen in several panels at once (OpenAI is on four),
-/// so every instance listens for the change and catches up.
+/// One shape now, and it is the ordinary password field everybody already
+/// knows: the value is always in the box, the eye at the end of the box shows
+/// or hides it, and nothing about looking at a key changes what is stored.
+/// Typing saves on Enter or as soon as the field is left.
 class KeyField extends StatefulWidget {
   const KeyField({super.key, required this.app, required this.credential});
 
@@ -33,23 +35,56 @@ class _KeyFieldState extends State<KeyField> {
   final _controller = TextEditingController();
   final _focus = FocusNode();
 
-  bool _editing = false;
   bool _reveal = false;
   bool _saved = false;
+  bool _hovered = false;
 
   @override
   void initState() {
     super.initState();
     _controller.text = widget.app.settings.apiKey(widget.credential.id);
+    _hadText = _controller.text.isNotEmpty;
+    // The eye only exists once there is something behind the dots, so the box
+    // has to rebuild as the first character is typed. The field redraws itself
+    // from the controller; this widget does not, and without it somebody
+    // pasting into an empty box got no eye until something else happened to
+    // rebuild the page.
+    _controller.addListener(_onTyped);
+    _focus.addListener(_onFocus);
+    // The same key can be on screen twice; every instance catches up.
     widget.app.settings.apiKeysChanged.addListener(_onKeys);
   }
 
   @override
   void dispose() {
     widget.app.settings.apiKeysChanged.removeListener(_onKeys);
+    _controller.removeListener(_onTyped);
+    _focus.removeListener(_onFocus);
     _controller.dispose();
     _focus.dispose();
     super.dispose();
+  }
+
+  /// Only when it changes whether there is anything to reveal -- a rebuild per
+  /// keystroke would be a rebuild per keystroke.
+  bool _hadText = false;
+
+  void _onTyped() {
+    final hasText = _controller.text.isNotEmpty;
+    if (hasText == _hadText || !mounted) return;
+    setState(() => _hadText = hasText);
+  }
+
+  void _onFocus() {
+    if (!mounted) return;
+    // Leaving the field is one of the two ways to finish. Hiding again on the
+    // way out is the safe default: a key left readable on a screen somebody
+    // has walked away from is the one state this control should not persist.
+    if (!_focus.hasFocus) {
+      _save();
+      _reveal = false;
+    }
+    setState(() {});
   }
 
   void _onKeys() {
@@ -61,170 +96,168 @@ class _KeyFieldState extends State<KeyField> {
     setState(() {});
   }
 
-  /// Saves the key and flashes the confirmation. Wired to both Enter and the
-  /// focus leaving the field: pasting a key and clicking away is as common as
-  /// pasting one and pressing Enter, and neither should lose it.
-  void _commit(String text) {
+  /// Writes what is in the box, and says so briefly. A no-op when nothing has
+  /// changed, so simply passing through a field does not flash a confirmation
+  /// at somebody who typed nothing.
+  void _save() {
+    final text = _controller.text.trim();
+    if (text == widget.app.settings.apiKey(widget.credential.id)) return;
+
     widget.app.settings.setApiKey(widget.credential.id, text);
-    setState(() {
-      _saved = true;
-      // Back to the settled line once there is something to settle on. An
-      // emptied field is a key being removed, and that stays open so it does
-      // not look like the deletion failed.
-      _editing = text.trim().isEmpty;
-      _reveal = false;
-    });
-    Future.delayed(const Duration(milliseconds: 1900), () {
+    setState(() => _saved = true);
+    Future.delayed(const Duration(milliseconds: 1800), () {
       if (mounted) setState(() => _saved = false);
     });
   }
 
-  /// The last four characters, which is enough to tell two accounts apart and
-  /// not enough to be worth anything to anyone reading over a shoulder.
-  String _masked(String key) {
-    if (key.length <= 4) return '••••';
-    return '••••••••${key.substring(key.length - 4)}';
-  }
+  /// Show / hide, and nothing else: it does not save, does not close anything,
+  /// and does not take the focus.
+  void _toggleReveal() => setState(() => _reveal = !_reveal);
 
   @override
   Widget build(BuildContext context) {
+    final mq = context.mq;
     final settings = widget.app.settings;
     final credential = widget.credential;
 
-    final key = settings.apiKey(credential.id);
     final fromEnvironment = settings.apiKeyFromEnvironment(credential.id);
+    final stored = settings.hasApiKey(credential.id);
 
-    return key.isEmpty || _editing
-        ? _open(context, fromEnvironment)
-        : _settled(context, key, fromEnvironment);
-  }
-
-  /// The compact line: what is stored, and the way back in.
-  Widget _settled(BuildContext context, String key, bool fromEnvironment) {
-    final mq = context.mq;
-
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          tr('API key'),
-          style: TextStyle(
-            color: mq.textSecondary,
-            fontSize: MqTheme.fontSmall,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          _masked(key),
-          style: TextStyle(
-            color: mq.textPrimary,
-            fontSize: MqTheme.fontLabel,
-            fontWeight: FontWeight.w500,
-            fontFeatures: const [FontFeature.tabularFigures()],
-          ),
-        ),
-        if (fromEnvironment) ...[
-          const SizedBox(width: 10),
-          Flexible(
-            child: Text(
-              //: %1 is an environment variable name like OPENAI_API_KEY
-              tr('from %1').arg(credentialEnv),
-              overflow: TextOverflow.ellipsis,
+        Row(
+          children: [
+            MqIcon('key-line', size: 13, color: mq.textTertiary),
+            const SizedBox(width: 6),
+            Text(
+              tr('API key'),
               style: TextStyle(
-                color: mq.textTertiary,
+                color: mq.textSecondary,
                 fontSize: MqTheme.fontSmall,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-        ],
-        const Spacer(),
-        if (_saved)
-          Padding(
-            padding: const EdgeInsets.only(right: 10),
-            child: Text(
-              tr('Saved.'),
-              style: TextStyle(color: mq.success, fontSize: MqTheme.fontSmall),
+            const Spacer(),
+            // The confirmation replaces the status word rather than sitting
+            // beside it, so the row never grows.
+            if (_saved)
+              Text(
+                tr('Saved'),
+                style: TextStyle(
+                  color: mq.success,
+                  fontSize: MqTheme.fontMicro,
+                  fontWeight: FontWeight.w600,
+                ),
+              )
+            else if (fromEnvironment)
+              Text(
+                //: %1 is an environment variable name like OPENAI_API_KEY
+                tr('from %1').arg(credential.envVar),
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontMicro,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        _control(context, stored),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                credential.note,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontMicro,
+                  height: MqTheme.lineBody,
+                ),
+              ),
             ),
-          ),
-        MqLink(
-          text: tr('Change'),
-          onPressed: () {
-            setState(() => _editing = true);
-            // Straight into the field: the only reason to press Change is to
-            // paste something.
-            WidgetsBinding.instance.addPostFrameCallback(
-              (_) => _focus.requestFocus(),
-            );
-          },
+            const SizedBox(width: 10),
+            MqLink(
+              text: tr('Get a key'),
+              fontSize: MqTheme.fontMicro,
+              onPressed: () => PlatformUtil.openExternal(credential.signupUrl),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  String get credentialEnv => widget.credential.envVar;
-
-  /// The field, shown while there is nothing stored or while it is being
-  /// changed.
-  Widget _open(BuildContext context, bool fromEnvironment) {
+  /// The box: the input, and the eye pinned inside its right edge.
+  Widget _control(BuildContext context, bool stored) {
     final mq = context.mq;
-    final credential = widget.credential;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // What this account is for, said once and only here: while the field is
-        // open is exactly when somebody is deciding whether to go and sign up
-        // for it, and it is dead weight on every card already configured.
-        if (credential.note.isNotEmpty) ...[
-          Text(
-            credential.note,
-            style: TextStyle(
-              color: mq.textSecondary,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineBody,
-            ),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: AnimatedContainer(
+        duration: MqTheme.hoverDuration,
+        height: 36,
+        decoration: BoxDecoration(
+          color: mq.surface,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+          border: Border.all(
+            color: _focus.hasFocus
+                ? mq.borderStrong
+                : _hovered
+                ? mq.borderStrong
+                : mq.border,
           ),
-          const SizedBox(height: 8),
-        ],
-        Row(
+        ),
+        child: Row(
           children: [
             Expanded(
-              child: LabeledField(
+              child: TextField(
                 controller: _controller,
                 focusNode: _focus,
-                obscure: !_reveal,
-                placeholder: fromEnvironment
-                    ? tr('Using %1 from your environment').arg(credential.envVar)
-                    : tr('Paste your key'),
-                onEditingComplete: _commit,
-                onSubmitted: _commit,
+                obscureText: !_reveal,
+                // A key is an opaque string, so it is set in figures that line
+                // up rather than in the prose face the rest of the app uses.
+                style: TextStyle(
+                  color: mq.textPrimary,
+                  fontSize: MqTheme.fontLabel,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+                cursorColor: mq.primary,
+                onSubmitted: (_) => _save(),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 11,
+                    vertical: 10,
+                  ),
+                  hintText: tr('Paste your key'),
+                  hintStyle: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontLabel,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-            GhostButton(
-              text: _reveal ? tr('Hide') : tr('Show'),
-              checked: _reveal,
-              onPressed: () => setState(() => _reveal = !_reveal),
-            ),
-            const SizedBox(width: 6),
-            GhostButton(
-              text: credential.free ? tr('Get a free key') : tr('Get a key'),
-              onPressed: () => PlatformUtil.openExternal(credential.signupUrl),
-            ),
+            // Nothing to reveal on an empty box, so the eye only appears once
+            // there is something behind the dots.
+            if (_controller.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: MqIconButton(
+                  icon: _reveal ? 'eye-off-line' : 'eye-line',
+                  tip: _reveal ? tr('Hide') : tr('Show'),
+                  size: 28,
+                  canRequestFocus: false,
+                  onPressed: _toggleReveal,
+                ),
+              ),
           ],
         ),
-        AnimatedOpacity(
-          opacity: _saved ? 1 : 0,
-          duration: const Duration(milliseconds: 200),
-          child: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              tr('Saved.'),
-              style: TextStyle(color: mq.success, fontSize: MqTheme.fontSmall),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

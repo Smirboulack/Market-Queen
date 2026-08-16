@@ -1105,17 +1105,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             size: 32,
             onPressed: () => _show(_Panel.settings),
           ),
-          () => ComposerSettings(
-            app: app,
-            tab: _tab,
-            // The panel prices the same order the meter beside it does, and
-            // shows nothing when the bar has nothing to send -- see
-            // [_meterPrice] for why a model's own rate does not belong here.
-            // Null is also what tells the talking-actor column its ad is not
-            // shootable yet, so both tabs answer "nothing to buy" the same way.
-            order: _pricable ? pricedOrder : null,
-            onClose: _closePanel,
-          ),
+          () => ComposerSettings(app: app, tab: _tab, onClose: _closePanel),
         ),
         const SizedBox(width: 8),
         Container(width: 1, height: 24, color: mq.divider),
@@ -1311,10 +1301,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       builder: (context, _) => MqIconButton(
         icon: doctor.busy ? 'loader-4-line' : 'sparkling-line',
         tip: !rewriter.exists
-            ? tr('Add a key for a writer under Models to improve prompts.')
-            : rewriter.free
-            //: %1 is a model name
-            ? tr('Improve this prompt with %1 — free').arg(rewriter.label)
+            ? tr('Add a key for a writer under API keys to improve prompts.')
             //: %1 is a model name, %2 an account such as "OpenAI"
             : tr('Improve this prompt with %1 — billed to your %2 account')
                   .arg(rewriter.label)

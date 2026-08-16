@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "أرجع Whisper نصًا فارغًا.",
   "Reads the product photo when the model supports vision.": "يقرأ صورة المنتج عندما يدعم النموذج الرؤية.",
   "Strong at short, natural-sounding ad copy.": "بارع في النصوص الإعلانية القصيرة والطبيعية.",
-  "Free tier available in most regions.": "توجد باقة مجانية في معظم المناطق.",
   "Any fal model id works, paste one from fal.ai/models.": "أي معرّف نموذج من fal يعمل، انسخه من fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "استخدم owner/name، أو owner/name:version لتثبيت إصدار معيّن.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "‏Kling وHailuo وWan وLuma - جميعها بمفتاح واحد.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "إعلان واحد. اكتبه، اختر ممثليه، صوّره.",
   "Pick an ad on the left, or start a new one.": "اختر إعلانًا من اليسار، أو ابدأ إعلانًا جديدًا.",
   "Plan an ad shot by shot before you shoot it. Being built.": "خطّط للإعلان لقطة بلقطة قبل تصويره. قيد الإنشاء.",
-  "Add this account's key to switch it on.": "أضف مفتاح هذا الحساب لتفعيله.",
   "%1 · max %2": "%1 · بحد أقصى %2",
   "Home": "الرئيسية",
   "Welcome to Market Queen": "مرحبًا بك في Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "افتح القصص المصورة",
   "Set up the models": "إعداد النماذج",
   "What's new": "ما الجديد",
-  "You are on v%1": "أنت على الإصدار v%1"
+  "You are on v%1": "أنت على الإصدار v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "الصق مفتاحًا لكل حساب تريد الشراء منه. كل ما في علامات التبويب الأخرى يُفعَّل بهذه المفاتيح.",
+  "No key yet": "لا يوجد مفتاح بعد",
+  "%1  —  %2 models": "%1  —  %2 نموذجًا",
+  "Add this account's key under API keys to switch it on.": "أضف مفتاح هذا الحساب في «مفاتيح API» لتفعيله.",
+  "Save": "حفظ",
+  "Saved": "تم الحفظ",
+  "Add a key for a writer under API keys to improve prompts.": "أضف مفتاح نموذج كتابة في «مفاتيح API» لتحسين المطالبات.",
+  "What Gemini does with what you send": "ما الذي يفعله Gemini بما ترسله"
 }

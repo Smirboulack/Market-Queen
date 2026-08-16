@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper вернул пустую расшифровку.",
   "Reads the product photo when the model supports vision.": "Читает фото продукта, если модель понимает изображения.",
   "Strong at short, natural-sounding ad copy.": "Хорош в коротких и естественных рекламных текстах.",
-  "Free tier available in most regions.": "В большинстве регионов есть бесплатный уровень.",
   "Any fal model id works, paste one from fal.ai/models.": "Подойдёт любой id модели fal, скопируйте его с fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Используйте owner/name или owner/name:version, чтобы закрепить версию.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma - все по одному ключу.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "Один ролик. Напишите, подберите актёров, снимите.",
   "Pick an ad on the left, or start a new one.": "Выберите ролик слева или создайте новый.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Спланируйте ролик кадр за кадром до съёмки. В разработке.",
-  "Add this account's key to switch it on.": "Добавьте ключ этого аккаунта, чтобы включить модель.",
   "%1 · max %2": "%1 · макс. %2",
   "Home": "Главная",
   "Welcome to Market Queen": "Добро пожаловать в Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "Открыть раскадровки",
   "Set up the models": "Настроить модели",
   "What's new": "Что нового",
-  "You are on v%1": "У вас v%1"
+  "You are on v%1": "У вас v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "Вставьте ключ для каждого аккаунта, у которого хотите покупать. Всё на остальных вкладках включается именно ими.",
+  "No key yet": "Ключа ещё нет",
+  "%1  —  %2 models": "%1  —  %2 моделей",
+  "Add this account's key under API keys to switch it on.": "Добавьте ключ этого аккаунта на вкладке API-ключи, чтобы включить модель.",
+  "Save": "Сохранить",
+  "Saved": "Сохранено",
+  "Add a key for a writer under API keys to improve prompts.": "Добавьте ключ модели-редактора на вкладке API-ключи, чтобы улучшать промпты.",
+  "What Gemini does with what you send": "Что Gemini делает с тем, что вы отправляете"
 }

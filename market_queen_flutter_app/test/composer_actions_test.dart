@@ -247,26 +247,23 @@ void main() {
         ..setApiKey('anthropic', '');
     });
 
-    test('a free model wins over a paid one, whatever is chosen', () {
-      // The button says "free" or it says which account it will bill, and it
-      // has to be telling the truth before it is pressed.
+    test('it uses the writer you chose, and names the account', () {
+      // The button says which account it will bill, and it has to be telling
+      // the truth before it is pressed. It used to hunt for a model on a free
+      // tier first; that preference is gone with the rest of the free-tier
+      // notion, so the writer chosen for scripts is simply the writer.
       app.settings
         ..setApiKey('anthropic', 'test-key')
         ..setPref('textProvider', 'anthropic-messages');
 
-      final paid = app.promptDoctor.writer;
-      expect(paid.exists, isTrue);
-      expect(paid.providerId, 'anthropic-messages');
-      expect(paid.free, isFalse);
-      expect(paid.account, 'Anthropic (Claude)');
+      final writer = app.promptDoctor.writer;
+      expect(writer.exists, isTrue);
+      expect(writer.providerId, 'anthropic-messages');
+      expect(writer.account, 'Anthropic (Claude)');
 
-      // A key with a free tier on it takes over, even though the writer chosen
-      // for scripts is still Anthropic: nothing marked "improve this" should
-      // quietly cost money when it does not have to.
+      // A second key changes nothing: the choice wins over what else is set up.
       app.settings.setApiKey('gemini', 'test-key');
-      final free = app.promptDoctor.writer;
-      expect(free.providerId, 'gemini-generate');
-      expect(free.free, isTrue);
+      expect(app.promptDoctor.writer.providerId, 'anthropic-messages');
     });
 
     test('every kind of prompt gets its own instruction', () {

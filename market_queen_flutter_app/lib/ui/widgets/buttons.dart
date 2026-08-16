@@ -432,6 +432,7 @@ class GhostButton extends StatelessWidget {
     this.destructive = false,
     this.enabled = true,
     this.checked = false,
+    this.canRequestFocus = true,
   });
 
   final String text;
@@ -442,6 +443,12 @@ class GhostButton extends StatelessWidget {
   /// For the two-state ghosts (Show / Hide on a key field).
   final bool checked;
 
+  /// Off for buttons that act *on* the field beside them rather than moving
+  /// away from it. Taking the focus is what made Show/Hide unusable: the field
+  /// treated losing it as "done editing" and closed itself, so the reveal was
+  /// undone in the same frame it was asked for.
+  final bool canRequestFocus;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
@@ -450,6 +457,7 @@ class GhostButton extends StatelessWidget {
     return Pressable(
       enabled: active,
       onTap: onPressed,
+      canRequestFocus: canRequestFocus,
       builder: (context, states) {
         final (Color fill, Color line) = switch (states) {
           MqStates(enabled: false) => (Colors.transparent, mq.borderSubtle),
@@ -508,6 +516,7 @@ class MqIconButton extends StatelessWidget {
     this.destructive = false,
     this.enabled = true,
     this.size = 26,
+    this.canRequestFocus = true,
   });
 
   final String icon;
@@ -516,6 +525,10 @@ class MqIconButton extends StatelessWidget {
   final bool destructive;
   final bool enabled;
   final double size;
+
+  /// Off for buttons that act on the field they sit inside. Taking the focus
+  /// there reads as leaving the field, which commits it.
+  final bool canRequestFocus;
 
   @override
   Widget build(BuildContext context) {
@@ -526,6 +539,7 @@ class MqIconButton extends StatelessWidget {
       enabled: active,
       onTap: onPressed,
       tooltip: tip,
+      canRequestFocus: canRequestFocus,
       builder: (context, states) {
         final fill = states.pressed
             ? mq.surfaceActive

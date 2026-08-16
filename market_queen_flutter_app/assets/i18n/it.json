@@ -172,7 +172,6 @@
   "Whisper returned an empty transcript.": "Whisper ha restituito una trascrizione vuota.",
   "Reads the product photo when the model supports vision.": "Legge la foto del prodotto se il modello supporta la visione.",
   "Strong at short, natural-sounding ad copy.": "Ottimo per testi pubblicitari brevi e naturali.",
-  "Free tier available in most regions.": "Piano gratuito disponibile nella maggior parte delle regioni.",
   "Any fal model id works, paste one from fal.ai/models.": "Funziona qualsiasi id di modello fal, copialo da fal.ai/models.",
   "Use owner/name, or owner/name:version to pin a version.": "Usa owner/name, oppure owner/name:version per fissare una versione.",
   "Kling, Hailuo, Wan, Luma - all behind one key.": "Kling, Hailuo, Wan, Luma: tutti con una sola chiave.",
@@ -250,7 +249,6 @@
   "One ad. Write it, cast it, shoot it.": "Un annuncio. Scrivilo, scegli il cast, giralo.",
   "Pick an ad on the left, or start a new one.": "Scegli un annuncio a sinistra o creane uno nuovo.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Pianifica un annuncio inquadratura per inquadratura prima di girarlo. In lavorazione.",
-  "Add this account's key to switch it on.": "Aggiungi la chiave di questo account per attivarlo.",
   "%1 · max %2": "%1 · max %2",
   "Home": "Home",
   "Welcome to Market Queen": "Benvenuto in Market Queen",
@@ -262,5 +260,13 @@
   "Open storyboards": "Apri gli storyboard",
   "Set up the models": "Configura i modelli",
   "What's new": "Novità",
-  "You are on v%1": "Sei alla v%1"
+  "You are on v%1": "Sei alla v%1",
+  "Paste a key for each account you want to buy from. Everything on the other tabs is switched on by these.": "Incolla una chiave per ogni account da cui vuoi acquistare. Tutto ciò che si trova nelle altre schede viene attivato da queste.",
+  "No key yet": "Nessuna chiave",
+  "%1  —  %2 models": "%1  —  %2 modelli",
+  "Add this account's key under API keys to switch it on.": "Aggiungi la chiave di questo account in Chiavi API per attivarlo.",
+  "Save": "Salva",
+  "Saved": "Salvato",
+  "Add a key for a writer under API keys to improve prompts.": "Aggiungi la chiave di uno scrittore in Chiavi API per migliorare i prompt.",
+  "What Gemini does with what you send": "Cosa fa Gemini con ciò che invii"
 }

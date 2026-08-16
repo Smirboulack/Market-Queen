@@ -61,7 +61,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
               _appearance(context),
               const SizedBox(height: MqTheme.gapLarge),
-              _startFree(context),
+              _privacyNote(context),
               const SizedBox(height: MqTheme.gapLarge),
               _files(context),
               const SizedBox(height: MqTheme.gapLarge),
@@ -135,101 +135,38 @@ class _SettingsPageState extends State<SettingsPage> {
 
   /// The keys that cost nothing, said out loud on the way past.
   ///
-  /// The fields themselves moved into the Models menu, next to what each key
-  /// unlocks. What stays here is the offer and its catch, because somebody
-  /// deciding whether to fund anything reads this page first.
+  /// The one thing about Gemini worth saying on a settings page.
   ///
-  /// None of this is a Market Queen account, and there is no allowance sitting
-  /// on a server somewhere: it is the user's own key on somebody else's free
-  /// quota. That is the only version of "free" an app with no backend can
-  /// honestly offer, and it is worth one paragraph rather than a badge, because
-  /// the alternative -- shipping our key inside the binary -- would be a
-  /// funded account handed to whoever ran `strings` on it first.
-  Widget _startFree(BuildContext context) {
+  /// There used to be a "Start for free" card here listing the accounts with a
+  /// free quota. It is gone: a free quota is a promotion metered in units this
+  /// app cannot see, and telling somebody a provider is free on the screen
+  /// where they decide what to spend is the worst place to be wrong. What
+  /// survives is the part that is not about money -- Google trains on what you
+  /// send unless the key has billing enabled -- because somebody uploading a
+  /// client's product photo is entitled to know that first, not after.
+  Widget _privacyNote(BuildContext context) {
     final mq = context.mq;
-    final app = widget.app;
-
-    final free = [
-      for (final credential in app.registry.credentials())
-        if (credential.free) credential,
-    ];
-    if (free.isEmpty) return const SizedBox.shrink();
 
     return SectionCard(
-      title: tr('Start for free'),
-      subtitle: tr(
-        'These take a Google account and an email address. No card, no trial '
-        'clock. Between them they write the script, draw every frame and time '
-        'the subtitles -- only the voice-over and the video still need a '
-        'funded provider. Paste the keys in the Models menu, in the panel for '
-        'what you want them to do.',
-      ),
+      title: tr('What Gemini does with what you send'),
       children: [
-        for (final credential in free)
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: app.settings.hasApiKey(credential.id)
-                      ? mq.success
-                      : mq.borderStrong,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 130,
-                child: Text(
-                  credential.label,
-                  style: TextStyle(
-                    color: mq.textPrimary,
-                    fontSize: MqTheme.fontLabel,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  credential.note,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: mq.textTertiary,
-                    fontSize: MqTheme.fontSmall,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GhostButton(
-                text: app.settings.hasApiKey(credential.id)
-                    ? tr('Key added')
-                    : tr('Get a free key'),
-                onPressed: () =>
-                    PlatformUtil.openExternal(credential.signupUrl),
-              ),
-            ],
-          ),
-        // The catch, in the same card as the offer rather than three screens
-        // away in a terms page nobody opens. Somebody uploading a client's
-        // product photo is entitled to know this before they pick the free
-        // model, not after.
         Text(
           tr(
-            'What free costs instead: Google says content sent on the free '
-            'Gemini tier is used to improve its products, and the paid tier '
-            'is not. That covers your brief, your script and any product '
-            'photo you attach. Enable billing on the key to opt out.',
+            'Google says content sent on a Gemini key without billing enabled '
+            'is used to improve its products; content sent on a key with '
+            'billing enabled is not. That covers your brief, your script and '
+            'any product photo you attach. Enable billing on the key to opt '
+            'out.',
           ),
           style: TextStyle(
             color: mq.textSecondary,
             fontSize: MqTheme.fontSmall,
+            height: MqTheme.lineBody,
           ),
         ),
       ],
     );
   }
-
 
   Widget _files(BuildContext context) {
     final mq = context.mq;
