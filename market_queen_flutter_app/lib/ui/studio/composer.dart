@@ -1399,16 +1399,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// fact about it. Only models the Models page has left switched on appear.
   List<MenuOption<String>> _modelOptions() {
     final registry = app.registry;
-    final settings = app.settings;
-
     final providers = registry.providers(_spec.category);
     final named = providers.length > 1;
 
     final options = <MenuOption<String>>[];
     for (final provider in providers) {
       for (final model in provider.models) {
-        if (settings.modelHidden(provider.id, model.id)) continue;
-
         final price = Format.unitPriceLabel(app.pricing.unitPrice(model.id));
         options.add(
           MenuOption(

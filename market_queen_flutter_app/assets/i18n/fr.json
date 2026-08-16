@@ -1074,5 +1074,11 @@
   "Change the %1": "Modifier : %1",
   "Improve this prompt": "Améliorer ce prompt",
   "No model enabled": "Aucun modèle activé",
-  "Subtitled": "Sous-titré"
+  "Subtitled": "Sous-titré",
+  "Key added": "Clé ajoutée",
+  "Pricing": "Tarifs",
+  "default": "par défaut",
+  "Information": "Informations",
+  "What each account is for, what it charges, and which of its models the app uses.": "À quoi sert chaque compte, ce qu'il facture, et quels modèles l'app utilise.",
+  "Paste a key for each account you want to buy from. Everything the app can do is switched on by these.": "Collez une clé pour chaque compte auprès duquel vous voulez acheter. Tout ce que l'app sait faire est activé par ces clés."
 }

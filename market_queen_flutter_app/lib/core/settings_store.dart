@@ -173,54 +173,16 @@ class SettingsStore extends ChangeNotifier {
   // future release shows up for everybody instead of being invisible to every
   // existing install.
 
-  static const _hiddenModelsKey = 'hiddenModels';
 
-  Set<String> get _hidden {
-    final saved = _prefs[_hiddenModelsKey];
-    return {
-      if (saved is List)
-        for (final entry in saved) '$entry',
-    };
-  }
 
-  static String _modelKey(String providerId, String modelId) =>
-      '$providerId::$modelId';
-
-  bool modelHidden(String providerId, String modelId) =>
-      _hidden.contains(_modelKey(providerId, modelId));
-
-  bool modelShown(String providerId, String modelId) =>
-      !modelHidden(providerId, modelId);
-
-  void setModelHidden(String providerId, String modelId, bool hidden) {
-    final set = _hidden;
-    final key = _modelKey(providerId, modelId);
-    if (hidden ? !set.add(key) : !set.remove(key)) return;
-
-    _prefs[_hiddenModelsKey] = set.toList()..sort();
-    save();
-    notifyListeners();
-  }
-
-  /// Hides or shows a provider's whole catalogue in one gesture.
-  void setProviderModelsHidden(
-    String providerId,
-    Iterable<String> modelIds,
-    bool hidden,
-  ) {
-    final set = _hidden;
-    var changed = false;
-
-    for (final modelId in modelIds) {
-      final key = _modelKey(providerId, modelId);
-      if (hidden ? set.add(key) : set.remove(key)) changed = true;
-    }
-    if (!changed) return;
-
-    _prefs[_hiddenModelsKey] = set.toList()..sort();
-    save();
-    notifyListeners();
-  }
+  // The shortlist of models a user could switch on and off lived here. It is
+  // gone: which models the app offers is a decision the app makes now, per
+  // provider, so that nobody has to audit a hundred names to find the four
+  // that are worth using. What is still theirs is which of the offered models
+  // any one generation runs on -- that is the picker in the studio.
+  //
+  // Anything a previous version wrote under `hiddenModels` is simply ignored;
+  // it costs a few bytes in settings.json and nothing else.
 
   // ---- Secrets ----------------------------------------------------------
   //

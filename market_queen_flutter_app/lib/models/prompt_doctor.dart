@@ -89,8 +89,7 @@ class PromptDoctor extends ChangeNotifier {
       for (final provider in providers)
         if (_settings.hasApiKey(provider.credential))
           for (final model in provider.models)
-            if (!_settings.modelHidden(provider.id, model.id))
-              PromptWriter(
+            PromptWriter(
                 providerId: provider.id,
                 modelId: model.id,
                 label: model.label,
@@ -123,8 +122,6 @@ class PromptDoctor extends ChangeNotifier {
       if (!_settings.hasApiKey(provider.credential)) continue;
 
       for (final model in provider.models) {
-        if (_settings.modelHidden(provider.id, model.id)) continue;
-
         return PromptWriter(
           providerId: provider.id,
           modelId: model.id,

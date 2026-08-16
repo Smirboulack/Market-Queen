@@ -6,68 +6,65 @@ import 'package:market_queen/providers/model_schemas.dart';
 import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/providers/types.dart';
 
-/// The catalogue is now the map of who the app talks to, and three things about
-/// it have to stay true or the Models menu quietly lies: every provider on a
-/// shelf can actually be run, every key field belongs to a provider that is on
-/// that shelf, and every model either has a price or is openly marked as having
-/// none. None of those survive being checked by eye across seventeen entries.
+/// The catalogue is the map of who the app talks to, and three things about it
+/// have to stay true or the app quietly lies: every provider can actually be
+/// run, every provider is bought from an account that has a key field, and
+/// every model either has a price or is openly marked as having none. None of
+/// those survive being checked by eye across seventeen entries.
 void main() {
   final registry = Registry();
 
-  group('panels', () {
-    test('every provider lands on exactly one shelf', () {
-      final placed = <String, String>{};
-
-      for (final panel in Registry.panels) {
-        for (final provider in registry.providersForPanel(panel.id)) {
-          final already = placed[provider.id];
-          expect(
-            already,
-            isNull,
-            reason: '${provider.id} is on both $already and ${panel.id}',
-          );
-          placed[provider.id] = panel.id;
-        }
-      }
+  group('shelves', () {
+    // The Models page is two shelves now -- keys, and what those keys buy --
+    // and neither is filtered by category: both list every account there is.
+    // So the thing worth asserting moved. It used to be that no provider fell
+    // between the five category shelves; it is now that no provider is bought
+    // from an account the keys shelf does not offer, which is the same
+    // failure -- a model you can pick in the studio and never pay for -- from
+    // the other end.
+    test('every provider is bought from an account with a key field', () {
+      final accounts = {
+        for (final credential in registry.credentials()) credential.id,
+      };
 
       for (final entry in registry.entries) {
         expect(
-          placed.containsKey(entry.id),
-          isTrue,
-          reason: '${entry.id} is in the catalogue but on no shelf, so its '
-              'models can be picked in the composer and never configured',
+          accounts,
+          contains(entry.credential),
+          reason: '${entry.id} is bought from "${entry.credential}", which has '
+              'no key field, so its models can be picked and never paid for',
         );
       }
     });
 
-    test('a shelf asks for exactly the keys its providers need', () {
-      for (final panel in Registry.panels) {
-        final needed = {
-          for (final provider in registry.providersForPanel(panel.id))
-            if (provider.credential.isNotEmpty) provider.credential,
-        };
-        final offered = {
-          for (final credential in registry.credentialsForPanel(panel.id))
-            credential.id,
-        };
-        expect(offered, needed, reason: 'panel ${panel.id}');
-      }
-    });
-
-    test('every credential is reachable from some shelf', () {
-      final reachable = {
-        for (final panel in Registry.panels)
-          for (final credential in registry.credentialsForPanel(panel.id))
-            credential.id,
-      };
+    test('every account sells something', () {
+      final sold = {for (final entry in registry.entries) entry.credential};
 
       for (final credential in registry.credentials()) {
         expect(
-          reachable,
+          sold,
           contains(credential.id),
-          reason: '${credential.id} has a key field nobody can ever see, so '
-              'the provider it unlocks can never be switched on',
+          reason: '${credential.id} asks for a key and nothing in the '
+              'catalogue spends it',
         );
+      }
+    });
+
+    test('every provider category is one the composer asks for', () {
+      // The shelves no longer carry categories, so nothing else checks these
+      // strings -- and a typo in one is a provider the studio never offers.
+      const asked = {
+        'text',
+        'avatar',
+        'image',
+        'upscale',
+        'video',
+        'voice',
+        'captions',
+      };
+
+      for (final entry in registry.entries) {
+        expect(asked, contains(entry.category), reason: entry.id);
       }
     });
   });

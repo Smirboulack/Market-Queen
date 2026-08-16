@@ -286,5 +286,9 @@
   "Change the %1": "تغيير: %1",
   "Improve this prompt": "حسّن هذه المطالبة",
   "No model enabled": "لا يوجد نموذج مفعّل",
-  "Subtitled": "مترجَم"
+  "Subtitled": "مترجَم",
+  "Key added": "تمت إضافة المفتاح",
+  "Pricing": "الأسعار",
+  "default": "افتراضي",
+  "Information": "معلومات"
 }

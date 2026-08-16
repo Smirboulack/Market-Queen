@@ -286,5 +286,9 @@
   "Change the %1": "Zmień: %1",
   "Improve this prompt": "Ulepsz ten prompt",
   "No model enabled": "Brak włączonego modelu",
-  "Subtitled": "Z napisami"
+  "Subtitled": "Z napisami",
+  "Key added": "Klucz dodany",
+  "Pricing": "Cennik",
+  "default": "domyślny",
+  "Information": "Informacje"
 }

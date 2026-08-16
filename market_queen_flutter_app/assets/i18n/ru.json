@@ -286,5 +286,9 @@
   "Change the %1": "Изменить: %1",
   "Improve this prompt": "Улучшить этот промпт",
   "No model enabled": "Нет включённых моделей",
-  "Subtitled": "С субтитрами"
+  "Subtitled": "С субтитрами",
+  "Key added": "Ключ добавлен",
+  "Pricing": "Тарифы",
+  "default": "по умолчанию",
+  "Information": "Информация"
 }

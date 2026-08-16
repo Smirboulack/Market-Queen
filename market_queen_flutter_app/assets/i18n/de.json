@@ -286,5 +286,9 @@
   "Change the %1": "%1 ändern",
   "Improve this prompt": "Diesen Prompt verbessern",
   "No model enabled": "Kein Modell aktiviert",
-  "Subtitled": "Untertitelt"
+  "Subtitled": "Untertitelt",
+  "Key added": "Schlüssel hinterlegt",
+  "Pricing": "Preise",
+  "default": "Standard",
+  "Information": "Informationen"
 }

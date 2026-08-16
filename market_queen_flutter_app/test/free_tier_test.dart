@@ -111,20 +111,13 @@ void main() {
     expect(find.text(tr('Free tier')), findsNothing);
   });
 
-  testWidgets('each tab shows its own shelf, and only that one', (
-    tester,
-  ) async {
+  testWidgets('two shelves: the keys, and what they buy', (tester) async {
     await pump(tester, ModelsPage(app: app));
     expect(tester.takeException(), isNull);
 
-    // Every shelf is reachable: the tab row is always drawn in full, whichever
-    // one is open.
+    expect(Registry.panels, hasLength(2));
     for (final panel in Registry.panels) {
       expect(find.text(tr(panel.title)), findsWidgets);
-      // Keys is a shelf of accounts rather than of models, so it is the one
-      // with no provider categories behind it.
-      if (panel.id == 'keys') continue;
-      expect(app.registry.providersForPanel(panel.id), isNotEmpty);
     }
 
     // Keys live on one shelf and one shelf only. They used to be a band inside
@@ -145,5 +138,23 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     }
+  });
+
+  testWidgets('no model can be switched off from this page', (tester) async {
+    // The shortlist is gone: which models the app offers is decided in the
+    // catalogue, not by whoever last opened this page. The information shelf
+    // lists them, and nothing on it is pressable.
+    await pump(tester, ModelsPage(app: app));
+    await tester.tap(find.text(tr('Information')).first);
+    await tester.pump();
+
+    expect(find.byType(Checkbox), findsNothing);
+    expect(find.text(tr('All')), findsNothing);
+    expect(find.text(tr('None')), findsNothing);
+    expect(tester.takeException(), isNull);
+
+    // What it does show: the models, and what they cost.
+    final anyModel = app.registry.entries.first.models.first.label;
+    expect(find.text(anyModel), findsWidgets);
   });
 }

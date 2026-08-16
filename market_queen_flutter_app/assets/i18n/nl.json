@@ -286,5 +286,9 @@
   "Change the %1": "%1 wijzigen",
   "Improve this prompt": "Deze prompt verbeteren",
   "No model enabled": "Geen model ingeschakeld",
-  "Subtitled": "Ondertiteld"
+  "Subtitled": "Ondertiteld",
+  "Key added": "Sleutel toegevoegd",
+  "Pricing": "Tarieven",
+  "default": "standaard",
+  "Information": "Informatie"
 }

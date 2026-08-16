@@ -108,59 +108,36 @@ class Registry extends ChangeNotifier {
     _build();
   }
 
-  /// The shelves of the Models menu, in the order they are drawn.
+  /// The two shelves of the Models menu.
   ///
-  /// Keys come first and are a shelf of their own. They used to be a band
-  /// inside every account card, which meant one account that sells on four
-  /// shelves had its key field drawn four times -- and setting the app up
-  /// meant touring every tab looking for the cards that still had an empty
-  /// one. Keys are a thing you do once; picking models is a thing you come
-  /// back to. Two jobs, two places.
+  /// It used to be six: keys, then one per kind of generation, each a page of
+  /// tick-boxes for choosing which models the app would offer you. That choice
+  /// is gone. Which models are worth offering is a judgement that needs the
+  /// benchmarks, the prices and the failure modes of a hundred endpoints in
+  /// front of you -- it is our job, made once, not a hundred decisions handed
+  /// to somebody who opened the app to make an advert. What is still theirs is
+  /// which of the offered models any one generation runs on, and that lives
+  /// where the generation is: the picker on the studio bar.
+  ///
+  /// So: somewhere to put the keys, and somewhere to read what the keys buy.
   static const List<PanelEntry> panels = [
     PanelEntry(
       id: 'keys',
       title: 'API keys',
       subtitle: 'Paste a key for each account you want to buy from. '
-          'Everything on the other tabs is switched on by these.',
+          'Everything the app can do is switched on by these.',
       icon: 'key-line',
       // No categories: this shelf lists accounts rather than models, and gets
       // its cards from the credential list directly.
       categories: [],
     ),
     PanelEntry(
-      id: 'llm',
-      title: 'LLM',
-      subtitle: 'The writers. Nothing writes your ad unless you ask it to.',
-      icon: 'draft-line',
-      categories: ['text'],
-    ),
-    PanelEntry(
-      id: 'avatar',
-      title: 'Talking actors',
-      subtitle: 'A face, a voice track, and a clip exactly as long as the line.',
-      icon: 'user-voice-line',
-      categories: ['avatar'],
-    ),
-    PanelEntry(
-      id: 'image',
-      title: 'Images',
-      subtitle: 'Stills, actors, product shots -- and blowing one up.',
-      icon: 'image-line',
-      categories: ['image', 'upscale'],
-    ),
-    PanelEntry(
-      id: 'video',
-      title: 'Video',
-      subtitle: 'Animate a still, or shoot from a prompt.',
-      icon: 'clapperboard-line',
-      categories: ['video'],
-    ),
-    PanelEntry(
-      id: 'audio',
-      title: 'Audio',
-      subtitle: 'Who reads your script, and the subtitles that follow it.',
-      icon: 'volume-up-line',
-      categories: ['voice', 'captions'],
+      id: 'info',
+      title: 'Information',
+      subtitle: 'What each account is for, what it charges, and which of its '
+          'models the app uses.',
+      icon: 'information-line',
+      categories: [],
     ),
   ];
 

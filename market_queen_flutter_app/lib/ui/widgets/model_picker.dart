@@ -38,7 +38,6 @@ class ModelChip extends StatelessWidget {
         final options = <MenuOption<String>>[];
         for (final provider in providers) {
           for (final model in provider.models) {
-            if (settings.modelHidden(provider.id, model.id)) continue;
 
             final price = Format.unitPriceLabel(
               app.pricing.unitPrice(model.id),
@@ -176,9 +175,6 @@ class _ModelPickerState extends State<ModelPicker> {
     // being a surprise; a model we have no price for is simply left plain.
     final pricedModels = <MenuEntry<String>>[
       for (final model in info?.models ?? const <ModelEntry>[])
-        // The Models page's shortlist applies here too: a model switched off
-        // there must not come back through the actor editor's own picker.
-        if (settings.modelShown(_providerId, model.id))
           MenuEntry<String>(
             () {
               final price = Format.unitPriceLabel(
