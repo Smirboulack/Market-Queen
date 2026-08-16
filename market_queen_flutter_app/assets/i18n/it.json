@@ -242,5 +242,14 @@
   "No shot was rendered, so there is nothing to cut together.": "Nessuna inquadratura è stata prodotta, non c'è nulla da montare.",
   "The clips are %1s short of the voice-over; the last shot holds.": "Ai clip mancano %1 s rispetto alla voce; l'ultima inquadratura resta ferma.",
   "Cutting %1 shot(s) into %2x%3.": "Montaggio di %1 inquadratura/e in %2x%3.",
-  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma: una sola chiave."
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma: una sola chiave.",
+  "Create UGC": "Crea UGC",
+  "Storyboard": "Storyboard",
+  "Back to the menu": "Torna al menu",
+  "Nothing here yet. Make your first ad.": "Ancora niente. Crea il tuo primo annuncio.",
+  "One ad. Write it, cast it, shoot it.": "Un annuncio. Scrivilo, scegli il cast, giralo.",
+  "Pick an ad on the left, or start a new one.": "Scegli un annuncio a sinistra o creane uno nuovo.",
+  "Plan an ad shot by shot before you shoot it. Being built.": "Pianifica un annuncio inquadratura per inquadratura prima di girarlo. In lavorazione.",
+  "Add this account's key to switch it on.": "Aggiungi la chiave di questo account per attivarlo.",
+  "%1 · max %2": "%1 · max %2"
 }

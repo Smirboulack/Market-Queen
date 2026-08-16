@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updated": "2026-08-12",
+  "updated": "2026-08-16",
   "currency": "USD",
   "_comment": [
     "What each model costs, keyed by the model id the providers actually send.",
@@ -16,6 +16,20 @@
     "      video   -> amount is a flat fee per generated clip, whatever its length",
     "      kchars  -> amount is dollars per 1000 characters of speech",
     "      minute  -> amount is dollars per minute of audio",
+    "",
+    "Optional refinements, used when the app knows enough to apply them and",
+    "ignored when it does not -- amount is always the fallback:",
+    "  tiers           -> [{maxMegapixels, amount}, ...] for image models whose",
+    "                     price steps with the frame size. The last entry needs",
+    "                     no ceiling; it is what everything above the previous",
+    "                     one costs.",
+    "  byResolution    -> {\"720p\": amount, ...} per second, for video models",
+    "                     whose rate depends on the resolution requested.",
+    "  audioMultiplier -> what a generated soundtrack multiplies the clip by.",
+    "  perMillionTokens-> the provider's own published rate, used to price a",
+    "                     finished generation from the token count it reported",
+    "                     rather than from an estimate.",
+    "  extraInputImage -> charged per reference image past the first.",
     "",
     "approx: the published price depends on resolution, quality or plan, and the",
     "        number here is one representative point. Shown with a ~ in the UI.",
@@ -191,6 +205,17 @@
       "source": "https://docs.bfl.ai/quick_start/pricing"
     },
 
+    "_comment_seedream": [
+      "Checked against the ModelArk pricing table of 14 August 2026. Output is",
+      "billed per generated image; input (reference) images are free on every",
+      "model except 5.0 Pro, where the first is free and each one after it is",
+      "0.003. Seedream 5.0 Pro is the only one with a size tier, and the step",
+      "is at 2.61 megapixels -- which is between the 2K and 4K the app offers,",
+      "so `tiers` is read against the frame actually asked for rather than",
+      "quoted as one average. Layer decomposition is half these rates and is",
+      "not something this app requests.",
+      "https://docs.byteplus.com/en/docs/ModelArk/1544106"
+    ],
     "seedream-4-5-251128": {
       "unit": "image",
       "amount": 0.04,
@@ -199,19 +224,17 @@
     "seedream-5-0-lite-260128": {
       "unit": "image",
       "amount": 0.035,
-      "_note": "Flat, whatever the output size. Reference images are free.",
-      "source": "https://docs.byteplus.com/docs/ModelArk/1099320"
-    },
-    "seedream-5-0-260128": {
-      "unknown": true,
-      "_note": "Only the Lite and Pro variants are on the pricing table."
+      "_note": "Flat, whatever the output size. Reference images are free."
     },
     "dola-seedream-5-0-pro-260628": {
       "unit": "image",
       "amount": 0.045,
-      "approx": true,
-      "_note": "Up to 2.36 megapixels out; 0.09 above it. The first reference image is free, each one after it 0.003.",
-      "source": "https://docs.byteplus.com/docs/ModelArk/1099320"
+      "tiers": [
+        { "maxMegapixels": 2.61, "amount": 0.045 },
+        { "amount": 0.09 }
+      ],
+      "extraInputImage": 0.003,
+      "_note": "0.045 up to 2.61 megapixels out, 0.09 above it. The first reference image is free, each one after it 0.003."
     },
     "seededit-3-0-i2i-250628": { "unit": "image", "amount": 0.03 },
 
@@ -277,42 +300,73 @@
     "ltx-2-5-pro": { "unit": "second", "amount": 0.12 },
 
     "_comment_seedance": [
-      "Seedance is billed per output token, not per second. These figures are",
-      "BytePlus's own formula evaluated for what the task actually asks for:",
-      "tokens = width x height x fps / 1024 per second of output, so at 720p",
-      "and 24fps that is 21,600 tokens a second, and dollars-per-second is the",
-      "published rate per million times 0.0216. The formula reproduces the",
-      "worked examples on the pricing page exactly, which is why these are",
-      "listed rather than marked unknown. List prices, not the promotion that",
-      "ends 7 September 2026. Anything with a reference video costs more and",
-      "has a token floor -- hence approx.",
+      "Seedance is billed per output token, not per second, and the resolution",
+      "is what moves the bill: the same five seconds costs four times as much",
+      "at 1080p as at 480p. So each model carries `perMillionTokens` -- its",
+      "published rate, which is what BytePlus actually charges -- and the",
+      "per-second figures in `byResolution` are that rate evaluated through",
+      "BytePlus's own formula for the frames the app asks for:",
+      "",
+      "  tokens = width x height x fps / 1024, per second of output",
+      "",
+      "at 24fps and the nominal 16:9 frame of each step: 854x480, 1280x720,",
+      "1920x1080, 3840x2160 -- so 9608, 21600, 48600 and 194400 tokens a",
+      "second. That reproduces the worked examples on the pricing page to the",
+      "cent, which is why these are listed rather than marked unknown.",
+      "",
+      "`amount` stays the 720p figure so a menu with no shot settings behind it",
+      "still quotes something true. List prices throughout, not the promotions",
+      "running to 7 and 17 September 2026 -- a discount that lapses is worse to",
+      "have baked in than absent. A request carrying a reference *video* is",
+      "billed at a lower rate but against a token floor, which cannot be",
+      "worked out before sending; hence approx.",
       "https://docs.byteplus.com/en/docs/ModelArk/1544106"
     ],
     "dreamina-seedance-2-0-mini-260615": {
       "unit": "second",
       "amount": 0.0756,
-      "approx": true
+      "approx": true,
+      "perMillionTokens": 3.5,
+      "byResolution": { "480p": 0.0336, "720p": 0.0756 },
+      "_note": "480p and 720p only."
     },
     "dreamina-seedance-2-0-fast-260128": {
       "unit": "second",
       "amount": 0.121,
-      "approx": true
+      "approx": true,
+      "perMillionTokens": 5.6,
+      "byResolution": { "480p": 0.0538, "720p": 0.121 },
+      "_note": "480p and 720p only."
     },
     "dreamina-seedance-2-0-260128": {
       "unit": "second",
       "amount": 0.1512,
-      "approx": true
+      "approx": true,
+      "perMillionTokens": 7.0,
+      "byResolution": {
+        "480p": 0.0673,
+        "720p": 0.1512,
+        "1080p": 0.3742,
+        "4k": 0.7776
+      },
+      "_note": "1080p is billed at 7.7 and 4K at 4.0 per 1M tokens rather than 7.0, which is why the per-second figures are not a straight multiple."
     },
     "dreamina-seedance-2-5-260628": {
       "unit": "second",
       "amount": 0.2311,
-      "approx": true
+      "approx": true,
+      "perMillionTokens": 10.7,
+      "byResolution": { "480p": 0.1028, "720p": 0.2311, "1080p": 0.5686 },
+      "_note": "1080p is billed at 11.7 per 1M tokens rather than 10.7."
     },
     "seedance-1-5-pro-251215": {
       "unit": "second",
       "amount": 0.0259,
       "approx": true,
-      "_note": "Silent. Doubles with audio."
+      "perMillionTokens": 1.2,
+      "byResolution": { "480p": 0.0115, "720p": 0.0259, "1080p": 0.0583 },
+      "audioMultiplier": 2.0,
+      "_note": "Rates are for a silent clip. A soundtrack doubles them: 2.4 per 1M tokens instead of 1.2."
     },
 
     "veo-3.1-fast-generate-preview": {

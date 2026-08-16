@@ -21,6 +21,10 @@ class CanvasItem {
     this.path = '',
     this.error = '',
     this.seconds = 0,
+    this.width = 0,
+    this.height = 0,
+    this.cost,
+    this.costExact = false,
   });
 
   factory CanvasItem.fromJson(Map<String, Object?> json) => CanvasItem(
@@ -29,6 +33,10 @@ class CanvasItem {
     path: '${json['path'] ?? ''}',
     error: '${json['error'] ?? ''}',
     seconds: (json['seconds'] as num?)?.toDouble() ?? 0,
+    width: (json['width'] as num?)?.toInt() ?? 0,
+    height: (json['height'] as num?)?.toInt() ?? 0,
+    cost: (json['cost'] as num?)?.toDouble(),
+    costExact: json['costExact'] == true,
   );
 
   final String id;
@@ -38,6 +46,22 @@ class CanvasItem {
 
   /// Clips only: how long the file runs, when the provider said so.
   double seconds;
+
+  /// The frame that actually came back, which is not always the one asked for
+  /// -- a model with a megapixel ceiling quietly returns something smaller,
+  /// and on the models that charge by size that is the difference between one
+  /// price tier and the next.
+  int width;
+  int height;
+
+  /// What this one result cost, in dollars. Null when the catalogue has no
+  /// price for the model: a blank is the honest answer, and a zero would read
+  /// as "free".
+  double? cost;
+
+  /// True when [cost] was worked out from what the provider reported it had
+  /// done rather than from what was asked for. Drawn without the tilde.
+  bool costExact;
 
   /// A pending item reopened from disk is a lie -- the request that would have
   /// filled it died with the process. Anything still pending when the document
@@ -53,6 +77,10 @@ class CanvasItem {
     'path': path,
     'error': error,
     if (seconds > 0) 'seconds': seconds,
+    if (width > 0) 'width': width,
+    if (height > 0) 'height': height,
+    if (cost != null) 'cost': cost,
+    if (costExact) 'costExact': true,
   };
 }
 
@@ -68,7 +96,13 @@ class CanvasBatch {
     required this.prompt,
     required this.createdAt,
     this.modelLabel = '',
+    this.modelId = '',
+    this.credential = '',
     this.aspectRatio = '',
+    this.size = '',
+    this.quality = '',
+    this.resolution = '',
+    this.timeoutSeconds = 0,
     this.references = const [],
     List<CanvasItem>? items,
   }) : items = items ?? <CanvasItem>[];
@@ -84,7 +118,13 @@ class CanvasBatch {
       createdAt:
           DateTime.tryParse('${json['createdAt'] ?? ''}') ?? DateTime.now(),
       modelLabel: '${json['modelLabel'] ?? ''}',
+      modelId: '${json['modelId'] ?? ''}',
+      credential: '${json['credential'] ?? ''}',
       aspectRatio: '${json['aspectRatio'] ?? ''}',
+      size: '${json['size'] ?? ''}',
+      quality: '${json['quality'] ?? ''}',
+      resolution: '${json['resolution'] ?? ''}',
+      timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 0,
       references: [
         if (references is List)
           for (final entry in references) '$entry',
@@ -106,7 +146,27 @@ class CanvasBatch {
   /// and "Nano Banana Pro" is what you asked for.
   final String modelLabel;
 
+  /// The id that was actually sent, kept beside the label so the caption under
+  /// a result can be priced from the same catalogue line the estimate used.
+  final String modelId;
+
+  /// Which account paid for it, which is also which mark to draw: the
+  /// credential id is what [ProviderMark] looks its artwork up by.
+  final String credential;
+
   final String aspectRatio;
+
+  /// What the settings column was set to when this went out: the frame step
+  /// ("2K"), the provider's own quality word, the clip resolution. Empty on
+  /// the models that offer no such choice, and shown only when set.
+  final String size;
+  final String quality;
+  final String resolution;
+
+  /// How long the app will wait before giving up on a request in this batch.
+  /// Drawn under the skeleton so a two-minute wait reads as a wait with an end
+  /// to it rather than as something that has quietly died.
+  final int timeoutSeconds;
 
   /// The pictures and clips that were in the bar when this was sent.
   final List<String> references;
@@ -142,13 +202,29 @@ class CanvasBatch {
     return '';
   }
 
+  /// Everything this batch was generated with, worth showing beside a result
+  /// and known only here. The tiles read it for their caption.
+  double get totalCost {
+    var total = 0.0;
+    for (final item in items) {
+      total += item.cost ?? 0;
+    }
+    return total;
+  }
+
   Map<String, Object?> toJson() => {
     'id': id,
     'kind': kind.name,
     'prompt': prompt,
     'createdAt': createdAt.toIso8601String(),
     'modelLabel': modelLabel,
+    if (modelId.isNotEmpty) 'modelId': modelId,
+    if (credential.isNotEmpty) 'credential': credential,
     'aspectRatio': aspectRatio,
+    if (size.isNotEmpty) 'size': size,
+    if (quality.isNotEmpty) 'quality': quality,
+    if (resolution.isNotEmpty) 'resolution': resolution,
+    if (timeoutSeconds > 0) 'timeoutSeconds': timeoutSeconds,
     'references': references,
     'items': [for (final item in items) item.toJson()],
   };
@@ -230,6 +306,10 @@ class CanvasFeed extends ChangeNotifier {
     String path = '',
     String error = '',
     double seconds = 0,
+    int width = 0,
+    int height = 0,
+    double? cost,
+    bool costExact = false,
   }) {
     final batch = byId(batchId);
     if (batch == null) return;
@@ -240,7 +320,11 @@ class CanvasFeed extends ChangeNotifier {
         ..status = status
         ..path = path
         ..error = error
-        ..seconds = seconds;
+        ..seconds = seconds
+        ..width = width
+        ..height = height
+        ..cost = cost
+        ..costExact = costExact;
       notifyListeners();
       return;
     }

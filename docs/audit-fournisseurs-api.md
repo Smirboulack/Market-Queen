@@ -258,7 +258,7 @@ Capacités Omni **Seedance 2.0** : 0–9 images, 0–3 vidéos, 0–3 audios ; a
 | Model ID | Capacités | Rate limit |
 |---|---|---|
 | `dola-seedream-5-0-pro-260628` | T2I, single I2I, multi-reference I2I | 500 IPM |
-| `seedream-5-0-260128` (+ `seedream-5-0-lite-260128`) | + batch | 500 IPM |
+| `seedream-5-0-lite-260128` | + batch | 500 IPM |
 | `seedream-4-5-251128` | + batch | 500 IPM |
 | `seedream-4-0-250828` | + batch | 500 IPM |
 | `seededit-3-0-i2i-250628` | édition I2I | (tarifé) |

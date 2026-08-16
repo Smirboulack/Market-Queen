@@ -342,7 +342,17 @@ class SeedanceVideoTask extends VideoTask {
       },
     );
 
-    return deliverFromUrl(HttpTask.jsonPath(finished, 'content.video_url'));
+    // What ModelArk says it billed. Seedance is sold by output token and the
+    // count depends on the resolution, the ratio and whether a reference clip
+    // came in, so the figure the app could work out beforehand is an estimate
+    // and this one is not. Passed up so the tile under the clip can show what
+    // it actually cost rather than what it was expected to.
+    final tokens = HttpTask.jsonNumber(finished, 'usage.completion_tokens');
+
+    return {
+      ...await deliverFromUrl(HttpTask.jsonPath(finished, 'content.video_url')),
+      if (tokens > 0) 'tokens': tokens,
+    };
   }
 }
 

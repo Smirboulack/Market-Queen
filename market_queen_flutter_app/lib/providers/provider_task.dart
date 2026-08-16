@@ -351,19 +351,35 @@ abstract class HttpTask extends ProviderTask {
 
   /// Reads a dotted path out of a decoded response: "choices.0.message.content".
   static String jsonPath(Map<String, dynamic> root, String dottedPath) {
+    final value = _walk(root, dottedPath);
+    return value is String ? value : '';
+  }
+
+  /// The same, for the numbers: a usage block's token count, a reported
+  /// duration. Zero when the path is absent or holds something else, which is
+  /// also what "the provider did not say" has to mean -- these figures are
+  /// used to price a finished generation, and a wrong one is worse than none.
+  static double jsonNumber(Map<String, dynamic> root, String dottedPath) {
+    final value = _walk(root, dottedPath);
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static Object? _walk(Map<String, dynamic> root, String dottedPath) {
     Object? value = root;
     for (final part in dottedPath.split('.')) {
       if (part.isEmpty) continue;
       final index = int.tryParse(part);
       if (index != null && value is List) {
-        if (index < 0 || index >= value.length) return '';
+        if (index < 0 || index >= value.length) return null;
         value = value[index];
       } else if (value is Map) {
         value = value[part];
       } else {
-        return '';
+        return null;
       }
     }
-    return value is String ? value : '';
+    return value;
   }
 }

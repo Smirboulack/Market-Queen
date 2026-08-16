@@ -18,6 +18,22 @@ class Format {
     return '\$${amount.toStringAsFixed(2)}';
   }
 
+  /// How long a clip runs, for the caption under it.
+  ///
+  /// A whole number where it is one -- a model that sells five-second clips
+  /// delivers five-second clips, and "5.0 s" invites a question there is no
+  /// answer to. A tenth otherwise, because a measured file genuinely is 5.2.
+  static String seconds(double value) {
+    if (value <= 0) return '';
+    final whole = value.roundToDouble();
+    //: %1 is a number of seconds, e.g. "5" or "5.2"
+    return tr('%1 s').arg(
+      (value - whole).abs() < 0.05
+          ? whole.toStringAsFixed(0)
+          : value.toStringAsFixed(1),
+    );
+  }
+
   /// The same, marked as the estimate it is.
   static String estimated(double? amount) {
     final text = money(amount);

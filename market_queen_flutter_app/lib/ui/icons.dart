@@ -38,6 +38,7 @@ const _iconByName = <String, IconData>{
   'layout-line': Icons.dashboard_customize_outlined,
   'lightbulb-line': Icons.lightbulb_outline,
   'loader-4-line': Icons.refresh,
+  'lock-line': Icons.lock_outline,
   'magic-line': Icons.auto_awesome,
   'mic-line': Icons.mic_none,
   'more-line': Icons.more_horiz,

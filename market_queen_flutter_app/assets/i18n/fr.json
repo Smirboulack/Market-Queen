@@ -1035,5 +1035,14 @@
     "Write something first, then let a model widen it.": "Écrivez d’abord quelque chose, un modèle l’étoffera ensuite.",
     "No writer has a key yet. Add one under Models.": "Aucun rédacteur n’a de clé. Ajoutez-en une dans Modèles.",
     "No writer called %1.": "Aucun rédacteur nommé %1.",
-    "Could not improve the prompt: %1": "Impossible d’améliorer le prompt : %1"
+    "Could not improve the prompt: %1": "Impossible d’améliorer le prompt : %1",
+    "Create UGC": "Création UGC",
+    "Storyboard": "Scénario",
+    "Back to the menu": "Retour au menu",
+    "Nothing here yet. Make your first ad.": "Rien pour l'instant. Créez votre première pub.",
+    "One ad. Write it, cast it, shoot it.": "Une pub. Écrivez-la, castez-la, tournez-la.",
+    "Pick an ad on the left, or start a new one.": "Choisissez une pub à gauche, ou créez-en une nouvelle.",
+    "Plan an ad shot by shot before you shoot it. Being built.": "Planifiez une pub plan par plan avant de la tourner. En construction.",
+    "Add this account's key to switch it on.": "Ajoutez la clé de ce compte pour l'activer.",
+    "%1 · max %2": "%1 · max %2"
 }

@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
 
 import '../core/http_util.dart' show Http, ProviderException, TaskCancelled;
@@ -14,6 +15,7 @@ import '../core/settings_store.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
 import '../providers/capabilities.dart';
+import '../providers/image_providers.dart' show ImageTask;
 import '../providers/model_schemas.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
@@ -88,6 +90,34 @@ class GenerationOrder {
   final String quality;
 }
 
+/// What a finished request has to be priced against.
+///
+/// Carried alongside the task rather than read back off the batch because it
+/// is per-request: the same batch can hold four clips of different lengths if
+/// the model rounded them differently, and the resolution and the soundtrack
+/// switch are what actually move a Seedance bill.
+class _Billing {
+  const _Billing({
+    required this.modelId,
+    this.seconds = 0,
+    this.resolution = '',
+    this.audio = false,
+    this.extraInputImages = 0,
+    this.fixed,
+  });
+
+  final String modelId;
+  final double seconds;
+  final String resolution;
+  final bool audio;
+  final int extraInputImages;
+
+  /// Already worked out, for the kinds where the finished file says nothing
+  /// the request did not already: a reading is billed for the characters that
+  /// were sent.
+  final CostEstimate? fixed;
+}
+
 /// Fires what the composer ordered and files the results in the feed.
 ///
 /// Deliberately thin: it makes a folder, resolves a provider and a model,
@@ -148,7 +178,24 @@ class StudioRunner extends ChangeNotifier {
   /// answer either way: a made-up figure next to a spend button is worse than
   /// none.
   CostEstimate estimate(GenerationOrder order) {
-    final unit = _pricing.unitPrice(modelFor(order.category, order.seconds));
+    final model = modelFor(order.category, order.seconds);
+
+    // The frame the picture models that price by size will actually be asked
+    // for. Worked out here rather than assumed, because the step between one
+    // tier and the next falls between two entries of the same Size menu.
+    final frame = ImageCapabilities.of(model).pixelsFor(
+      order.size,
+      order.aspectRatio.isEmpty ? '9:16' : order.aspectRatio,
+    );
+
+    final unit = _pricing.unitPrice(
+      model,
+      resolution: order.resolution,
+      audio: order.audio,
+      megapixels: order.category == 'image' || order.category == 'upscale'
+          ? frame.width * frame.height / 1e6
+          : 0,
+    );
     if (unit == null) return CostEstimate.unknown;
 
     final count = order.count < 1 ? 1 : order.count;
@@ -212,7 +259,13 @@ class StudioRunner extends ChangeNotifier {
       prompt: order.prompt.trim(),
       createdAt: DateTime.now(),
       modelLabel: _registry.modelLabel(providerId, model),
+      modelId: model,
+      credential: _registry.credentialFor(providerId),
       aspectRatio: order.aspectRatio,
+      size: order.size,
+      quality: order.quality,
+      resolution: order.category == 'video' ? order.resolution : '',
+      timeoutSeconds: _timeoutFor(order.category),
       references: List.of(order.references),
       items: [
         for (var i = 0; i < count; ++i) CanvasItem(id: CanvasFeed.newId()),
@@ -372,6 +425,15 @@ class StudioRunner extends ChangeNotifier {
           task,
           p.join(dir, '${_stamp(batch.createdAt)}-${i + 1}'),
           order.category == 'video' ? 'mp4' : 'png',
+          billing: _Billing(
+            modelId: model,
+            seconds: order.seconds.toDouble(),
+            resolution: order.resolution,
+            audio: order.audio,
+            // The first reference is free on every model that charges for
+            // them at all; the rest are a line on the bill.
+            extraInputImages: math.max(0, counted.images - 1),
+          ),
         ),
       );
     }
@@ -433,6 +495,10 @@ class StudioRunner extends ChangeNotifier {
       task,
       p.join(dir, '${_stamp(batch.createdAt)}-voice'),
       'mp3',
+      // Speech is sold by the character, and the characters are the text that
+      // was sent -- so unlike a picture or a clip, this one is fully known
+      // before the request leaves and nothing measured afterwards improves it.
+      billing: _Billing(modelId: model, fixed: estimate(order)),
     );
   }
 
@@ -457,6 +523,9 @@ class StudioRunner extends ChangeNotifier {
       prompt: tr('Subtitles burned in'),
       createdAt: DateTime.now(),
       modelLabel: _registry.modelLabel(providerId, model),
+      modelId: model,
+      credential: _registry.credentialFor(providerId),
+      timeoutSeconds: _timeoutFor('captions'),
       aspectRatio: '',
       references: [videoPath],
       items: [CanvasItem(id: CanvasFeed.newId())],
@@ -562,8 +631,9 @@ class StudioRunner extends ChangeNotifier {
     CanvasItem item,
     ProviderTask task,
     String pathWithoutExtension,
-    String fallbackExtension,
-  ) async {
+    String fallbackExtension, {
+    _Billing? billing,
+  }) async {
     try {
       final result = await task.run();
 
@@ -584,11 +654,42 @@ class StudioRunner extends ChangeNotifier {
         return;
       }
 
+      // What actually came back, rather than what was ordered. Both feed the
+      // caption under the tile, and the frame also decides which price tier a
+      // size-billed model lands in -- so it is read off the file rather than
+      // off the menu that asked for it.
+      final frame = isVideoPath(path) || isAudioPath(path)
+          ? (width: 0, height: 0)
+          : _frameOf(data);
+      final seconds = await _lengthOf(
+        path,
+        (result['durationSeconds'] as num?)?.toDouble() ?? 0,
+      );
+
+      final cost = billing == null
+          ? CostEstimate.unknown
+          : billing.fixed ??
+                _pricing.charged(
+                  modelId: billing.modelId,
+                  tokens: (result['tokens'] as num?)?.toDouble() ?? 0,
+                  megapixels: frame.width * frame.height / 1e6,
+                  // The clip that exists, falling back to the length asked for
+                  // when nothing could measure it.
+                  seconds: seconds > 0 ? seconds : billing.seconds,
+                  resolution: billing.resolution,
+                  audio: billing.audio,
+                  extraInputImages: billing.extraInputImages,
+                );
+
       _settle(
         batch,
         item,
         path: path,
-        seconds: (result['durationSeconds'] as num?)?.toDouble() ?? 0,
+        seconds: seconds,
+        width: frame.width,
+        height: frame.height,
+        cost: cost.known ? cost.amount : null,
+        costExact: cost.exact,
       );
     } on ProviderException catch (error) {
       // A cancelled task is the user's own doing and needs no red tile of its
@@ -610,6 +711,10 @@ class StudioRunner extends ChangeNotifier {
     String path = '',
     String error = '',
     double seconds = 0,
+    int width = 0,
+    int height = 0,
+    double? cost,
+    bool costExact = false,
   }) {
     if (_outstanding > 0) _outstanding -= 1;
 
@@ -620,9 +725,73 @@ class StudioRunner extends ChangeNotifier {
       path: path,
       error: error,
       seconds: seconds,
+      width: width,
+      height: height,
+      cost: cost,
+      costExact: costExact,
     );
     notifyListeners();
   }
+
+  /// How long the file runs, preferring what the provider said and measuring
+  /// it when it said nothing.
+  ///
+  /// A clip's own length is worth one ffmpeg call: it is half of what the
+  /// caption under a video has to say, and every model that sells by the
+  /// second rounds the request in its own way -- asking for five and being
+  /// billed for six is exactly the surprise this is here to remove. Stills and
+  /// a machine with no ffmpeg cost nothing: both fall straight through.
+  Future<double> _lengthOf(String path, double reported) async {
+    if (reported > 0 || !isVideoPath(path)) return reported;
+
+    final ffmpeg = Ffmpeg.resolve(_settings.ffmpegPath);
+    if (ffmpeg.isEmpty) return 0;
+
+    final measured = await probeDuration(ffmpeg, path);
+    return measured > 0 ? measured : 0;
+  }
+
+  /// The pixel size of an encoded picture, read from its header alone.
+  ///
+  /// Decoding the whole thing to learn two numbers would be seconds of work on
+  /// a 4K frame, on the isolate that draws the feed. Every format the models
+  /// return carries its dimensions in the first few bytes, and that is all
+  /// [Decoder.startDecode] reads.
+  static ({int width, int height}) _frameOf(Uint8List data) {
+    try {
+      final info = img.findDecoderForData(data)?.startDecode(data);
+      if (info != null && info.width > 0 && info.height > 0) {
+        return (width: info.width, height: info.height);
+      }
+    } catch (_) {
+      // A format the bundled decoders do not know, or a header they read off
+      // the end of. Caught wholesale rather than by type: a truncated file
+      // raises a RangeError, not an Exception, and the caption saying less is
+      // not worth failing a generation that has already been delivered and
+      // paid for.
+    }
+    return (width: 0, height: 0);
+  }
+
+  /// How long the app will wait on one request of this kind before giving up.
+  ///
+  /// Not a policy decision made here -- these are the ceilings the tasks
+  /// themselves enforce, repeated so the skeleton can show the wait against
+  /// its own end. A wait with a stated limit is a wait; a wait without one is
+  /// indistinguishable from a hang, which is what sends people to the send
+  /// button a second time.
+  static int _timeoutFor(String category) => switch (category) {
+    'video' => _videoTimeout.inSeconds,
+    'voice' => _voiceTimeout.inSeconds,
+    _ => ImageTask.drawTimeout.inSeconds,
+  };
+
+  /// The queue-polling deadline in [HttpTask.pollUntil], which every video
+  /// provider takes as its default.
+  static const _videoTimeout = Duration(minutes: 15);
+
+  /// What the speech endpoints are given.
+  static const _voiceTimeout = Duration(minutes: 10);
 
   void _failWholeBatch(CanvasBatch batch, String error) {
     for (final item in batch.items) {

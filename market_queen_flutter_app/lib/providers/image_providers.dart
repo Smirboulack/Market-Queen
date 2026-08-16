@@ -22,6 +22,18 @@ abstract class ImageTask extends HttpTask {
 
   final ImageRequest request;
 
+  /// How long to hold a drawing request open.
+  ///
+  /// The synchronous image endpoints render on the connection: nothing comes
+  /// back until the picture exists. `postJson`'s 120 seconds was written for
+  /// calls that answer immediately -- a queue handle, a status poll -- and it is
+  /// simply under what the slower models take. Seedream 5.0 Pro needs about 90
+  /// seconds for a plain 2K frame and more for a long prompt or a 4K one, so the
+  /// old ceiling turned a working generation into "the provider did not return a
+  /// result in time" -- and because the client hung up first, the call never
+  /// appeared in the provider's usage console either.
+  static const drawTimeout = Duration(minutes: 8);
+
   Map<String, Object?> deliver(Uint8List data, String extension) {
     if (data.isEmpty) {
       throw ProviderException(tr('The provider returned an empty image.'));
@@ -103,6 +115,7 @@ class GeminiImageTask extends ImageTask {
         },
       },
       headers: {'x-goog-api-key': request.apiKey},
+      timeout: ImageTask.drawTimeout,
     );
 
     final image = _imageBlock(response);
@@ -198,6 +211,7 @@ class OpenAiImageTask extends ImageTask {
       Uri.parse('https://api.openai.com/v1/images/generations'),
       body,
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
+      timeout: ImageTask.drawTimeout,
     );
 
     final b64 = HttpTask.jsonPath(response, 'data.0.b64_json');
@@ -226,6 +240,7 @@ class OpenAiImageTask extends ImageTask {
     final response = await postMultipart(
       Uri.parse('https://api.openai.com/v1/images/edits'),
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
+      timeout: ImageTask.drawTimeout,
       fields: {
         'model': request.model,
         'prompt': request.prompt,
@@ -422,6 +437,7 @@ class SeedreamImageTask extends ImageTask {
         if (editing) 'image': request.referenceImageDataUri,
       },
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
+      timeout: ImageTask.drawTimeout,
     );
 
     final b64 = HttpTask.jsonPath(response, 'data.0.b64_json');
@@ -606,6 +622,7 @@ class BriaImageTask extends ImageTask {
           'images': [request.referenceImageDataUri],
       },
       headers: {'api_token': request.apiKey},
+      timeout: ImageTask.drawTimeout,
     );
 
     final url = '${response['image_url'] ?? ''}';
@@ -623,6 +640,7 @@ class BriaImageTask extends ImageTask {
       Uri.parse('$_base/image/increase_resolution'),
       {'image_url': request.referenceImageDataUri, 'desired_increase': 2},
       headers: {'api_token': request.apiKey},
+      timeout: ImageTask.drawTimeout,
     );
 
     final url = '${response['image_url'] ?? ''}'.isNotEmpty
@@ -665,6 +683,7 @@ class XaiImageTask extends ImageTask {
           'image': {'url': request.referenceImageDataUri, 'type': 'image_url'},
       },
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
+      timeout: ImageTask.drawTimeout,
     );
 
     final url = HttpTask.jsonPath(response, 'data.0.url');

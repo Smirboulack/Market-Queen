@@ -74,12 +74,23 @@ class PriceBreakdown {
 /// has no published price. Used by the panels that price one action rather than
 /// a whole run -- a casting batch, an audition, a re-shoot.
 class CostEstimate {
-  const CostEstimate(this.known, this.amount);
+  const CostEstimate(this.known, this.amount, {this.exact = false});
 
   static const unknown = CostEstimate(false, 0);
 
+  /// Nothing was asked for, so nothing is owed. Distinct from [unknown]: an
+  /// empty prompt has a price, and it is zero.
+  static const free = CostEstimate(true, 0, exact: true);
+
   final bool known;
   final double amount;
+
+  /// True when the figure came from what the provider reported it had done --
+  /// the tokens it billed, the frame it actually returned -- rather than from
+  /// what the app expected to ask for. It is the difference between "$0.09"
+  /// and "~$0.09", and on a bring-your-own-key app that difference is the
+  /// whole point of showing a number at all.
+  final bool exact;
 }
 
 /// What one unit of a model costs: enough to draw "$0.28/s" next to its name.
@@ -102,6 +113,18 @@ class Usage {
   final double unitsOut;
 }
 
+/// One step of a model whose price changes with the size of what it produces.
+/// The last step in a list carries no ceiling: it is what everything above the
+/// previous one costs.
+class _Tier {
+  const _Tier(this.maxMegapixels, this.amount);
+
+  final double maxMegapixels;
+  final double amount;
+
+  bool get unbounded => maxMegapixels <= 0;
+}
+
 class _Price {
   _Price({
     this.unit = '',
@@ -110,6 +133,11 @@ class _Price {
     this.tokensOut = 0,
     this.minUnits = 0,
     this.approx = false,
+    this.tiers = const [],
+    this.byResolution = const {},
+    this.audioMultiplier = 0,
+    this.perMillionTokens = 0,
+    this.extraInputImage = 0,
   });
 
   final String unit; // tokens | image | second | video | kchars | minute
@@ -119,7 +147,42 @@ class _Price {
   final double minUnits;
   final bool approx;
 
+  /// Image models whose price steps with the frame size, cheapest first.
+  final List<_Tier> tiers;
+
+  /// Video models whose per-second price depends on the resolution asked for.
+  final Map<String, double> byResolution;
+
+  /// What a generated soundtrack multiplies the clip by, where the model
+  /// charges for one. Zero means it makes no difference.
+  final double audioMultiplier;
+
+  /// The provider's own published rate, for the models that bill by token and
+  /// report the count back. This is what turns an estimate into a receipt.
+  final double perMillionTokens;
+
+  /// Charged per reference image past the first.
+  final double extraInputImage;
+
   bool get known => unit.isNotEmpty;
+
+  /// The per-unit price for a frame of [megapixels], falling back to [amount]
+  /// when the model has no tiers or the size is not known yet.
+  double amountForSize(double megapixels) {
+    if (tiers.isEmpty || megapixels <= 0) return amount;
+    for (final tier in tiers) {
+      if (tier.unbounded || megapixels <= tier.maxMegapixels) return tier.amount;
+    }
+    return tiers.last.amount;
+  }
+
+  /// The per-second price at [resolution], with the soundtrack counted in.
+  /// Falls back to [amount] for a resolution the model does not list -- which
+  /// is the right answer for the models that charge one rate for all of them.
+  double amountForShot(String resolution, {bool audio = false}) {
+    final base = byResolution[resolution.toLowerCase()] ?? amount;
+    return audio && audioMultiplier > 0 ? base * audioMultiplier : base;
+  }
 }
 
 /// What each model costs, and what a run is about to cost.
@@ -222,6 +285,11 @@ class Pricing {
         tokensOut: _toDouble(value['out']),
         minUnits: _toDouble(value['minUnits']),
         approx: value['approx'] == true,
+        tiers: _tiersFrom(value['tiers']),
+        byResolution: _ratesFrom(value['byResolution']),
+        audioMultiplier: _toDouble(value['audioMultiplier']),
+        perMillionTokens: _toDouble(value['perMillionTokens']),
+        extraInputImage: _toDouble(value['extraInputImage']),
       );
       if (price.known) _prices['$key'] = price;
     });
@@ -232,6 +300,25 @@ class Pricing {
 
   static double _toDouble(Object? value) =>
       value is num ? value.toDouble() : 0.0;
+
+  static List<_Tier> _tiersFrom(Object? value) {
+    if (value is! List) return const [];
+    return [
+      for (final entry in value)
+        if (entry is Map)
+          _Tier(_toDouble(entry['maxMegapixels']), _toDouble(entry['amount'])),
+    ];
+  }
+
+  /// Resolution keys are folded to lower case on the way in, so "4K" in the
+  /// file and "4k" off a model's schema are the same rate.
+  static Map<String, double> _ratesFrom(Object? value) {
+    if (value is! Map) return const {};
+    return {
+      for (final entry in value.entries)
+        '${entry.key}'.toLowerCase(): _toDouble(entry.value),
+    };
+  }
 
   _Price _priceFor(String modelId) => _prices[modelId] ?? _Price();
 
@@ -262,14 +349,89 @@ class Pricing {
       text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
 
   /// Empty when the price is unknown.
-  UnitPrice? unitPrice(String modelId) {
+  ///
+  /// [resolution], [audio] and [megapixels] narrow it to what is actually
+  /// about to be asked for, where the model prices those differently -- a
+  /// Seedance second at 1080p is four times one at 480p. All three are
+  /// optional, and left out the answer is the model's headline rate, which is
+  /// what the model menu wants.
+  UnitPrice? unitPrice(
+    String modelId, {
+    String resolution = '',
+    bool audio = false,
+    double megapixels = 0,
+  }) {
     final price = _priceFor(modelId);
     if (!price.known) return null;
-    return UnitPrice(
-      price.unit == 'tokens' ? price.tokensOut : price.amount,
-      price.unit,
-      price.approx,
-    );
+
+    final amount = switch (price.unit) {
+      'tokens' => price.tokensOut,
+      'image' => price.amountForSize(megapixels),
+      'second' => price.amountForShot(resolution, audio: audio),
+      _ => price.amount,
+    };
+    return UnitPrice(amount, price.unit, price.approx);
+  }
+
+  /// What one finished generation actually cost.
+  ///
+  /// The estimate before a request and the figure after it are different
+  /// questions, and this is the second one: the frame that came back rather
+  /// than the one asked for, and -- where the provider says so -- the tokens
+  /// it billed rather than the tokens the formula predicted. A result priced
+  /// from [tokens] is marked exact and shown without a tilde, because it is
+  /// not an approximation of anything.
+  ///
+  /// Unknown when the catalogue has no line for the model. Never guessed: a
+  /// figure under a picture is a claim about somebody's bill.
+  CostEstimate charged({
+    required String modelId,
+    double tokens = 0,
+    double megapixels = 0,
+    double seconds = 0,
+    String resolution = '',
+    bool audio = false,
+    int extraInputImages = 0,
+  }) {
+    final price = _priceFor(modelId);
+    if (!price.known) return CostEstimate.unknown;
+
+    final extras = extraInputImages > 0
+        ? extraInputImages * price.extraInputImage
+        : 0.0;
+
+    // What the provider itself reported it had consumed. Nothing to estimate
+    // and nothing to round: this is the line that will appear on the bill.
+    if (tokens > 0 && price.perMillionTokens > 0) {
+      return CostEstimate(
+        true,
+        tokens / 1e6 * price.perMillionTokens + extras,
+        exact: true,
+      );
+    }
+
+    switch (price.unit) {
+      case 'image':
+        // The size the provider sent back, so a 4K frame is billed at the 4K
+        // step even if the menu said something else.
+        return CostEstimate(
+          true,
+          price.amountForSize(megapixels) + extras,
+          exact: megapixels > 0 && !price.approx,
+        );
+      case 'second':
+        if (seconds <= 0) return CostEstimate.unknown;
+        final billed = math.max(seconds, price.minUnits);
+        return CostEstimate(
+          true,
+          billed * price.amountForShot(resolution, audio: audio) + extras,
+          exact: false,
+        );
+      case 'video':
+        return CostEstimate(true, price.amount + extras, exact: !price.approx);
+      default:
+        return CostEstimate.unknown;
+    }
   }
 
   /// One row of the estimate. What the two quantities mean depends on how the

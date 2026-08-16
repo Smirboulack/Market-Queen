@@ -349,9 +349,10 @@ class Registry extends ChangeNotifier {
         label: 'BytePlus (Seedream)',
         credential: 'bytedance',
         models: const [
+          // No plain "Seedream 5.0": 5.0 ships as Lite and Pro only, and the
+          // id that was here answered nothing on ModelArk.
           ModelEntry('seedream-4-5-251128', 'Seedream 4.5'),
           ModelEntry('seedream-5-0-lite-260128', 'Seedream 5.0 Lite'),
-          ModelEntry('seedream-5-0-260128', 'Seedream 5.0'),
           ModelEntry('dola-seedream-5-0-pro-260628', 'Seedream 5.0 Pro'),
           ModelEntry('seededit-3-0-i2i-250628', 'SeedEdit 3.0'),
         ],

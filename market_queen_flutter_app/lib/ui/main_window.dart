@@ -5,25 +5,28 @@ import '../i18n/translator.dart';
 import '../models/asset_library.dart' show AssetKind;
 import 'asset_library_page.dart';
 import 'examples_page.dart';
+import 'icons.dart';
 import 'library_page.dart';
 import 'models_page.dart';
 import 'render_view.dart';
+import 'scenario_page.dart';
 import 'settings_page.dart';
 import 'side_nav.dart';
 import 'studio/ad_editor_page.dart';
-import 'studio/ads_page.dart';
-import 'studio/projects_page.dart';
-import 'studio/studio_tree.dart';
+import 'studio/ad_list.dart';
 import 'theme.dart';
 import 'top_bar.dart';
+import 'widgets/buttons.dart';
 import 'widgets/mq_dialog.dart';
 
 /// The window: navigation on the left, a crumb trail across the top, the
 /// current page filling the rest.
 ///
-/// The studio is the only page with somewhere to go: projects, then the ads in
-/// one, then the ad itself, then the run. The window owns that position because
-/// the crumb trail is what walks back up it, and the trail lives up here.
+/// Create UGC is the only section with somewhere to go -- the ad, then its run
+/// -- and the only one you step *into*: opening it replaces the nav with its
+/// own list of ads until the back arrow is pressed. The window owns that
+/// position because the crumb trail is what walks back up it, and the trail
+/// lives up here.
 class MainWindow extends StatefulWidget {
   const MainWindow({super.key, required this.app});
 
@@ -35,29 +38,24 @@ class MainWindow extends StatefulWidget {
 
 class _MainWindowState extends State<MainWindow> {
   static const _studio = 0;
-  static const _library = 1;
-  static const _actors = 2;
-  static const _scenes = 3;
-  static const _examples = 4;
-  static const _models = 5;
-  static const _settings = 6;
+  static const _scenario = 1;
+  static const _library = 2;
+  static const _actors = 3;
+  static const _scenes = 4;
+  static const _examples = 5;
+  static const _models = 6;
+  static const _settings = 7;
 
   int _currentPage = _studio;
 
-  /// Where in the studio we are. Empty project means the project list; a
-  /// project with no ad means that project's ads.
+  /// The ad the editor is on, and the project it is filed under. The project is
+  /// storage plumbing now -- see [Workspace.home] -- and is never shown.
   String _projectId = '';
   String _adId = '';
 
-  /// The last ad that was open, which is what "Studio" goes back to.
-  ///
-  /// The nav row used to be a way to the top of the tree and nothing else, so
-  /// stepping out to Settings and back -- or up to the project list to check
-  /// something -- meant walking back down two screens to the ad you had been
-  /// working on for the last hour. A section in a nav should return you to your
-  /// place in it.
-  String _lastProjectId = '';
-  String _lastAdId = '';
+  /// Whether the nav has been stepped into Create UGC. While it is, the column
+  /// is that section's own list and the back arrow is the way out.
+  bool _inSection = false;
 
   /// Whether the studio is showing the run rather than the ad.
   bool _rendering = false;
@@ -66,40 +64,30 @@ class _MainWindowState extends State<MainWindow> {
 
   List<NavEntry> get _entries => [
     NavEntry(
-      label: tr('Studio'),
+      label: tr('Create UGC'),
       icon: 'clapperboard-line',
       page: _studio,
-      expansion: StudioTree(
+      expansion: AdList(
         app: app,
-        openProjectId: _projectId,
         openAdId: _adId,
-        onNewProject: _newProject,
-        onNewAd: _newAd,
-        onOpenProject: _openProject,
-        onOpenAd: _openAd,
-        onRenameProject: _renameProject,
-        onRenameAd: _renameAd,
+        onNew: _newAd,
+        onOpen: _openAd,
+        onRename: _renameAd,
       ),
     ),
+    NavEntry(label: tr('Storyboard'), icon: 'layout-line', page: _scenario),
     NavEntry(label: tr('Library'), icon: 'movie-2-line', page: _library),
     NavEntry(label: tr('Actors'), icon: 'user-line', page: _actors),
     NavEntry(label: tr('Scenes'), icon: 'scene-line', page: _scenes),
     NavEntry(label: tr('Examples'), icon: 'lightbulb-line', page: _examples),
-    NavEntry(label: tr('Models'), icon: 'layout-line', page: _models),
+    NavEntry(label: tr('Models'), icon: 'sound-module-line', page: _models),
     NavEntry(label: tr('Settings'), icon: 'settings-3-line', page: _settings),
   ];
 
-  // ---- studio navigation ---------------------------------------------------
+  /// The Create UGC entry, which is the only one you can step into.
+  NavEntry get _section => _entries.first;
 
-  void _openProject(String id) {
-    app.workspace.closeAd();
-    setState(() {
-      _currentPage = _studio;
-      _projectId = id;
-      _adId = '';
-      _rendering = false;
-    });
-  }
+  // ---- studio navigation ---------------------------------------------------
 
   void _openAd(String projectId, String adId) {
     app.workspace.openAd(projectId, adId);
@@ -107,46 +95,21 @@ class _MainWindowState extends State<MainWindow> {
       _currentPage = _studio;
       _projectId = projectId;
       _adId = adId;
-      _lastProjectId = projectId;
-      _lastAdId = adId;
       _rendering = false;
     });
   }
 
   /// A nav row was pressed.
   ///
-  /// Every one of them is "go to that section" except this one detail: the
-  /// studio remembers where you were in it, so pressing Studio from anywhere
-  /// puts you back in the ad you were making rather than at the list of
-  /// projects. Walking up to the list is what the crumb trail is for, and it is
-  /// a thing you ask for far less often than you ask to get back to work.
+  /// Every one of them is "go to that section", plus this: Create UGC also
+  /// steps the column into its own list of ads, because that list is what you
+  /// are choosing between once you are in there and the other sections are
+  /// not.
   void _pickPage(int index) {
-    if (index != _studio) {
-      setState(() => _currentPage = index);
-      return;
-    }
-
-    final remembered = app.workspace.ad(_lastProjectId, _lastAdId);
-    if (_adId.isEmpty && remembered != null) {
-      _openAd(_lastProjectId, _lastAdId);
-      return;
-    }
-    setState(() => _currentPage = _studio);
-  }
-
-  Future<void> _renameProject(String id) async {
-    final project = app.workspace.project(id);
-    if (project == null) return;
-
-    final name = await askForName(
-      context,
-      title: tr('Rename the project'),
-      label: tr('Project name'),
-      placeholder: project.name,
-      confirmLabel: tr('Rename'),
-      initial: project.name,
-    );
-    if (name != null) app.workspace.renameProject(id, name);
+    setState(() {
+      _currentPage = index;
+      _inSection = index == _studio;
+    });
   }
 
   Future<void> _renameAd(String projectId, String adId) async {
@@ -164,15 +127,6 @@ class _MainWindowState extends State<MainWindow> {
     if (name != null) app.workspace.renameAd(projectId, adId, name);
   }
 
-  void _backToProjects() {
-    app.workspace.closeAd();
-    setState(() {
-      _projectId = '';
-      _adId = '';
-      _rendering = false;
-    });
-  }
-
   /// Starts a run and stays where it is.
   ///
   /// It used to navigate to the render view, which meant every generation threw
@@ -183,57 +137,40 @@ class _MainWindowState extends State<MainWindow> {
 
   void _openRender() => setState(() => _rendering = true);
 
-  /// Asks for a name and opens what it made. Reached from the nav tree, and --
-  /// for the ad -- from the render view, so a second angle on the same product
-  /// never means walking back up to the list.
-  Future<void> _newProject() async {
-    final name = await askForName(
-      context,
-      title: tr('New project'),
-      subtitle: tr('A folder for the ads of one product or one campaign.'),
-      label: tr('Project name'),
-      placeholder: tr('e.g. Lumen glow serum'),
-      confirmLabel: tr('Create'),
-      initial: app.workspace.suggestedProjectName(),
-    );
-    if (name == null) return;
-
-    _openProject(app.workspace.createProject(name).id);
-  }
-
-  Future<void> _newAd(String projectId) async {
-    if (app.workspace.project(projectId) == null) return;
-
+  /// Asks for a name and opens the ad it made.
+  ///
+  /// One dialog, not two: there is no folder to make first any more, and the
+  /// ad is filed wherever the workspace keeps them.
+  Future<void> _newAd() async {
     final name = await askForName(
       context,
       title: tr('New UGC ad'),
-      subtitle: tr('A second angle on the same product, in this project.'),
+      subtitle: tr('One ad. Write it, cast it, shoot it.'),
       label: tr('Ad name'),
       placeholder: tr('e.g. Morning routine hook'),
       confirmLabel: tr('Create'),
-      initial: app.workspace.suggestedAdName(projectId),
+      initial: app.workspace.suggestedName(),
     );
     if (name == null) return;
 
-    final ad = app.workspace.createAd(projectId, name);
-    _openAd(projectId, ad.id);
+    final home = app.workspace.home;
+    final ad = app.workspace.createAd(home.id, name);
+    _openAd(home.id, ad.id);
   }
 
-  /// A second ad in the same project, from the render view. The one that just
-  /// rendered stays exactly as it was.
-  Future<void> _newSiblingAd() => _newAd(_projectId);
-
-  /// Which of the studio's four screens is showing.
+  /// Which of the studio's screens is showing: the invitation to make one, the
+  /// ad, or its run.
   int get _studioLevel {
-    if (_projectId.isEmpty) return 0;
-    if (_adId.isEmpty) return 1;
-    return _rendering ? 3 : 2;
+    if (_adId.isEmpty) return 0;
+    return _rendering ? 2 : 1;
   }
 
   // ---- the trail -----------------------------------------------------------
 
   List<Crumb> _crumbs() {
     switch (_currentPage) {
+      case _scenario:
+        return [Crumb(tr('Storyboard'))];
       case _library:
         return [Crumb(tr('Library'))];
       case _actors:
@@ -248,27 +185,12 @@ class _MainWindowState extends State<MainWindow> {
         return [Crumb(tr('Settings'))];
     }
 
-    final project = app.workspace.project(_projectId);
-    final ad = project?.ad(_adId);
+    // Two levels now rather than four: the ad, and its run. The project that
+    // used to sit between them was a folder nobody asked for.
+    final ad = app.workspace.ad(_projectId, _adId);
 
     return [
-      Crumb(
-        tr('Studio'),
-        onTap: _projectId.isEmpty ? null : _backToProjects,
-      ),
-      if (project != null)
-        Crumb(
-          project.name,
-          onTap: _adId.isEmpty
-              ? null
-              : () {
-                  app.workspace.closeAd();
-                  setState(() {
-                    _adId = '';
-                    _rendering = false;
-                  });
-                },
-        ),
+      Crumb(tr('Create UGC')),
       if (ad != null)
         Crumb(
           ad.name,
@@ -293,6 +215,8 @@ class _MainWindowState extends State<MainWindow> {
             entries: _entries,
             currentPage: _currentPage,
             onPicked: _pickPage,
+            openSection: _inSection ? _section : null,
+            onCloseSection: () => setState(() => _inSection = false),
           ),
           Expanded(
             child: Column(
@@ -310,6 +234,7 @@ class _MainWindowState extends State<MainWindow> {
                     index: _currentPage,
                     children: [
                       _studioStack(),
+                      ScenarioPage(app: app),
                       LibraryPage(app: app),
                       AssetLibraryPage(app: app, kind: AssetKind.actor),
                       AssetLibraryPage(app: app, kind: AssetKind.scene),
@@ -331,18 +256,7 @@ class _MainWindowState extends State<MainWindow> {
     return IndexedStack(
       index: _studioLevel,
       children: [
-        ProjectsPage(app: app, onOpen: _openProject),
-        // Built only once there is a project to build them for; an IndexedStack
-        // builds every child, and both of these are meaningless without one.
-        if (_projectId.isEmpty)
-          const SizedBox.shrink()
-        else
-          AdsPage(
-            key: ValueKey('ads:$_projectId'),
-            app: app,
-            projectId: _projectId,
-            onOpen: (adId) => _openAd(_projectId, adId),
-          ),
+        _NoAdYet(onNew: _newAd),
         if (_adId.isEmpty)
           const SizedBox.shrink()
         else
@@ -357,9 +271,46 @@ class _MainWindowState extends State<MainWindow> {
         RenderView(
           app: app,
           onBack: () => setState(() => _rendering = false),
-          onNewAd: _projectId.isEmpty ? null : _newSiblingAd,
+          onNewAd: _newAd,
         ),
       ],
+    );
+  }
+}
+
+/// What Create UGC shows before there is an ad open: one sentence and one
+/// button, pointing at the same list that is already in the column beside it.
+class _NoAdYet extends StatelessWidget {
+  const _NoAdYet({required this.onNew});
+
+  final VoidCallback onNew;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MqIcon('clapperboard-line', size: 28, color: mq.textTertiary),
+            const SizedBox(height: MqTheme.gapLarge),
+            Text(
+              tr('Pick an ad on the left, or start a new one.'),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: mq.textTertiary,
+                fontSize: MqTheme.fontBody,
+                height: MqTheme.lineBody,
+              ),
+            ),
+            const SizedBox(height: MqTheme.gapLarge),
+            PrimaryButton(text: tr('New UGC ad'), onPressed: onNew),
+          ],
+        ),
+      ),
     );
   }
 }

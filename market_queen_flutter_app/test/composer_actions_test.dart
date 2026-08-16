@@ -120,7 +120,7 @@ void main() {
   });
 
   group('the bar names what it will spend', () {
-    testWidgets('the model and the price sit next to the send button', (
+    testWidgets('the model sits next to the send button on every tab', (
       tester,
     ) async {
       await pumpEditor(tester);
@@ -136,9 +136,30 @@ void main() {
         final model = app.runner.modelLabel(ComposerSpec.of(tab).category);
         expect(model, isNotEmpty, reason: tab.name);
         expect(showsText(model), isTrue, reason: '${tab.name}: model');
-        // A price, in whatever shape: an estimate for the press, or the
-        // model's own rate when the press cannot be priced.
-        expect(showsText(r'$'), isTrue, reason: '${tab.name}: price');
+      }
+    });
+
+    testWidgets('the price appears only once there is something to price', (
+      tester,
+    ) async {
+      // A model's own rate is a property of the model and lives in the model
+      // menu. What the meter says is what *this* press will cost -- so with an
+      // empty prompt, and a send button switched off to match, it says
+      // nothing at all rather than quoting a per-second figure for a
+      // generation that is not going to happen.
+      await pumpEditor(tester);
+
+      for (final tab in [ComposerTab.image, ComposerTab.video]) {
+        await pickTab(tester, tab);
+        await settle(tester);
+        expect(showsText(r'$'), isFalse, reason: '${tab.name}: empty');
+
+        await tester.enterText(
+          find.byType(EditableText).first,
+          'a bottle on a windowsill',
+        );
+        await settle(tester);
+        expect(showsText(r'$'), isTrue, reason: '${tab.name}: prompted');
       }
     });
   });

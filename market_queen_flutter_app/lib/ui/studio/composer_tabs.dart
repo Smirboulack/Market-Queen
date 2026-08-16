@@ -422,11 +422,18 @@ class ComposerSettings extends StatelessWidget {
     required this.app,
     required this.tab,
     required this.onClose,
+    this.order,
   });
 
   final AppState app;
   final ComposerTab tab;
   final VoidCallback onClose;
+
+  /// Exactly what the bar would send, or null when it would send nothing --
+  /// an empty prompt, a shelf with no file dropped on it. The Cost row reads
+  /// it, so the two figures on screen come from one order rather than from
+  /// two reconstructions of it.
+  final GenerationOrder? order;
 
   ComposerSpec get spec => ComposerSpec.of(tab);
 
@@ -709,20 +716,18 @@ class ComposerSettings extends StatelessWidget {
     // words as the ad's own estimate. It used to be on the talking-actor column
     // alone, which left the two tabs where a careless press costs dollars as
     // the two with no figure anywhere on screen.
+    //
+    // With nothing to send it is zero rather than the model's rate. A price
+    // is a property of a generation, and an empty prompt generates nothing --
+    // what the model charges per second is a property of the model, and it is
+    // already written beside its name in the menu directly above.
     if (tab == ComposerTab.image || tab == ComposerTab.video) {
       rows.add((
         label: tr('Cost'),
         child: _OrderEstimate(
-          estimate: app.runner.estimate(
-            GenerationOrder(
-              kind: spec.kind,
-              category: spec.category,
-              prompt: '',
-              aspectRatio: _aspect,
-              seconds: _videoSeconds,
-              count: _count,
-            ),
-          ),
+          estimate: order == null
+              ? CostEstimate.free
+              : app.runner.estimate(order!),
         ),
       ));
     }
@@ -730,15 +735,9 @@ class ComposerSettings extends StatelessWidget {
     return rows;
   }
 
-  /// How many the stepper on the bar is asking for. Read from the same
-  /// preference the bar writes, so the two cannot disagree about what is being
-  /// priced.
-  int get _count {
-    if (!spec.batched) return 1;
-    final saved = app.settings.pref<int>('${spec.category}Count', 0) ?? 0;
-    if (saved < 1) return 1;
-    return saved > spec.maxCount ? spec.maxCount : saved;
-  }
+  // How many the stepper is asking for used to be read back out of the
+  // preference here. It comes down with [order] now, from the bar that wrote
+  // it -- one order, priced once.
 
   String get _aspect {
     if (tab == ComposerTab.actors) return app.project.aspectRatio;
@@ -1034,8 +1033,16 @@ class _OrderEstimate extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
 
+    // Zero is stated plainly rather than approximated: "~$0" is a hedge about
+    // a number there is nothing uncertain about.
+    final text = !estimate.known
+        ? tr('price unknown')
+        : estimate.amount == 0
+        ? Format.money(0)
+        : Format.estimated(estimate.amount);
+
     return Text(
-      estimate.known ? Format.estimated(estimate.amount) : tr('price unknown'),
+      text,
       overflow: TextOverflow.ellipsis,
       style: TextStyle(
         color: estimate.known ? mq.textPrimary : mq.textTertiary,

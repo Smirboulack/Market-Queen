@@ -335,10 +335,24 @@ class _AccountCard extends StatelessWidget {
     final credential = card.credential;
 
     final ids = card.modelIds;
-    final shown =
-        ids.where((id) => app.settings.modelShown(_ownerOf(id), id)).length;
     final hasKey =
         credential != null && app.settings.hasApiKey(credential.id);
+
+    // Nothing on this card can be chosen until the account is set up, so
+    // nothing on it is switchable either. Ticking a model on an account with
+    // no key put an entry in the composer's menu that could only ever fail at
+    // send -- a paid-looking choice that was never available. An account with
+    // no credential at all is a case the catalogue does not have today; it
+    // stays unlocked rather than being locked forever by a null.
+    final unlocked = credential == null || hasKey;
+
+    // Counted against the same rule the chips are drawn by, so a locked card
+    // does not claim five models are on above five that are visibly not. The
+    // stored set is left alone: a key removed and put back finds the same
+    // shortlist it had.
+    final shown = unlocked
+        ? ids.where((id) => app.settings.modelShown(_ownerOf(id), id)).length
+        : 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -351,7 +365,7 @@ class _AccountCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-            child: _header(context, hasKey, shown, ids),
+            child: _header(context, hasKey, unlocked, shown, ids),
           ),
           if (credential != null) ...[
             const SizedBox(height: 12),
@@ -381,6 +395,7 @@ class _AccountCard extends StatelessWidget {
                   _Group(
                     app: app,
                     provider: card.providers[i],
+                    unlocked: unlocked,
                     // The heading only earns its line when the card holds more
                     // than one thing: "Images" over the only row on the card
                     // says nothing the tab has not already said.
@@ -409,6 +424,7 @@ class _AccountCard extends StatelessWidget {
   Widget _header(
     BuildContext context,
     bool hasKey,
+    bool unlocked,
     int shown,
     List<String> ids,
   ) {
@@ -491,7 +507,7 @@ class _AccountCard extends StatelessWidget {
                 //: %1 is how many models are enabled, %2 how many there are
                 tr('%1 of %2').arg(shown).arg(ids.length),
                 style: TextStyle(
-                  color: mq.textTertiary,
+                  color: unlocked ? mq.textTertiary : mq.textDisabled,
                   fontSize: MqTheme.fontSmall,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
@@ -499,16 +515,18 @@ class _AccountCard extends StatelessWidget {
               const SizedBox(width: 10),
               MqLink(
                 text: shown == ids.length ? tr('None') : tr('All'),
-                onPressed: () {
-                  final hide = shown == ids.length;
-                  for (final provider in card.providers) {
-                    app.settings.setProviderModelsHidden(
-                      provider.id,
-                      [for (final model in provider.models) model.id],
-                      hide,
-                    );
-                  }
-                },
+                onPressed: !unlocked
+                    ? null
+                    : () {
+                        final hide = shown == ids.length;
+                        for (final provider in card.providers) {
+                          app.settings.setProviderModelsHidden(
+                            provider.id,
+                            [for (final model in provider.models) model.id],
+                            hide,
+                          );
+                        }
+                      },
               ),
             ],
           ),
@@ -551,13 +569,23 @@ class _Badge extends StatelessWidget {
 
 /// One catalogue entry inside an account card: its note, and its models.
 class _Group extends StatelessWidget {
-  const _Group({required this.app, required this.provider, required this.named});
+  const _Group({
+    required this.app,
+    required this.provider,
+    required this.named,
+    required this.unlocked,
+  });
 
   final AppState app;
   final ProviderEntry provider;
 
   /// Whether to caption the row with what it is for.
   final bool named;
+
+  /// False until the account above has a key. The models are still listed --
+  /// what an account offers is exactly what you are deciding about while you
+  /// go and get one -- but none of them can be ticked.
+  final bool unlocked;
 
   static String categoryLabel(String category) => switch (category) {
         'text' => tr('Writing'),
@@ -605,7 +633,12 @@ class _Group extends StatelessWidget {
           runSpacing: 6,
           children: [
             for (final model in provider.models)
-              _ModelChip(app: app, providerId: provider.id, model: model),
+              _ModelChip(
+                app: app,
+                providerId: provider.id,
+                model: model,
+                unlocked: unlocked,
+              ),
           ],
         ),
       ],
@@ -619,20 +652,31 @@ class _ModelChip extends StatelessWidget {
     required this.app,
     required this.providerId,
     required this.model,
+    this.unlocked = true,
   });
 
   final AppState app;
   final String providerId;
   final ModelEntry model;
 
+  /// Whether the account this model is bought from has a key yet. Without one
+  /// the chip is inert: it still says what the model is and what it costs --
+  /// which is what you are weighing while deciding whether to go and sign up
+  /// -- but it cannot be ticked, because a ticked model with no key behind it
+  /// is an entry in the composer's menu that can only fail at send.
+  final bool unlocked;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final on = app.settings.modelShown(providerId, model.id);
+    final on = unlocked && app.settings.modelShown(providerId, model.id);
     final price = Format.unitPriceLabel(app.pricing.unitPrice(model.id));
 
     return Pressable(
-      onTap: () => app.settings.setModelHidden(providerId, model.id, on),
+      onTap: unlocked
+          ? () => app.settings.setModelHidden(providerId, model.id, on)
+          : null,
+      tooltip: unlocked ? '' : tr('Add this account\'s key to switch it on.'),
       focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
@@ -644,31 +688,48 @@ class _ModelChip extends StatelessWidget {
               ? (states.active ? mq.surfaceActive : mq.surfaceSecondary)
               : (states.active ? mq.surfaceHover : Colors.transparent),
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          border: Border.all(color: on ? mq.borderStrong : mq.border),
+          border: Border.all(
+            color: !unlocked
+                ? mq.borderSubtle
+                : on
+                ? mq.borderStrong
+                : mq.border,
+          ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             // A filled square with a tick, or an empty outline. The state is
-            // the point of the row, so it leads.
-            Container(
+            // the point of the row, so it leads. Locked, it is a padlock
+            // instead: an empty box invites a click that does nothing.
+            SizedBox(
               width: 15,
               height: 15,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: on ? mq.primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(color: on ? mq.primary : mq.borderStrong),
-              ),
-              child: on
-                  ? MqIcon('check-line', size: 11, color: mq.onPrimary)
-                  : null,
+              child: unlocked
+                  ? Container(
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: on ? mq.primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: on ? mq.primary : mq.borderStrong,
+                        ),
+                      ),
+                      child: on
+                          ? MqIcon('check-line', size: 11, color: mq.onPrimary)
+                          : null,
+                    )
+                  : MqIcon('lock-line', size: 13, color: mq.textDisabled),
             ),
             const SizedBox(width: 8),
             Text(
               model.label,
               style: TextStyle(
-                color: on ? mq.textPrimary : mq.textTertiary,
+                color: !unlocked
+                    ? mq.textDisabled
+                    : on
+                    ? mq.textPrimary
+                    : mq.textTertiary,
                 fontSize: MqTheme.fontLabel,
                 fontWeight: on ? FontWeight.w500 : FontWeight.w400,
               ),

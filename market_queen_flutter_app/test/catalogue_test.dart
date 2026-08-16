@@ -228,8 +228,6 @@ void main() {
       const knownUnpriced = {
         // Preview, and off the published table.
         'gemini-3-pro-image',
-        // BytePlus prices the Lite and the Pro, and not the plain one.
-        'seedream-5-0-260128',
       };
 
       final unexpected = [
@@ -246,6 +244,91 @@ void main() {
           if (pricing.unitPrice(id) != null) id,
       ];
       expect(stale, isEmpty, reason: 'now priced -- drop from knownUnpriced');
+    });
+
+    test('BytePlus prices follow the published table', () async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+
+      final pricing = Pricing(registry);
+      await pricing.load();
+
+      // Every figure below is a worked example off the ModelArk pricing page,
+      // divided out to the unit this app bills in. They are checked here
+      // because they are the numbers a user reconciles against a real invoice:
+      // a resolution silently priced at the wrong tier is a fourfold error
+      // that nothing else in the app would notice.
+      double? perSecond(String model, String resolution, {bool audio = false}) =>
+          pricing
+              .unitPrice(model, resolution: resolution, audio: audio)
+              ?.amount;
+
+      // Seedance 2.5: 1.156 per 5s clip at 720p, 2.843 at 1080p.
+      expect(
+        perSecond('dreamina-seedance-2-5-260628', '720p'),
+        closeTo(0.2311, 0.0005),
+      );
+      expect(
+        perSecond('dreamina-seedance-2-5-260628', '1080p'),
+        closeTo(0.5686, 0.0005),
+      );
+      // Seedance 2.0: 0.35 / 0.76 / 1.87 / 3.89 per 5s clip, 480p to 4K. The
+      // steps are not multiples of one another -- 1080p and 4K are billed at
+      // different rates per token -- which is the whole reason the resolution
+      // has to reach the price at all.
+      expect(
+        perSecond('dreamina-seedance-2-0-260128', '480p'),
+        closeTo(0.0673, 0.0005),
+      );
+      expect(
+        perSecond('dreamina-seedance-2-0-260128', '4k'),
+        closeTo(0.7776, 0.0005),
+      );
+      // A soundtrack doubles Seedance 1.5 Pro: 0.13 silent against 0.26 with,
+      // per 5s clip at 720p.
+      expect(
+        perSecond('seedance-1-5-pro-251215', '720p'),
+        closeTo(0.0259, 0.0005),
+      );
+      expect(
+        perSecond('seedance-1-5-pro-251215', '720p', audio: true),
+        closeTo(0.0518, 0.0005),
+      );
+      // A resolution the model does not list falls back to its headline rate
+      // rather than to nothing.
+      expect(
+        perSecond('dreamina-seedance-2-0-mini-260615', '1080p'),
+        closeTo(0.0756, 0.0005),
+      );
+
+      // Seedream 5.0 Pro steps at 2.61 megapixels: a 2K frame is under it, a
+      // 4K frame is over. Everything else is flat whatever the size.
+      double? perImage(String model, double megapixels) =>
+          pricing.unitPrice(model, megapixels: megapixels)?.amount;
+
+      expect(perImage('dola-seedream-5-0-pro-260628', 2.36), 0.045);
+      expect(perImage('dola-seedream-5-0-pro-260628', 8.85), 0.09);
+      expect(perImage('seedream-4-5-251128', 8.85), 0.04);
+
+      // And the receipt side: the first reference image is free, the rest are
+      // three tenths of a cent each.
+      final charged = pricing.charged(
+        modelId: 'dola-seedream-5-0-pro-260628',
+        megapixels: 2.36,
+        extraInputImages: 2,
+      );
+      expect(charged.known, isTrue);
+      expect(charged.amount, closeTo(0.045 + 0.006, 1e-9));
+
+      // A token count the provider reported prices the clip outright, and is
+      // reported as exact rather than as an estimate.
+      final billed = pricing.charged(
+        modelId: 'dreamina-seedance-2-5-260628',
+        tokens: 108000,
+        seconds: 5,
+        resolution: '720p',
+      );
+      expect(billed.exact, isTrue);
+      expect(billed.amount, closeTo(1.156, 0.001));
     });
   });
 }

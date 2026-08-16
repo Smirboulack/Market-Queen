@@ -242,5 +242,14 @@
   "No shot was rendered, so there is nothing to cut together.": "Ни один план не создан, монтировать нечего.",
   "The clips are %1s short of the voice-over; the last shot holds.": "Клипам не хватает %1 с до озвучки; последний план застывает.",
   "Cutting %1 shot(s) into %2x%3.": "Монтаж %1 план(ов) в %2x%3.",
-  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - один ключ на всех."
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - один ключ на всех.",
+  "Create UGC": "Создать UGC",
+  "Storyboard": "Раскадровка",
+  "Back to the menu": "Назад в меню",
+  "Nothing here yet. Make your first ad.": "Пока пусто. Создайте первый ролик.",
+  "One ad. Write it, cast it, shoot it.": "Один ролик. Напишите, подберите актёров, снимите.",
+  "Pick an ad on the left, or start a new one.": "Выберите ролик слева или создайте новый.",
+  "Plan an ad shot by shot before you shoot it. Being built.": "Спланируйте ролик кадр за кадром до съёмки. В разработке.",
+  "Add this account's key to switch it on.": "Добавьте ключ этого аккаунта, чтобы включить модель.",
+  "%1 · max %2": "%1 · макс. %2"
 }

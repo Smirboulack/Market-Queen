@@ -242,5 +242,14 @@
   "No shot was rendered, so there is nothing to cut together.": "没有生成任何镜头，无法剪辑。",
   "The clips are %1s short of the voice-over; the last shot holds.": "片段比配音短 %1 秒，最后一个镜头将定格。",
   "Cutting %1 shot(s) into %2x%3.": "正在将 %1 个镜头剪辑为 %2x%3。",
-  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling、Veo、Seedance、Hailuo、Wan、Runway、Luma —— 一个密钥全搞定。"
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "Kling、Veo、Seedance、Hailuo、Wan、Runway、Luma —— 一个密钥全搞定。",
+  "Create UGC": "创作 UGC",
+  "Storyboard": "分镜",
+  "Back to the menu": "返回菜单",
+  "Nothing here yet. Make your first ad.": "还没有内容。创建你的第一个广告。",
+  "One ad. Write it, cast it, shoot it.": "一个广告。撰写、选角、拍摄。",
+  "Pick an ad on the left, or start a new one.": "在左侧选择一个广告，或新建一个。",
+  "Plan an ad shot by shot before you shoot it. Being built.": "在拍摄前逐个镜头规划广告。开发中。",
+  "Add this account's key to switch it on.": "添加此账户的密钥即可启用。",
+  "%1 · max %2": "%1 · 最长 %2"
 }

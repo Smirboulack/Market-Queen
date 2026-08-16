@@ -22,12 +22,13 @@ class NavEntry {
   /// Index into the window's page stack.
   final int page;
 
-  /// Unfolded beneath the row while this is the page you are on.
+  /// Shown *instead of* the whole nav once this row is opened.
   ///
-  /// Only the studio uses it, and only because the studio is the one page with
-  /// somewhere to go: projects, then ads, then the ad. Walking back up that
-  /// with the crumb trail alone means two clicks and a page load to look at the
-  /// ad next door.
+  /// Only "Create UGC" has one, and it is what makes that row a place rather
+  /// than a page: pressing it replaces the column with a back arrow and the
+  /// list of ads, the way a mobile nav pushes a screen. The other sections are
+  /// gone while you are in there on purpose -- the list is long and it is the
+  /// only thing you are choosing between -- and the arrow brings them back.
   final Widget? expansion;
 }
 
@@ -45,12 +46,21 @@ class SideNav extends StatelessWidget {
     required this.entries,
     required this.currentPage,
     required this.onPicked,
+    this.openSection,
+    this.onCloseSection,
   });
 
   final AppState app;
   final List<NavEntry> entries;
   final int currentPage;
   final ValueChanged<int> onPicked;
+
+  /// The section that has been stepped into, if any. While one is open the
+  /// column shows its back arrow and its own contents and nothing else.
+  final NavEntry? openSection;
+
+  /// The back arrow. Puts the ordinary rows back.
+  final VoidCallback? onCloseSection;
 
   @override
   Widget build(BuildContext context) {
@@ -118,18 +128,24 @@ class SideNav extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 26),
-                for (final entry in entries) ...[
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: _NavRow(
-                      entry: entry,
-                      selected: entry.page == currentPage,
-                      onTap: () => onPicked(entry.page),
-                    ),
+                if (openSection != null) ...[
+                  _BackRow(
+                    label: openSection!.label,
+                    onTap: onCloseSection,
                   ),
-                  if (entry.expansion != null && entry.page == currentPage)
-                    Flexible(child: entry.expansion!),
-                ],
+                  const SizedBox(height: 6),
+                  if (openSection!.expansion != null)
+                    Expanded(child: openSection!.expansion!),
+                ] else
+                  for (final entry in entries)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: _NavRow(
+                        entry: entry,
+                        selected: entry.page == currentPage,
+                        onTap: () => onPicked(entry.page),
+                      ),
+                    ),
               ],
             ),
           ),
@@ -172,6 +188,64 @@ class SideNav extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "< Create UGC" -- the head of a section you have stepped into, and the way
+/// back out of it.
+///
+/// Drawn as a heading rather than as another nav row: it is where you are, not
+/// somewhere to go, and the only thing you can do to it is leave.
+class _BackRow extends StatelessWidget {
+  const _BackRow({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      onTap: onTap,
+      tooltip: tr('Back to the menu'),
+      focusRadius: MqTheme.radius,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        height: 40,
+        padding: const EdgeInsets.only(left: 6, right: 12),
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+        ),
+        child: Row(
+          children: [
+            MqIcon(
+              'arrow-left-line',
+              size: 18,
+              color: states.active ? mq.textPrimary : mq.textSecondary,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textPrimary,
+                  fontSize: MqTheme.fontBody,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: MqTheme.trackTitle,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

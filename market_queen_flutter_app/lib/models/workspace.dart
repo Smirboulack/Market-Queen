@@ -179,6 +179,50 @@ class Workspace extends ChangeNotifier {
   String suggestedAdName(String projectId) =>
       tr('Ad %1').arg((project(projectId)?.ads.length ?? 0) + 1);
 
+  // ---- One flat list of ads ----------------------------------------------
+  //
+  // Projects are no longer a thing the interface has: you make an ad, and the
+  // ads you have made are a list, the way a chat app lists conversations. The
+  // storage underneath still nests them in a project, because that is what is
+  // in everybody's workspace.json and rewriting the file to flatten it would
+  // be a migration with nothing to show for it. So there is one project, it is
+  // made on demand, and nothing above this line has to know it exists.
+
+  static const _homeName = 'UGC';
+
+  /// The project every new ad goes into, made the first time one is needed.
+  StudioProject get home {
+    if (_projects.isNotEmpty) return _projects.first;
+    return createProject(_homeName);
+  }
+
+  /// Every ad there is, newest first, each with the project it is filed under.
+  ///
+  /// Flattened across projects rather than read out of [home] alone: a
+  /// workspace made before this change has several, and every ad in it has to
+  /// stay reachable.
+  List<({String projectId, AdEntry ad})> get allAds {
+    final all = [
+      for (final owner in _projects)
+        for (final entry in owner.ads) (projectId: owner.id, ad: entry),
+    ]..sort((a, b) => b.ad.updatedAt.compareTo(a.ad.updatedAt));
+    return all;
+  }
+
+  int get adCount {
+    var total = 0;
+    for (final owner in _projects) {
+      total += owner.ads.length;
+    }
+    return total;
+  }
+
+  /// The name a new ad starts from, counted over all of them.
+  String suggestedName() => tr('Ad %1').arg(adCount + 1);
+
+  /// Makes an ad without being told where to put it.
+  AdEntry createAdHere(String name) => createAd(home.id, name);
+
   // ---- Structure ---------------------------------------------------------
 
   StudioProject createProject(String name) {

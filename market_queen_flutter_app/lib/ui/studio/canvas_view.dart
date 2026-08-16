@@ -11,6 +11,7 @@ import '../../core/platform_util.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart' show isAudioPath, isVideoPath;
 import '../../models/canvas_feed.dart';
+import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
@@ -634,13 +635,18 @@ class _ResultTileState extends State<_ResultTile> {
   Widget _body(BuildContext context) {
     final item = widget.item;
 
-    if (widget.batch.kind == CanvasKind.audio) return _AudioTile(item: item);
+    if (widget.batch.kind == CanvasKind.audio) {
+      return _AudioTile(batch: widget.batch, item: item);
+    }
 
     return switch (item.status) {
       CanvasStatus.pending => SkeletonTile(
         aspectRatio: _ratio,
         glyph: _glyph,
         label: _pendingLabel,
+        mark: widget.batch.credential,
+        since: widget.batch.createdAt,
+        maxSeconds: widget.batch.timeoutSeconds,
       ),
       CanvasStatus.failed => AspectRatio(
         aspectRatio: _ratio,
@@ -719,6 +725,20 @@ class _ResultTileState extends State<_ResultTile> {
                             ? widget.onOpenRender
                             : null,
                       ),
+                    ),
+                  ),
+                ),
+                // What it cost and what it is, along the bottom edge and only
+                // under the pointer -- see [_Caption].
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: _hovered ? 1 : 0,
+                      duration: MqTheme.hoverDuration,
+                      child: _Caption(batch: widget.batch, item: item),
                     ),
                   ),
                 ),
@@ -865,6 +885,99 @@ class _VideoPoster extends StatelessWidget {
   }
 }
 
+/// What one result actually was, along the bottom of it, on hover.
+///
+/// Everything here is a fact about the file rather than about the request: the
+/// frame that came back, the length of the clip that exists, and what the
+/// account was charged for it. On a bring-your-own-key app that last one is
+/// the number that matters and it was nowhere on the page -- the estimate over
+/// the send button says what a press *will* cost and then vanishes, so a feed
+/// of thirty results was thirty unpriced objects and a bill at the end of the
+/// month with nothing to reconcile it against.
+///
+/// Only on hover, and that is the whole design. A caption under every tile
+/// turns a wall of pictures into a page to read; the pointer is already on the
+/// one you are asking about.
+///
+/// A tilde means the figure is derived from the catalogue rather than from
+/// something the provider reported. Without one it is what the provider itself
+/// said it billed -- Seedance hands back the token count it charged -- and
+/// those two claims are not the same, so they are not drawn the same.
+class _Caption extends StatelessWidget {
+  const _Caption({required this.batch, required this.item});
+
+  final CanvasBatch batch;
+  final CanvasItem item;
+
+  /// The facts worth the strip, longest-lived first: what made it, then what
+  /// it is, then what it cost. Anything unknown is simply absent -- an empty
+  /// field is noise, and a zero where a price should be is a lie.
+  List<String> get _parts => [
+    if (batch.modelLabel.isNotEmpty) batch.modelLabel,
+    if (item.seconds > 0) Format.seconds(item.seconds),
+    if (item.width > 0 && item.height > 0) '${item.width}×${item.height}',
+    // The settings that were on, and only when the model offered them: "2K"
+    // under a model with one frame size says nothing.
+    if (batch.resolution.isNotEmpty) batch.resolution,
+    if (batch.size.isNotEmpty && item.width == 0) batch.size,
+    if (batch.quality.isNotEmpty) batch.quality,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final parts = _parts;
+    final cost = item.cost;
+    if (parts.isEmpty && cost == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(9, 12, 9, 7),
+      decoration: const BoxDecoration(
+        // A wash rather than a bar: the bottom of a generated frame is often
+        // the part being looked at, and a solid strip over it is worse than no
+        // caption at all. Black in both themes, because what it has to stay
+        // legible against is the picture, not the page.
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0x00000000), Color(0xD1000000)],
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              parts.join('  ·  '),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                // Fixed white rather than a theme ink: this sits on top of a
+                // picture, not on a surface, and the scrim underneath is the
+                // same in both themes.
+                color: Colors.white,
+                fontSize: MqTheme.fontMicro,
+                height: 1.2,
+              ),
+            ),
+          ),
+          if (cost != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              item.costExact ? Format.money(cost) : Format.estimated(cost),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: MqTheme.fontMicro,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _Stamp extends StatelessWidget {
   const _Stamp({required this.text});
 
@@ -896,14 +1009,21 @@ class _Stamp extends StatelessWidget {
 /// A voice-over: nothing to look at, so it is a row rather than a tile, and it
 /// plays in the row.
 class _AudioTile extends StatelessWidget {
-  const _AudioTile({required this.item});
+  const _AudioTile({required this.batch, required this.item});
 
+  final CanvasBatch batch;
   final CanvasItem item;
 
   @override
   Widget build(BuildContext context) {
     if (item.status == CanvasStatus.pending) {
-      return SkeletonBar(glyph: 'volume-up-line', label: tr('Recording...'));
+      return SkeletonBar(
+        glyph: 'volume-up-line',
+        label: tr('Recording...'),
+        mark: batch.credential,
+        since: batch.createdAt,
+        maxSeconds: batch.timeoutSeconds,
+      );
     }
     if (item.status == CanvasStatus.failed) {
       return _Failure(message: item.error);

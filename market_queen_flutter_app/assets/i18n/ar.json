@@ -242,5 +242,14 @@
   "No shot was rendered, so there is nothing to cut together.": "لم تُنتج أي لقطة، فلا شيء لتركيبه.",
   "The clips are %1s short of the voice-over; the last shot holds.": "المقاطع أقصر من التعليق الصوتي بـ %1 ث؛ تثبت اللقطة الأخيرة.",
   "Cutting %1 shot(s) into %2x%3.": "تركيب %1 لقطة بمقاس %2x%3.",
-  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "‏Kling وVeo وSeedance وHailuo وWan وRunway وLuma - مفتاح واحد للجميع."
+  "Kling, Veo, Seedance, Hailuo, Wan, Runway, Luma - one key for all.": "‏Kling وVeo وSeedance وHailuo وWan وRunway وLuma - مفتاح واحد للجميع.",
+  "Create UGC": "إنشاء UGC",
+  "Storyboard": "القصة المصورة",
+  "Back to the menu": "العودة إلى القائمة",
+  "Nothing here yet. Make your first ad.": "لا شيء هنا بعد. أنشئ إعلانك الأول.",
+  "One ad. Write it, cast it, shoot it.": "إعلان واحد. اكتبه، اختر ممثليه، صوّره.",
+  "Pick an ad on the left, or start a new one.": "اختر إعلانًا من اليسار، أو ابدأ إعلانًا جديدًا.",
+  "Plan an ad shot by shot before you shoot it. Being built.": "خطّط للإعلان لقطة بلقطة قبل تصويره. قيد الإنشاء.",
+  "Add this account's key to switch it on.": "أضف مفتاح هذا الحساب لتفعيله.",
+  "%1 · max %2": "%1 · بحد أقصى %2"
 }

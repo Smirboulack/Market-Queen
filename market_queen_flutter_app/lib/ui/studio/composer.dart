@@ -484,20 +484,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   Future<void> _sendPrompted() async {
-    final order = GenerationOrder(
-      kind: _spec.kind,
-      category: _spec.category,
-      prompt: _prompt.text.trim(),
-      references: List.of(_refs),
-      aspectRatio: _aspect,
-      seconds: _seconds,
-      count: _count,
-      voiceSource: _tab == ComposerTab.audio ? app.request() : const {},
-      resolution: app.settings.prefString('videoResolution'),
-      audio: app.settings.pref<bool>('videoAudio', true) ?? true,
-      size: _imageSize,
-      quality: _imageQuality,
-    );
+    final order = _order(withSources: true);
 
     // Only video asks twice. It is the only kind where one careless press is
     // worth dollars rather than cents.
@@ -1118,7 +1105,15 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             size: 32,
             onPressed: () => _show(_Panel.settings),
           ),
-          () => ComposerSettings(app: app, tab: _tab, onClose: _closePanel),
+          () => ComposerSettings(
+            app: app,
+            tab: _tab,
+            // The panel prices the same order the meter beside it does, and
+            // shows nothing when the bar has nothing to send -- see
+            // [_meterPrice] for why a model's own rate does not belong here.
+            order: readiness.ready ? pricedOrder : null,
+            onClose: _closePanel,
+          ),
         ),
         const SizedBox(width: 8),
         Container(width: 1, height: 24, color: mq.divider),
@@ -1146,14 +1141,51 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// about to be billed.
   String get _meterModel => app.runner.modelLabel(_spec.category, _seconds);
 
-  /// What one press costs, as text, or empty when nothing honest can be said.
+  /// The order the meter and the settings column both price: exactly what the
+  /// bar would send if it were pressed now.
   ///
-  /// Three shapes, because the three questions differ. A talking actor buys a
-  /// whole run -- a script pass, a reading, a frame and a clip per shot -- and
-  /// that is the ad's own estimate. A picture or a clip buys exactly what the
-  /// bar is set to. Subtitles buy a minute of transcription of a file that does
-  /// not exist yet, so the rate is the only true thing to show.
+  /// Built in one place so the two figures cannot disagree, and carrying the
+  /// shot settings -- the resolution and the soundtrack switch -- because on
+  /// the models that bill by output token those are what move the number. A
+  /// Seedance second at 1080p is four times one at 480p, and quoting the one
+  /// while the column is set to the other is worse than quoting nothing.
+  GenerationOrder get pricedOrder => _order();
+
+  /// [withSources] is the only difference between the order that gets priced
+  /// and the order that gets sent: the references and the voice come along
+  /// only for the real thing. Everything that affects the bill is on both.
+  GenerationOrder _order({bool withSources = false}) => GenerationOrder(
+    kind: _spec.kind,
+    category: _spec.category,
+    prompt: _spec.prompted ? _prompt.text.trim() : '',
+    references: withSources ? List.of(_refs) : const [],
+    aspectRatio: _aspect,
+    seconds: _seconds,
+    count: _count,
+    voiceSource: withSources && _tab == ComposerTab.audio
+        ? app.request()
+        : const {},
+    resolution: app.settings.prefString('videoResolution'),
+    audio: app.settings.pref<bool>('videoAudio', true) ?? true,
+    size: _imageSize,
+    quality: _imageQuality,
+  );
+
+  /// What one press costs, as text, or empty when there is nothing to price.
+  ///
+  /// Nothing to price is the common case and it used to be the confusing one:
+  /// with an empty prompt the bar quoted the model's own rate -- "$0.15/s" --
+  /// beside a send button that was switched off. That is not what this press
+  /// costs, because this press is not going to happen; it is a property of the
+  /// model, and the model menu is where a model's rate belongs. So the meter
+  /// now says a price only when there is a generation to attach it to, which
+  /// is precisely when the send button is live.
   String get _meterPrice {
+    if (!_readiness.ready) return '';
+
+    // A talking actor buys a whole run -- a script pass, a reading, a frame
+    // and a clip per shot -- so it is the ad's own estimate rather than the
+    // single-order one.
     if (_tab == ComposerTab.actors) {
       final breakdown = app.pricing.estimate(app.request());
       return breakdown.lines.length > breakdown.unknownCount
@@ -1161,23 +1193,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           : '';
     }
 
-    final estimate = app.runner.estimate(
-      GenerationOrder(
-        kind: _spec.kind,
-        category: _spec.category,
-        prompt: _spec.prompted ? _prompt.text : '',
-        aspectRatio: _aspect,
-        seconds: _seconds,
-        count: _count,
-      ),
-    );
-    if (estimate.known) return Format.estimated(estimate.amount);
-
-    // Nothing to multiply, but the rate itself is published: "$0.006/min" says
-    // more than a blank.
-    return Format.unitPriceLabel(
-      app.pricing.unitPrice(app.runner.modelFor(_spec.category, _seconds)),
-    );
+    final estimate = app.runner.estimate(pricedOrder);
+    return estimate.known ? Format.estimated(estimate.amount) : '';
   }
 
   /// The buttons on the left of the footer. They are the tab's own: casting an

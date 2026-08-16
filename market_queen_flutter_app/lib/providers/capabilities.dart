@@ -132,10 +132,6 @@ class ImageCapabilities {
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
     ),
-    'seedream-5-0-260128': ImageCapabilities(
-      sizes: ['1K', '2K', '4K'],
-      defaultSize: '2K',
-    ),
     'seedream-5-0-lite-260128': ImageCapabilities(
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
