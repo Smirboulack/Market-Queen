@@ -516,13 +516,20 @@ class ComposerSettings extends StatelessWidget {
   List<({String label, Widget child})> _rows(BuildContext context) {
     final project = app.project;
 
+    // A model with a closed list of frames answers the shape question inside
+    // the Size row -- "1536 x 1024 · landscape" is a ratio -- so a Format menu
+    // beside it would be a second control for one decision, and the one that
+    // loses. It is dropped rather than left there doing nothing.
+    final framed = tab == ComposerTab.image &&
+        ImageCapabilities.of(app.runner.modelFor(spec.category)).explicitSizes;
+
     final rows = <({String label, Widget child})>[
       if (spec.category.isNotEmpty)
         (
           label: tr('Model'),
           child: _ModelPicker(app: app, category: spec.category),
         ),
-      if (spec.picksAspect)
+      if (spec.picksAspect && !framed)
         (
           label: tr('Format'),
           child: _Pick(
@@ -558,7 +565,8 @@ class ComposerSettings extends StatelessWidget {
               app.settings.prefString('${spec.category}Size'),
             ),
             options: [
-              for (final size in picture.sizes) MenuOption(size, size),
+              for (final size in picture.sizes)
+                MenuOption(_sizeLabel(size), size),
             ],
             onPicked: (value) =>
                 app.settings.setPref('${spec.category}Size', value),
@@ -729,15 +737,41 @@ class ComposerSettings extends StatelessWidget {
   void _setSeconds(String value) =>
       app.settings.setPref('videoSeconds', int.tryParse(value) ?? 5);
 
-  /// The provider's own quality value, said in words. They are the same three
-  /// steps everywhere they exist, and they are three prices as much as three
-  /// looks -- a fifth of a cent against twenty on the same model.
+  /// The provider's own quality value, said in words. They are the same steps
+  /// everywhere they exist, and they are prices as much as looks -- a third of
+  /// a cent against twenty on the same model and the same frame.
   static String _qualityLabel(String value) => switch (value) {
+    'auto' => tr('Auto'),
     'low' => tr('Draft'),
     'medium' => tr('Standard'),
     'high' => tr('Best'),
     _ => value,
   };
+
+  /// A frame, as something readable.
+  ///
+  /// The shorthand sizes are already readable and pass through. The literal
+  /// ones -- OpenAI's -- become "1536 x 1024" with the shape named after them,
+  /// because "1024x1536" and "1536x1024" differ by two characters in the
+  /// middle and choosing the wrong one is a portrait ad shot in landscape.
+  static String _sizeLabel(String value) {
+    if (value == 'auto') return tr('Auto');
+
+    final parts = value.split('x');
+    if (parts.length != 2) return value;
+
+    final width = int.tryParse(parts[0]) ?? 0;
+    final height = int.tryParse(parts[1]) ?? 0;
+    if (width <= 0 || height <= 0) return value;
+
+    final shape = width == height
+        ? tr('square')
+        : width > height
+        ? tr('landscape')
+        : tr('portrait');
+    //: %1 and %2 are pixel counts, %3 is "square", "landscape" or "portrait"
+    return tr('%1 x %2  ·  %3').arg(width).arg(height).arg(shape);
+  }
 
   /// The saved resolution when this model still offers it, otherwise whatever
   /// the model itself defaults to. Switching from a model with 4k to one

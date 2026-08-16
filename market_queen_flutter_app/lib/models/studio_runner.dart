@@ -103,6 +103,8 @@ class _Billing {
     this.resolution = '',
     this.audio = false,
     this.extraInputImages = 0,
+    this.size = '',
+    this.quality = '',
     this.fixed,
   });
 
@@ -111,6 +113,11 @@ class _Billing {
   final String resolution;
   final bool audio;
   final int extraInputImages;
+
+  /// Pictures only: the frame and the effort that were asked for, for the
+  /// models whose price is a table of the two.
+  final String size;
+  final String quality;
 
   /// Already worked out, for the kinds where the finished file says nothing
   /// the request did not already: a reading is billed for the characters that
@@ -180,21 +187,30 @@ class StudioRunner extends ChangeNotifier {
   CostEstimate estimate(GenerationOrder order) {
     final model = modelFor(order.category, order.seconds);
 
+    final capabilities = ImageCapabilities.of(model);
+    final picture = order.category == 'image' || order.category == 'upscale';
+
     // The frame the picture models that price by size will actually be asked
     // for. Worked out here rather than assumed, because the step between one
     // tier and the next falls between two entries of the same Size menu.
-    final frame = ImageCapabilities.of(model).pixelsFor(
-      order.size,
-      order.aspectRatio.isEmpty ? '9:16' : order.aspectRatio,
-    );
+    //
+    // A model with an explicit list -- OpenAI -- is not derived from a ratio
+    // at all: the menu holds the API's own values and they are handed straight
+    // to the price table.
+    final frame = capabilities.explicitSizes
+        ? (width: 0, height: 0)
+        : capabilities.pixelsFor(
+            order.size,
+            order.aspectRatio.isEmpty ? '9:16' : order.aspectRatio,
+          );
 
     final unit = _pricing.unitPrice(
       model,
       resolution: order.resolution,
       audio: order.audio,
-      megapixels: order.category == 'image' || order.category == 'upscale'
-          ? frame.width * frame.height / 1e6
-          : 0,
+      megapixels: picture ? frame.width * frame.height / 1e6 : 0,
+      size: picture ? capabilities.sizeOr(order.size) : '',
+      quality: picture ? capabilities.qualityOr(order.quality) : '',
     );
     if (unit == null) return CostEstimate.unknown;
 
@@ -261,7 +277,11 @@ class StudioRunner extends ChangeNotifier {
       modelLabel: _registry.modelLabel(providerId, model),
       modelId: model,
       credential: _registry.credentialFor(providerId),
-      aspectRatio: order.aspectRatio,
+      // The shape the tile is drawn at. Normally the ratio that was asked for
+      // -- but a model with a closed list of frames has no ratio menu, so it
+      // comes off the frame itself and a 1536x1024 still lands in a landscape
+      // tile rather than a vertical one with a picture letterboxed inside it.
+      aspectRatio: _ratioOfFrame(order.size) ?? order.aspectRatio,
       size: order.size,
       quality: order.quality,
       resolution: order.category == 'video' ? order.resolution : '',
@@ -433,6 +453,8 @@ class StudioRunner extends ChangeNotifier {
             // The first reference is free on every model that charges for
             // them at all; the rest are a line on the bill.
             extraInputImages: math.max(0, counted.images - 1),
+            size: order.size,
+            quality: order.quality,
           ),
         ),
       );
@@ -679,6 +701,8 @@ class StudioRunner extends ChangeNotifier {
                   resolution: billing.resolution,
                   audio: billing.audio,
                   extraInputImages: billing.extraInputImages,
+                  size: billing.size,
+                  quality: billing.quality,
                 );
 
       _settle(
@@ -771,6 +795,18 @@ class StudioRunner extends ChangeNotifier {
       // paid for.
     }
     return (width: 0, height: 0);
+  }
+
+  /// "1536x1024" -> "1536:1024", which is what the feed draws its tiles from.
+  /// Null for a shorthand token or for "auto", where the ratio the order
+  /// already carries is the best answer available.
+  static String? _ratioOfFrame(String size) {
+    final parts = size.split('x');
+    if (parts.length != 2) return null;
+    final width = int.tryParse(parts[0]) ?? 0;
+    final height = int.tryParse(parts[1]) ?? 0;
+    if (width <= 0 || height <= 0) return null;
+    return '$width:$height';
   }
 
   /// How long the app will wait on one request of this kind before giving up.

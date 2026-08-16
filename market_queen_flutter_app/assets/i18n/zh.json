@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "该服务商无法识别此密钥。",
   "Key refused: %1": "密钥被拒绝：%1",
   "Could not reach the provider to check it. The key is saved.": "无法连接服务商进行验证。密钥已保存。",
-  "Saved. This provider offers no way to check a key without spending anything.": "已保存。该服务商没有提供免费验证密钥的方式。"
+  "Saved. This provider offers no way to check a key without spending anything.": "已保存。该服务商没有提供免费验证密钥的方式。",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "方形",
+  "landscape": "横向",
+  "portrait": "纵向",
+  "Auto": "自动"
 }

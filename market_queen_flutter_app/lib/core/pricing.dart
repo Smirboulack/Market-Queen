@@ -138,6 +138,9 @@ class _Price {
     this.audioMultiplier = 0,
     this.perMillionTokens = 0,
     this.extraInputImage = 0,
+    this.byFrame = const {},
+    this.frameFallback = const {},
+    this.qualityAlias = const {},
   });
 
   final String unit; // tokens | image | second | video | kchars | minute
@@ -163,6 +166,64 @@ class _Price {
 
   /// Charged per reference image past the first.
   final double extraInputImage;
+
+  /// Image models that publish a price per (quality, frame) pair, keyed
+  /// "high/1024x1536". Exact where it has an entry.
+  final Map<String, double> byFrame;
+
+  /// The price at the model's base frame, per quality, for the frames
+  /// [byFrame] does not list. Scaled by area -- see [amountForFrame].
+  final Map<String, double> frameFallback;
+
+  /// A quality step that stands in for another when pricing.
+  ///
+  /// One entry today: OpenAI's "auto" lets the model choose the effort, and
+  /// medium is both what it usually lands on and the middle of the three. It
+  /// matters that this is a *lookup* alias rather than a number of its own,
+  /// because it lets auto reach the published pair for a frame -- auto at
+  /// 1536x1024 is quoted at medium's 0.041 rather than scaled up from the
+  /// square to 0.079, which was wrong by double.
+  final Map<String, String> qualityAlias;
+
+  /// The frame [frameFallback] is quoted at. Every OpenAI quality step lists
+  /// its 1024x1024 price, and the larger frames are token-billed in proportion
+  /// to their area, so that square is the unit the scaling starts from.
+  static const double _fallbackPixels = 1024 * 1024;
+
+  /// What one image costs at this quality and this frame.
+  ///
+  /// Three answers in order of how much they are worth trusting: the published
+  /// pair; the published price at the base frame scaled by how much bigger
+  /// this frame is; or the model's flat [amount]. Only the first is exact --
+  /// [exactFrame] says which happened, so the interface can put a tilde on the
+  /// other two rather than presenting a projection as a quote.
+  double amountForFrame(String quality, String size) {
+    final step = quality.isEmpty ? 'auto' : quality;
+    final priced = qualityAlias[step] ?? step;
+
+    final published = byFrame['$step/$size'] ?? byFrame['$priced/$size'];
+    if (published != null) return published;
+
+    final base = frameFallback[step] ?? frameFallback[priced];
+    if (base == null) return amount;
+
+    final pixels = _pixelsOf(size);
+    if (pixels <= 0) return base;
+    return base * pixels / _fallbackPixels;
+  }
+
+  bool exactFrame(String quality, String size) =>
+      byFrame.containsKey('${quality.isEmpty ? 'auto' : quality}/$size');
+
+  /// "2048x1152" -> 2359296. Zero for "auto" and anything unparseable, which
+  /// is the signal to stop scaling and quote the base frame.
+  static double _pixelsOf(String size) {
+    final parts = size.toLowerCase().split('x');
+    if (parts.length != 2) return 0;
+    final width = double.tryParse(parts[0]) ?? 0;
+    final height = double.tryParse(parts[1]) ?? 0;
+    return width <= 0 || height <= 0 ? 0 : width * height;
+  }
 
   bool get known => unit.isNotEmpty;
 
@@ -290,6 +351,9 @@ class Pricing {
         audioMultiplier: _toDouble(value['audioMultiplier']),
         perMillionTokens: _toDouble(value['perMillionTokens']),
         extraInputImage: _toDouble(value['extraInputImage']),
+        byFrame: _ratesFrom(value['byFrame']),
+        frameFallback: _ratesFrom(value['frameFallback']),
+        qualityAlias: _aliasFrom(value['qualityAlias']),
       );
       if (price.known) _prices['$key'] = price;
     });
@@ -317,6 +381,14 @@ class Pricing {
     return {
       for (final entry in value.entries)
         '${entry.key}'.toLowerCase(): _toDouble(entry.value),
+    };
+  }
+
+  static Map<String, String> _aliasFrom(Object? value) {
+    if (value is! Map) return const {};
+    return {
+      for (final entry in value.entries)
+        '${entry.key}'.toLowerCase(): '${entry.value}'.toLowerCase(),
     };
   }
 
@@ -360,17 +432,32 @@ class Pricing {
     String resolution = '',
     bool audio = false,
     double megapixels = 0,
+    String size = '',
+    String quality = '',
   }) {
     final price = _priceFor(modelId);
     if (!price.known) return null;
 
+    // A model that prices by frame answers from its own table; the rest size
+    // themselves in megapixels and answer from their tiers.
+    final byFrame = price.byFrame.isNotEmpty || price.frameFallback.isNotEmpty;
+
     final amount = switch (price.unit) {
       'tokens' => price.tokensOut,
-      'image' => price.amountForSize(megapixels),
+      'image' => byFrame
+          ? price.amountForFrame(quality, size)
+          : price.amountForSize(megapixels),
       'second' => price.amountForShot(resolution, audio: audio),
       _ => price.amount,
     };
-    return UnitPrice(amount, price.unit, price.approx);
+
+    // A published pair is a quote and loses the tilde, even on a model whose
+    // headline figure is flagged approximate -- which gpt-image-2's is,
+    // precisely because it stands for nine different numbers.
+    final approx =
+        byFrame ? !price.exactFrame(quality, size) : price.approx;
+
+    return UnitPrice(amount, price.unit, approx);
   }
 
   /// What one finished generation actually cost.
@@ -392,6 +479,8 @@ class Pricing {
     String resolution = '',
     bool audio = false,
     int extraInputImages = 0,
+    String size = '',
+    String quality = '',
   }) {
     final price = _priceFor(modelId);
     if (!price.known) return CostEstimate.unknown;
@@ -412,6 +501,20 @@ class Pricing {
 
     switch (price.unit) {
       case 'image':
+        // A model priced by frame is billed on the frame that came back, which
+        // is what makes "auto" answerable after the fact: the request did not
+        // say what it wanted and the file says what it got.
+        if (price.byFrame.isNotEmpty || price.frameFallback.isNotEmpty) {
+          final frame = size.isNotEmpty && size != 'auto'
+              ? size
+              : _frameOf(megapixels);
+          return CostEstimate(
+            true,
+            price.amountForFrame(quality, frame) + extras,
+            exact: price.exactFrame(quality, frame),
+          );
+        }
+
         // The size the provider sent back, so a 4K frame is billed at the 4K
         // step even if the menu said something else.
         return CostEstimate(
@@ -670,6 +773,34 @@ class Pricing {
     }
 
     return _total(lines);
+  }
+
+  /// The published frame closest to what came back, so a result generated on
+  /// "auto" can still be priced from the file rather than from the request.
+  ///
+  /// Nearest by area rather than by shape: the price follows the pixel count,
+  /// and a 1536x1024 and a 1024x1536 cost the same on every line of the table.
+  static String _frameOf(double megapixels) {
+    if (megapixels <= 0) return '';
+
+    const frames = {
+      '1024x1024': 1.048576,
+      '1536x1024': 1.572864,
+      '2048x2048': 4.194304,
+      '2048x1152': 2.359296,
+      '3840x2160': 8.2944,
+    };
+
+    var best = '';
+    var closest = double.infinity;
+    frames.forEach((frame, area) {
+      final gap = (area - megapixels).abs();
+      if (gap < closest) {
+        closest = gap;
+        best = frame;
+      }
+    });
+    return best;
   }
 
   /// Same shape, from what a finished run actually consumed.

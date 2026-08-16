@@ -9,9 +9,21 @@ import 'capabilities.dart';
 import 'provider_task.dart';
 import 'types.dart';
 
-/// gpt-image-1 and dall-e-3 accept different size strings.
-String _openAiSize(String model, String aspect) {
+/// The frame to ask OpenAI for.
+///
+/// The Size menu wins when it has been set to something: OpenAI publishes a
+/// closed list of frames, the menu offers exactly that list, and a value
+/// chosen from it goes on the wire untouched -- including "auto", which is the
+/// API's own default and means the model picks.
+///
+/// The aspect ratio is the fallback, for the pipeline, which has a shape in
+/// mind and no size menu behind it. dall-e-3's wide and tall frames are not
+/// the same numbers as gpt-image's, which is the whole reason this is a
+/// function.
+String _openAiSize(String model, String aspect, String chosen) {
   final dalle = model.startsWith('dall-e');
+  if (!dalle && chosen.isNotEmpty) return chosen;
+
   if (aspect == '16:9') return dalle ? '1792x1024' : '1536x1024';
   if (aspect == '1:1') return '1024x1024';
   return dalle ? '1024x1792' : '1024x1536';
@@ -197,11 +209,13 @@ class OpenAiImageTask extends ImageTask {
     final body = <String, Object?>{
       'model': request.model,
       'prompt': request.prompt,
-      'size': _openAiSize(request.model, request.aspectRatio),
+      'size': _openAiSize(request.model, request.aspectRatio, request.size),
       'n': 1,
-      // Low, medium or high, and the three are a third of a cent, five cents
-      // and twenty -- which is why it is a menu rather than a constant. Only
-      // sent when the model declares it; dall-e has no such field.
+      // auto, low, medium or high. The three named steps are a third of a
+      // cent, five cents and twenty on the same frame, which is why it is a
+      // menu rather than a constant; auto lets the model decide and is the
+      // API's own default. Only sent when the model declares it; dall-e has no
+      // such field.
       if (request.quality.isNotEmpty) 'quality': request.quality,
       // gpt-image-1 always answers with base64 and rejects response_format.
       if (request.model.startsWith('dall-e')) 'response_format': 'b64_json',
@@ -244,7 +258,7 @@ class OpenAiImageTask extends ImageTask {
       fields: {
         'model': request.model,
         'prompt': request.prompt,
-        'size': _openAiSize(request.model, request.aspectRatio),
+        'size': _openAiSize(request.model, request.aspectRatio, request.size),
         'n': '1',
         if (request.quality.isNotEmpty) 'quality': request.quality,
         // input_fidelity is supported by gpt-image-1 but not by gpt-image-1-mini

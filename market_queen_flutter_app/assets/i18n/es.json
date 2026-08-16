@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "Este proveedor no reconoce esa clave.",
   "Key refused: %1": "Clave rechazada: %1",
   "Could not reach the provider to check it. The key is saved.": "No se pudo contactar con el proveedor para comprobarla. La clave está guardada.",
-  "Saved. This provider offers no way to check a key without spending anything.": "Guardada. Este proveedor no ofrece forma de comprobar una clave sin gastar nada."
+  "Saved. This provider offers no way to check a key without spending anything.": "Guardada. Este proveedor no ofrece forma de comprobar una clave sin gastar nada.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "cuadrado",
+  "landscape": "horizontal",
+  "portrait": "vertical",
+  "Auto": "Auto"
 }

@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "Deze aanbieder herkent die sleutel niet.",
   "Key refused: %1": "Sleutel geweigerd: %1",
   "Could not reach the provider to check it. The key is saved.": "De aanbieder was niet bereikbaar om te controleren. De sleutel is opgeslagen.",
-  "Saved. This provider offers no way to check a key without spending anything.": "Opgeslagen. Deze aanbieder biedt geen manier om een sleutel gratis te controleren."
+  "Saved. This provider offers no way to check a key without spending anything.": "Opgeslagen. Deze aanbieder biedt geen manier om een sleutel gratis te controleren.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "vierkant",
+  "landscape": "liggend",
+  "portrait": "staand",
+  "Auto": "Auto"
 }

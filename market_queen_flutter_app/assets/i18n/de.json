@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "Dieser Anbieter kennt diesen Schlüssel nicht.",
   "Key refused: %1": "Schlüssel abgelehnt: %1",
   "Could not reach the provider to check it. The key is saved.": "Der Anbieter war zur Prüfung nicht erreichbar. Der Schlüssel ist gespeichert.",
-  "Saved. This provider offers no way to check a key without spending anything.": "Gespeichert. Dieser Anbieter bietet keine Möglichkeit, einen Schlüssel kostenlos zu prüfen."
+  "Saved. This provider offers no way to check a key without spending anything.": "Gespeichert. Dieser Anbieter bietet keine Möglichkeit, einen Schlüssel kostenlos zu prüfen.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "quadratisch",
+  "landscape": "Querformat",
+  "portrait": "Hochformat",
+  "Auto": "Auto"
 }

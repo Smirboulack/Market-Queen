@@ -1066,5 +1066,9 @@
   "Key refused: %1": "Clé refusée : %1",
   "Could not reach the provider to check it. The key is saved.": "Impossible de joindre le fournisseur pour la vérifier. La clé est enregistrée.",
   "Saved. This provider offers no way to check a key without spending anything.": "Enregistrée. Ce fournisseur n'offre aucun moyen de vérifier une clé sans dépenser.",
-  "On the same key as the writer and the images.": "Sur la même clé que le rédacteur et les images."
+  "On the same key as the writer and the images.": "Sur la même clé que le rédacteur et les images.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "carré",
+  "landscape": "paysage",
+  "portrait": "portrait"
 }

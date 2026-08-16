@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "Ten dostawca nie rozpoznaje tego klucza.",
   "Key refused: %1": "Klucz odrzucony: %1",
   "Could not reach the provider to check it. The key is saved.": "Nie udało się połączyć z dostawcą, aby to sprawdzić. Klucz został zapisany.",
-  "Saved. This provider offers no way to check a key without spending anything.": "Zapisano. Ten dostawca nie udostępnia sposobu sprawdzenia klucza bez ponoszenia kosztów."
+  "Saved. This provider offers no way to check a key without spending anything.": "Zapisano. Ten dostawca nie udostępnia sposobu sprawdzenia klucza bez ponoszenia kosztów.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "kwadrat",
+  "landscape": "poziomy",
+  "portrait": "pionowy",
+  "Auto": "Auto"
 }

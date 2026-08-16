@@ -28,11 +28,24 @@ class ImageCapabilities {
     this.maxMegapixels = 0,
   });
 
-  /// "1K", "2K", "4K" -- the long edge of the frame, in the shorthand people
-  /// actually use. What goes on the wire is worked out from the aspect ratio by
-  /// [pixelsFor], because every model here sizes in pixels.
+  /// What the Size menu offers, in one of two spellings.
+  ///
+  /// Most of them are "1K", "2K", "4K" -- the long edge, in the shorthand
+  /// people actually use -- and what goes on the wire is worked out from the
+  /// aspect ratio by [pixelsFor], because those models size in pixels and take
+  /// any frame you ask for.
+  ///
+  /// OpenAI does not: it publishes a closed list of frames and refuses
+  /// anything else, so its entries are the literal strings the API takes
+  /// ("1536x1024", "auto"). [explicitSizes] tells the two apart, and the task
+  /// sends an explicit one verbatim rather than deriving a frame from a ratio
+  /// the model was never offered.
   final List<String> sizes;
   final String defaultSize;
+
+  /// True when [sizes] holds API values rather than shorthand tokens.
+  bool get explicitSizes =>
+      sizes.any((size) => size.contains('x') || size == 'auto');
 
   /// The provider's own quality values, sent verbatim.
   final List<String> qualities;
@@ -114,14 +127,30 @@ class ImageCapabilities {
 
   static const Map<String, ImageCapabilities> declared = {
     // ---- OpenAI ------------------------------------------------------------
-    // Three quality steps, each with its own published price -- low is a third
-    // of a cent and high is twenty. No size row: the guide enumerates the three
-    // 1024-based frames the task already sends, and the larger ones are billed
-    // as tokens without the request field being spelled out anywhere reachable,
-    // so a 2K here would be a guess with a bill attached.
+    // Both menus come straight off the image-generation guide. The seven
+    // frames are the ones it enumerates and the only ones the endpoint takes:
+    // a maximum edge of 3840, both edges a multiple of 16, at most 3:1, and
+    // between 0.66 and 8.29 megapixels -- so the list is closed and is sent
+    // verbatim rather than derived from an aspect ratio.
+    //
+    // "auto" leads both menus because it is the API's own default: the model
+    // picks the frame and the effort from the prompt. It is the right thing to
+    // ask for when you do not care, and the wrong thing when you are counting
+    // cents, which is why both are on the menu rather than one being assumed.
     'gpt-image-2': ImageCapabilities(
-      qualities: ['low', 'medium', 'high'],
-      defaultQuality: 'medium',
+      sizes: [
+        'auto',
+        '1024x1024',
+        '1536x1024',
+        '1024x1536',
+        '2048x2048',
+        '2048x1152',
+        '3840x2160',
+        '2160x3840',
+      ],
+      defaultSize: 'auto',
+      qualities: ['auto', 'low', 'medium', 'high'],
+      defaultQuality: 'auto',
     ),
 
     // ---- BytePlus, Seedream ------------------------------------------------

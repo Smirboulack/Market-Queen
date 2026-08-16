@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "هذا المزوّد لا يتعرّف على هذا المفتاح.",
   "Key refused: %1": "تم رفض المفتاح: %1",
   "Could not reach the provider to check it. The key is saved.": "تعذّر الوصول إلى المزوّد للتحقّق. تم حفظ المفتاح.",
-  "Saved. This provider offers no way to check a key without spending anything.": "تم الحفظ. لا يوفّر هذا المزوّد طريقة للتحقّق من مفتاح دون تكلفة."
+  "Saved. This provider offers no way to check a key without spending anything.": "تم الحفظ. لا يوفّر هذا المزوّد طريقة للتحقّق من مفتاح دون تكلفة.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "مربّع",
+  "landscape": "أفقي",
+  "portrait": "رأسي",
+  "Auto": "تلقائي"
 }

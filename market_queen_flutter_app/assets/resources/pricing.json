@@ -238,11 +238,48 @@
     },
     "seededit-3-0-i2i-250628": { "unit": "image", "amount": 0.03 },
 
+    "_comment_gpt_image": [
+      "OpenAI publishes a price per image for three frames at three quality",
+      "steps, and those nine numbers are in `byFrame` below, keyed",
+      "\"quality/size\". They are exact and are used verbatim whenever the Size",
+      "and Quality menus name one of them.",
+      "",
+      "The four larger frames -- 2K and 4K -- have no published per-image",
+      "price. Underneath, images are billed as output tokens at 30.00 per",
+      "million, and token count goes with area, so those are priced by scaling",
+      "the 1024x1024 figure for the same quality by the pixel ratio. A 2048",
+      "square is four times the pixels of a 1024 square and comes out four",
+      "times the price. That is a model, not a quote, so anything reached that",
+      "way is marked approximate in the interface.",
+      "",
+      "`amount` is medium at 1024x1024, which is what a caller with no menu",
+      "behind it gets. Quality \"auto\" lets the model choose the effort; it is",
+      "estimated as medium, which is also what it most often lands on, and is",
+      "likewise flagged approximate.",
+      "https://developers.openai.com/api/docs/guides/image-generation"
+    ],
     "gpt-image-2": {
       "unit": "image",
       "amount": 0.053,
       "approx": true,
-      "_note": "Medium quality at 1024x1024, which is what the API defaults to. Low is 0.006 and high 0.211; the vertical 1024x1536 frame an ad asks for is 0.041 medium, 0.165 high. Underneath it is token billing -- 30.00 per 1M image output tokens -- which is where the 2K and 4K sizes come from.",
+      "byFrame": {
+        "low/1024x1024": 0.006,
+        "low/1536x1024": 0.005,
+        "low/1024x1536": 0.005,
+        "medium/1024x1024": 0.053,
+        "medium/1536x1024": 0.041,
+        "medium/1024x1536": 0.041,
+        "high/1024x1024": 0.211,
+        "high/1536x1024": 0.165,
+        "high/1024x1536": 0.165
+      },
+      "frameFallback": {
+        "low": 0.006,
+        "medium": 0.053,
+        "high": 0.211
+      },
+      "qualityAlias": { "auto": "medium" },
+      "outputTokensPerMillion": 30.0,
       "source": "https://developers.openai.com/api/docs/guides/image-generation"
     },
 

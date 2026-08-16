@@ -277,5 +277,10 @@
   "This provider does not recognise that key.": "Этот провайдер не распознаёт этот ключ.",
   "Key refused: %1": "Ключ отклонён: %1",
   "Could not reach the provider to check it. The key is saved.": "Не удалось связаться с провайдером для проверки. Ключ сохранён.",
-  "Saved. This provider offers no way to check a key without spending anything.": "Сохранён. У этого провайдера нет способа проверить ключ бесплатно."
+  "Saved. This provider offers no way to check a key without spending anything.": "Сохранён. У этого провайдера нет способа проверить ключ бесплатно.",
+  "%1 x %2  ·  %3": "%1 x %2  ·  %3",
+  "square": "квадрат",
+  "landscape": "альбомная",
+  "portrait": "портретная",
+  "Auto": "Авто"
 }
