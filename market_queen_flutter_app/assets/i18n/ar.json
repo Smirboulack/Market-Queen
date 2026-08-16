@@ -290,5 +290,13 @@
   "Key added": "تمت إضافة المفتاح",
   "Pricing": "الأسعار",
   "default": "افتراضي",
-  "Information": "معلومات"
+  "Information": "معلومات",
+  "Select": "تحديد",
+  "Deselect": "إلغاء التحديد",
+  "Select all": "تحديد الكل",
+  "%1 selected": "%1 محدَّد",
+  "Delete %1 actors?": "حذف %1 ممثلين؟",
+  "Delete %1 scenes?": "حذف %1 مشاهد؟",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "سيُزالون من كل إعلان استخدمهم. لا يتغيّر شيء مما أُنتج بالفعل.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "ستُزال من كل إعلان استخدمها. لا يتغيّر شيء مما أُنتج بالفعل."
 }

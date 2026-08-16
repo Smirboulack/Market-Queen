@@ -290,5 +290,13 @@
   "Key added": "Sleutel toegevoegd",
   "Pricing": "Tarieven",
   "default": "standaard",
-  "Information": "Informatie"
+  "Information": "Informatie",
+  "Select": "Selecteren",
+  "Deselect": "Deselecteren",
+  "Select all": "Alles selecteren",
+  "%1 selected": "%1 geselecteerd",
+  "Delete %1 actors?": "%1 acteurs verwijderen?",
+  "Delete %1 scenes?": "%1 scènes verwijderen?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Ze worden uit elke advertentie gehaald die ze gebruikte. Wat al gegenereerd is verandert niet.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Ze worden uit elke advertentie gehaald die ze gebruikte. Wat al gegenereerd is verandert niet."
 }

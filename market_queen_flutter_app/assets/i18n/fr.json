@@ -1080,5 +1080,13 @@
   "default": "par défaut",
   "Information": "Informations",
   "What each account is for, what it charges, and which of its models the app uses.": "À quoi sert chaque compte, ce qu'il facture, et quels modèles l'app utilise.",
-  "Paste a key for each account you want to buy from. Everything the app can do is switched on by these.": "Collez une clé pour chaque compte auprès duquel vous voulez acheter. Tout ce que l'app sait faire est activé par ces clés."
+  "Paste a key for each account you want to buy from. Everything the app can do is switched on by these.": "Collez une clé pour chaque compte auprès duquel vous voulez acheter. Tout ce que l'app sait faire est activé par ces clés.",
+  "Select": "Sélectionner",
+  "Deselect": "Désélectionner",
+  "Select all": "Tout sélectionner",
+  "%1 selected": "%1 sélectionnés",
+  "Delete %1 actors?": "Supprimer %1 acteurs ?",
+  "Delete %1 scenes?": "Supprimer %1 scènes ?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Ils sont retirés de toutes les pubs qui les utilisaient. Rien de déjà généré ne change.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Elles sont retirées de toutes les pubs qui les utilisaient. Rien de déjà généré ne change."
 }

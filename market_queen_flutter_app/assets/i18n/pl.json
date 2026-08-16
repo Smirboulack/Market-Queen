@@ -290,5 +290,13 @@
   "Key added": "Klucz dodany",
   "Pricing": "Cennik",
   "default": "domyślny",
-  "Information": "Informacje"
+  "Information": "Informacje",
+  "Select": "Zaznacz",
+  "Deselect": "Odznacz",
+  "Select all": "Zaznacz wszystko",
+  "%1 selected": "Zaznaczono: %1",
+  "Delete %1 actors?": "Usunąć %1 aktorów?",
+  "Delete %1 scenes?": "Usunąć %1 scen?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Zostaną usunięci z każdej reklamy, która ich używała. Nic z już wygenerowanych rzeczy się nie zmieni.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Zostaną usunięte z każdej reklamy, która ich używała. Nic z już wygenerowanych rzeczy się nie zmieni."
 }

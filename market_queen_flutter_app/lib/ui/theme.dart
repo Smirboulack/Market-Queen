@@ -30,7 +30,7 @@ class MqTheme {
   // is legible without a drop shadow anywhere.
 
   Color get background =>
-      dark ? const Color(0xFF111111) : const Color(0xFFFAFAFA);
+      dark ? const Color(0xFF191919) : const Color(0xFFFAFAFA);
   Color get surface => dark ? const Color(0xFF181818) : const Color(0xFFFFFFFF);
   Color get surfaceSecondary =>
       dark ? const Color(0xFF202020) : const Color(0xFFF5F5F5);
@@ -69,7 +69,7 @@ class MqTheme {
   Color get textDisabled =>
       dark ? const Color(0xFF555555) : const Color(0xFFB5B5B5);
   Color get textInverse =>
-      dark ? const Color(0xFF111111) : const Color(0xFFFFFFFF);
+      dark ? const Color(0xFF191919) : const Color(0xFFFFFFFF);
 
   // ----------------------------------------------------------------- primary
   // Ink, not a hue. A filled button is black on the light skin and white on the
@@ -98,7 +98,7 @@ class MqTheme {
 
   /// What goes on top of a [primary] fill: the opposite ink.
   Color get onPrimary =>
-      dark ? const Color(0xFF111111) : const Color(0xFFFFFFFF);
+      dark ? const Color(0xFF191919) : const Color(0xFFFFFFFF);
 
   // --------------------------------------------------------------------- CTA
   // The brand ramp, and the only colour left in the interface: sky blue into

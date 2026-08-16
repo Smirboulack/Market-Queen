@@ -290,5 +290,13 @@
   "Key added": "已添加密钥",
   "Pricing": "价格",
   "default": "默认",
-  "Information": "信息"
+  "Information": "信息",
+  "Select": "选择",
+  "Deselect": "取消选择",
+  "Select all": "全选",
+  "%1 selected": "已选择 %1 项",
+  "Delete %1 actors?": "删除 %1 个演员？",
+  "Delete %1 scenes?": "删除 %1 个场景？",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "他们会从所有使用过他们的广告中移除。已生成的内容不受影响。",
+  "They are taken off every ad that used them. Nothing already generated changes.": "它们会从所有使用过它们的广告中移除。已生成的内容不受影响。"
 }

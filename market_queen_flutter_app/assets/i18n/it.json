@@ -290,5 +290,13 @@
   "Key added": "Chiave aggiunta",
   "Pricing": "Tariffe",
   "default": "predefinito",
-  "Information": "Informazioni"
+  "Information": "Informazioni",
+  "Select": "Seleziona",
+  "Deselect": "Deseleziona",
+  "Select all": "Seleziona tutto",
+  "%1 selected": "%1 selezionati",
+  "Delete %1 actors?": "Eliminare %1 attori?",
+  "Delete %1 scenes?": "Eliminare %1 scene?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Vengono rimossi da ogni annuncio che li usava. Nulla di già generato cambia.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Vengono rimosse da ogni annuncio che le usava. Nulla di già generato cambia."
 }

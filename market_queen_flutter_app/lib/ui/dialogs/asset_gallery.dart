@@ -355,6 +355,9 @@ class AssetCard extends StatelessWidget {
     this.onEdit,
     this.onDelete,
     this.chosen = false,
+    this.onToggleSelect,
+    this.selected = false,
+    this.selecting = false,
   });
 
   final LibraryAsset asset;
@@ -363,13 +366,34 @@ class AssetCard extends StatelessWidget {
   final VoidCallback? onDelete;
   final bool chosen;
 
+  /// Set on the pages where several can be picked out at once. Null in the
+  /// casting gallery, where picking one is the whole point and picking two
+  /// would mean nothing.
+  final VoidCallback? onToggleSelect;
+
+  /// Ticked.
+  final bool selected;
+
+  /// Whether a selection is under way anywhere in the grid.
+  ///
+  /// It changes what a plain press does: with nothing selected the card opens,
+  /// and once anything is selected the card joins or leaves the selection.
+  /// That is the rule every file manager uses, and the alternative -- always
+  /// having to hit the small box -- makes picking six things six small
+  /// targets.
+  final bool selecting;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     final thumbnail = asset.thumbnail;
 
+    // Lit like a chosen card, because that is what it is: the two never
+    // appear on the same page, so one look serves both.
+    final marked = chosen || selected;
+
     return Pressable(
-      onTap: onTap,
+      onTap: selecting && onToggleSelect != null ? onToggleSelect : onTap,
       // Cards sit in a grid: hover snaps both ways, fill and border together.
       snap: true,
       focusRadius: MqTheme.radius,
@@ -377,19 +401,21 @@ class AssetCard extends StatelessWidget {
         duration: states.duration,
         padding: const EdgeInsets.all(7),
         decoration: BoxDecoration(
-          color: states.pressed
+          color: selected
+              ? mq.primarySubtle
+              : states.pressed
               ? mq.surfaceTertiary
               : states.hovered
               ? mq.surfaceHover
               : mq.surfaceSecondary,
           borderRadius: BorderRadius.circular(MqTheme.radius),
           border: Border.all(
-            color: chosen
+            color: marked
                 ? mq.primary
                 : states.active
                 ? mq.borderStrong
                 : mq.border,
-            width: chosen ? 2 : 1,
+            width: marked ? 2 : 1,
           ),
         ),
         child: Column(
@@ -415,7 +441,29 @@ class AssetCard extends StatelessWidget {
                           )
                         : LocalImage(thumbnail),
                   ),
-                  if (onEdit != null || onDelete != null)
+                  // The tick, top left. Present once anything is selected --
+                  // so the grid says at a glance which are in and which are
+                  // out -- and otherwise only under the pointer.
+                  if (onToggleSelect != null)
+                    PositionedDirectional(
+                      start: 3,
+                      top: 3,
+                      child: IgnorePointer(
+                        ignoring: !states.active && !selecting,
+                        child: AnimatedOpacity(
+                          opacity: states.active || selecting ? 1 : 0,
+                          duration: states.duration,
+                          child: _SelectBox(
+                            selected: selected,
+                            onTap: onToggleSelect!,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Edit and delete stand down while a selection is running:
+                  // they act on one card, and the bar above is acting on
+                  // several.
+                  if ((onEdit != null || onDelete != null) && !selecting)
                     PositionedDirectional(
                       end: 3,
                       top: 3,
@@ -485,6 +533,47 @@ class AssetCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The tick in the corner of a card that can be selected.
+class _SelectBox extends StatelessWidget {
+  const _SelectBox({required this.selected, required this.onTap});
+
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      onTap: onTap,
+      tooltip: selected ? tr('Deselect') : tr('Select'),
+      focusRadius: 5,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        width: 20,
+        height: 20,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? mq.primary
+              : mq.surface.withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(
+            color: selected
+                ? mq.primary
+                : states.active
+                ? mq.borderStrong
+                : mq.border,
+          ),
+        ),
+        child: selected
+            ? MqIcon('check-line', size: 13, color: mq.onPrimary)
+            : null,
       ),
     );
   }

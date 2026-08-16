@@ -290,5 +290,13 @@
   "Key added": "Schlüssel hinterlegt",
   "Pricing": "Preise",
   "default": "Standard",
-  "Information": "Informationen"
+  "Information": "Informationen",
+  "Select": "Auswählen",
+  "Deselect": "Abwählen",
+  "Select all": "Alle auswählen",
+  "%1 selected": "%1 ausgewählt",
+  "Delete %1 actors?": "%1 Darsteller löschen?",
+  "Delete %1 scenes?": "%1 Szenen löschen?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Sie werden aus jeder Werbung entfernt, die sie besetzt hat. Bereits Generiertes bleibt unverändert.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Sie werden aus jeder Werbung entfernt, die sie verwendet hat. Bereits Generiertes bleibt unverändert."
 }

@@ -290,5 +290,13 @@
   "Key added": "Ключ добавлен",
   "Pricing": "Тарифы",
   "default": "по умолчанию",
-  "Information": "Информация"
+  "Information": "Информация",
+  "Select": "Выбрать",
+  "Deselect": "Снять выбор",
+  "Select all": "Выбрать всё",
+  "%1 selected": "Выбрано: %1",
+  "Delete %1 actors?": "Удалить %1 актёров?",
+  "Delete %1 scenes?": "Удалить %1 сцен?",
+  "They are taken off every ad that cast them. Nothing already generated changes.": "Они убираются из всех роликов, где были заняты. Уже сгенерированное не меняется.",
+  "They are taken off every ad that used them. Nothing already generated changes.": "Они убираются из всех роликов, где использовались. Уже сгенерированное не меняется."
 }
