@@ -32,6 +32,7 @@ const _iconByName = <String, IconData>{
   'fullscreen-exit-line': Icons.fullscreen_exit,
   'fullscreen-line': Icons.fullscreen,
   'gallery-line': Icons.photo_library_outlined,
+  'home-line': Icons.home_outlined,
   'image-add-line': Icons.add_photo_alternate_outlined,
   'image-line': Icons.image_outlined,
   'information-line': Icons.info_outline,

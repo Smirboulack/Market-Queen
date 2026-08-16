@@ -162,6 +162,19 @@ void main() {
         expect(showsText(r'$'), isTrue, reason: '${tab.name}: prompted');
       }
     });
+
+    testWidgets('an ad that cannot be shot yet costs nothing', (tester) async {
+      // The talking actor is the same rule reached differently: its estimate
+      // covers a whole run, and with no script it was quoting one off the
+      // length dial -- dollars for an ad nobody had written a word of. An ad
+      // missing a script or an actor cannot run, so it costs nothing.
+      await pumpEditor(tester);
+      await pickTab(tester, ComposerTab.actors);
+      await settle(tester);
+
+      expect(app.project.complete, isFalse, reason: 'nothing cast or written');
+      expect(showsText(r'$'), isFalse);
+    });
   });
 
   group('the picture settings follow the model', () {

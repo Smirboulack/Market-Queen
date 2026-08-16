@@ -1111,7 +1111,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             // The panel prices the same order the meter beside it does, and
             // shows nothing when the bar has nothing to send -- see
             // [_meterPrice] for why a model's own rate does not belong here.
-            order: readiness.ready ? pricedOrder : null,
+            // Null is also what tells the talking-actor column its ad is not
+            // shootable yet, so both tabs answer "nothing to buy" the same way.
+            order: _pricable ? pricedOrder : null,
             onClose: _closePanel,
           ),
         ),
@@ -1171,6 +1173,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     quality: _imageQuality,
   );
 
+  /// Whether pressing send would actually buy anything.
+  ///
+  /// Not the same question as [_readiness], and the difference is the talking
+  /// actor: that tab is also switched off while an ad is already shooting, and
+  /// a run in progress is precisely when what the *next* one costs is still
+  /// worth knowing. What makes an ad unpriceable is having nothing to shoot --
+  /// no script, or nobody to read it -- which is what the pipeline's own
+  /// completeness test says.
+  bool get _pricable => _tab == ComposerTab.actors
+      ? app.project.complete
+      : _readiness.ready;
+
   /// What one press costs, as text, or empty when there is nothing to price.
   ///
   /// Nothing to price is the common case and it used to be the confusing one:
@@ -1181,7 +1195,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// now says a price only when there is a generation to attach it to, which
   /// is precisely when the send button is live.
   String get _meterPrice {
-    if (!_readiness.ready) return '';
+    if (!_pricable) return '';
 
     // A talking actor buys a whole run -- a script pass, a reading, a frame
     // and a clip per shot -- so it is the ad's own estimate rather than the

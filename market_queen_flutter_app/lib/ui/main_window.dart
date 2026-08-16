@@ -5,6 +5,7 @@ import '../i18n/translator.dart';
 import '../models/asset_library.dart' show AssetKind;
 import 'asset_library_page.dart';
 import 'examples_page.dart';
+import 'home_page.dart';
 import 'icons.dart';
 import 'library_page.dart';
 import 'models_page.dart';
@@ -37,16 +38,20 @@ class MainWindow extends StatefulWidget {
 }
 
 class _MainWindowState extends State<MainWindow> {
-  static const _studio = 0;
-  static const _scenario = 1;
-  static const _library = 2;
-  static const _actors = 3;
-  static const _scenes = 4;
-  static const _examples = 5;
-  static const _models = 6;
-  static const _settings = 7;
+  static const _home = 0;
+  static const _studio = 1;
+  static const _scenario = 2;
+  static const _library = 3;
+  static const _actors = 4;
+  static const _scenes = 5;
+  static const _examples = 6;
+  static const _models = 7;
+  static const _settings = 8;
 
-  int _currentPage = _studio;
+  /// Home, not the studio. The app opens on a page that says what it is and
+  /// what has to be set up before any of it works, rather than on an empty
+  /// canvas with a prompt bar under it and no key behind either.
+  int _currentPage = _home;
 
   /// The ad the editor is on, and the project it is filed under. The project is
   /// storage plumbing now -- see [Workspace.home] -- and is never shown.
@@ -63,6 +68,7 @@ class _MainWindowState extends State<MainWindow> {
   AppState get app => widget.app;
 
   List<NavEntry> get _entries => [
+    NavEntry(label: tr('Home'), icon: 'home-line', page: _home),
     NavEntry(
       label: tr('Create UGC'),
       icon: 'clapperboard-line',
@@ -85,7 +91,8 @@ class _MainWindowState extends State<MainWindow> {
   ];
 
   /// The Create UGC entry, which is the only one you can step into.
-  NavEntry get _section => _entries.first;
+  NavEntry get _section =>
+      _entries.firstWhere((entry) => entry.page == _studio);
 
   // ---- studio navigation ---------------------------------------------------
 
@@ -169,6 +176,8 @@ class _MainWindowState extends State<MainWindow> {
 
   List<Crumb> _crumbs() {
     switch (_currentPage) {
+      case _home:
+        return [Crumb(tr('Home'))];
       case _scenario:
         return [Crumb(tr('Storyboard'))];
       case _library:
@@ -233,6 +242,12 @@ class _MainWindowState extends State<MainWindow> {
                   child: IndexedStack(
                     index: _currentPage,
                     children: [
+                      HomePage(
+                        app: app,
+                        onCreateUgc: () => _pickPage(_studio),
+                        onStoryboard: () => _pickPage(_scenario),
+                        onModels: () => _pickPage(_models),
+                      ),
                       _studioStack(),
                       ScenarioPage(app: app),
                       LibraryPage(app: app),

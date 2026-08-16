@@ -1044,5 +1044,22 @@
     "Pick an ad on the left, or start a new one.": "Choisissez une pub à gauche, ou créez-en une nouvelle.",
     "Plan an ad shot by shot before you shoot it. Being built.": "Planifiez une pub plan par plan avant de la tourner. En construction.",
     "Add this account's key to switch it on.": "Ajoutez la clé de ce compte pour l'activer.",
-    "%1 · max %2": "%1 · max %2"
+    "%1 · max %2": "%1 · max %2",
+    "Home": "Accueil",
+    "Welcome to Market Queen": "Bienvenue dans Market Queen",
+    "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "Des pubs UGC, avec vos propres clés API. Rien n'est généré tant que vous ne le demandez pas, et chaque prix affiché est ce qui sera facturé à vos propres comptes.",
+    "Write the script, cast an actor, and shoot the ad.": "Écrivez le script, castez un acteur et tournez la pub.",
+    "Plan an ad shot by shot before you spend anything on it.": "Planifiez une pub plan par plan avant d'y dépenser quoi que ce soit.",
+    "Add your API keys and pick which models you want offered.": "Ajoutez vos clés API et choisissez les modèles à proposer.",
+    "Start an ad": "Créer une pub",
+    "Open storyboards": "Ouvrir les scénarios",
+    "Set up the models": "Configurer les modèles",
+    "What's new": "Nouveautés",
+    "You are on v%1": "Vous êtes en v%1",
+    "Every generation now shows what it cost": "Chaque génération affiche désormais son coût",
+    "Hover a result in the feed and it says which model made it, the frame that came back, how long the clip runs, and what your account was charged. Where the provider reports its own usage the figure is exact rather than an estimate.": "Survolez un résultat dans le fil et il indique quel modèle l'a produit, le cadre renvoyé, la durée du clip et ce qui a été facturé à votre compte. Lorsque le fournisseur rapporte son propre usage, le chiffre est exact plutôt qu'estimé.",
+    "BytePlus pricing is now per resolution": "Le tarif BytePlus est désormais par résolution",
+    "Seedance is billed by output token, so the same five seconds costs four times as much at 1080p as at 480p. The estimate now follows the resolution and the soundtrack switch instead of quoting one figure for all of them.": "Seedance est facturé au token de sortie : les mêmes cinq secondes coûtent quatre fois plus cher en 1080p qu'en 480p. L'estimation suit maintenant la résolution et l'option bande-son au lieu d'annoncer un chiffre unique.",
+    "Ads without projects": "Des pubs sans projets",
+    "There is no folder to make first any more. Create UGC opens onto your ads the way a chat app opens onto conversations, and a new one is a single click.": "Il n'y a plus de dossier à créer d'abord. Créer UGC s'ouvre sur vos pubs comme une messagerie s'ouvre sur ses conversations, et une nouvelle pub tient en un clic."
 }

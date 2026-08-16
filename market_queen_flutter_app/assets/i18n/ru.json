@@ -251,5 +251,16 @@
   "Pick an ad on the left, or start a new one.": "Выберите ролик слева или создайте новый.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Спланируйте ролик кадр за кадром до съёмки. В разработке.",
   "Add this account's key to switch it on.": "Добавьте ключ этого аккаунта, чтобы включить модель.",
-  "%1 · max %2": "%1 · макс. %2"
+  "%1 · max %2": "%1 · макс. %2",
+  "Home": "Главная",
+  "Welcome to Market Queen": "Добро пожаловать в Market Queen",
+  "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "UGC-ролики на ваших собственных API-ключах. Ничего не генерируется, пока вы не попросите, и каждая показанная цена — это то, что спишется с ваших аккаунтов.",
+  "Write the script, cast an actor, and shoot the ad.": "Напишите сценарий, подберите актёра и снимите ролик.",
+  "Plan an ad shot by shot before you spend anything on it.": "Спланируйте ролик кадр за кадром, прежде чем что-то тратить.",
+  "Add your API keys and pick which models you want offered.": "Добавьте API-ключи и выберите, какие модели предлагать.",
+  "Start an ad": "Создать ролик",
+  "Open storyboards": "Открыть раскадровки",
+  "Set up the models": "Настроить модели",
+  "What's new": "Что нового",
+  "You are on v%1": "У вас v%1"
 }

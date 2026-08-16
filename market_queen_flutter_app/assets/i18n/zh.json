@@ -251,5 +251,16 @@
   "Pick an ad on the left, or start a new one.": "在左侧选择一个广告，或新建一个。",
   "Plan an ad shot by shot before you shoot it. Being built.": "在拍摄前逐个镜头规划广告。开发中。",
   "Add this account's key to switch it on.": "添加此账户的密钥即可启用。",
-  "%1 · max %2": "%1 · 最长 %2"
+  "%1 · max %2": "%1 · 最长 %2",
+  "Home": "首页",
+  "Welcome to Market Queen": "欢迎使用 Market Queen",
+  "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "使用你自己的 API 密钥制作 UGC 广告。不主动请求就不会生成任何内容，你看到的每个价格都是你自己账户将被扣除的金额。",
+  "Write the script, cast an actor, and shoot the ad.": "撰写脚本、挑选演员、拍摄广告。",
+  "Plan an ad shot by shot before you spend anything on it.": "在花钱之前，逐个镜头规划广告。",
+  "Add your API keys and pick which models you want offered.": "添加你的 API 密钥，并选择要提供哪些模型。",
+  "Start an ad": "开始创建广告",
+  "Open storyboards": "打开分镜",
+  "Set up the models": "设置模型",
+  "What's new": "更新内容",
+  "You are on v%1": "当前版本 v%1"
 }

@@ -251,5 +251,16 @@
   "Pick an ad on the left, or start a new one.": "Escolha um anúncio à esquerda ou crie um novo.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Planeie um anúncio plano a plano antes de o filmar. Em construção.",
   "Add this account's key to switch it on.": "Adicione a chave desta conta para o ativar.",
-  "%1 · max %2": "%1 · máx. %2"
+  "%1 · max %2": "%1 · máx. %2",
+  "Home": "Início",
+  "Welcome to Market Queen": "Bem-vindo ao Market Queen",
+  "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "Anúncios UGC com as suas próprias chaves de API. Nada é gerado até que o peça, e cada preço que vê é o que será cobrado às suas próprias contas.",
+  "Write the script, cast an actor, and shoot the ad.": "Escreva o guião, escolha um ator e filme o anúncio.",
+  "Plan an ad shot by shot before you spend anything on it.": "Planeie um anúncio plano a plano antes de gastar nele.",
+  "Add your API keys and pick which models you want offered.": "Adicione as suas chaves de API e escolha que modelos quer disponíveis.",
+  "Start an ad": "Criar um anúncio",
+  "Open storyboards": "Abrir os storyboards",
+  "Set up the models": "Configurar os modelos",
+  "What's new": "Novidades",
+  "You are on v%1": "Está na v%1"
 }

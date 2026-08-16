@@ -708,7 +708,11 @@ class ComposerSettings extends StatelessWidget {
             onChanged: project.setBroll,
           ),
         ),
-        (label: tr('Cost'), child: _Estimate(app: app)),
+        // Zero until the ad has a script and somebody to read it. Before that
+        // the breakdown was quoting a whole run -- a reading, a frame and a
+        // clip per shot -- off the length dial alone, which is a dollar figure
+        // for an ad nobody has written a word of.
+        (label: tr('Cost'), child: _Estimate(app: app, shootable: order != null)),
       ]);
     }
 
@@ -998,13 +1002,36 @@ class _ModelPicker extends StatelessWidget {
 }
 
 /// What the ad would cost if it were shot right now.
+///
+/// An ad with no script is not an ad that costs less -- it is an ad that
+/// cannot be shot, so it costs nothing. [Pricing.estimate] will happily quote
+/// one anyway, because it has a second caller in the old form where the script
+/// is *meant* to be absent and the writer invents it from the brief; there it
+/// falls back to the length dial and is right to. In the studio the script is
+/// the thing you typed, and quoting two dollars against an empty field is a
+/// number attached to nothing.
 class _Estimate extends StatelessWidget {
-  const _Estimate({required this.app});
+  const _Estimate({required this.app, this.shootable = true});
 
   final AppState app;
 
+  /// Whether the ad has everything it needs to run.
+  final bool shootable;
+
   @override
   Widget build(BuildContext context) {
+    if (!shootable) {
+      return Text(
+        Format.money(0),
+        style: TextStyle(
+          color: context.mq.textPrimary,
+          fontSize: MqTheme.fontLabel,
+          fontWeight: FontWeight.w600,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
+      );
+    }
+
     final breakdown = app.pricing.estimate(app.request());
 
     return Text(

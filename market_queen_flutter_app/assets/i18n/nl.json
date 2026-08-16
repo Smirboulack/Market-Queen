@@ -251,5 +251,16 @@
   "Pick an ad on the left, or start a new one.": "Kies links een advertentie of maak een nieuwe.",
   "Plan an ad shot by shot before you shoot it. Being built.": "Plan een advertentie shot voor shot voordat je filmt. In aanbouw.",
   "Add this account's key to switch it on.": "Voeg de sleutel van dit account toe om het in te schakelen.",
-  "%1 · max %2": "%1 · max. %2"
+  "%1 · max %2": "%1 · max. %2",
+  "Home": "Start",
+  "Welcome to Market Queen": "Welkom bij Market Queen",
+  "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "UGC-advertenties met je eigen API-sleutels. Er wordt niets gegenereerd tot je erom vraagt, en elke prijs die je ziet is wat je eigen accounts in rekening wordt gebracht.",
+  "Write the script, cast an actor, and shoot the ad.": "Schrijf het script, cast een acteur en film de advertentie.",
+  "Plan an ad shot by shot before you spend anything on it.": "Plan een advertentie shot voor shot voordat je er iets aan uitgeeft.",
+  "Add your API keys and pick which models you want offered.": "Voeg je API-sleutels toe en kies welke modellen worden aangeboden.",
+  "Start an ad": "Advertentie starten",
+  "Open storyboards": "Storyboards openen",
+  "Set up the models": "Modellen instellen",
+  "What's new": "Wat is er nieuw",
+  "You are on v%1": "Je gebruikt v%1"
 }

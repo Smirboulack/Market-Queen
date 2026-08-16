@@ -251,5 +251,16 @@
   "Pick an ad on the left, or start a new one.": "اختر إعلانًا من اليسار، أو ابدأ إعلانًا جديدًا.",
   "Plan an ad shot by shot before you shoot it. Being built.": "خطّط للإعلان لقطة بلقطة قبل تصويره. قيد الإنشاء.",
   "Add this account's key to switch it on.": "أضف مفتاح هذا الحساب لتفعيله.",
-  "%1 · max %2": "%1 · بحد أقصى %2"
+  "%1 · max %2": "%1 · بحد أقصى %2",
+  "Home": "الرئيسية",
+  "Welcome to Market Queen": "مرحبًا بك في Market Queen",
+  "UGC ads, made with your own API keys. Nothing is generated until you ask for it, and every price you see is what your own accounts will be billed.": "إعلانات UGC بمفاتيح واجهة برمجة التطبيقات الخاصة بك. لا يُنتَج شيء حتى تطلبه، وكل سعر تراه هو ما ستُحاسَب عليه حساباتك.",
+  "Write the script, cast an actor, and shoot the ad.": "اكتب النص، اختر ممثلًا، وصوّر الإعلان.",
+  "Plan an ad shot by shot before you spend anything on it.": "خطّط للإعلان لقطة بلقطة قبل أن تنفق عليه شيئًا.",
+  "Add your API keys and pick which models you want offered.": "أضف مفاتيح واجهة برمجة التطبيقات واختر النماذج التي تريد إتاحتها.",
+  "Start an ad": "ابدأ إعلانًا",
+  "Open storyboards": "افتح القصص المصورة",
+  "Set up the models": "إعداد النماذج",
+  "What's new": "ما الجديد",
+  "You are on v%1": "أنت على الإصدار v%1"
 }
