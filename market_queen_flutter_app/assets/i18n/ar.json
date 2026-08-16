@@ -268,5 +268,14 @@
   "Save": "حفظ",
   "Saved": "تم الحفظ",
   "Add a key for a writer under API keys to improve prompts.": "أضف مفتاح نموذج كتابة في «مفاتيح API» لتحسين المطالبات.",
-  "What Gemini does with what you send": "ما الذي يفعله Gemini بما ترسله"
+  "What Gemini does with what you send": "ما الذي يفعله Gemini بما ترسله",
+  "Check": "تحقّق",
+  "Check again": "تحقّق مرة أخرى",
+  "Checking with %1...": "جارٍ التحقّق لدى %1...",
+  "Key works.": "المفتاح يعمل.",
+  "Key works, but the account says: %1": "المفتاح يعمل، لكن الحساب يقول: %1",
+  "This provider does not recognise that key.": "هذا المزوّد لا يتعرّف على هذا المفتاح.",
+  "Key refused: %1": "تم رفض المفتاح: %1",
+  "Could not reach the provider to check it. The key is saved.": "تعذّر الوصول إلى المزوّد للتحقّق. تم حفظ المفتاح.",
+  "Saved. This provider offers no way to check a key without spending anything.": "تم الحفظ. لا يوفّر هذا المزوّد طريقة للتحقّق من مفتاح دون تكلفة."
 }

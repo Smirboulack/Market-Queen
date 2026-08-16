@@ -1056,5 +1056,15 @@
   "Edits your product photo directly. Every picture carries an invisible SynthID watermark.": "Modifie directement votre photo produit. Chaque image porte un filigrane SynthID invisible.",
   "Turbo is faster, v3 is a little more accurate.": "Turbo est plus rapide, v3 un peu plus précis.",
   "Scripts, images, Veo video and voice-over.": "Scripts, images, vidéo Veo et voix off.",
-  "Subtitles, billed by the minute of audio.": "Sous-titres, facturés à la minute d'audio."
+  "Subtitles, billed by the minute of audio.": "Sous-titres, facturés à la minute d'audio.",
+  "Check": "Vérifier",
+  "Check again": "Vérifier à nouveau",
+  "Checking with %1...": "Vérification auprès de %1...",
+  "Key works.": "La clé fonctionne.",
+  "Key works, but the account says: %1": "La clé fonctionne, mais le compte signale : %1",
+  "This provider does not recognise that key.": "Ce fournisseur ne reconnaît pas cette clé.",
+  "Key refused: %1": "Clé refusée : %1",
+  "Could not reach the provider to check it. The key is saved.": "Impossible de joindre le fournisseur pour la vérifier. La clé est enregistrée.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Enregistrée. Ce fournisseur n'offre aucun moyen de vérifier une clé sans dépenser.",
+  "On the same key as the writer and the images.": "Sur la même clé que le rédacteur et les images."
 }

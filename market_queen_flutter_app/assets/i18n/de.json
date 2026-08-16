@@ -268,5 +268,14 @@
   "Save": "Speichern",
   "Saved": "Gespeichert",
   "Add a key for a writer under API keys to improve prompts.": "Fügen Sie unter API-Schlüssel einen Schlüssel für einen Autor hinzu, um Prompts zu verbessern.",
-  "What Gemini does with what you send": "Was Gemini mit dem macht, was Sie senden"
+  "What Gemini does with what you send": "Was Gemini mit dem macht, was Sie senden",
+  "Check": "Prüfen",
+  "Check again": "Erneut prüfen",
+  "Checking with %1...": "Wird bei %1 geprüft ...",
+  "Key works.": "Der Schlüssel funktioniert.",
+  "Key works, but the account says: %1": "Der Schlüssel funktioniert, aber das Konto meldet: %1",
+  "This provider does not recognise that key.": "Dieser Anbieter kennt diesen Schlüssel nicht.",
+  "Key refused: %1": "Schlüssel abgelehnt: %1",
+  "Could not reach the provider to check it. The key is saved.": "Der Anbieter war zur Prüfung nicht erreichbar. Der Schlüssel ist gespeichert.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Gespeichert. Dieser Anbieter bietet keine Möglichkeit, einen Schlüssel kostenlos zu prüfen."
 }

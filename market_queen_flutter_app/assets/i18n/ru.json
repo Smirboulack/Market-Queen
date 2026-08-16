@@ -268,5 +268,14 @@
   "Save": "Сохранить",
   "Saved": "Сохранено",
   "Add a key for a writer under API keys to improve prompts.": "Добавьте ключ модели-редактора на вкладке API-ключи, чтобы улучшать промпты.",
-  "What Gemini does with what you send": "Что Gemini делает с тем, что вы отправляете"
+  "What Gemini does with what you send": "Что Gemini делает с тем, что вы отправляете",
+  "Check": "Проверить",
+  "Check again": "Проверить снова",
+  "Checking with %1...": "Проверка в %1...",
+  "Key works.": "Ключ работает.",
+  "Key works, but the account says: %1": "Ключ работает, но аккаунт сообщает: %1",
+  "This provider does not recognise that key.": "Этот провайдер не распознаёт этот ключ.",
+  "Key refused: %1": "Ключ отклонён: %1",
+  "Could not reach the provider to check it. The key is saved.": "Не удалось связаться с провайдером для проверки. Ключ сохранён.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Сохранён. У этого провайдера нет способа проверить ключ бесплатно."
 }

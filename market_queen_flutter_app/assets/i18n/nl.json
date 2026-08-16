@@ -268,5 +268,14 @@
   "Save": "Opslaan",
   "Saved": "Opgeslagen",
   "Add a key for a writer under API keys to improve prompts.": "Voeg onder API-sleutels een sleutel voor een schrijver toe om prompts te verbeteren.",
-  "What Gemini does with what you send": "Wat Gemini doet met wat je stuurt"
+  "What Gemini does with what you send": "Wat Gemini doet met wat je stuurt",
+  "Check": "Controleren",
+  "Check again": "Opnieuw controleren",
+  "Checking with %1...": "Controleren bij %1...",
+  "Key works.": "De sleutel werkt.",
+  "Key works, but the account says: %1": "De sleutel werkt, maar het account meldt: %1",
+  "This provider does not recognise that key.": "Deze aanbieder herkent die sleutel niet.",
+  "Key refused: %1": "Sleutel geweigerd: %1",
+  "Could not reach the provider to check it. The key is saved.": "De aanbieder was niet bereikbaar om te controleren. De sleutel is opgeslagen.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Opgeslagen. Deze aanbieder biedt geen manier om een sleutel gratis te controleren."
 }

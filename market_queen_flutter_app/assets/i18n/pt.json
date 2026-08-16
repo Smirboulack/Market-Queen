@@ -268,5 +268,14 @@
   "Save": "Guardar",
   "Saved": "Guardado",
   "Add a key for a writer under API keys to improve prompts.": "Adicione a chave de um redator em Chaves de API para melhorar os prompts.",
-  "What Gemini does with what you send": "O que o Gemini faz com o que envia"
+  "What Gemini does with what you send": "O que o Gemini faz com o que envia",
+  "Check": "Verificar",
+  "Check again": "Verificar de novo",
+  "Checking with %1...": "A verificar com %1...",
+  "Key works.": "A chave funciona.",
+  "Key works, but the account says: %1": "A chave funciona, mas a conta indica: %1",
+  "This provider does not recognise that key.": "Este fornecedor não reconhece essa chave.",
+  "Key refused: %1": "Chave recusada: %1",
+  "Could not reach the provider to check it. The key is saved.": "Não foi possível contactar o fornecedor para a verificar. A chave está guardada.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Guardada. Este fornecedor não oferece forma de verificar uma chave sem gastar nada."
 }

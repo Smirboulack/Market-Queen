@@ -268,5 +268,14 @@
   "Save": "Zapisz",
   "Saved": "Zapisano",
   "Add a key for a writer under API keys to improve prompts.": "Dodaj klucz modelu piszącego w sekcji Klucze API, aby ulepszać prompty.",
-  "What Gemini does with what you send": "Co Gemini robi z tym, co wysyłasz"
+  "What Gemini does with what you send": "Co Gemini robi z tym, co wysyłasz",
+  "Check": "Sprawdź",
+  "Check again": "Sprawdź ponownie",
+  "Checking with %1...": "Sprawdzanie w %1...",
+  "Key works.": "Klucz działa.",
+  "Key works, but the account says: %1": "Klucz działa, ale konto zgłasza: %1",
+  "This provider does not recognise that key.": "Ten dostawca nie rozpoznaje tego klucza.",
+  "Key refused: %1": "Klucz odrzucony: %1",
+  "Could not reach the provider to check it. The key is saved.": "Nie udało się połączyć z dostawcą, aby to sprawdzić. Klucz został zapisany.",
+  "Saved. This provider offers no way to check a key without spending anything.": "Zapisano. Ten dostawca nie udostępnia sposobu sprawdzenia klucza bez ponoszenia kosztów."
 }
