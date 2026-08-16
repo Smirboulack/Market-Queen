@@ -222,10 +222,10 @@ void main() {
       // below are the ones deliberately recorded as having no public figure,
       // and anything else appearing here means pricing.json fell behind the
       // catalogue.
-      const knownUnpriced = {
-        // Preview, and off the published table.
-        'gemini-3-pro-image',
-      };
+      // Empty, and that is the state to keep it in: every model the app
+      // offers has a published per-request price. An id landing here means
+      // pricing.json fell behind the catalogue.
+      const knownUnpriced = <String>{};
 
       final unexpected = [
         for (final line in missing)

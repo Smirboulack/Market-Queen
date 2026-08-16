@@ -141,6 +141,7 @@ class _Price {
     this.byFrame = const {},
     this.frameFallback = const {},
     this.qualityAlias = const {},
+    this.bySize = const {},
   });
 
   final String unit; // tokens | image | second | video | kchars | minute
@@ -171,6 +172,11 @@ class _Price {
   /// "high/1024x1536". Exact where it has an entry.
   final Map<String, double> byFrame;
 
+  /// Image models that publish a price per frame and have no quality step at
+  /// all, keyed by the size token alone: "1K", "512px". Gemini's four are
+  /// this shape -- the resolution is the only thing that moves the bill.
+  final Map<String, double> bySize;
+
   /// The price at the model's base frame, per quality, for the frames
   /// [byFrame] does not list. Scaled by area -- see [amountForFrame].
   final Map<String, double> frameFallback;
@@ -198,6 +204,10 @@ class _Price {
   /// [exactFrame] says which happened, so the interface can put a tilde on the
   /// other two rather than presenting a projection as a quote.
   double amountForFrame(String quality, String size) {
+    // A model with no quality step answers from the size alone.
+    final flat = bySize[size];
+    if (flat != null) return flat;
+
     final step = quality.isEmpty ? 'auto' : quality;
     final priced = qualityAlias[step] ?? step;
 
@@ -213,6 +223,7 @@ class _Price {
   }
 
   bool exactFrame(String quality, String size) =>
+      bySize.containsKey(size) ||
       byFrame.containsKey('${quality.isEmpty ? 'auto' : quality}/$size');
 
   /// "2048x1152" -> 2359296. Zero for "auto" and anything unparseable, which
@@ -354,6 +365,9 @@ class Pricing {
         byFrame: _ratesFrom(value['byFrame']),
         frameFallback: _ratesFrom(value['frameFallback']),
         qualityAlias: _aliasFrom(value['qualityAlias']),
+        // Not lowercased: "512px" and "1K" are tokens the API defines, and
+        // the menu holds them in exactly that spelling.
+        bySize: _sizesFrom(value['bySize']),
       );
       if (price.known) _prices['$key'] = price;
     });
@@ -381,6 +395,13 @@ class Pricing {
     return {
       for (final entry in value.entries)
         '${entry.key}'.toLowerCase(): _toDouble(entry.value),
+    };
+  }
+
+  static Map<String, double> _sizesFrom(Object? value) {
+    if (value is! Map) return const {};
+    return {
+      for (final entry in value.entries) '${entry.key}': _toDouble(entry.value),
     };
   }
 
@@ -440,7 +461,9 @@ class Pricing {
 
     // A model that prices by frame answers from its own table; the rest size
     // themselves in megapixels and answer from their tiers.
-    final byFrame = price.byFrame.isNotEmpty || price.frameFallback.isNotEmpty;
+    final byFrame = price.byFrame.isNotEmpty ||
+        price.frameFallback.isNotEmpty ||
+        price.bySize.isNotEmpty;
 
     final amount = switch (price.unit) {
       'tokens' => price.tokensOut,
@@ -504,7 +527,9 @@ class Pricing {
         // A model priced by frame is billed on the frame that came back, which
         // is what makes "auto" answerable after the fact: the request did not
         // say what it wanted and the file says what it got.
-        if (price.byFrame.isNotEmpty || price.frameFallback.isNotEmpty) {
+        if (price.byFrame.isNotEmpty ||
+            price.frameFallback.isNotEmpty ||
+            price.bySize.isNotEmpty) {
           final frame = size.isNotEmpty && size != 'auto'
               ? size
               : _frameOf(megapixels);

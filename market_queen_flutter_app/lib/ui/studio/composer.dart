@@ -1207,22 +1207,28 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       }
     }
 
-    // A model with a closed list of frames answers the shape question inside
-    // its own Size setting, so a Format one beside it would be a second
-    // control for one decision -- and the one that loses.
+    // OpenAI's sizes are whole frames -- "1536 x 1024 · landscape" is a shape
+    // as well as a size -- so a Format setting beside it would be a second
+    // control for one decision. Every other model takes the two as separate
+    // fields and keeps both.
     final picture = ImageCapabilities.of(app.runner.modelFor(_spec.category));
-    final framed = _tab == ComposerTab.image && picture.explicitSizes;
+    final framed = _tab == ComposerTab.image && picture.sizeSetsShape;
 
     if (_spec.picksAspect && !framed) {
+      // What the model actually draws. Empty means the three every model here
+      // takes; Gemini publishes ten, and a portrait 4:5 for a feed post is not
+      // something to approximate with 9:16.
+      final ratios = _tab == ComposerTab.image && picture.aspectRatios.isNotEmpty
+          ? picture.aspectRatios
+          : const ['9:16', '1:1', '16:9'];
+
       items.add(
         _Choice(
           label: tr('Format'),
-          value: _aspect,
+          value: ratioLabel(_aspect),
           current: _aspect,
           options: [
-            MenuOption(tr('Vertical 9:16'), '9:16'),
-            MenuOption(tr('Square 1:1'), '1:1'),
-            MenuOption(tr('Wide 16:9'), '16:9'),
+            for (final ratio in ratios) MenuOption(ratioLabel(ratio), ratio),
           ],
           onPicked: (value) {
             if (_tab == ComposerTab.actors) {

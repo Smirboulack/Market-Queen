@@ -173,18 +173,46 @@
 
     "_comment_images": "---- Images ----",
 
-    "gemini-3.1-flash-image": {
+    "_comment_gemini_image": [
+      "Google prices these per image, by the resolution asked for -- which is",
+      "the `image_size` field on the request, so the app knows it before it",
+      "sends. `bySize` is that table, exact. Underneath it is token billing at",
+      "the rate in `perMillionTokens`, and the published per-image figures are",
+      "that rate times the token count of each frame; the two agree to the",
+      "cent, which is why these are listed rather than approximated.",
+      "",
+      "`amount` is the 1K figure, for a caller with no size to hand.",
+      "Batch pricing is half of all of this and the app never uses it.",
+      "https://ai.google.dev/gemini-api/docs/pricing"
+    ],
+    "gemini-3-pro-image": {
       "unit": "image",
-      "amount": 0.045,
-      "approx": true,
-      "_note": "0.045 to 0.151 by resolution.",
+      "amount": 0.134,
+      "perMillionTokens": 120.0,
+      "bySize": { "1K": 0.134, "2K": 0.134, "4K": 0.24 },
+      "_note": "1120 tokens at 1K and 2K, 2000 at 4K -- so 1K and 2K cost the same.",
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
-    "gemini-3.1-flash-lite-image": { "unit": "image", "amount": 0.0336, "approx": true },
-    "gemini-3-pro-image": { "unknown": true },
+    "gemini-3.1-flash-image": {
+      "unit": "image",
+      "amount": 0.067,
+      "perMillionTokens": 60.0,
+      "bySize": { "512px": 0.045, "1K": 0.067, "2K": 0.101, "4K": 0.151 },
+      "_note": "747, 1120, 1680 and 2520 tokens respectively.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
+    "gemini-3.1-flash-lite-image": {
+      "unit": "image",
+      "amount": 0.0336,
+      "perMillionTokens": 30.0,
+      "bySize": { "1K": 0.0336 },
+      "_note": "1K only; the model draws nothing else.",
+      "source": "https://ai.google.dev/gemini-api/docs/pricing"
+    },
     "gemini-2.5-flash-image": {
       "unit": "image",
       "amount": 0.039,
+      "_note": "1024x1024, 1290 tokens. Predates the image_size field and draws one frame.",
       "source": "https://ai.google.dev/gemini-api/docs/pricing"
     },
 

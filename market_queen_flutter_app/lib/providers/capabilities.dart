@@ -26,6 +26,9 @@ class ImageCapabilities {
     this.qualities = const [],
     this.defaultQuality = '',
     this.maxMegapixels = 0,
+    this.aspectRatios = const [],
+    this.explicitSizes = false,
+    this.sizeSetsShape = false,
   });
 
   /// What the Size menu offers, in one of two spellings.
@@ -43,9 +46,32 @@ class ImageCapabilities {
   final List<String> sizes;
   final String defaultSize;
 
-  /// True when [sizes] holds API values rather than shorthand tokens.
-  bool get explicitSizes =>
-      sizes.any((size) => size.contains('x') || size == 'auto');
+  /// True when [sizes] holds the API's own values rather than shorthand for
+  /// a frame this app has to work out in pixels.
+  ///
+  /// Declared rather than guessed from the strings, because the two overlap:
+  /// "1K" is shorthand on Seedream, where it means "long edge 1024, you sort
+  /// out the rest from the ratio", and a literal on Gemini, where `image_size`
+  /// takes that exact token.
+  final bool explicitSizes;
+
+  /// True when picking a size also picks the shape, so there is no separate
+  /// ratio to choose.
+  ///
+  /// Only OpenAI: its sizes are frames -- "1536x1024" is a size *and* a
+  /// landscape. Everywhere else the two are independent fields and both
+  /// menus stand: Gemini takes `image_size` and `aspect_ratio` separately, so
+  /// 4K and 4:5 are one request, and folding them together would lose eight
+  /// of its ten shapes.
+  final bool sizeSetsShape;
+
+  /// The shapes this model will draw, in its own spelling.
+  ///
+  /// Empty means the three the app has always offered -- vertical, square,
+  /// wide -- which is what every model here takes. A model that publishes more
+  /// lists them, and the Format menu offers exactly what it lists: Gemini
+  /// draws ten, and four of them are the ones an ad actually wants.
+  final List<String> aspectRatios;
 
   /// The provider's own quality values, sent verbatim.
   final List<String> qualities;
@@ -125,6 +151,35 @@ class ImageCapabilities {
 
   // -------------------------------------------------------------------------
 
+  /// The shapes worth offering on a model that will draw any of them.
+  ///
+  /// Seedream, SeedEdit and FLUX.2 are sized in pixels: this app works the
+  /// frame out from the ratio itself -- see [pixelsFor] -- so the list is an
+  /// editorial choice rather than a limit, and it is the same list Gemini
+  /// publishes so that changing model does not change the menu under you.
+  /// FLUX.1 Kontext takes a ratio string and documents everything from 21:9
+  /// to 9:21, which covers all of these.
+  ///
+  /// Ideogram, Bria and xAI are deliberately absent: Ideogram maps a ratio
+  /// onto one of its own enumerated resolutions and rejects anything else,
+  /// and the other two publish a set this app has not verified. Offering a
+  /// shape a model refuses is a paid request that 400s.
+  static const List<String> _anyRatio = _geminiRatios;
+
+  /// Every shape Gemini's image models draw, in the guide's order.
+  static const List<String> _geminiRatios = [
+    '1:1',
+    '2:3',
+    '3:2',
+    '3:4',
+    '4:3',
+    '4:5',
+    '5:4',
+    '9:16',
+    '16:9',
+    '21:9',
+  ];
+
   static const Map<String, ImageCapabilities> declared = {
     // ---- OpenAI ------------------------------------------------------------
     // Both menus come straight off the image-generation guide. The seven
@@ -149,8 +204,41 @@ class ImageCapabilities {
         '2160x3840',
       ],
       defaultSize: 'auto',
+      explicitSizes: true,
+      sizeSetsShape: true,
       qualities: ['auto', 'low', 'medium', 'high'],
       defaultQuality: 'auto',
+    ),
+
+    // ---- Google, Gemini ----------------------------------------------------
+    // `image_size` and `aspect_ratio` are fields on `response_format`, and
+    // both take the API's own tokens, so what the menus hold is what goes on
+    // the wire. The ten ratios are the guide's list in full; 2.5 Flash Image
+    // predates the field and draws 1024x1024 whatever it is told, so it
+    // declares neither and is sent neither.
+    'gemini-3-pro-image': ImageCapabilities(
+      sizes: ['1K', '2K', '4K'],
+      defaultSize: '1K',
+      explicitSizes: true,
+      aspectRatios: _geminiRatios,
+    ),
+    'gemini-3.1-flash-image': ImageCapabilities(
+      sizes: ['512px', '1K', '2K', '4K'],
+      defaultSize: '1K',
+      explicitSizes: true,
+      aspectRatios: _geminiRatios,
+    ),
+    // 1K and nothing else, so no Size menu: a one-entry list is a control
+    // that cannot be operated. The token is still sent, because the field is
+    // what the endpoint prices from.
+    'gemini-3.1-flash-lite-image': ImageCapabilities(
+      sizes: ['1K'],
+      defaultSize: '1K',
+      explicitSizes: true,
+      aspectRatios: _geminiRatios,
+    ),
+    'gemini-2.5-flash-image': ImageCapabilities(
+      aspectRatios: _geminiRatios,
     ),
 
     // ---- BytePlus, Seedream ------------------------------------------------
@@ -160,18 +248,22 @@ class ImageCapabilities {
     'seedream-4-5-251128': ImageCapabilities(
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
+      aspectRatios: _anyRatio,
     ),
     'seedream-5-0-lite-260128': ImageCapabilities(
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
+      aspectRatios: _anyRatio,
     ),
     'dola-seedream-5-0-pro-260628': ImageCapabilities(
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
+      aspectRatios: _anyRatio,
     ),
     'seededit-3-0-i2i-250628': ImageCapabilities(
       sizes: ['1K', '2K', '4K'],
       defaultSize: '2K',
+      aspectRatios: _anyRatio,
     ),
 
     // ---- Black Forest Labs, FLUX.2 -----------------------------------------
@@ -182,26 +274,34 @@ class ImageCapabilities {
       sizes: ['1K', '2K'],
       defaultSize: '1K',
       maxMegapixels: 4,
+      aspectRatios: _anyRatio,
     ),
     'flux-2-flex': ImageCapabilities(
       sizes: ['1K', '2K'],
       defaultSize: '1K',
       maxMegapixels: 4,
+      aspectRatios: _anyRatio,
     ),
     'flux-2-max': ImageCapabilities(
       sizes: ['1K', '2K'],
       defaultSize: '1K',
       maxMegapixels: 4,
+      aspectRatios: _anyRatio,
     ),
     'flux-2-klein-9b': ImageCapabilities(
       sizes: ['1K', '2K'],
       defaultSize: '1K',
       maxMegapixels: 4,
+      aspectRatios: _anyRatio,
     ),
+    // Kontext is the other way round from FLUX.2: an `aspect_ratio` string
+    // and no pixel fields at all, so it declares the shapes and no sizes.
+    'flux-kontext-pro': ImageCapabilities(aspectRatios: _anyRatio),
     'flux-2-klein-4b': ImageCapabilities(
       sizes: ['1K', '2K'],
       defaultSize: '1K',
       maxMegapixels: 4,
+      aspectRatios: _anyRatio,
     ),
   };
 }

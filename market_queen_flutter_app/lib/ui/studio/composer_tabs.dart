@@ -216,7 +216,7 @@ class ComposerTabBar extends StatelessWidget {
   /// while everything is on one line -- which is what it always was -- and a
   /// rounded rectangle the moment it needs two, instead of a stadium whose
   /// curve cuts through the pills at either end.
-  static const double _frameRadius = _pillHeight / 2 + _framePadding;
+  static const double _frameRadius = _pillHeight / 10 + _framePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -345,7 +345,7 @@ class _Pill extends StatelessWidget {
           padding: EdgeInsets.only(left: 14, right: onRemove == null ? 14 : 6),
           decoration: BoxDecoration(
             color: fill,
-            borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+            borderRadius: BorderRadius.circular(5),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -417,6 +417,18 @@ String qualityLabel(String value) => switch (value) {
   'low' => tr('Draft'),
   'medium' => tr('Standard'),
   'high' => tr('Best'),
+  _ => value,
+};
+
+/// A shape, named where it has a name.
+///
+/// The three the app has always offered are what an ad is usually cut to, so
+/// they keep their words. The other seven Gemini draws are just ratios, and
+/// "4:5" is already the clearest thing anyone could write for 4:5.
+String ratioLabel(String value) => switch (value) {
+  '9:16' => tr('Vertical 9:16'),
+  '1:1' => tr('Square 1:1'),
+  '16:9' => tr('Wide 16:9'),
   _ => value,
 };
 

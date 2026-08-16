@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:market_queen/app_state.dart';
 import 'package:market_queen/models/prompt_doctor.dart';
+import 'package:market_queen/providers/capabilities.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
@@ -215,8 +216,25 @@ void main() {
     });
 
     testWidgets('a model with no size input offers no row', (tester) async {
-      // Gemini sizes itself from the ratio alone, so a menu there would be a
-      // control that does nothing.
+      // Ideogram's rendering speed is half of its model id and it publishes no
+      // frame field at all, so both menus would be controls that do nothing.
+      app.settings
+        ..setPref('imageProvider', 'ideogram-image')
+        ..setPref('imageModel', 'ideogram-v3:TURBO');
+
+      await pumpEditor(tester);
+      await pickTab(tester, ComposerTab.image);
+
+      expect(offers('Size'), isFalse);
+      expect(offers('Quality'), isFalse);
+    });
+
+    testWidgets('Gemini offers its four frames and no quality step', (
+      tester,
+    ) async {
+      // `image_size` is a real field on the request and each token is a
+      // different published price, so it earns a menu. There is no quality
+      // step to go with it.
       app.settings
         ..setPref('imageProvider', 'gemini-image')
         ..setPref('imageModel', 'gemini-3.1-flash-image');
@@ -224,8 +242,36 @@ void main() {
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.image);
 
-      expect(offers('Size'), isFalse);
       expect(offers('Quality'), isFalse);
+      expect(offers('Size'), isTrue);
+
+      await openSetting(tester, 'Size');
+      for (final size in ['512px', '1K', '2K', '4K']) {
+        expect(find.text(size), findsWidgets, reason: size);
+      }
+      await tester.tap(find.text('4K').last);
+      await settle(tester);
+      expect(app.settings.prefString('imageSize'), '4K');
+    });
+
+    testWidgets('a one-frame model gets no menu but still sends the frame', (
+      tester,
+    ) async {
+      // Flash Lite draws 1K and nothing else: a one-entry menu is a control
+      // that cannot be operated, but the token is still what the endpoint
+      // prices from, so it goes on the request.
+      app.settings
+        ..setPref('imageProvider', 'gemini-image')
+        ..setPref('imageModel', 'gemini-3.1-flash-lite-image');
+
+      await pumpEditor(tester);
+      await pickTab(tester, ComposerTab.image);
+
+      expect(offers('Size'), isFalse);
+      expect(
+        ImageCapabilities.of('gemini-3.1-flash-lite-image').sizeOr(''),
+        '1K',
+      );
     });
 
     testWidgets('OpenAI offers its three quality steps', (tester) async {

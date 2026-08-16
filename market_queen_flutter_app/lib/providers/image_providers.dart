@@ -120,10 +120,21 @@ class GeminiImageTask extends ImageTask {
         'input': input,
         'response_format': {
           'type': 'image',
-          'mime_type': 'image/png',
+          // No `mime_type`. The guide lists both JPEG and PNG, but which of
+          // them a given model accepts is not the same answer everywhere --
+          // Nano Banana refuses PNG outright with "Supported values:
+          // 'image/jpeg'" -- and asking for the wrong one fails the whole
+          // request rather than falling back. Left out, the model returns what
+          // it returns and says so in the block; the file is written with that
+          // extension. Nothing downstream cares which it is.
           'aspect_ratio': request.aspectRatio.isEmpty
               ? '9:16'
               : request.aspectRatio,
+          // "512px", "1K", "2K", "4K" -- the API's own tokens, so what the
+          // Size menu holds goes on the wire untouched. Absent on the models
+          // that publish no choice, which is what an omitted field means to
+          // this endpoint: use the default.
+          if (request.size.isNotEmpty) 'image_size': request.size,
         },
       },
       headers: {'x-goog-api-key': request.apiKey},
