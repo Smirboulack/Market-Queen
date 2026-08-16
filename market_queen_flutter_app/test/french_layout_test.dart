@@ -24,6 +24,10 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // Stored as well as applied: AppState reapplies the saved language on
+    // every preference write, so a French test that changes a setting has to
+    // have French saved or it flips to English mid-test.
+    app.settings.uiLanguage = 'fr';
     await app.translator.applyLanguage('fr');
     VideoPosterImage.extraction = false;
   });
@@ -104,21 +108,45 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await pumpEditor(tester, sizes.last);
 
+    // The narrowest window drops the pill labels and keeps the glyphs, which
+    // is the point of the compact mode: French mode names are the longest on
+    // the row and they share it with the settings, which cannot shrink. So a
+    // pill is reached by its label where there is one and by its tooltip
+    // where the label has stood down.
+    Finder pill(ComposerTab tab) {
+      final label = find.text(ComposerSpec.of(tab).label);
+      return label.evaluate().isEmpty
+          ? find.byTooltip(ComposerSpec.of(tab).label)
+          : label;
+    }
+
     for (final tab in ComposerTab.values) {
       if (ComposerSpec.secondary.contains(tab)) {
-        await tester.tap(find.text(tr('See more')));
+        // "See more" is a pill like the others and loses its label too.
+        final more = find.text(tr('See more'));
+        await tester.tap(
+          more.evaluate().isEmpty ? find.byTooltip(tr('See more')) : more,
+        );
         await settle(tester);
+        // The menu spells them out whatever the pills are doing.
         await tester.tap(find.text(ComposerSpec.of(tab).label).last);
       } else {
-        await tester.tap(find.text(ComposerSpec.of(tab).label));
+        await tester.tap(pill(tab).first);
       }
       await settle(tester);
+      // The settings are chips on the bar itself now, so a bar that lays out
+      // without overflowing *is* the settings laying out: the French labels
+      // are on screen already rather than behind a cog.
       expect(tester.takeException(), isNull, reason: '${tab.name} bar');
 
-      await tester.tap(find.byTooltip(tr('Settings')));
-      await settle(tester);
-      expect(tester.takeException(), isNull, reason: '${tab.name} settings');
-      await dismiss(tester);
+      // And each one opens its own menu without overflowing either.
+      final model = find.byTooltip(tr('Change the %1').arg(tr('Model').toLowerCase()));
+      if (model.evaluate().isNotEmpty) {
+        await tester.tap(model);
+        await settle(tester);
+        expect(tester.takeException(), isNull, reason: '${tab.name} model menu');
+        await dismiss(tester);
+      }
     }
   });
 

@@ -282,5 +282,9 @@
   "square": "方形",
   "landscape": "横向",
   "portrait": "纵向",
-  "Auto": "自动"
+  "Auto": "自动",
+  "Change the %1": "更改：%1",
+  "Improve this prompt": "优化此提示词",
+  "No model enabled": "未启用任何模型",
+  "Subtitled": "带字幕"
 }

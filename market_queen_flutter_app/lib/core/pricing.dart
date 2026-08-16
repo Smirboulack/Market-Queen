@@ -803,6 +803,32 @@ class Pricing {
     return best;
   }
 
+  /// What a one-shot call to a writer would cost.
+  ///
+  /// The rewrite button prices itself with this: it is the only place in the
+  /// app where the user picks a text model for a single, immediate action, so
+  /// the figure has to be per-press rather than per-million-tokens. Approximate
+  /// by nature -- how long an answer comes back is the model's decision -- and
+  /// shown as such.
+  CostEstimate tokenCost(
+    String modelId, {
+    required double inTokens,
+    required double outTokens,
+  }) {
+    final price = _priceFor(modelId);
+    if (!price.known || price.unit != 'tokens') return CostEstimate.unknown;
+
+    return CostEstimate(
+      true,
+      inTokens / 1e6 * price.tokensIn + outTokens / 1e6 * price.tokensOut,
+    );
+  }
+
+  /// Roughly four characters to a token, the usual English figure. Public so
+  /// the callers that size a one-off call use the same conversion the
+  /// estimate does.
+  static double tokensIn(String text) => text.length / _charsPerToken;
+
   /// Same shape, from what a finished run actually consumed.
   PriceBreakdown actual(List<Usage> consumed) => _total([
         for (final use in consumed)

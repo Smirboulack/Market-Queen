@@ -517,6 +517,7 @@ class MqIconButton extends StatelessWidget {
     this.enabled = true,
     this.size = 26,
     this.canRequestFocus = true,
+    this.tint,
   });
 
   final String icon;
@@ -529,6 +530,11 @@ class MqIconButton extends StatelessWidget {
   /// Off for buttons that act on the field they sit inside. Taking the focus
   /// there reads as leaving the field, which commits it.
   final bool canRequestFocus;
+
+  /// A colour for the glyph at rest, for the one or two buttons worth picking
+  /// out of a grey bar. Hover and press still take over -- a tinted button
+  /// must still answer the pointer like every other one.
+  final Color? tint;
 
   @override
   Widget build(BuildContext context) {
@@ -553,7 +559,7 @@ class MqIconButton extends StatelessWidget {
             ? mq.error
             : states.active
             ? mq.textPrimary
-            : mq.textTertiary;
+            : (tint ?? mq.textTertiary);
 
         return AnimatedContainer(
           duration: states.duration,

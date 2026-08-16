@@ -70,6 +70,35 @@ class PromptDoctor extends ChangeNotifier {
     if (task != null && !task.isFinished) task.cancel();
   }
 
+  /// Every writer that could run, in menu order: the one chosen for scripts
+  /// first, then the rest, and only the models a key actually unlocks.
+  List<PromptWriter> get writers {
+    final chosen = _registry.providerOrDefault(
+      'text',
+      _settings.prefString('textProvider'),
+    );
+
+    final providers = <ProviderEntry>[
+      for (final entry in _registry.providers('text'))
+        if (entry.id == chosen) entry,
+      for (final entry in _registry.providers('text'))
+        if (entry.id != chosen) entry,
+    ];
+
+    return [
+      for (final provider in providers)
+        if (_settings.hasApiKey(provider.credential))
+          for (final model in provider.models)
+            if (!_settings.modelHidden(provider.id, model.id))
+              PromptWriter(
+                providerId: provider.id,
+                modelId: model.id,
+                label: model.label,
+                account: provider.label,
+              ),
+    ];
+  }
+
   /// Which writer would run, on the keys that are actually present.
   ///
   /// The writer the user has already chosen, so somebody who picked Gemini
@@ -117,6 +146,7 @@ class PromptDoctor extends ChangeNotifier {
     required String prompt,
     required PromptKind kind,
     String context = '',
+    PromptWriter? using,
   }) async {
     if (busy) return '';
 
@@ -126,7 +156,11 @@ class PromptDoctor extends ChangeNotifier {
       return '';
     }
 
-    final chosen = writer;
+    // The writer the user picked off the button, when they picked one. The
+    // button is a menu now rather than a single action, because a rewrite is
+    // billed and which account pays for it is worth choosing rather than
+    // inheriting from a preference set for a different job.
+    final chosen = using ?? writer;
     if (!chosen.exists) {
       _setError(tr('No writer has a key yet. Add one under Models.'));
       return '';
@@ -185,7 +219,10 @@ class PromptDoctor extends ChangeNotifier {
   /// name of a file the model will be handed, not a word -- and stay in the
   /// user's language, because half these prompts are French and a model asked
   /// to "improve" one will otherwise hand back English.
-  @visibleForTesting
+  /// The instruction sent with a rewrite.
+  ///
+  /// Public because the button that offers the rewrite prices it first, and
+  /// the instruction is half of what will be charged for.
   static String systemPromptFor(PromptKind kind) {
     const common =
         'Answer with the rewritten prompt and nothing else: no preface, no '

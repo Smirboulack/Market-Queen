@@ -282,5 +282,9 @@
   "square": "vierkant",
   "landscape": "liggend",
   "portrait": "staand",
-  "Auto": "Auto"
+  "Auto": "Auto",
+  "Change the %1": "%1 wijzigen",
+  "Improve this prompt": "Deze prompt verbeteren",
+  "No model enabled": "Geen model ingeschakeld",
+  "Subtitled": "Ondertiteld"
 }

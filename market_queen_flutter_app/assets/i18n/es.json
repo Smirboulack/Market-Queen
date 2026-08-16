@@ -282,5 +282,9 @@
   "square": "cuadrado",
   "landscape": "horizontal",
   "portrait": "vertical",
-  "Auto": "Auto"
+  "Auto": "Auto",
+  "Change the %1": "Cambiar: %1",
+  "Improve this prompt": "Mejorar este prompt",
+  "No model enabled": "Ningún modelo activado",
+  "Subtitled": "Subtitulado"
 }

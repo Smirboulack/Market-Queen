@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:market_queen/app_state.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
-import 'package:market_queen/ui/studio/canvas_view.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/chip.dart';
@@ -29,6 +28,11 @@ void main() {
     // The labels asserted below are the English sources. Without this the
     // catalogue follows the machine's own locale, and the whole file fails on
     // a French one.
+    // The stored language too, not just the translator. AppState reapplies
+    // `settings.uiLanguage` on every preference write, so a test that changes
+    // any setting would otherwise snap the interface back to whatever this
+    // machine has saved -- and every label asserted below is the English one.
+    app.settings.uiLanguage = 'en';
     await app.translator.applyLanguage('en');
   });
 
@@ -46,7 +50,12 @@ void main() {
           theme: theme.material,
           home: Scaffold(
             backgroundColor: theme.background,
+            // A fresh tree per test. Without it Flutter reuses the previous
+            // test's State -- same widget type, same position -- so the
+            // composer starts each test on whatever tab, with whatever
+            // advanced pills, the one before it left behind.
             body: AdEditorPage(
+              key: UniqueKey(),
               app: app,
               onGenerate: () {},
               onOpenRender: () {},
@@ -61,26 +70,42 @@ void main() {
   /// The prompt bar itself -- the drop target the whole thing is wrapped in.
   Rect barRect(WidgetTester tester) => tester.getRect(find.byType(DropTarget));
 
-  Future<void> openSettings(WidgetTester tester) async {
-    await tester.tap(find.byTooltip('Settings'));
+  /// A menu's open and close animations, with room to spare.
+  ///
+  /// Generously long on purpose. `pumpAndSettle` cannot be used here -- the
+  /// canvas runs a shimmer that never stops, so it would wait forever -- so
+  /// the frames are pumped by hand, and a menu that has not finished opening
+  /// when the next tap lands stays up and swallows it. A second is far longer
+  /// than the ~300ms the route takes, and it costs the test nothing: pumped
+  /// time is not real time.
+  Future<void> menuSettles(WidgetTester tester) async {
     await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
   }
 
-  testWidgets('the bar is centred on the page, panel open or shut', (
-    tester,
-  ) async {
+  /// Opens one setting's menu by pressing its chip.
+  Future<void> openSetting(WidgetTester tester, String label) async {
+    await tester.tap(find.byTooltip('Change the ${label.toLowerCase()}'));
+    await menuSettles(tester);
+  }
+
+  /// Puts an open menu away again.
+  ///
+  /// Checked first, and that is the point: the dismissing tap lands at the top
+  /// left of the page, which is only harmless while a menu's barrier is there
+  /// to swallow it. With no menu up it reaches whatever is actually at those
+  /// coordinates and navigates away from the composer entirely.
+  Future<void> closeMenu(WidgetTester tester) async {
+    if (find.byType(PopupMenuItem<String>).evaluate().isEmpty) return;
+    await tester.tapAt(const Offset(8, 8));
+    await menuSettles(tester);
+  }
+
+  testWidgets('the bar is centred on the page', (tester) async {
     await pumpEditor(tester);
 
-    final shut = barRect(tester);
-    expect(shut.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1));
-
-    await openSettings(tester);
-    expect(find.byType(ComposerSettings), findsOneWidget);
-
-    // It may well be narrower -- a panel beside it has to come out of
-    // somewhere -- but its middle is still the middle of the page.
-    final open = barRect(tester);
-    expect(open.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1));
+    final bar = barRect(tester);
+    expect(bar.center.dx, moreOrLessEquals(window.width / 2, epsilon: 1));
   });
 
   testWidgets('the shut bar gets the whole width', (tester) async {
@@ -93,64 +118,58 @@ void main() {
     expect(barRect(tester).width, greaterThan(available * 0.85));
   });
 
-  testWidgets('the settings panel takes no height from the canvas', (
+  testWidgets('every setting is on the bar, showing its value', (
     tester,
   ) async {
+    // The point of the change: no cog, and nothing to open before you can see
+    // what the next generation is set to.
     await pumpEditor(tester);
+    expect(find.byTooltip('Settings'), findsNothing);
 
-    final before = tester.getRect(find.byType(CanvasView));
-    final bottom = barRect(tester).bottom;
+    await tester.tap(find.text(ComposerSpec.of(ComposerTab.image).label));
+    await tester.pump();
 
-    await openSettings(tester);
-
-    expect(tester.getRect(find.byType(CanvasView)), before);
-    // The bar stays welded to the bottom of the page whatever grows above it.
-    expect(barRect(tester).bottom, moreOrLessEquals(bottom, epsilon: 0.5));
+    // The model the bar will spend at, named on the bar itself.
+    expect(find.text(app.runner.modelLabel('image')), findsOneWidget);
+    expect(find.byTooltip('Change the model'), findsOneWidget);
   });
 
-  testWidgets('opening the panel never changes the bar', (tester) async {
-    // The promise the panel used to break at both ends of the range: a wide
-    // window took 340px off the bar to stand a column beside it, and a narrow
-    // one stacked the column over the prompt. Either way the caret moved when
-    // the cog was pressed. The panel is in the overlay now, so the bar is the
-    // same object before and after on any window.
-    for (final size in [
-      const Size(2200, 940),
-      window,
-      const Size(1040, 900),
-    ]) {
-      await pumpEditor(tester, size: size);
+  testWidgets('a chip opens its own menu and no other', (tester) async {
+    await pumpEditor(tester);
+    await tester.tap(find.text(ComposerSpec.of(ComposerTab.image).label));
+    await tester.pump();
 
-      final shut = barRect(tester);
-      await openSettings(tester);
+    // Restored afterwards: the settings store is a real file shared with every
+    // other test file running at the same time.
+    final provider = app.settings.prefString('imageProvider');
+    final model = app.settings.prefString('imageModel');
+    final size = app.settings.prefString('imageSize');
+    addTearDown(() => app.settings
+      ..setPref('imageProvider', provider)
+      ..setPref('imageModel', model)
+      ..setPref('imageSize', size));
 
-      expect(find.byType(ComposerSettings), findsOneWidget, reason: '$size');
-      expect(barRect(tester), shut, reason: '$size');
+    app.settings
+      ..setPref('imageProvider', 'bytedance-image')
+      ..setPref('imageModel', 'seedream-4-5-251128');
+    await tester.pump();
 
-      // And a press anywhere else puts it away, the way a menu does. Also what
-      // leaves the state clean for the next size: the tree survives the next
-      // `pumpWidget`, so a panel left open would still be open in it.
-      await tester.tapAt(const Offset(8, 8));
-      await tester.pump();
-      expect(find.byType(ComposerSettings), findsNothing, reason: '$size');
+    // Pressing Size asks about the frame. It does not also offer the model,
+    // the format or the quality, which is what the old panel did.
+    await openSetting(tester, 'Size');
+    for (final size in ['1K', '2K', '4K']) {
+      expect(find.text(size), findsWidgets, reason: size);
     }
+    expect(find.text('Best'), findsNothing);
+
+    await tester.tap(find.text('4K').last);
+    await menuSettles(tester);
+    expect(app.settings.prefString('imageSize'), '4K');
+
+    // The tree survives the next `pumpWidget`, so anything left open here is
+    // still open in the test after it.
+    await closeMenu(tester);
   });
-
-  testWidgets('the panel hangs above the button that opened it', (tester) async {
-    await pumpEditor(tester);
-    await openSettings(tester);
-
-    final button = tester.getRect(find.byTooltip('Hide the settings'));
-    final panel = tester.getRect(find.byType(ComposerSettings));
-
-    // Bottom edge just above the cog, right edge lined up with it: it grows
-    // upward over the canvas rather than downward off the page.
-    expect(panel.bottom, lessThanOrEqualTo(button.top));
-    expect(button.top - panel.bottom, lessThan(16));
-    expect(panel.right, moreOrLessEquals(button.right, epsilon: 0.5));
-    expect(panel.top, greaterThan(0));
-  });
-
 
   testWidgets('the prompt is the same height on every tab', (tester) async {
     // The *prompt*, not the bar around it. The clip shelf now carries a framed
@@ -178,16 +197,15 @@ void main() {
     await pumpEditor(tester);
 
     final subtitles = ComposerSpec.of(ComposerTab.captions).label;
+    await closeMenu(tester);
 
     // Pumped by hand rather than settled: the canvas runs a shimmer that never
     // stops, so `pumpAndSettle` waits for it forever.
     await tester.tap(find.text('See more'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await menuSettles(tester);
 
     await tester.tap(find.text(subtitles).last);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await menuSettles(tester);
 
     // Both on the bar: the mode that was picked, and the way back to the rest.
     expect(find.text(subtitles), findsOneWidget);
@@ -207,14 +225,13 @@ void main() {
     // the bar they sit above. The test framework fails on a laid-out overflow
     // by itself, so pulling all three out is the whole assertion.
     await pumpEditor(tester);
+    await closeMenu(tester);
 
     for (final tab in ComposerSpec.secondary) {
       await tester.tap(find.text('See more'));
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      await menuSettles(tester);
       await tester.tap(find.text(ComposerSpec.of(tab).label).last);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 400));
+      await menuSettles(tester);
     }
 
     for (final tab in ComposerSpec.secondary) {
@@ -228,11 +245,11 @@ void main() {
     // The one that had to be closed and reopened before it took: `setPref`
     // wrote the value and told nobody, so the row kept drawing the old name.
     await pumpEditor(tester);
+    await closeMenu(tester);
     await tester.tap(find.text(ComposerSpec.of(ComposerTab.video).label));
     await tester.pump();
-    await openSettings(tester);
 
-    // Worked out the way the row itself works it out: the name of the model
+    // Worked out the way the chip itself works it out: the name of the model
     // the saved preference names, or the provider's default when there is none.
     String shownModel() {
       final registry = app.registry;
@@ -247,9 +264,7 @@ void main() {
     final before = shownModel();
     expect(find.text(before), findsOneWidget);
 
-    await tester.tap(find.text(before));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await openSetting(tester, 'Model');
 
     // Whichever entry in the menu is not the one already showing. The label
     // rather than every Text in the row: each entry also carries its account's
@@ -265,8 +280,7 @@ void main() {
     expect(other, isNotEmpty, reason: 'needs two models to switch between');
 
     await tester.tap(find.text(other));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await menuSettles(tester);
 
     final after = shownModel();
     expect(after, isNot(before));
@@ -274,28 +288,31 @@ void main() {
     expect(find.text(after), findsOneWidget);
   });
 
-  testWidgets('the picture and video columns end on a price', (tester) async {
+  testWidgets('the settings row ends on the price', (tester) async {
     await pumpEditor(tester);
 
     for (final tab in [ComposerTab.image, ComposerTab.video]) {
-      // The panel is a menu now: it covers the pill row while it is up, so it
-      // has to be put away before the next tab can be reached.
-      if (find.byType(ComposerSettings).evaluate().isNotEmpty) {
-        await tester.tapAt(const Offset(8, 8));
-        await tester.pump();
-      }
-
+      await closeMenu(tester);
       await tester.tap(find.text(ComposerSpec.of(tab).label));
       await tester.pump();
-      await openSettings(tester);
 
-      expect(find.text('Cost'), findsOneWidget, reason: '${tab.name} tab');
+      // Nothing to price with an empty prompt -- that rule is asserted in
+      // composer_actions_test. Typing one brings the figure back.
+      await tester.enterText(
+        find.byType(EditableText).first,
+        'a bottle on a windowsill',
+      );
+      await tester.pump();
 
-      // Last in the column, with nothing ruled underneath it.
-      final panel = tester.getRect(find.byType(ComposerSettings));
-      final cost = tester.getRect(find.text('Cost'));
-      expect(cost.bottom, lessThan(panel.bottom));
-      expect(panel.bottom - cost.bottom, lessThan(30));
+      final price = find.textContaining(r'$');
+      expect(price, findsWidgets, reason: '${tab.name} tab');
+
+      // At the end of the chips, on the same line as them, and left of the
+      // send button.
+      final bar = barRect(tester);
+      final tag = tester.getRect(price.first);
+      expect(tag.right, lessThan(bar.right));
+      expect(tag.bottom, lessThanOrEqualTo(bar.bottom));
     }
   });
 }

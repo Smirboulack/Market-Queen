@@ -38,6 +38,11 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // The stored language too, not just the translator. AppState reapplies
+    // `settings.uiLanguage` on every preference write, so a test that changes
+    // any setting would otherwise snap the interface back to whatever this
+    // machine has saved -- and every label asserted below is the English one.
+    app.settings.uiLanguage = 'en';
     await app.translator.applyLanguage('en');
   });
 

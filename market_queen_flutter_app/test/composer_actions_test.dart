@@ -18,6 +18,11 @@ void main() {
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
     app = await AppState.create();
+    // The stored language too, not just the translator. AppState reapplies
+    // `settings.uiLanguage` on every preference write, so a test that changes
+    // any setting would otherwise snap the interface back to whatever this
+    // machine has saved -- and every label asserted below is the English one.
+    app.settings.uiLanguage = 'en';
     await app.translator.applyLanguage('en');
   });
 
@@ -178,10 +183,16 @@ void main() {
   });
 
   group('the picture settings follow the model', () {
-    Future<void> openSettings(WidgetTester tester) async {
-      await tester.tap(find.byTooltip('Settings'));
+    /// Opens one setting's menu by pressing it. There is no panel any more:
+    /// each setting is its own control above the bar.
+    Future<void> openSetting(WidgetTester tester, String name) async {
+      await tester.tap(find.byTooltip('Change the ${name.toLowerCase()}'));
       await settle(tester);
     }
+
+    /// Whether this tab offers that setting at all.
+    bool offers(String name) =>
+        find.byTooltip('Change the ${name.toLowerCase()}').evaluate().isNotEmpty;
 
     testWidgets('a model that sizes in pixels offers 1K, 2K and 4K', (
       tester,
@@ -192,11 +203,9 @@ void main() {
 
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.image);
-      await openSettings(tester);
 
-      expect(find.text('Size'), findsOneWidget);
-      await tester.tap(find.text('2K'));
-      await settle(tester);
+      expect(offers('Size'), isTrue);
+      await openSetting(tester, 'Size');
       for (final size in ['1K', '2K', '4K']) {
         expect(find.text(size), findsWidgets, reason: size);
       }
@@ -214,10 +223,9 @@ void main() {
 
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.image);
-      await openSettings(tester);
 
-      expect(find.text('Size'), findsNothing);
-      expect(find.text('Quality'), findsNothing);
+      expect(offers('Size'), isFalse);
+      expect(offers('Quality'), isFalse);
     });
 
     testWidgets('OpenAI offers its three quality steps', (tester) async {
@@ -227,13 +235,13 @@ void main() {
 
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.image);
-      await openSettings(tester);
 
-      expect(find.text('Quality'), findsOneWidget);
-      expect(find.text('Size'), findsNothing);
+      // Both, now: the guide publishes a closed list of frames as well as the
+      // four quality steps, so OpenAI has a Size setting too.
+      expect(offers('Quality'), isTrue);
+      expect(offers('Size'), isTrue);
 
-      await tester.tap(find.text('Standard'));
-      await settle(tester);
+      await openSetting(tester, 'Quality');
       await tester.tap(find.text('Best').last);
       await settle(tester);
       expect(app.settings.prefString('imageQuality'), 'high');

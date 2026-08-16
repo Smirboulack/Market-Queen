@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart' show MediaKind;
 import '../../models/canvas_feed.dart';
-import '../../providers/capabilities.dart';
-import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
-import '../widgets/fields.dart';
 
 /// The six things the composer can be asked for.
 ///
@@ -242,10 +238,12 @@ class ComposerTabBar extends StatelessWidget {
       // pills are wider than the bar underneath them, and the frame is anchored
       // to the bottom of the page, so a second line grows upward into empty
       // background rather than pushing anything around.
+      // Anchored left, because the frame is now at the left end of a row it
+      // shares with the settings rather than centred over the bar on its own.
       child: Wrap(
         spacing: 4,
         runSpacing: 4,
-        alignment: WrapAlignment.center,
+        alignment: WrapAlignment.start,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           for (final tab in ComposerSpec.primary)
@@ -408,602 +406,41 @@ class _PillClose extends StatelessWidget {
   }
 }
 
-/// The column that appears to the right of the bar.
+/// The provider's own quality value, said in words.
 ///
-/// Everything here is a property of what will be generated rather than of what
-/// is being written, which is why it is beside the bar and not in it -- and why
-/// it is closed by default. A studio that opens onto twelve dropdowns is a
-/// studio nobody writes anything in.
-class ComposerSettings extends StatelessWidget {
-  const ComposerSettings({
-    super.key,
-    required this.app,
-    required this.tab,
-    required this.onClose,
-  });
+/// They are the same steps everywhere they exist, and they are prices as much
+/// as looks -- a third of a cent against twenty on the same model and the same
+/// frame. "Auto" is the API's own default on the models that have it: the
+/// model picks the effort from the prompt.
+String qualityLabel(String value) => switch (value) {
+  'auto' => tr('Auto'),
+  'low' => tr('Draft'),
+  'medium' => tr('Standard'),
+  'high' => tr('Best'),
+  _ => value,
+};
 
-  final AppState app;
-  final ComposerTab tab;
-  final VoidCallback onClose;
-
-  ComposerSpec get spec => ComposerSpec.of(tab);
-
-  /// How tall the column is allowed to get before its rows start scrolling.
-  ///
-  /// It hangs off the bottom edge of the composer and grows upward, so without
-  /// a ceiling a long model list would run off the top of the window.
-  static const double _maxHeight = 460;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-    final rows = _rows(context);
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: _maxHeight),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 12, 16),
-        decoration: BoxDecoration(
-          color: mq.surface,
-          borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
-          border: Border.all(color: mq.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    //: %1 is the name of a composer tab, e.g. "Video"
-                    tr('%1 settings').arg(spec.label),
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontBody,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: MqTheme.trackTitle,
-                    ),
-                  ),
-                ),
-                MqIconButton(
-                  icon: 'close-line',
-                  tip: tr('Close'),
-                  size: 24,
-                  onPressed: onClose,
-                ),
-              ],
-            ),
-            const SizedBox(height: MqTheme.gap),
-            Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // A settings column with nothing in it looks broken; saying
-                    // why is better than an empty box.
-                    if (rows.isEmpty)
-                      Text(
-                        tr('Nothing to set here -- hand it a file and press '
-                            'send.'),
-                        style: TextStyle(
-                          color: mq.textTertiary,
-                          fontSize: MqTheme.fontSmall,
-                          height: MqTheme.lineBody,
-                        ),
-                      ),
-                    // The hairline separates rows rather than terminating them,
-                    // so the last one -- the price, always -- has nothing ruled
-                    // underneath it.
-                    for (var i = 0; i < rows.length; ++i)
-                      _Row(
-                        label: rows[i].label,
-                        divider: i < rows.length - 1,
-                        child: rows[i].child,
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  List<({String label, Widget child})> _rows(BuildContext context) {
-    final project = app.project;
-
-    // A model with a closed list of frames answers the shape question inside
-    // the Size row -- "1536 x 1024 · landscape" is a ratio -- so a Format menu
-    // beside it would be a second control for one decision, and the one that
-    // loses. It is dropped rather than left there doing nothing.
-    final framed = tab == ComposerTab.image &&
-        ImageCapabilities.of(app.runner.modelFor(spec.category)).explicitSizes;
-
-    final rows = <({String label, Widget child})>[
-      if (spec.category.isNotEmpty)
-        (
-          label: tr('Model'),
-          child: _ModelPicker(app: app, category: spec.category),
-        ),
-      if (spec.picksAspect && !framed)
-        (
-          label: tr('Format'),
-          child: _Pick(
-            value: _aspect,
-            options: [
-              MenuOption(tr('Vertical 9:16'), '9:16'),
-              MenuOption(tr('Square 1:1'), '1:1'),
-              MenuOption(tr('Wide 16:9'), '16:9'),
-            ],
-            onPicked: (value) {
-              if (tab == ComposerTab.actors) {
-                project.setAspectRatio(value);
-              } else {
-                app.settings.setPref('${spec.category}Aspect', value);
-              }
-            },
-          ),
-        ),
-    ];
-
-    // What the chosen picture model offers, and nothing more. Most of them
-    // have neither -- Gemini and Bria size themselves from the ratio alone,
-    // Ideogram's rendering speed is half of its model id -- so the rows appear
-    // only under the models that actually declare a choice.
-    if (tab == ComposerTab.image) {
-      final picture = ImageCapabilities.of(app.runner.modelFor(spec.category));
-
-      if (picture.picksSize) {
-        rows.add((
-          label: tr('Size'),
-          child: _Pick(
-            value: picture.sizeOr(
-              app.settings.prefString('${spec.category}Size'),
-            ),
-            options: [
-              for (final size in picture.sizes)
-                MenuOption(_sizeLabel(size), size),
-            ],
-            onPicked: (value) =>
-                app.settings.setPref('${spec.category}Size', value),
-          ),
-        ));
-      }
-
-      if (picture.picksQuality) {
-        rows.add((
-          label: tr('Quality'),
-          child: _Pick(
-            value: picture.qualityOr(
-              app.settings.prefString('${spec.category}Quality'),
-            ),
-            options: [
-              for (final quality in picture.qualities)
-                MenuOption(_qualityLabel(quality), quality),
-            ],
-            onPicked: (value) =>
-                app.settings.setPref('${spec.category}Quality', value),
-          ),
-        ));
-      }
-    }
-
-    if (tab == ComposerTab.video) {
-      // What the chosen model actually accepts, rather than a list kept in step
-      // by hand. Hailuo offers 6 and 10 seconds and nothing between; Seedance
-      // 2.5 takes any whole number up to thirty; Veo has three lengths and
-      // forces the longest above 720p; Luma spells the same idea "5s". A fixed
-      // menu was wrong for all four -- and offering five seconds on a model
-      // that can do thirty is throwing away the reason to pick it.
-      final capabilities = app.modelSchemas.capabilities(
-        app.runner.providerFor('video'),
-        app.runner.modelFor('video', _videoSeconds),
-      );
-
-      final lengths = <MenuOption<String>>[
-        for (final token in capabilities.durationChoices)
-          if (ModelCapabilities.secondsOf(token) > 0)
-            MenuOption(
-              //: %1 is a whole number of seconds
-              tr('%1 s').arg(ModelCapabilities.secondsOf(token)),
-              '${ModelCapabilities.secondsOf(token)}',
-            ),
-      ];
-
-      rows.add(
-        (
-          label: tr('Length'),
-          child: lengths.isEmpty
-              // Still fetching, or a model with no length input at all. The
-              // two commonest lengths are offered meanwhile rather than an
-              // empty menu.
-              ? _Pick(
-                  value: '$_videoSeconds',
-                  options: [
-                    MenuOption(tr('%1 s').arg(5), '5'),
-                    MenuOption(tr('%1 s').arg(10), '10'),
-                  ],
-                  onPicked: _setSeconds,
-                )
-              : _Pick(
-                  value: '$_videoSeconds',
-                  options: lengths,
-                  onPicked: _setSeconds,
-                ),
-        ),
-      );
-
-      if (capabilities.resolutions.isNotEmpty) {
-        rows.add(
-          (
-            label: tr('Quality'),
-            child: _Pick(
-              value: _resolution(capabilities),
-              options: [
-                for (final value in capabilities.resolutions)
-                  MenuOption(value, value),
-              ],
-              onPicked: (value) =>
-                  app.settings.setPref('videoResolution', value),
-            ),
-          ),
-        );
-      }
-
-      // Only the models that can make sound get the switch. Offering it on one
-      // that cannot would be a control that does nothing.
-      if (capabilities.supportsAudio) {
-        rows.add(
-          (
-            label: tr('Audio'),
-            child: MqToggle(
-              value: app.settings.pref<bool>('videoAudio', true) ?? true,
-              tooltip: tr('Let the model generate a soundtrack as well as the '
-                  'picture.'),
-              onChanged: (value) => app.settings.setPref('videoAudio', value),
-            ),
-          ),
-        );
-      }
-    }
-
-    if (tab == ComposerTab.actors) {
-      rows.addAll([
-        (
-          label: tr('Max length'),
-          child: _Pick(
-            value: project.maxSeconds == 0 ? '' : '${project.maxSeconds}',
-            options: [
-              MenuOption(tr('As long as it takes'), ''),
-              MenuOption(tr('15 s'), '15'),
-              MenuOption(tr('20 s'), '20'),
-              MenuOption(tr('30 s'), '30'),
-              MenuOption(tr('45 s'), '45'),
-              MenuOption(tr('60 s'), '60'),
-            ],
-            onPicked: (value) =>
-                project.setMaxSeconds(int.tryParse(value) ?? 0),
-          ),
-        ),
-        (
-          label: tr('Subtitles'),
-          child: MqToggle(
-            value: project.captions,
-            onChanged: project.setCaptions,
-          ),
-        ),
-        (
-          label: tr('Product shots'),
-          child: MqToggle(
-            value: project.broll,
-            tooltip: project.broll
-                ? tr('The lines about the product are filmed on the product, '
-                    'with your voice over them.')
-                : tr('Every line is filmed on the actor.'),
-            onChanged: project.setBroll,
-          ),
-        ),
-      ]);
-    }
-
-    // No Cost row on any tab. This column is where you change what will be
-    // generated, and the price of it was already on the bar -- next to the
-    // send button, which is the thing the price is actually about. Saying it
-    // twice made the panel longer without answering a question the meter had
-    // not already answered.
-
-    return rows;
-  }
-
-  // How many the stepper is asking for used to be read back out of the
-  // preference here. It comes down with [order] now, from the bar that wrote
-  // it -- one order, priced once.
-
-  String get _aspect {
-    if (tab == ComposerTab.actors) return app.project.aspectRatio;
-    final saved = app.settings.prefString('${spec.category}Aspect');
-    return saved.isEmpty ? app.project.aspectRatio : saved;
-  }
-
-  int get _videoSeconds {
-    final saved = app.settings.pref<int>('videoSeconds', 0) ?? 0;
-    return saved < 1 ? 5 : saved;
-  }
-
-  void _setSeconds(String value) =>
-      app.settings.setPref('videoSeconds', int.tryParse(value) ?? 5);
-
-  /// The provider's own quality value, said in words. They are the same steps
-  /// everywhere they exist, and they are prices as much as looks -- a third of
-  /// a cent against twenty on the same model and the same frame.
-  static String _qualityLabel(String value) => switch (value) {
-    'auto' => tr('Auto'),
-    'low' => tr('Draft'),
-    'medium' => tr('Standard'),
-    'high' => tr('Best'),
-    _ => value,
-  };
-
-  /// A frame, as something readable.
-  ///
-  /// The shorthand sizes are already readable and pass through. The literal
-  /// ones -- OpenAI's -- become "1536 x 1024" with the shape named after them,
-  /// because "1024x1536" and "1536x1024" differ by two characters in the
-  /// middle and choosing the wrong one is a portrait ad shot in landscape.
-  static String _sizeLabel(String value) {
-    if (value == 'auto') return tr('Auto');
-
-    final parts = value.split('x');
-    if (parts.length != 2) return value;
-
-    final width = int.tryParse(parts[0]) ?? 0;
-    final height = int.tryParse(parts[1]) ?? 0;
-    if (width <= 0 || height <= 0) return value;
-
-    final shape = width == height
-        ? tr('square')
-        : width > height
-        ? tr('landscape')
-        : tr('portrait');
-    //: %1 and %2 are pixel counts, %3 is "square", "landscape" or "portrait"
-    return tr('%1 x %2  ·  %3').arg(width).arg(height).arg(shape);
-  }
-
-  /// The saved resolution when this model still offers it, otherwise whatever
-  /// the model itself defaults to. Switching from a model with 4k to one
-  /// without must not leave "4k" showing under a model that has never heard
-  /// of it.
-  String _resolution(ModelCapabilities capabilities) {
-    final saved = app.settings.prefString('videoResolution');
-    return capabilities.resolutions.contains(saved)
-        ? saved
-        : capabilities.firstResolution;
-  }
-}
-
-/// A label on the left, its control on the right, and -- unless it is the last
-/// one -- a hairline under it.
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.label,
-    required this.child,
-    this.divider = true,
-  });
-
-  final String label;
-  final Widget child;
-
-  /// Off on the bottom row. A rule under the last thing in a box closes nothing
-  /// off; it just draws a second border a few pixels inside the real one.
-  final bool divider;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: divider ? 4 : 0),
-      child: Column(
-        children: [
-          // The value is capped at a share of the row and the label takes
-          // whatever is left, rather than the two splitting it in a fixed
-          // ratio. Both other arrangements truncate something: give the label
-          // the room and a model name comes out as "Kling AI Avatar v2 Stand…";
-          // give the value the room and a 38px toggle sits beside "Plans pro…".
-          // A cap plus the remainder is the only version where a short value
-          // hands its space back.
-          LayoutBuilder(
-            builder: (context, constraints) => Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textSecondary,
-                      fontSize: MqTheme.fontLabel,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: constraints.maxWidth * 0.62,
-                  ),
-                  child: child,
-                ),
-              ],
-            ),
-          ),
-          if (divider) ...[
-            const SizedBox(height: 10),
-            Container(height: 1, color: mq.borderSubtle),
-            const SizedBox(height: 6),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// The right-hand half of a settings row: the current value, and a chevron.
-class _Pick extends StatelessWidget {
-  const _Pick({
-    required this.value,
-    required this.options,
-    required this.onPicked,
-    this.display = '',
-    this.menuWidth = 230,
-  });
-
-  final String value;
-  final List<MenuOption<String>> options;
-  final ValueChanged<String> onPicked;
-
-  /// Shown in place of the picked option's own label, for the one row where
-  /// they differ: the model menu carries a price next to every entry, which is
-  /// what you want while choosing and pure noise afterwards -- and long enough
-  /// to push the model's actual name out of the column.
-  final String display;
-
-  final double menuWidth;
-
-  String get _label {
-    if (display.isNotEmpty) return display;
-    for (final option in options) {
-      if (option.value == value) return option.label;
-    }
-    return options.isEmpty ? '' : options.first.label;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Builder(
-      builder: (anchor) => Pressable(
-        onTap: () async {
-          final picked = await showChipMenu<String>(
-            anchor,
-            options: options,
-            current: value,
-            width: menuWidth,
-          );
-          if (picked != null) onPicked(picked);
-        },
-        focusRadius: MqTheme.radiusSmall,
-        builder: (context, states) => AnimatedContainer(
-          duration: states.duration,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: states.active ? mq.surfaceHover : Colors.transparent,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Flexible(
-                child: Text(
-                  _label,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: TextStyle(
-                    color: mq.textPrimary,
-                    fontSize: MqTheme.fontLabel,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 5),
-              MqIcon(
-                'arrow-down-s-line',
-                size: 15,
-                color: states.active ? mq.textPrimary : mq.textTertiary,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Provider and model in one menu.
+/// A frame, as something readable.
 ///
-/// They used to be two dropdowns on a settings page. They are one line here
-/// because nobody chooses a provider -- they choose a model, and the provider
-/// is a fact about it. Only models the Models page has left switched on appear.
-class _ModelPicker extends StatelessWidget {
-  const _ModelPicker({required this.app, required this.category});
+/// The shorthand sizes -- "1K", "2K" -- are already readable and pass through.
+/// The literal ones become "1536 x 1024 · landscape", with the shape named
+/// after the numbers: "1024x1536" and "1536x1024" differ by two characters in
+/// the middle, and picking the wrong one is a vertical ad shot in landscape.
+String sizeLabel(String value) {
+  if (value == 'auto') return tr('Auto');
 
-  final AppState app;
-  final String category;
+  final parts = value.split('x');
+  if (parts.length != 2) return value;
 
-  @override
-  Widget build(BuildContext context) {
-    final registry = app.registry;
-    final settings = app.settings;
+  final width = int.tryParse(parts[0]) ?? 0;
+  final height = int.tryParse(parts[1]) ?? 0;
+  if (width <= 0 || height <= 0) return value;
 
-    final providers = registry.providers(category);
-    final named = providers.length > 1;
-
-    final options = <MenuOption<String>>[];
-    for (final provider in providers) {
-      for (final model in provider.models) {
-        if (settings.modelHidden(provider.id, model.id)) continue;
-
-        final price = Format.unitPriceLabel(app.pricing.unitPrice(model.id));
-        final label = [
-          if (named) '${provider.label} · ',
-          model.label,
-          if (price.isNotEmpty) '   $price',
-        ].join();
-
-        options.add(
-          MenuOption(
-            label,
-            '${provider.id}|${model.id}',
-            mark: provider.credential,
-          ),
-        );
-      }
-    }
-
-    if (options.isEmpty) {
-      return Text(
-        tr('None enabled'),
-        style: TextStyle(
-          color: context.mq.warningText,
-          fontSize: MqTheme.fontLabel,
-        ),
-      );
-    }
-
-    final providerId = app.runner.providerFor(category);
-    final saved = settings.prefString('${category}Model');
-    final modelId = saved.isEmpty
-        ? registry.provider(providerId)?.defaultModel ?? ''
-        : saved;
-
-    return _Pick(
-      value: '$providerId|$modelId',
-      options: options,
-      // The name alone once it is chosen. Which provider it came from is a
-      // detail the menu shows and the row does not need to repeat.
-      display: registry.modelLabel(providerId, modelId),
-      menuWidth: 340,
-      onPicked: (value) {
-        final parts = value.split('|');
-        if (parts.length != 2) return;
-        settings
-          ..setPref('${category}Provider', parts[0])
-          ..setPref('${category}Model', parts[1]);
-      },
-    );
-  }
+  final shape = width == height
+      ? tr('square')
+      : width > height
+      ? tr('landscape')
+      : tr('portrait');
+  //: %1 and %2 are pixel counts, %3 is "square", "landscape" or "portrait"
+  return tr('%1 x %2  ·  %3').arg(width).arg(height).arg(shape);
 }
-

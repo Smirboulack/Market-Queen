@@ -1070,5 +1070,9 @@
   "%1 x %2  ·  %3": "%1 x %2  ·  %3",
   "square": "carré",
   "landscape": "paysage",
-  "portrait": "portrait"
+  "portrait": "portrait",
+  "Change the %1": "Modifier : %1",
+  "Improve this prompt": "Améliorer ce prompt",
+  "No model enabled": "Aucun modèle activé",
+  "Subtitled": "Sous-titré"
 }

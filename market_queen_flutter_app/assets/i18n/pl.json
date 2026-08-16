@@ -282,5 +282,9 @@
   "square": "kwadrat",
   "landscape": "poziomy",
   "portrait": "pionowy",
-  "Auto": "Auto"
+  "Auto": "Auto",
+  "Change the %1": "Zmień: %1",
+  "Improve this prompt": "Ulepsz ten prompt",
+  "No model enabled": "Brak włączonego modelu",
+  "Subtitled": "Z napisami"
 }

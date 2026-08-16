@@ -282,5 +282,9 @@
   "square": "quadrado",
   "landscape": "horizontal",
   "portrait": "vertical",
-  "Auto": "Auto"
+  "Auto": "Auto",
+  "Change the %1": "Alterar: %1",
+  "Improve this prompt": "Melhorar este prompt",
+  "No model enabled": "Nenhum modelo ativado",
+  "Subtitled": "Legendado"
 }

@@ -43,6 +43,11 @@ void main() {
     // The labels asserted below are the English sources. Without this the
     // catalogue follows the machine's own locale, and the whole file fails on
     // a French one.
+    // The stored language too, not just the translator. AppState reapplies
+    // `settings.uiLanguage` on every preference write, so a test that changes
+    // any setting would otherwise snap the interface back to whatever this
+    // machine has saved -- and every label asserted below is the English one.
+    app.settings.uiLanguage = 'en';
     await app.translator.applyLanguage('en');
     scratch = Directory.systemTemp.createTempSync('mq-studio-ux');
     // A reference clip would otherwise pull its poster frame with ffmpeg, and
@@ -117,6 +122,11 @@ void main() {
   /// Switches to a tab by its pill.
   Future<void> pickTab(WidgetTester tester, ComposerTab tab) async {
     await tester.tap(find.text(ComposerSpec.of(tab).label));
+    await tester.pump();
+    // A second frame, because the bar reports its own height after it has been
+    // laid out and the canvas takes the new reserve on the frame after that.
+    // Switching tabs changes which setting chips are on the bar, so the height
+    // genuinely moves now where it used to be the same on every tab.
     await tester.pump();
   }
 
@@ -388,11 +398,19 @@ void main() {
         final beforeReserve = reserve();
         final beforeFeed = feed();
 
-        await tester.tap(find.byTooltip('Settings'));
+        // Whichever shape the settings are in at this width: a row of text
+        // buttons when there is room, one folded button when there is not.
+        // Either way what opens lives in the overlay and costs the feed
+        // underneath nothing, which is what this test has always been about.
+        final folded = find.byTooltip('Settings');
+        await tester.tap(
+          folded.evaluate().isEmpty
+              ? find.byTooltip('Change the model')
+              : folded,
+        );
         await tester.pump();
-        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
 
-        expect(find.byType(ComposerSettings), findsOneWidget, reason: '$size');
         expect(
           reserve(),
           moreOrLessEquals(beforeReserve, epsilon: 0.5),

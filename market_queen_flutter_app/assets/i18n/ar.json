@@ -282,5 +282,9 @@
   "square": "مربّع",
   "landscape": "أفقي",
   "portrait": "رأسي",
-  "Auto": "تلقائي"
+  "Auto": "تلقائي",
+  "Change the %1": "تغيير: %1",
+  "Improve this prompt": "حسّن هذه المطالبة",
+  "No model enabled": "لا يوجد نموذج مفعّل",
+  "Subtitled": "مترجَم"
 }

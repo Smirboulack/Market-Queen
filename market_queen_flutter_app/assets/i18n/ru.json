@@ -282,5 +282,9 @@
   "square": "квадрат",
   "landscape": "альбомная",
   "portrait": "портретная",
-  "Auto": "Авто"
+  "Auto": "Авто",
+  "Change the %1": "Изменить: %1",
+  "Improve this prompt": "Улучшить этот промпт",
+  "No model enabled": "Нет включённых моделей",
+  "Subtitled": "С субтитрами"
 }
