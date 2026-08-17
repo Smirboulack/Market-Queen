@@ -246,19 +246,25 @@ class VoiceProfile {
   };
 }
 
-/// What a voice is, in the same words the chips use.
+/// What a voice is, one fact per entry, in the same words the filters use.
 ///
-/// Shown under the name in the shortlist, which is what makes the shortlist an
-/// argument rather than a list: the user can see that every line really does
-/// say `fr-FR · Femme · Jeune · Réseaux sociaux`.
-String describeVoice(LibraryVoice voice) {
-  final parts = <String>[
+/// This is what makes the shortlist an argument rather than a list: the user can
+/// see that every row really does say `fr-FR`, `Femme`, `Jeune`, `Réseaux
+/// sociaux`. Returned as parts rather than as a sentence because the row draws
+/// them as separate tags -- six facts run together read as one long grey line,
+/// and the one you are checking is never the one you find first.
+List<String> voiceTags(LibraryVoice voice) => [
+  for (final part in [
     voice.locale.isNotEmpty ? voice.locale : voice.language,
     if (voice.accent.isNotEmpty && voice.accent != 'standard') voice.accent,
     VoiceTrait.labelFor('voiceGender', voice.gender),
     VoiceTrait.labelFor('voiceAge', voice.age),
     VoiceTrait.labelFor('voiceUse', voice.useCase),
     VoiceTrait.labelFor('voiceTone', voice.descriptive),
-  ];
-  return parts.where((part) => part.isNotEmpty).join(' · ');
-}
+  ])
+    if (part.isNotEmpty) part,
+];
+
+/// The same facts as one line, for the places that have room for a sentence and
+/// not for a row of tags -- the description stored on the actor, the log.
+String describeVoice(LibraryVoice voice) => voiceTags(voice).join(' · ');

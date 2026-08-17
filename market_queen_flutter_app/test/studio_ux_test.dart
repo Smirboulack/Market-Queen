@@ -24,6 +24,8 @@ import 'package:market_queen/ui/widgets/media_drop.dart';
 import 'package:market_queen/ui/widgets/skeleton.dart';
 import 'package:market_queen/ui/widgets/video_poster.dart';
 
+import 'support/sandbox.dart';
+
 /// The six studio complaints, each pinned by the thing that was actually wrong.
 ///
 /// Four of them are only visible in a laid-out tree -- a caption under a tile,
@@ -32,6 +34,9 @@ import 'package:market_queen/ui/widgets/video_poster.dart';
 /// reveal-in-folder calls end in the operating system and are not asserted here;
 /// what can be is the decision made before the call.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   const window = Size(1420, 940);
 
   late AppState app;
@@ -542,8 +547,20 @@ void main() {
       await pumpEditor(tester);
       await putResult(tester);
 
-      expect(find.text('a horse with wings'), findsNothing);
-      expect(find.text('Nano Banana 2'), findsNothing);
+      // Scoped to the feed, and it has to be: the model name is also the value
+      // on the settings row above the bar, which is a different claim about a
+      // different thing.
+      Finder inTheFeed(String text) =>
+          find.descendant(of: find.byType(CanvasView), matching: find.text(text));
+
+      expect(inTheFeed('a horse with wings'), findsNothing);
+
+      // The model name *is* on the tile, and deliberately: it is the head of
+      // the facts strip -- what made this, how long it is, what it cost -- which
+      // is the one thing you cannot work out by looking at the picture. The
+      // prompt is the thing that must not be repeated, because it is still
+      // sitting in the bar three inches below.
+      expect(inTheFeed('Nano Banana 2'), findsOneWidget);
     });
 
     testWidgets('an error still says what went wrong', (tester) async {
@@ -639,9 +656,15 @@ void main() {
       await pumpEditor(tester);
       await pickTab(tester, ComposerTab.video);
 
-      // Seedance 2.5 takes thirty stills. It takes clips and recordings too,
-      // but only as hosted links, and this app has nowhere to put one -- so
-      // the well does not offer a drop it would have to refuse at send.
+      // Seedance 2.5 takes thirty stills and ten recordings, both as base64.
+      // It declares a reference-clip list as well, but only as a hosted link,
+      // and this app has nowhere to put one -- so that is the one drop the well
+      // does not offer, because it would have to be refused at send.
+      //
+      // Which of the three is closed is read off `inlinesImages` /
+      // `inlinesAudios` / `inlinesVideos` in `ModelCapabilities.declared`, not
+      // out of this test: a provider that starts accepting inline clips should
+      // gain the button, and this line is what says which way round it is today.
       //
       // Looked up through `tr` rather than written out: the catalogue that
       // happens to be loaded depends on the machine's language, and this is a
@@ -649,7 +672,7 @@ void main() {
       // labelled in.
       expect(find.byTooltip(tr('Add pictures')), findsOneWidget);
       expect(find.byTooltip(tr('Add clips')), findsNothing);
-      expect(find.byTooltip(tr('Add a recording')), findsNothing);
+      expect(find.byTooltip(tr('Add a recording')), findsOneWidget);
 
       await drop(tester, [file('a.png'), file('b.png')]);
       expect(find.textContaining('2/'), findsOneWidget);
@@ -711,21 +734,24 @@ void main() {
 
     tearDown(() => app.workspace.removeProject(projectId));
 
-    /// Down the tree to the ad: a project only shows its ads once it is open.
+    /// Into Create UGC, then onto the ad.
     ///
-    /// Scoped to the nav, because the project list in the middle of the page
-    /// carries the same names.
+    /// It used to be two steps down a tree of projects. The tree is gone -- the
+    /// nav's expansion is one flat list of every ad there is, newest first, and
+    /// the project an ad is filed under is storage plumbing that is never shown
+    /// -- so the first press is stepping into the section rather than opening a
+    /// folder.
+    ///
+    /// Scoped to the nav, because the list in the middle of the page carries the
+    /// same names.
     Future<void> openTheAd(WidgetTester tester) async {
-      Finder treeRow(String label) =>
-          find.descendant(of: find.byType(SideNav), matching: find.text(label));
-
-      await tester.tap(treeRow('Nav project'));
+      await tester.tap(navRow('Create UGC'));
       await tester.pump();
-      await tester.tap(treeRow('Nav ad'));
+      await tester.tap(navRow('Nav ad'));
       await tester.pump();
     }
 
-    testWidgets('Studio goes back to the ad you were in', (tester) async {
+    testWidgets('Create UGC goes back to the ad you were in', (tester) async {
       // It used to be a way to the top of the tree and nothing else, so
       // stepping out to Settings meant walking back down two screens to the ad
       // you had been working on all morning.
@@ -733,15 +759,22 @@ void main() {
       await openTheAd(tester);
       expect(crumb('Nav ad'), findsOneWidget);
 
+      // Out of the section first: while the nav is stepped into Create UGC it
+      // shows that list and nothing else, so the other rows are not reachable
+      // until the back arrow puts them back. That is the section's whole point
+      // and not something to route around.
+      await tester.tap(find.byTooltip('Back to the menu'));
+      await tester.pump();
+
       await tester.tap(navRow('Settings'));
       await tester.pump();
 
-      await tester.tap(navRow('Studio'));
+      await tester.tap(navRow('Create UGC'));
       await tester.pump();
       expect(crumb('Nav ad'), findsOneWidget);
     });
 
-    testWidgets('a tree row renames itself where it stands', (tester) async {
+    testWidgets('an ad row renames itself where it stands', (tester) async {
       await pumpWindow(tester);
       await openTheAd(tester);
 

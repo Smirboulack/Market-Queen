@@ -8,6 +8,8 @@ import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/chip.dart';
 
+import 'support/sandbox.dart';
+
 /// The three geometric promises the composer makes.
 ///
 /// They are asserted rather than eyeballed because all three broke silently the
@@ -18,6 +20,9 @@ import 'package:market_queen/ui/widgets/chip.dart';
 ///
 /// The window is sized to the real one (1420x940, from `main.dart`).
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   const window = Size(1420, 940);
 
   late AppState app;
@@ -244,6 +249,12 @@ void main() {
   testWidgets('picking a model changes the row there and then', (tester) async {
     // The one that had to be closed and reopened before it took: `setPref`
     // wrote the value and told nobody, so the row kept drawing the old name.
+    //
+    // Keys first: a model on a keyless account is offered locked, and pressing
+    // one asks for the key rather than selecting the model. That is the right
+    // behaviour and it is asserted elsewhere; this test is about the row
+    // redrawing, which needs a model it is allowed to switch to.
+    unlockEveryProvider(app);
     await pumpEditor(tester);
     await closeMenu(tester);
     await tester.tap(find.text(ComposerSpec.of(ComposerTab.video).label));

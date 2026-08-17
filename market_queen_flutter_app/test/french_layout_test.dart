@@ -11,6 +11,8 @@ import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/mq_dialog.dart';
 import 'package:market_queen/ui/widgets/video_poster.dart';
 
+import 'support/sandbox.dart';
+
 /// The studio, walked in French.
 ///
 /// Every label in here is between a third and a half longer than its English
@@ -20,6 +22,9 @@ import 'package:market_queen/ui/widgets/video_poster.dart';
 /// fails on a laid-out overflow by itself, so walking the screens is the whole
 /// assertion.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   late AppState app;
 
   setUpAll(() async {
@@ -102,8 +107,8 @@ void main() {
         await settle(tester);
         expect(tester.takeException(), isNull, reason: 'doors $kind $size');
 
-        expect(find.byType(BigChoice), findsNWidgets(2));
-        await tester.tap(find.byType(BigChoice).first);
+        expect(find.byType(IllustratedChoice), findsNWidgets(2));
+        await tester.tap(find.byType(IllustratedChoice).first);
         await settle(tester);
         expect(tester.takeException(), isNull, reason: 'studio $kind $size');
       }

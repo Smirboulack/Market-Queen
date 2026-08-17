@@ -1,5 +1,6 @@
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:market_queen/app_state.dart';
@@ -10,12 +11,17 @@ import 'package:market_queen/ui/studio/cast_panels.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/mq_dialog.dart';
 
+import 'support/sandbox.dart';
+
 /// The way in to an actor or a scene, end to end.
 ///
 /// Every step of it is a modal opening another modal, which is exactly the sort
 /// of chain that compiles and then throws on the first frame -- so it is walked
 /// here rather than clicked through by hand once and hoped about.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   const window = Size(1420, 940);
 
   late AppState app;
@@ -94,8 +100,27 @@ void main() {
     await tester.tap(find.text('Create an actor'));
     await settle(tester);
 
-    expect(find.byType(BigChoice), findsNWidgets(2));
-    await tester.tap(find.text('Write who the actor is'));
+    expect(find.byType(IllustratedChoice), findsNWidgets(2));
+
+    // The artwork is really in the bundle. `Image.asset` falls back to the
+    // section's glyph when a file is absent, which is the right behaviour and
+    // also completely silent -- so a door whose picture had been left out of
+    // pubspec would look almost right and never fail a test.
+    for (final art in [
+      'assets/illustrations/create_with_prompt.png',
+      'assets/illustrations/create_with_image.png',
+    ]) {
+      expect(
+        (await rootBundle.load(art)).lengthInBytes,
+        greaterThan(0),
+        reason: art,
+      );
+    }
+
+    // `.last` is the bar at the bottom of the card. The same words are its
+    // heading as well -- the door is named after what pressing it does --
+    // so the finder matches twice and the button is the second of them.
+    await tester.tap(find.text('Write who the actor is').last);
     await settle(tester);
 
     // Step one is the studio and nothing else: naming happens at the end, once
@@ -121,7 +146,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Create an actor'));
     await settle(tester);
-    await tester.tap(find.text('Use a photograph'));
+    await tester.tap(find.text('Use a photograph').last);
     await settle(tester);
 
     expect(find.text("Drop the actor's picture in"), findsOneWidget);
@@ -139,7 +164,7 @@ void main() {
     await settle(tester);
     await tester.tap(find.text('Create a scene'));
     await settle(tester);
-    await tester.tap(find.text('Use a photograph'));
+    await tester.tap(find.text('Use a photograph').last);
     await settle(tester);
 
     expect(find.text('Drop a picture in'), findsOneWidget);

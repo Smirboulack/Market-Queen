@@ -63,6 +63,10 @@ flutter:
     # after the credential id, picked up at run time, initials drawn until one
     # is dropped in. Ships empty -- see assets/brand/providers/README.md.
     - assets/brand/providers/
+    # The artwork on the two doors of a "create an actor" modal. Same drop-in
+    # terms as the marks above: a missing file falls back to the section's own
+    # glyph, so the folder may hold nothing.
+    - assets/illustrations/
 
   # Inter, shipped rather than fetched: an app that promises nothing leaves the
   # machine cannot pull a webfont at startup, and a bundled face renders the

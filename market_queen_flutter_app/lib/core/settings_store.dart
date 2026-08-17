@@ -23,6 +23,20 @@ class SettingsStore extends ChangeNotifier {
   final Map<String, String> _secrets = {};
   bool _loading = false;
 
+  /// Set when secrets.bin was on disk and could not be opened.
+  ///
+  /// It matters because of what the next write would otherwise do. An
+  /// unreadable file leaves [_secrets] empty, which is the same state as a fresh
+  /// install -- so the next key typed used to seal a one-entry map straight over
+  /// the top of fourteen keys nobody could read but which were still there. The
+  /// flag turns that into a rename: the file is kept, under a name that says
+  /// what happened, and only then replaced.
+  bool _secretsUnreadable = false;
+
+  /// True when the store found keys it could not open. The UI does not surface
+  /// it today; it exists so a support question has an answer.
+  bool get secretsUnreadable => _secretsUnreadable;
+
   String get _settingsFile => p.join(Paths.configDir, 'settings.json');
   String get _secretsFile => p.join(Paths.configDir, 'secrets.bin');
 
@@ -41,25 +55,45 @@ class SettingsStore extends ChangeNotifier {
       }
     }
 
-    final secrets = File(_secretsFile);
-    if (secrets.existsSync()) {
-      try {
-        final plain = SecretBox.unseal(secrets.readAsBytesSync(), SecretBox.deviceKey());
-        // A failed unseal means the file came from another machine or was
-        // tampered with; we start from an empty set rather than crash.
-        if (plain != null) {
-          final decoded = jsonDecode(utf8.decode(plain));
-          if (decoded is Map<String, dynamic>) {
-            decoded.forEach((key, value) => _secrets[key] = '$value');
-          }
-        }
-      } on Exception {
-        // Same.
-      }
-    }
+    _loadSecrets();
 
     _prefs.putIfAbsent('projectsDir', () => Paths.defaultProjectsDir);
     _loading = false;
+  }
+
+  void _loadSecrets() {
+    final secrets = File(_secretsFile);
+    if (!secrets.existsSync()) return;
+
+    try {
+      final blob = secrets.readAsBytesSync();
+      final keys = SecretBox.candidateKeys();
+
+      for (var i = 0; i < keys.length; ++i) {
+        final plain = SecretBox.unseal(blob, keys[i]);
+        if (plain == null) continue;
+
+        final decoded = jsonDecode(utf8.decode(plain));
+        if (decoded is Map<String, dynamic>) {
+          decoded.forEach((key, value) => _secrets[key] = '$value');
+        }
+        // Opened under a fallback key: written from a shell that set `USER`
+        // and opened from one that did not, or the other way round. Sealing it
+        // again under the primary key is what stops the next launch depending
+        // on how this one was started.
+        if (i > 0) _saveSecrets();
+        return;
+      }
+
+      // Every key was refused. The file is real and holds something; it just
+      // was not written by this machine, or not by this account, or it is
+      // damaged. Either way it is not ours to overwrite silently.
+      _secretsUnreadable = true;
+    } on Exception {
+      // Unreadable for a reason that is not the cipher -- a truncated file, a
+      // permission problem. Treated the same way: kept, not clobbered.
+      _secretsUnreadable = true;
+    }
   }
 
   void save() {
@@ -88,9 +122,23 @@ class SettingsStore extends ChangeNotifier {
     );
 
     try {
+      if (_secretsUnreadable) _setUnreadableAside();
       File(_secretsFile).writeAsBytesSync(blob);
     } on FileSystemException {
       // Same.
+    }
+  }
+
+  /// Renames a secrets file we could not open, so writing over it is not a
+  /// deletion. Done once: after the rename there is nothing left to protect.
+  void _setUnreadableAside() {
+    _secretsUnreadable = false;
+    try {
+      final stamp = DateTime.now().toIso8601String().replaceAll(':', '-');
+      File(_secretsFile).renameSync('$_secretsFile.unreadable-$stamp');
+    } on FileSystemException {
+      // Nothing to move aside, or nowhere to move it to. The write below is
+      // what the user asked for either way.
     }
   }
 

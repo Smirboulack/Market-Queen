@@ -72,6 +72,14 @@ class _VoicePickerState extends State<VoicePicker> {
   bool _searching = false;
   String _searchError = '';
 
+  /// Narrows the shortlist by name, here rather than at the provider.
+  ///
+  /// The brief is what fetches -- language, gender, age, use, tone -- and it
+  /// comes back with a few dozen. Finding "Audrey" in those is a different job
+  /// from asking for a different few dozen, and going back to the network for it
+  /// would throw away the list you are looking at.
+  final TextEditingController _byName = TextEditingController();
+
   // ---- designing
   late final TextEditingController _description = TextEditingController(
     text: widget.suggestedDescription,
@@ -106,6 +114,7 @@ class _VoicePickerState extends State<VoicePicker> {
     if (widget.suggestedDescription.trim().isNotEmpty) {
       _route = VoiceRoute.design;
     }
+    _seedBrief();
     _search();
   }
 
@@ -114,6 +123,7 @@ class _VoicePickerState extends State<VoicePicker> {
     _forge.removeListener(_repaint);
     _description.dispose();
     _cloneName.dispose();
+    _byName.dispose();
     _player?.dispose();
     super.dispose();
   }
@@ -156,6 +166,31 @@ class _VoicePickerState extends State<VoicePicker> {
         'voice',
         widget.app.settings.prefString('voiceProvider'),
       );
+
+  /// Starts the voice search off from who the actor is.
+  ///
+  /// Somebody who has said their actor is a woman of 24 has already answered
+  /// "which voices?", and should not have to answer it again in different words.
+  /// So the brief opens on the person's own gender and age band -- the dependency
+  /// runs this way round on purpose, and only this way: picking a voice never
+  /// writes back onto the person. See [ActorIdentity].
+  ///
+  /// Written onto the draft rather than merged in at search time, and that
+  /// matters. A default that is computed on every read cannot be cleared: the
+  /// chip would show "Female", "Any" would store nothing, and nothing reads as
+  /// "use the actor's" -- so the filter would snap straight back. A value the
+  /// user can see is a value the user can take off.
+  ///
+  /// Once, on mount, and never over anything already there.
+  void _seedBrief() {
+    void seed(String key, String value) {
+      if (value.isEmpty || _draft.extraText(key).isNotEmpty) return;
+      _draft.setExtra(key, value);
+    }
+
+    seed('voiceGender', ActorIdentity.genderOf(_draft));
+    seed('voiceAge', ActorIdentity.bandOf(_draft));
+  }
 
   Future<void> _search({bool refresh = false}) async {
     final casting = widget.app.voiceCasting;
@@ -411,15 +446,40 @@ class _VoicePickerState extends State<VoicePicker> {
 
   // ---- route: the library --------------------------------------------------
 
-  Widget _libraryRoute() {
-    final mq = context.mq;
-    final chosen = _draft.extraText('voiceId');
+  /// The shortlist with the name box applied.
+  List<LibraryVoice> get _listed {
+    final needle = _byName.text.trim().toLowerCase();
+    if (needle.isEmpty) return _shortlist;
+    return [
+      for (final voice in _shortlist)
+        if (voice.name.toLowerCase().contains(needle)) voice,
+    ];
+  }
 
+  Widget _libraryRoute() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Wrap(
+        _filterBar(),
+        const SizedBox(height: 10),
+        _voiceList(),
+        const SizedBox(height: 7),
+        _resultFooter(),
+      ],
+    );
+  }
+
+  /// One line of filters, and a box to find a voice by name.
+  ///
+  /// It was a loose Wrap of five chips of five different widths, none of which
+  /// said what it was until you had read its value -- so the row read as a pile
+  /// rather than as a brief. They are one shape now, each naming its own field,
+  /// and the search box is pinned to the right where a search box goes.
+  Widget _filterBar() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final chips = Wrap(
           spacing: 6,
           runSpacing: 6,
           children: [
@@ -436,82 +496,139 @@ class _VoicePickerState extends State<VoicePicker> {
               onPicked: (value) => _briefChanged('voiceLocale', value),
             ),
             for (final trait in VoiceTrait.all)
-              MqChoiceChip(
+              MqPickChip(
                 label: trait.label,
+                icon: _traitIcons[trait.key] ?? '',
                 value: _draft.extraText(trait.key),
                 onPicked: (value) => _briefChanged(trait.key, value),
                 options: [
+                  // Taking a filter off has to be as easy as putting it on, and
+                  // an empty one widens the search rather than emptying it.
+                  MenuOption(tr('Any'), ''),
                   for (final option in trait.options)
                     MenuOption(option.$1, option.$2),
                 ],
               ),
           ],
-        ),
-        const SizedBox(height: MqTheme.gap),
-        Container(
-          constraints: const BoxConstraints(maxHeight: 240),
-          decoration: BoxDecoration(
-            color: mq.surfaceSecondary,
-            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-            border: Border.all(color: mq.border),
+        );
+
+        final search = SizedBox(
+          width: 176,
+          child: _NameSearch(
+            controller: _byName,
+            onChanged: (_) => setState(() {}),
           ),
-          child: _shortlist.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Text(
-                    _searching ? '' : tr('Widen the brief, or reload.'),
-                    style: TextStyle(
-                      color: mq.textTertiary,
-                      fontSize: MqTheme.fontSmall,
-                    ),
-                  ),
-                )
-              : ListView(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(3),
-                  children: [
-                    for (final voice in _shortlist)
-                      _VoiceRow(
-                        name: voice.name,
-                        detail: describeVoice(voice),
-                        chosen: voice.id == chosen,
-                        onChoose: () => _adopt(
-                          voiceId: voice.id,
-                          ownerId: voice.ownerId,
-                          name: voice.name,
-                          kind: 'library',
-                          description: describeVoice(voice),
-                        ),
-                        onPlay: voice.previewUrl.isEmpty
-                            ? null
-                            : () => _play(voice.previewUrl),
-                        //: Playing the provider's own sample costs nothing
-                        playTip: tr('Listen — free'),
-                      ),
-                  ],
-                ),
-        ),
-        const SizedBox(height: 6),
-        Row(
+        );
+
+        // Stacked on a narrow card: a 176px box beside five chips leaves the
+        // chips two to a line and the box unreadable.
+        if (constraints.maxWidth < 520) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [chips, const SizedBox(height: 8), search],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            Expanded(child: chips),
+            const SizedBox(width: 10),
+            search,
+          ],
+        );
+      },
+    );
+  }
+
+  /// A glyph per filter, so a row of five reads as five different questions
+  /// rather than as five grey pills.
+  static const Map<String, String> _traitIcons = {
+    'voiceGender': 'user-line',
+    'voiceAge': 'timer-line',
+    'voiceUse': 'shopping-bag-3-line',
+    'voiceTone': 'emotion-line',
+  };
+
+  Widget _voiceList() {
+    final mq = context.mq;
+    final chosen = _draft.extraText('voiceId');
+    final voices = _listed;
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 262),
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radius),
+        border: Border.all(color: mq.border),
+      ),
+      child: voices.isEmpty
+          ? Padding(
+              padding: const EdgeInsets.all(14),
               child: Text(
-                _searchError.isEmpty ? _resultLine : _searchError,
-                overflow: TextOverflow.ellipsis,
+                _searching
+                    ? ''
+                    : _byName.text.trim().isNotEmpty
+                    ? tr('No voice by that name in this shortlist.')
+                    : tr('Widen the brief, or reload.'),
                 style: TextStyle(
-                  color: _searchError.isEmpty ? mq.textTertiary : mq.error,
+                  color: mq.textTertiary,
                   fontSize: MqTheme.fontSmall,
                 ),
               ),
+            )
+          : ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(4),
+              itemCount: voices.length,
+              itemBuilder: (context, index) {
+                final voice = voices[index];
+                return _VoiceRow(
+                  name: voice.name,
+                  tags: voiceTags(voice),
+                  chosen: voice.id == chosen,
+                  onChoose: () => _adopt(
+                    voiceId: voice.id,
+                    ownerId: voice.ownerId,
+                    name: voice.name,
+                    kind: 'library',
+                    description: describeVoice(voice),
+                  ),
+                  onPlay: voice.previewUrl.isEmpty
+                      ? null
+                      : () => _play(voice.previewUrl),
+                  //: Playing the provider's own sample costs nothing
+                  playTip: tr('Listen — free'),
+                );
+              },
             ),
-            MqIconButton(
-              icon: _searching ? 'loader-4-line' : 'refresh-line',
-              tip: tr('Search the library again'),
-              size: 28,
-              enabled: !_searching,
-              onPressed: () => _search(refresh: true),
+    );
+  }
+
+  /// How many the brief found, and the way to ask again.
+  Widget _resultFooter() {
+    final mq = context.mq;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            _searchError.isEmpty ? _resultLine : _searchError,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: _searchError.isEmpty ? mq.textTertiary : mq.error,
+              fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineTight,
             ),
-          ],
+          ),
+        ),
+        MqIconButton(
+          icon: _searching ? 'loader-4-line' : 'refresh-line',
+          tip: tr('Search the library again'),
+          size: 28,
+          enabled: !_searching,
+          onPressed: () => _search(refresh: true),
         ),
       ],
     );
@@ -750,21 +867,34 @@ class _VoicePickerState extends State<VoicePicker> {
   }
 }
 
-/// One voice on offer: who they are, what about them matched, and a way to
-/// hear them.
+/// One voice on offer: a way to hear it, who it is, and whether it is the one.
+///
+/// Play on the left, because listening is what you do to twenty of these and
+/// choosing is what you do to one. The facts are tags rather than a sentence:
+/// six of them run together with dots read as one long grey line, and the one
+/// you are checking -- is this actually French? -- is never the one you find
+/// first. The tick is on the right, where a list puts the state of a row.
 class _VoiceRow extends StatelessWidget {
   const _VoiceRow({
     required this.name,
-    required this.detail,
     required this.chosen,
     required this.onChoose,
     required this.playTip,
+    this.tags = const [],
+    this.detail = '',
     this.onPlay,
     this.framed = false,
   });
 
   final String name;
+
+  /// The facts, one per tag. Empty for a designed take, which has no library
+  /// metadata to show -- it has [detail] instead.
+  final List<String> tags;
+
+  /// One line under the name, for the rows that are not library voices.
   final String detail;
+
   final bool chosen;
   final VoidCallback onChoose;
   final VoidCallback? onPlay;
@@ -781,9 +911,11 @@ class _VoiceRow extends StatelessWidget {
     return Pressable(
       onTap: onChoose,
       snap: true,
+      focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        padding: const EdgeInsets.fromLTRB(6, 6, 8, 6),
+        margin: const EdgeInsets.only(bottom: 3),
         decoration: BoxDecoration(
           color: chosen
               ? mq.surfaceActive
@@ -793,18 +925,18 @@ class _VoiceRow extends StatelessWidget {
               ? mq.surfaceSecondary
               : Colors.transparent,
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-          border: framed
-              ? Border.all(color: chosen ? mq.primary : mq.border)
-              : null,
+          border: Border.all(
+            color: chosen
+                ? mq.primary
+                : framed
+                ? mq.border
+                : Colors.transparent,
+          ),
         ),
         child: Row(
           children: [
-            MqIcon(
-              chosen ? 'check-line' : 'mic-line',
-              size: 15,
-              color: chosen ? mq.primary : mq.textTertiary,
-            ),
-            const SizedBox(width: 8),
+            _PlayDisc(tip: playTip, onPressed: onPlay),
+            const SizedBox(width: 9),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -812,14 +944,17 @@ class _VoiceRow extends StatelessWidget {
                 children: [
                   Text(
                     name,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: mq.textPrimary,
                       fontSize: MqTheme.fontLabel,
-                      fontWeight: chosen ? FontWeight.w600 : FontWeight.w400,
+                      fontWeight: chosen ? FontWeight.w600 : FontWeight.w500,
+                      height: MqTheme.lineTight,
                     ),
                   ),
-                  if (detail.isNotEmpty)
+                  if (detail.isNotEmpty) ...[
+                    const SizedBox(height: 2),
                     Text(
                       detail,
                       maxLines: 1,
@@ -827,21 +962,222 @@ class _VoiceRow extends StatelessWidget {
                       style: TextStyle(
                         color: mq.textTertiary,
                         fontSize: MqTheme.fontSmall,
+                        height: MqTheme.lineTight,
                       ),
                     ),
+                  ],
+                  if (tags.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    // Clipped to one line: a voice with six tags must not make
+                    // its row twice the height of the one above it.
+                    SizedBox(
+                      height: 18,
+                      child: ClipRect(
+                        child: OverflowBox(
+                          alignment: AlignmentDirectional.centerStart,
+                          maxWidth: double.infinity,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              for (final tag in tags) _VoiceTag(text: tag),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            if (onPlay != null) ...[
-              const SizedBox(width: 6),
-              MqIconButton(
-                icon: 'play-fill',
-                tip: playTip,
-                size: 26,
-                onPressed: onPlay,
-              ),
-            ],
+            const SizedBox(width: 8),
+            // Held whether or not it is lit, so a row does not reflow when it
+            // becomes the chosen one.
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: chosen
+                  ? DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: mq.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: MqIcon(
+                          'check-line',
+                          size: 12,
+                          color: mq.onPrimary,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The round play button at the head of a voice row.
+///
+/// Its own target inside the row rather than a second meaning for it: pressing
+/// the row always chooses that voice, which is what you do once, and the disc
+/// plays it, which is what you do twenty times.
+class _PlayDisc extends StatelessWidget {
+  const _PlayDisc({required this.tip, this.onPressed});
+
+  final String tip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final live = onPressed != null;
+
+    return Pressable(
+      enabled: live,
+      onTap: onPressed,
+      tooltip: live ? tip : tr('No sample for this voice'),
+      focusRadius: MqTheme.radiusPill,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        width: 30,
+        height: 30,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: states.pressed
+              ? mq.surfaceActive
+              : states.hovered
+              ? mq.surfaceHover
+              : mq.surface,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: states.active ? mq.borderStrong : mq.border,
+          ),
+        ),
+        child: MqIcon(
+          'play-fill',
+          size: 14,
+          color: live ? mq.textSecondary : mq.textDisabled,
+        ),
+      ),
+    );
+  }
+}
+
+/// One fact about a voice, as a small pill.
+class _VoiceTag extends StatelessWidget {
+  const _VoiceTag({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      margin: const EdgeInsetsDirectional.only(end: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: mq.surface,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 2),
+        border: Border.all(color: mq.border),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        softWrap: false,
+        style: TextStyle(
+          color: mq.textTertiary,
+          fontSize: MqTheme.fontMicro,
+          height: 1.25,
+        ),
+      ),
+    );
+  }
+}
+
+/// Find a voice by name inside the shortlist you are already looking at.
+class _NameSearch extends StatefulWidget {
+  const _NameSearch({required this.controller, required this.onChanged});
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_NameSearch> createState() => _NameSearchState();
+}
+
+class _NameSearchState extends State<_NameSearch> {
+  final FocusNode _focus = FocusNode();
+  bool _hovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: FieldFrame(
+        focused: _focus.hasFocus,
+        hovered: _hovered,
+        child: SizedBox(
+          height: 30,
+          child: Row(
+            children: [
+              const SizedBox(width: 9),
+              MqIcon('search-line', size: 14, color: mq.textTertiary),
+              const SizedBox(width: 6),
+              Expanded(
+                child: TextField(
+                  controller: widget.controller,
+                  focusNode: _focus,
+                  onChanged: widget.onChanged,
+                  cursorColor: mq.primary,
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontSize: MqTheme.fontLabel,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                    hintText: tr('Find a voice'),
+                    hintStyle: TextStyle(
+                      color: mq.textTertiary,
+                      fontSize: MqTheme.fontLabel,
+                    ),
+                  ),
+                ),
+              ),
+              if (widget.controller.text.isNotEmpty)
+                MqIconButton(
+                  icon: 'close-line',
+                  tip: tr('Clear'),
+                  size: 24,
+                  onPressed: () {
+                    widget.controller.clear();
+                    widget.onChanged('');
+                  },
+                ),
+              const SizedBox(width: 4),
+            ],
+          ),
         ),
       ),
     );

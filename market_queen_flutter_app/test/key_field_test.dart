@@ -6,6 +6,8 @@ import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/key_field.dart';
 
+import 'support/sandbox.dart';
+
 /// The key field, which for a while could not do the one thing its buttons
 /// promised.
 ///
@@ -18,15 +20,18 @@ import 'package:market_queen/ui/widgets/key_field.dart';
 /// its right edge only changes what is drawn, and saving happens on Enter or
 /// on leaving. These keep those three apart.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   late AppState app;
 
   /// An account that does not exist.
   ///
-  /// The settings store writes to the real config directory -- there is no
-  /// seam to point it somewhere else -- so a test that used a genuine
-  /// credential would overwrite whatever key the person running it actually
-  /// has for that provider, and would race the other test files reading the
-  /// same file. A made-up id touches nobody's account and is cleaned up below.
+  /// There is a seam now -- `useSandboxConfig` above, which is what keeps every
+  /// store in this file off the real profile -- so a genuine credential id
+  /// would no longer overwrite anybody's key. A made-up one is still the right
+  /// choice: it cannot pick up a value from the environment, and it says in the
+  /// name that nothing here is about a particular provider.
   const credential = CredentialEntry(
     id: '__key_field_test__',
     label: 'Test account',

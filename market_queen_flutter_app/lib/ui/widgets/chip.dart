@@ -8,6 +8,12 @@ import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
 
+/// What a model row says when its account has no key yet.
+///
+/// One string, read by every menu that lists models, so the sentence is the same
+/// wherever you hit it.
+String get lockedByKeyLabel => tr('Add the API key');
+
 /// A pill. The one control this interface leans on.
 ///
 /// It replaces the dropdowns, checkboxes and labelled fields the studio used to
@@ -188,7 +194,13 @@ class MqChip extends StatelessWidget {
 }
 
 class MenuOption<T> {
-  const MenuOption(this.label, this.value, {this.mark = ''});
+  const MenuOption(
+    this.label,
+    this.value, {
+    this.mark = '',
+    this.locked = false,
+    this.note = '',
+  });
 
   final String label;
   final T value;
@@ -198,6 +210,18 @@ class MenuOption<T> {
   /// tells you which shelf you are looking at without reading the prefix.
   /// Empty everywhere else, and the menu then has no glyph column at all.
   final String mark;
+
+  /// Set on an entry the user cannot have yet -- a model on an account with no
+  /// key.
+  ///
+  /// Locked rather than hidden, and that is the whole point: a menu that quietly
+  /// omits Veo because there is no Google key is a menu that says the app cannot
+  /// do Veo. The row stays, greyed, saying what is missing, and pressing it is
+  /// how you fix it.
+  final bool locked;
+
+  /// The grey line at the right of the row, saying why it is locked.
+  final String note;
 }
 
 /// The entry's own label inside a menu row.
@@ -211,11 +235,20 @@ const Key chipMenuLabelKey = ValueKey('mq.chipMenu.label');
 ///
 /// One implementation for every chip menu in the app, so they cannot drift
 /// apart in width, offset or how the current value is marked.
+///
+/// [onLocked] is how a menu offers something the user cannot have yet. A locked
+/// row is drawn greyed with its note beside it, and picking one calls this
+/// instead of returning: hand it a dialog that removes the obstacle -- for a
+/// model, the account's API key -- and return whether it worked. True and the
+/// option is returned as though it had been picked normally, which is what the
+/// user was trying to do in the first place; false and the menu closes having
+/// changed nothing. Without it, a locked row is simply inert.
 Future<T?> showChipMenu<T>(
   BuildContext anchor, {
   required List<MenuOption<T>> options,
   required T current,
   double width = 220,
+  Future<bool> Function(MenuOption<T> option)? onLocked,
 }) async {
   final mq = anchor.mq;
   final box = anchor.findRenderObject() as RenderBox?;
@@ -229,7 +262,7 @@ Future<T?> showChipMenu<T>(
   final left = origin.dx.clamp(0.0, overlay.size.width - width);
 
   // Shape, colour and elevation come from `popupMenuTheme`.
-  return showMenu<T>(
+  final picked = await showMenu<T>(
     context: anchor,
     constraints: BoxConstraints(minWidth: width, maxHeight: 360),
     position: RelativeRect.fromLTRB(
@@ -243,10 +276,18 @@ Future<T?> showChipMenu<T>(
         PopupMenuItem<T>(
           value: option.value,
           height: 34,
+          // Still selectable: `enabled: false` would make the row unpressable,
+          // and pressing it is the way to unlock it. The grey is the whole of
+          // the "not yet".
           child: Row(
             children: [
               if (option.mark.isNotEmpty) ...[
-                ProviderMark(credential: option.mark, size: 18),
+                // Dimmed with the row it belongs to, so a page of locked
+                // accounts does not read as a page of live ones.
+                Opacity(
+                  opacity: option.locked ? 0.45 : 1,
+                  child: ProviderMark(credential: option.mark, size: 18),
+                ),
                 const SizedBox(width: 9),
               ],
               Expanded(
@@ -255,21 +296,47 @@ Future<T?> showChipMenu<T>(
                   key: chipMenuLabelKey,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: option.value == current
+                    color: option.locked
+                        ? mq.textDisabled
+                        : option.value == current
                         ? mq.primaryText
                         : mq.textPrimary,
                     fontSize: MqTheme.fontLabel,
-                    fontWeight: option.value == current
+                    fontWeight: option.value == current && !option.locked
                         ? FontWeight.w600
                         : FontWeight.w400,
                   ),
                 ),
               ),
+              if (option.locked && option.note.isNotEmpty) ...[
+                const SizedBox(width: 10),
+                MqIcon('key-line', size: 12, color: mq.warningText),
+                const SizedBox(width: 4),
+                Text(
+                  option.note,
+                  style: TextStyle(
+                    color: mq.warningText,
+                    fontSize: MqTheme.fontMicro,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
     ],
   );
+
+  if (picked == null) return null;
+
+  for (final option in options) {
+    if (option.value != picked || !option.locked) continue;
+    // A locked row was pressed. Nothing is chosen unless whatever [onLocked]
+    // asks for actually arrives.
+    if (onLocked == null) return null;
+    return await onLocked(option) ? picked : null;
+  }
+  return picked;
 }
 
 /// A chip that opens a fixed list of options, all of them real.

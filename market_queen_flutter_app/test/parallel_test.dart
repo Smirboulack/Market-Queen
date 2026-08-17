@@ -4,6 +4,8 @@ import 'package:market_queen/app_state.dart';
 import 'package:market_queen/models/canvas_feed.dart';
 import 'package:market_queen/models/studio_runner.dart';
 
+import 'support/sandbox.dart';
+
 /// Asking for four goes out as four requests at once, not four one after
 /// another.
 ///
@@ -19,6 +21,9 @@ import 'package:market_queen/models/studio_runner.dart';
 /// before it opens a socket settles in the same microtask it was started in,
 /// which would make a sequential runner and a parallel one look alike.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   late AppState app;
 
   setUpAll(() async {

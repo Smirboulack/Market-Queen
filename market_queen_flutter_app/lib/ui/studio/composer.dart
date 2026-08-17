@@ -17,6 +17,7 @@ import '../../models/prompt_doctor.dart';
 import '../../models/studio_runner.dart';
 import '../../providers/capabilities.dart';
 import '../../providers/model_schemas.dart';
+import '../dialogs/api_key_dialog.dart';
 import '../dialogs/asset_gallery.dart';
 import '../dialogs/confirm_generation.dart';
 import '../format.dart';
@@ -699,57 +700,65 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Modes anchored left, settings anchored right, on one line
-                  // above the bar.
-                  //
-                  // The settings are out of the prompt bar entirely. Inside it
-                  // they competed with the thing you are typing -- six framed
-                  // pills wrapping under a text field is a lot of furniture
-                  // around one sentence -- and they are not about the sentence
-                  // at all: they are what the next generation will be, which
-                  // belongs with the mode that decides it.
-                  // Modes at one end, settings at the other, spanning the
-                  // same width as the prompt underneath. The two are opposite
-                  // kinds of choice -- what you are making, and what it will
-                  // be like -- so they sit at opposite ends rather than
-                  // crowding into the middle together.
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: ComposerTabBar(
-                          current: _tab,
-                          extras: _extras,
-                          onPicked: _pickTab,
-                          onRemoved: _dropTab,
-                        ),
-                      ),
-                      const SizedBox(width: MqTheme.gap),
-                      // Under the breakpoint the settings fold into one
-                      // button. It is the modes that keep their words: they
-                      // are what you came to press, and a row of unlabelled
-                      // glyphs is a row you learn rather than read.
-                      if (constraints.maxWidth < _foldSettingsBelow)
-                        _anchored(
-                          _Panel.settings,
-                          MqIconButton(
-                            icon: 'equalizer-line',
-                            tip: tr('Settings'),
-                            size: 32,
-                            onPressed: () => _show(_Panel.settings),
-                          ),
-                          () => _SettingsSheet(
-                            items: _settings(),
-                            onClose: _closePanel,
-                          ),
-                        )
-                      else
-                        Flexible(child: _SettingsRow(items: _settings())),
-                    ],
+                  // The modes, on their own line above the bar and anchored
+                  // left. They used to share that line with the settings, one
+                  // at each end, and the two do not belong together: what you
+                  // are making is a decision you take before you start typing,
+                  // and what it will be like is one you adjust while reading
+                  // back what you typed. Sitting them on one row made the row a
+                  // toolbar to scan rather than two answers to read.
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: ComposerTabBar(
+                      current: _tab,
+                      extras: _extras,
+                      onPicked: _pickTab,
+                      onRemoved: _dropTab,
+                    ),
                   ),
                   const SizedBox(height: MqTheme.gap),
                   _bar(),
+                  // The settings, under the bar and outside its frame.
+                  //
+                  // They are not about the sentence in the bar, which is why
+                  // they were taken out of it -- six framed pills wrapping under
+                  // a text field is a lot of furniture around one line of prose
+                  // -- and they are the last thing read before the send button,
+                  // which is why they end up here rather than back above the
+                  // modes. Right-aligned, so they finish under the button they
+                  // are read on the way to.
+                  //
+                  // The padding is the whole point of "outside the frame": a row
+                  // of small targets flush against a border is a row you miss.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 9, right: 6, bottom: 2),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Under the breakpoint the settings fold into one
+                        // button: the values are short but there are six of
+                        // them, and wrapping them onto three lines under the bar
+                        // pushes the bar up the page every time a model changes.
+                        if (constraints.maxWidth < _foldSettingsBelow)
+                          _anchored(
+                            _Panel.settings,
+                            MqIconButton(
+                              icon: 'equalizer-line',
+                              tip: tr('Settings'),
+                              size: 32,
+                              onPressed: () => _show(_Panel.settings),
+                            ),
+                            () => _SettingsSheet(
+                              items: _settings(),
+                              onClose: _closePanel,
+                            ),
+                          )
+                        else
+                          Flexible(child: _SettingsRow(items: _settings())),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1189,11 +1198,15 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         items.add(
           _Choice(
             label: tr('Model'),
+            icon: 'layout-line',
             value: app.runner.modelLabel(_spec.category, _seconds),
             current: '${app.runner.providerFor(_spec.category)}'
                 '|${app.runner.modelFor(_spec.category, _seconds)}',
             options: models,
-            menuWidth: 340,
+            // Wider than the rest: the rows carry a logo, a provider, a model
+            // name and either a price or "Add the API key".
+            menuWidth: 380,
+            onLocked: _unlock,
             onPicked: (value) {
               final parts = value.split('|');
               if (parts.length != 2) return;
@@ -1225,6 +1238,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       items.add(
         _Choice(
           label: tr('Format'),
+          icon: 'aspect-ratio-line',
           value: ratioLabel(_aspect),
           current: _aspect,
           options: [
@@ -1247,6 +1261,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         items.add(
           _Choice(
             label: tr('Size'),
+            icon: 'resize-line',
             value: sizeLabel(_imageSize),
             current: _imageSize,
             options: [
@@ -1265,6 +1280,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         items.add(
           _Choice(
             label: tr('Quality'),
+            icon: 'sparkling-line',
             value: qualityLabel(_imageQuality),
             current: _imageQuality,
             options: [
@@ -1308,6 +1324,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     return [
       _Choice(
         label: tr('Length'),
+        icon: 'timer-line',
         //: %1 is a whole number of seconds
         value: tr('%1 s').arg(_seconds),
         current: '$_seconds',
@@ -1327,6 +1344,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       if (capabilities.resolutions.isNotEmpty)
         _Choice(
           label: tr('Quality'),
+          icon: 'resize-line',
           value: _resolution(capabilities),
           current: _resolution(capabilities),
           options: [
@@ -1343,6 +1361,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       if (capabilities.supportsAudio)
         _Switch(
           label: tr('Audio'),
+          icon: 'volume-up-line',
           value: app.settings.pref<bool>('videoAudio', true) ?? true,
           tooltip: tr(
             'Let the model generate a soundtrack as well as the picture.',
@@ -1363,6 +1382,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     return [
       _Choice(
         label: tr('Max length'),
+        icon: 'timer-line',
         value: project.maxSeconds == 0
             ? tr('As long as it takes')
             //: %1 is a whole number of seconds
@@ -1384,11 +1404,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       // is a coin toss.
       _Switch(
         label: tr('Subtitled'),
+        icon: 'check-double-line',
         value: project.captions,
         onChanged: project.setCaptions,
       ),
       _Switch(
         label: tr('Product shots'),
+        icon: 'shopping-bag-3-line',
         value: project.broll,
         tooltip: project.broll
             ? tr('The lines about the product are filmed on the product, with '
@@ -1402,14 +1424,23 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// Provider and model in one menu.
   ///
   /// Nobody chooses a provider -- they choose a model, and the provider is a
-  /// fact about it. Only models the Models page has left switched on appear.
+  /// fact about it.
+  ///
+  /// Every model the app can reach is listed, including the ones on accounts
+  /// that have no key. Those come back locked rather than left out: a menu that
+  /// silently drops Veo because Google is not set up is a menu that says this app
+  /// cannot make Veo clips, and the fix -- one key -- is four seconds away. See
+  /// [showChipMenu]'s `onLocked`.
   List<MenuOption<String>> _modelOptions() {
     final registry = app.registry;
+    final settings = app.settings;
     final providers = registry.providers(_spec.category);
     final named = providers.length > 1;
 
     final options = <MenuOption<String>>[];
     for (final provider in providers) {
+      final locked = provider.credential.isNotEmpty &&
+          !settings.hasApiKey(provider.credential);
       for (final model in provider.models) {
         final price = Format.unitPriceLabel(app.pricing.unitPrice(model.id));
         options.add(
@@ -1417,16 +1448,28 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             [
               if (named) '${provider.label} · ',
               model.label,
-              if (price.isNotEmpty) '   $price',
+              // A price on a row you cannot buy from is noise; what that row
+              // needs to say is what is missing.
+              if (price.isNotEmpty && !locked) '   $price',
             ].join(),
             '${provider.id}|${model.id}',
             mark: provider.credential,
+            locked: locked,
+            note: locked ? lockedByKeyLabel : '',
           ),
         );
       }
     }
     return options;
   }
+
+  /// The key dialog for whichever account a locked row belongs to.
+  ///
+  /// Handed to every menu on this bar that lists models, so hitting the wall
+  /// always opens the same small dialog rather than sending you to the Models
+  /// page and back.
+  Future<bool> _unlock(MenuOption<String> option) =>
+      askForApiKey(context, app: app, credentialId: option.mark);
 
   /// The saved resolution when this model still offers it, otherwise whatever
   /// the model itself defaults to. Switching from a model with 4k to one
@@ -1632,12 +1675,15 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           builder: (anchor) => MqIconButton(
             icon: doctor.busy ? 'loader-4-line' : 'sparkling-line',
             tip: writers.isEmpty
-                ? tr('Add a key for a writer under API keys to improve '
-                    'prompts.')
+                ? tr('Pick a writer and add its key to improve prompts.')
                 : tr('Improve this prompt'),
             size: 32,
             tint: doctor.busy ? null : context.mq.primary,
-            enabled: writers.isNotEmpty && !doctor.busy,
+            // Live even with no writer set up. The menu behind it lists every
+            // writer there is and asks for the key on the one you press, which
+            // is a better answer to "no key yet" than a dead button with an
+            // instruction in its tooltip.
+            enabled: !doctor.busy,
             onPressed: () => _pickWriter(anchor, writers),
           ),
         );
@@ -1646,43 +1692,74 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   /// Opens the writer menu and runs the rewrite on whichever was chosen.
+  ///
+  /// [writers] is what can actually run today; the menu lists every writer the
+  /// app knows and locks the rest, on the same terms as the model menu. A writer
+  /// whose key arrives while the menu is open becomes runnable, so the list is
+  /// asked for again after the pick rather than trusted from before it.
   Future<void> _pickWriter(
     BuildContext anchor,
     List<PromptWriter> writers,
   ) async {
+    final registry = app.registry;
+    final live = {
+      for (final writer in writers) '${writer.providerId}|${writer.modelId}',
+    };
+
     // Priced per writer, for this prompt, at this length. The figures differ
     // by two orders of magnitude across the list -- a Flash model against
     // Opus on the same paragraph -- which is exactly why the menu exists.
-    final options = [
-      for (final writer in writers)
-        MenuOption(
-          [
-            writer.label,
-            if (_rewritePrice(writer).isNotEmpty) '   ${_rewritePrice(writer)}',
-          ].join(),
-          '${writer.providerId}|${writer.modelId}',
-        ),
-    ];
+    final options = <MenuOption<String>>[];
+    for (final provider in registry.providers('text')) {
+      for (final model in provider.models) {
+        final id = '${provider.id}|${model.id}';
+        final locked = !live.contains(id);
+        final price = locked
+            ? ''
+            : _rewritePrice(
+                PromptWriter(
+                  providerId: provider.id,
+                  modelId: model.id,
+                  label: model.label,
+                  account: provider.label,
+                ),
+              );
+        options.add(
+          MenuOption(
+            [model.label, if (price.isNotEmpty) '   $price'].join(),
+            id,
+            mark: provider.credential,
+            locked: locked,
+            note: locked ? lockedByKeyLabel : '',
+          ),
+        );
+      }
+    }
     if (options.isEmpty) return;
 
-    final current = writers.first;
+    final current = writers.isEmpty ? null : writers.first;
     final picked = await showChipMenu<String>(
       anchor,
       options: options,
-      current: '${current.providerId}|${current.modelId}',
-      width: 300,
+      current: current == null
+          ? ''
+          : '${current.providerId}|${current.modelId}',
+      width: 340,
+      onLocked: _unlock,
     );
     if (picked == null) return;
 
     final parts = picked.split('|');
     if (parts.length != 2) return;
 
-    await _improvePrompt(
-      using: writers.firstWhere(
-        (writer) => writer.providerId == parts[0] && writer.modelId == parts[1],
-        orElse: () => current,
-      ),
+    // Re-read: a key entered from the menu has just changed who can run.
+    final now = app.promptDoctor.writers;
+    final chosen = now.where(
+      (writer) => writer.providerId == parts[0] && writer.modelId == parts[1],
     );
+    if (chosen.isEmpty) return;
+
+    await _improvePrompt(using: chosen.first);
   }
 
   /// What one rewrite on [writer] would cost, as text.
@@ -2147,21 +2224,40 @@ abstract class _Setting {
   const _Setting();
 
   String get label;
+
+  /// A glyph for what this one is about, drawn before the value.
+  ///
+  /// The row shows values rather than names -- "Seedream 4.5 | 2K | Best" reads
+  /// as a sentence where six labelled fields read as a form -- and that works
+  /// right up until two of the values are numbers. The glyph is what puts the
+  /// noun back without spending a word on it: a timer before "10 s" says which
+  /// ten seconds those are.
+  String get icon;
 }
 
 /// A setting with a menu behind it.
 class _Choice extends _Setting {
   const _Choice({
     required this.label,
+    required this.icon,
     required this.value,
     required this.current,
     required this.options,
     required this.onPicked,
     this.menuWidth = 220,
+    this.onLocked,
   });
+
+  /// What to do when a locked row is pressed -- see [showChipMenu]. Only the
+  /// Model setting has any: everything else on this row is a shape or a number,
+  /// and nothing about those is bought.
+  final Future<bool> Function(MenuOption<String> option)? onLocked;
 
   @override
   final String label;
+
+  @override
+  final String icon;
 
   /// What it is set to, in words. Not always the stored value: "Best" stands
   /// for `high`, "1536 x 1024 · landscape" for `1536x1024`.
@@ -2180,6 +2276,7 @@ class _Choice extends _Setting {
 class _Switch extends _Setting {
   const _Switch({
     required this.label,
+    required this.icon,
     required this.value,
     required this.onChanged,
     this.tooltip = '',
@@ -2187,6 +2284,9 @@ class _Switch extends _Setting {
 
   @override
   final String label;
+
+  @override
+  final String icon;
 
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -2199,6 +2299,9 @@ class _Notice extends _Setting {
 
   @override
   final String label;
+
+  @override
+  String get icon => 'error-warning-line';
 }
 
 /// The settings as one line of text buttons, hairlines between them.
@@ -2256,15 +2359,22 @@ class _SettingButton extends StatelessWidget {
     if (setting is _Notice) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        child: Text(
-          setting.label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: TextStyle(
-            color: mq.warningText,
-            fontSize: MqTheme.fontLabel,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MqIcon(setting.icon, size: 13, color: mq.warningText),
+            const SizedBox(width: 5),
+            Text(
+              setting.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: mq.warningText,
+                fontSize: MqTheme.fontLabel,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -2288,24 +2398,29 @@ class _SettingButton extends StatelessWidget {
 
     if (setting is _Switch) {
       return Pressable(
-        tooltip: setting.tooltip,
+        // A switch has no value to show, so it says what it is instead -- which
+        // means the tooltip is the only place its two states are spelled out.
+        tooltip: setting.tooltip.isNotEmpty
+            ? setting.tooltip
+            //: %1 is a setting's name such as "Subtitled"
+            : tr('Turn %1 on or off').arg(setting.label.toLowerCase()),
         focusRadius: MqTheme.radiusSmall,
         onTap: () => setting.onChanged(!setting.value),
         builder: (context, states) {
+          // Lit means on. It replaced a tick and a cross beside the name, which
+          // put two glyphs on a control that only has room for one and read as
+          // a checkbox in a row of values -- and the glyph the row wanted was
+          // the one saying what the switch is *about*.
           final ink = !setting.value
               ? (states.active ? mq.textSecondary : mq.textTertiary)
-              : (states.active ? mq.textPrimary : mq.textSecondary);
+              : mq.textPrimary;
 
           return shell(
             states,
             Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                MqIcon(
-                  setting.value ? 'check-line' : 'close-line',
-                  size: 13,
-                  color: ink,
-                ),
+                MqIcon(setting.icon, size: 13, color: ink),
                 const SizedBox(width: 5),
                 Text(
                   setting.label,
@@ -2316,7 +2431,7 @@ class _SettingButton extends StatelessWidget {
                     color: ink,
                     fontSize: MqTheme.fontLabel,
                     fontWeight: setting.value
-                        ? FontWeight.w500
+                        ? FontWeight.w600
                         : FontWeight.w400,
                   ),
                 ),
@@ -2341,27 +2456,39 @@ class _SettingButton extends StatelessWidget {
             options: choice.options,
             current: choice.current,
             width: choice.menuWidth,
+            onLocked: choice.onLocked,
           );
           if (picked != null) choice.onPicked(picked);
         },
         builder: (context, states) => shell(
           states,
-          // Capped, because a model name is whatever the provider called it
-          // and "Kling AI Avatar v2 Standard" must not take the row into a
-          // second line on its own.
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 170),
-            child: Text(
-              choice.value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-              style: TextStyle(
-                color: states.active ? mq.textPrimary : mq.textSecondary,
-                fontSize: MqTheme.fontLabel,
-                fontWeight: FontWeight.w500,
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MqIcon(
+                choice.icon,
+                size: 13,
+                color: states.active ? mq.textSecondary : mq.textTertiary,
               ),
-            ),
+              const SizedBox(width: 5),
+              // Capped, because a model name is whatever the provider called it
+              // and "Kling AI Avatar v2 Standard" must not take the row into a
+              // second line on its own.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 170),
+                child: Text(
+                  choice.value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: states.active ? mq.textPrimary : mq.textSecondary,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -2423,6 +2550,8 @@ class _SettingsSheet extends StatelessWidget {
               padding: const EdgeInsets.only(top: 6),
               child: Row(
                 children: [
+                  MqIcon(item.icon, size: 13, color: mq.textTertiary),
+                  const SizedBox(width: 7),
                   Expanded(
                     child: Text(
                       item.label,

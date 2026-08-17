@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 import '../core/paths.dart';
 import '../i18n/translator.dart';
+import '../providers/voice_profile.dart';
 
 /// The two things that can be cast in an ad.
 ///
@@ -486,6 +487,89 @@ class ActorLooks {
 
   static String newId() =>
       DateTime.now().microsecondsSinceEpoch.toRadixString(16);
+}
+
+/// How old the actor is and who they read as -- facts about the person, not
+/// about the voice.
+///
+/// They used to be the voice's. An actor's age was `voiceAge`, which is one of
+/// three bands ElevenLabs sorts its library into, and their gender was
+/// `voiceGender`, which is a search filter -- so changing who was reading the
+/// ad changed how old the actor was, and a woman of 22 and a woman of 29 were
+/// the same fact. That is backwards: the person is the thing that exists, and
+/// which voice suits them is a decision made afterwards and changed freely.
+///
+/// So the two are separate now, and this is the person's half. [age] is a number
+/// of years rather than a band, because "22" is what somebody knows about the
+/// actor they just made and "young" is what a voice library needs to be told.
+///
+/// **Actors saved before the split.** They carry only the voice's values, so
+/// both accessors fall back to them: an actor who has never been given a number
+/// still reports the band their voice was searched under. Nothing is rewritten
+/// on load -- an actor is migrated the first time somebody sets one of these,
+/// and until then the old value is the best answer there is.
+class ActorIdentity {
+  ActorIdentity._();
+
+  static const ageKey = 'actorAge';
+  static const genderKey = 'actorGender';
+
+  /// Years, or 0 when nobody has said.
+  static int ageOf(LibraryAsset actor) {
+    final value = actor.extras[ageKey];
+    if (value is num) return value.round();
+    return 0;
+  }
+
+  static void setAge(LibraryAsset actor, int years) =>
+      actor.setExtra(ageKey, years <= 0 ? null : years);
+
+  /// The lowest and highest a person's age is allowed to be here. Not a
+  /// judgement about casting: it is what keeps a typo -- 222, or 2 -- out of the
+  /// brief the image model is handed.
+  static const int minAge = 13;
+  static const int maxAge = 99;
+
+  /// `female`, `male`, or empty. The same two values the voice library uses, so
+  /// an actor's gender can seed a voice search without translating anything.
+  static String genderOf(LibraryAsset actor) {
+    final own = actor.extraText(genderKey);
+    return own.isNotEmpty ? own : actor.extraText('voiceGender');
+  }
+
+  static void setGender(LibraryAsset actor, String value) =>
+      actor.setExtra(genderKey, value);
+
+  /// Which of the voice library's three age bands this actor falls in.
+  ///
+  /// The bands are ElevenLabs' own -- `young`, `middle_aged`, `old` -- and the
+  /// boundaries are where a casting director would put them rather than where a
+  /// census would: an ad read by a 32-year-old does not sound "young", and 50 is
+  /// where a voice starts reading as one with some miles on it.
+  ///
+  /// Empty when the actor has no age at all, so a filter on the band simply does
+  /// not match rather than matching the middle.
+  static String bandOf(LibraryAsset actor) {
+    final years = ageOf(actor);
+    if (years <= 0) return actor.extraText('voiceAge');
+    if (years < 30) return 'young';
+    if (years < 50) return 'middle_aged';
+    return 'old';
+  }
+
+  /// The actor in the words a card has room for: "22 · Female".
+  static String summary(LibraryAsset actor) {
+    final years = ageOf(actor);
+    final parts = <String>[
+      if (years > 0)
+        //: %1 is a whole number of years
+        tr('%1 years old').arg(years)
+      else
+        VoiceTrait.labelFor('voiceAge', actor.extraText('voiceAge')),
+      VoiceTrait.labelFor('voiceGender', genderOf(actor)),
+    ];
+    return parts.where((part) => part.isNotEmpty).join(' · ');
+  }
 }
 
 /// Who the actor is, as against what they look like and how they sound.

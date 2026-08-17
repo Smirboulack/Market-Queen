@@ -262,8 +262,12 @@ class ComposerTabBar extends StatelessWidget {
           Builder(
             builder: (anchor) => _Pill(
               spec: ComposerSpec(
+                // Three dots, not a magnifier. Nothing here is searched: the
+                // pill opens a short list of the modes that are not on the bar,
+                // which is the one thing an overflow glyph already means
+                // everywhere else.
                 label: tr('See more'),
-                icon: 'search-line',
+                icon: 'more-line',
                 category: '',
                 kind: CanvasKind.image,
                 placeholder: '',

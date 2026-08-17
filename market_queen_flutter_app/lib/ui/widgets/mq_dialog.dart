@@ -376,27 +376,50 @@ Future<bool> askToConfirm(
   return answer ?? false;
 }
 
-/// One of the two big choices a picker modal offers: pick something you already
-/// have, or make a new one.
-class BigChoice extends StatelessWidget {
-  const BigChoice({
+/// One of the two doors of a "make a new one" modal, drawn as a card with a
+/// picture on it.
+///
+/// It replaced a glyph-and-two-sentences version of the same choice. The glyph
+/// was 26px of grey line art at the top of a 176px box, which made the two doors
+/// read as list items rather than as the two things the modal is for -- and the
+/// difference between them, describing somebody against photographing somebody,
+/// is exactly the sort of thing a picture says faster than a paragraph.
+///
+/// The card is the target, not the button inside it. A button that is also a
+/// nested tap target inside a pressable card gives the pointer two answers to
+/// the same click and Tab two stops for one choice; the bar at the bottom is
+/// drawn from the card's own hover state, which is what makes the whole card
+/// light up as one object.
+class IllustratedChoice extends StatelessWidget {
+  const IllustratedChoice({
     super.key,
     required this.title,
+    required this.subtitle,
+    required this.action,
     required this.icon,
     required this.onPressed,
-    this.overline = '',
-    this.subtitle = '',
+    this.illustration = '',
     this.enabled = true,
   });
 
   final String title;
 
-  /// One word above the title, in caps: what this door *is* ("Generate",
-  /// "Import"), as against the sentence under it explaining what it does.
-  final String overline;
-
+  /// Two lines at most: what this door does, said once. The card is about
+  /// 250px wide and a third sentence pushes the button off the bottom of it.
   final String subtitle;
+
+  /// The label on the bar at the bottom. The same words as the title, which is
+  /// deliberate: the title names the door and the bar is the thing you press.
+  final String action;
+
+  /// Drawn on the plate when [illustration] is missing or absent, and beside
+  /// the label on the bar either way.
   final String icon;
+
+  /// An asset path. A file that is not in the bundle falls back to [icon]
+  /// rather than throwing, on the same terms as every other artwork in the app.
+  final String illustration;
+
   final VoidCallback onPressed;
   final bool enabled;
 
@@ -410,73 +433,127 @@ class BigChoice extends StatelessWidget {
       focusRadius: MqTheme.radius,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        // A floor rather than a height: the two doors are stretched to match
-        // each other by the row they sit in, and a fixed height clipped the one
-        // with the longer sentence on it.
-        constraints: const BoxConstraints(minHeight: 176),
-        padding: const EdgeInsets.all(18),
-        alignment: Alignment.center,
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: states.pressed
               ? mq.surfaceActive
               : states.hovered
               ? mq.surfaceHover
-              : mq.surfaceSecondary,
-          borderRadius: BorderRadius.circular(MqTheme.radius),
+              : mq.surface,
+          borderRadius: BorderRadius.circular(MqTheme.radius + 2),
           border: Border.all(
             color: states.active ? mq.borderStrong : mq.border,
           ),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            MqIcon(
-              icon,
-              size: 26,
-              color: !states.enabled
-                  ? mq.textDisabled
-                  : states.active
-                  ? mq.primary
-                  : mq.textTertiary,
-            ),
-            const SizedBox(height: 12),
-            if (overline.isNotEmpty) ...[
-              Text(
-                overline.toUpperCase(),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontMicro,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: MqTheme.trackOverline,
-                ),
-              ),
-              const SizedBox(height: 6),
-            ],
+            _plate(mq),
+            const SizedBox(height: 14),
             Text(
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: states.enabled ? mq.textPrimary : mq.textDisabled,
-                fontSize: MqTheme.fontBody,
+                fontSize: MqTheme.fontTitle,
                 fontWeight: FontWeight.w600,
+                letterSpacing: MqTheme.trackTitle,
                 height: MqTheme.lineTight,
               ),
             ),
-            if (subtitle.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontSmall,
-                  height: MqTheme.lineTight,
-                ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: mq.textTertiary,
+                fontSize: MqTheme.fontSmall,
+                height: MqTheme.lineBody,
               ),
-            ],
+            ),
+            const SizedBox(height: 14),
+            _bar(mq, states),
           ],
         ),
+      ),
+    );
+  }
+
+  /// The artwork, on its own light panel.
+  Widget _plate(MqTheme mq) {
+    return AspectRatio(
+      aspectRatio: 3 / 2,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: mq.illustrationPlate,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: illustration.isEmpty
+              ? Center(
+                  child: MqIcon(icon, size: 34, color: mq.onIllustrationPlate),
+                )
+              : Image.asset(
+                  illustration,
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (context, _, _) => Center(
+                    child: MqIcon(
+                      icon,
+                      size: 34,
+                      color: mq.onIllustrationPlate,
+                    ),
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  /// The commit bar. Filled with ink, which is what this interface uses for
+  /// "press this" -- the brand ramp is spent on the one button that actually
+  /// starts spending money, and two ramps side by side would name neither.
+  Widget _bar(MqTheme mq, MqStates states) {
+    final fill = !states.enabled
+        ? mq.surfaceTertiary
+        : states.pressed
+        ? mq.primaryActive
+        : states.hovered
+        ? mq.primaryHover
+        : mq.primary;
+    final ink = states.enabled ? mq.onPrimary : mq.textDisabled;
+
+    return AnimatedContainer(
+      duration: states.duration,
+      height: 38,
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(
+            child: Text(
+              action,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              style: TextStyle(
+                color: ink,
+                fontSize: MqTheme.fontLabel,
+                fontWeight: FontWeight.w600,
+                letterSpacing: MqTheme.trackSmall,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          MqIcon('arrow-right-line', size: 15, color: ink),
+        ],
       ),
     );
   }

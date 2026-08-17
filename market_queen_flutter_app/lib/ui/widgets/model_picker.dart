@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../../providers/registry.dart';
+import '../dialogs/api_key_dialog.dart';
 import '../format.dart';
 import '../theme.dart';
 import 'chip.dart';
@@ -15,9 +16,12 @@ import 'fields.dart';
 /// on the spot. The full two-combo [ModelPicker] is right on a settings page
 /// and far too heavy to sit in a prompt bar.
 ///
-/// Only models the Models page has left switched on appear, and the price is on
-/// every entry of the menu -- which is what you want while choosing and pure
-/// noise afterwards, so the chip itself shows the name alone.
+/// Every model the app can reach is in the menu, with its account's mark beside
+/// it and its price after it. A model on an account with no key is listed too,
+/// greyed, saying so -- and pressing it asks for that key rather than sending
+/// you to the Models page to find the right card among fifteen. The chip itself
+/// shows the name alone: the price is what you want while choosing and noise
+/// afterwards.
 class ModelChip extends StatelessWidget {
   const ModelChip({super.key, required this.app, required this.category});
 
@@ -37,8 +41,9 @@ class ModelChip extends StatelessWidget {
 
         final options = <MenuOption<String>>[];
         for (final provider in providers) {
+          final locked = provider.credential.isNotEmpty &&
+              !settings.hasApiKey(provider.credential);
           for (final model in provider.models) {
-
             final price = Format.unitPriceLabel(
               app.pricing.unitPrice(model.id),
             );
@@ -47,9 +52,13 @@ class ModelChip extends StatelessWidget {
                 [
                   if (named) '${provider.label} · ',
                   model.label,
-                  if (price.isNotEmpty) '   $price',
+                  // A price on a row you cannot buy from is noise.
+                  if (price.isNotEmpty && !locked) '   $price',
                 ].join(),
                 '${provider.id}|${model.id}',
+                mark: provider.credential,
+                locked: locked,
+                note: locked ? lockedByKeyLabel : '',
               ),
             );
           }
@@ -73,7 +82,12 @@ class ModelChip extends StatelessWidget {
                 anchor,
                 options: options,
                 current: '$providerId|$modelId',
-                width: 340,
+                width: 380,
+                onLocked: (option) => askForApiKey(
+                  context,
+                  app: app,
+                  credentialId: option.mark,
+                ),
               );
               if (picked == null) return;
               final parts = picked.split('|');

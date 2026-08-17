@@ -148,6 +148,24 @@ class MqTheme {
     end: Alignment.centerRight,
   );
 
+  // ------------------------------------------------------------ illustrations
+
+  /// The plate a piece of artwork is laid on, and the one colour that does not
+  /// follow the skin.
+  ///
+  /// The illustrations are white-on-white 3D renders: the shapes are lit white
+  /// and so is everything around them. On a dark surface the transparent-looking
+  /// background is not transparent at all and the whole PNG reads as a white
+  /// rectangle. So the plate stays light in both skins -- which is also what the
+  /// artwork was drawn for -- and in the dark theme it reads as a lit panel
+  /// holding a picture rather than as a hole in the page.
+  Color get illustrationPlate =>
+      dark ? const Color(0xFFE9EAEC) : const Color(0xFFF4F5F7);
+
+  /// Ink for a glyph drawn *on* [illustrationPlate], where the page's own text
+  /// colours would be invisible in the dark skin.
+  Color get onIllustrationPlate => const Color(0xFF9AA0A6);
+
   // -------------------------------------------------------- system feedback
   // Kept in colour even though the rest is monochrome: "it failed" is the one
   // thing that must not need reading to be noticed.

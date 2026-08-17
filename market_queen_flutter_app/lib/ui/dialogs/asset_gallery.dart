@@ -265,7 +265,7 @@ class _GalleryState extends State<_Gallery> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SearchField(
+        AssetSearchField(
           controller: _search,
           placeholder: _isActor ? tr('Search actors') : tr('Search scenes'),
           onChanged: (_) => setState(() {}),
@@ -379,6 +379,11 @@ Future<String?> editAsset(
 
 /// "Describe them, or hand over a photograph?"
 ///
+/// Two illustrated doors rather than two lines of grey text with a small glyph
+/// over them. The choice is between describing somebody and photographing
+/// somebody, and a picture of a written profile beside a picture of a scanned
+/// face says which is which before either sentence is read.
+///
 /// Returns null when the user closed it, which cancels the whole creation
 /// rather than falling through to a default.
 Future<AssetRoute?> askForAssetRoute(
@@ -391,12 +396,9 @@ Future<AssetRoute?> askForAssetRoute(
     context: context,
     child: Builder(
       builder: (context) => MqModalCard(
-        width: 620,
+        width: 600,
         title: actor ? tr('Create an actor') : tr('Create a scene'),
-        subtitle: actor
-            ? tr('Two ways in. Either one ends with a face, a voice and a '
-                'personality.')
-            : tr('Two ways in.'),
+        subtitle: tr('Two ways in.'),
         // Stretched so the two doors are the same height whichever of them
         // has the longer sentence on it, and wrapped in an IntrinsicHeight
         // because the card's content sits in a scroll view: a stretching Row
@@ -406,31 +408,43 @@ Future<AssetRoute?> askForAssetRoute(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: BigChoice(
-                  overline: tr('Describe'),
+                child: IllustratedChoice(
                   title: actor
                       ? tr('Write who the actor is')
                       : tr('Write where it is'),
                   subtitle: actor
-                      ? tr('Say it in a sentence, pick from what comes back, '
-                          'then say what to change.')
+                      ? tr('Describe the face, the voice and the personality. '
+                          'We build the profile from that.')
                       : tr('Say it in a sentence and pick from what comes '
                           'back.'),
+                  action: actor
+                      ? tr('Write who the actor is')
+                      : tr('Write where it is'),
                   icon: 'sparkling-line',
+                  // Artwork for the actor doors only: these two renders are a
+                  // written profile and a face being read off a card, and
+                  // neither is a thing you can say about a room. The scene
+                  // modal falls back to the glyph on the same plate.
+                  illustration: actor
+                      ? 'assets/illustrations/create_with_prompt.png'
+                      : '',
                   onPressed: () => closeMqModal(context, AssetRoute.generate),
                 ),
               ),
               const SizedBox(width: MqTheme.gap),
               Expanded(
-                child: BigChoice(
-                  overline: tr('From a picture'),
+                child: IllustratedChoice(
                   title: tr('Use a photograph'),
                   subtitle: actor
-                      ? tr('Hand over a face. Everything else is read off the '
-                          'picture.')
+                      ? tr('Bring a clear photo of the face. We read the '
+                          'profile off the picture.')
                       : tr('The file you hand over is the picture every shot '
                           'is built on.'),
+                  action: tr('Use a photograph'),
                   icon: 'upload-cloud-line',
+                  illustration: actor
+                      ? 'assets/illustrations/create_with_image.png'
+                      : '',
                   onPressed: () => closeMqModal(context, AssetRoute.upload),
                 ),
               ),
@@ -488,21 +502,20 @@ class AssetCard extends StatelessWidget {
   /// targets.
   final bool selecting;
 
-  /// Actors carry a voice and a casting brief; scenes carry neither. The card
-  /// tells them apart by what the asset has rather than by being handed a kind,
-  /// so the two library pages keep sharing one widget.
+  /// Actors carry an identity, a voice and a casting brief; scenes carry none
+  /// of them. The card tells them apart by what the asset has rather than by
+  /// being handed a kind, so the two library pages keep sharing one widget.
   bool get _isActor =>
+      asset.extras.containsKey(ActorIdentity.ageKey) ||
+      asset.extras.containsKey(ActorIdentity.genderKey) ||
       asset.extras.containsKey('voiceGender') ||
       asset.extras.containsKey('voiceName') ||
       asset.extras.containsKey('createdVia');
 
-  /// Who they read as, and where their voice came from: "Female · Young ·
-  /// Designed". The dot-separated line the mock-ups have under every face.
+  /// Who they are, and where their voice came from: "24 years old · Female",
+  /// then "Designed". The dot-separated line the mock-ups have under every face.
   Widget _voiceLine(MqTheme mq) {
-    final facts = <String>[
-      VoiceTrait.labelFor('voiceGender', asset.extraText('voiceGender')),
-      VoiceTrait.labelFor('voiceAge', asset.extraText('voiceAge')),
-    ].where((part) => part.isNotEmpty).join(' · ');
+    final facts = ActorIdentity.summary(asset);
 
     final voice = asset.extraText('voiceName');
     final provenance = switch (asset.extraText('voiceKind')) {
@@ -586,7 +599,7 @@ class AssetCard extends StatelessWidget {
             ),
           if (onCreateLook != null)
             MediaMenuAction(
-              icon: 'gallery-line',
+              icon: 'shirt-line',
               label: tr('Create a look'),
               onPressed: onCreateLook!,
             ),
@@ -933,9 +946,15 @@ class _FilterPill extends StatelessWidget {
   }
 }
 
-/// The search box above the grid: a magnifier and a field, no label.
-class _SearchField extends StatefulWidget {
-  const _SearchField({
+/// The search box above a grid of actors or scenes: a magnifier, a field and
+/// a cross once there is something to clear.
+///
+/// Shared with the library pages rather than copied into them -- the gallery and
+/// the Actors page are two views of one list and searching it should not be two
+/// slightly different boxes.
+class AssetSearchField extends StatefulWidget {
+  const AssetSearchField({
+    super.key,
     required this.controller,
     required this.placeholder,
     required this.onChanged,
@@ -946,10 +965,10 @@ class _SearchField extends StatefulWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  State<_SearchField> createState() => _SearchFieldState();
+  State<AssetSearchField> createState() => _AssetSearchFieldState();
 }
 
-class _SearchFieldState extends State<_SearchField> {
+class _AssetSearchFieldState extends State<AssetSearchField> {
   final FocusNode _focus = FocusNode();
   bool _hovered = false;
 

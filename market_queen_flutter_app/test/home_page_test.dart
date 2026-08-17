@@ -5,6 +5,8 @@ import 'package:market_queen/app_state.dart';
 import 'package:market_queen/ui/home_page.dart';
 import 'package:market_queen/ui/theme.dart';
 
+import 'support/sandbox.dart';
+
 /// Home is the page the app opens on, which makes a layout error in it the
 /// first thing anybody sees -- and the first version of it had one: the three
 /// cards were laid out with `CrossAxisAlignment.stretch` on a Row, which
@@ -14,6 +16,9 @@ import 'package:market_queen/ui/theme.dart';
 /// So this pumps the real page at both of its layouts and asserts nothing was
 /// thrown. It is a cheap test and it is the exact one that was missing.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   late AppState app;
 
   setUpAll(() async {

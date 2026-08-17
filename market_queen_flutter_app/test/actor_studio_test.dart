@@ -11,6 +11,8 @@ import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/buttons.dart';
 import 'package:market_queen/ui/widgets/mq_dialog.dart';
 
+import 'support/sandbox.dart';
+
 /// An actor is now four things -- a face, a way of moving, a voice and a
 /// personality -- built over four steps and edited in five sections. None of
 /// that has a cheap failure mode: a section that overflows or a step that
@@ -21,6 +23,9 @@ import 'package:market_queen/ui/widgets/mq_dialog.dart';
 /// actually gets. The test framework fails on a laid-out overflow by itself,
 /// which makes walking the screens most of the assertion.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   late AppState app;
 
   setUpAll(() async {

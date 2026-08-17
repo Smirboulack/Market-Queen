@@ -13,12 +13,32 @@ class Paths {
   static const organization = 'MarketQueen';
   static const application = 'Market Queen';
 
+  /// Somewhere else to keep everything, for a run that must not touch the real
+  /// install.
+  ///
+  /// This is the seam the test suite needs and did not have. Every store in the
+  /// app -- settings.json, secrets.bin, actors.json, workspace.json -- is
+  /// computed from [configDir], so a test that builds an `AppState` was
+  /// building one on top of whoever ran it: `flutter test` wrote its fixtures
+  /// into the real profile and its teardown deleted them again. The keys the
+  /// suite happened to name were `gemini` and `anthropic`, which is why those
+  /// two were the ones that kept vanishing between launches.
+  ///
+  /// Set it before anything reads a path -- `AppState.create()` is the first
+  /// thing that does -- and put it back to null afterwards. `MQ_CONFIG_DIR`
+  /// does the same job from outside the process, for a CI runner that would
+  /// rather not trust every test file to remember.
+  static String? overrideDir;
+
   /// %APPDATA%/MarketQueen/Market Queen, ~/.local/share/..., ~/Library/...
   ///
   /// Mirrors QStandardPaths::AppDataLocation, which appends the organisation
   /// and the application name to the platform's roaming data directory.
   static String get configDir {
     final env = Platform.environment;
+
+    final redirect = overrideDir ?? env['MQ_CONFIG_DIR'];
+    if (redirect != null && redirect.isNotEmpty) return redirect;
 
     if (Platform.isWindows) {
       final appData = env['APPDATA'];

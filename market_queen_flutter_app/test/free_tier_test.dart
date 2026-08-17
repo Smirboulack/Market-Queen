@@ -10,6 +10,8 @@ import 'package:market_queen/ui/settings_page.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/key_field.dart';
 
+import 'support/sandbox.dart';
+
 /// What the app promises about money.
 ///
 /// This file used to assert that the "free tier" badges were on the right
@@ -20,6 +22,9 @@ import 'package:market_queen/ui/widgets/key_field.dart';
 /// real money, the app says nothing rather than something it cannot stand
 /// behind.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   const window = Size(1420, 940);
 
   late AppState app;

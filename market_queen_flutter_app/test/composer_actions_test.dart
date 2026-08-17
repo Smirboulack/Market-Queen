@@ -9,9 +9,14 @@ import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
 
+import 'support/sandbox.dart';
+
 /// The four things the prompt bar gained: a send key, a price, a size and a
 /// wand.
 void main() {
+  // Never the real profile: see useSandboxConfig.
+  useSandboxConfig();
+
   const window = Size(1420, 940);
 
   late AppState app;

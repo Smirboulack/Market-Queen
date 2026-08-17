@@ -64,6 +64,20 @@ class ActorEditor extends StatefulWidget {
         ActorSection.looks => tr('Looks'),
       };
 
+  /// The glyph for each section, and the only place it is decided: the rail and
+  /// the overview's tiles both read it, so the wardrobe cannot be a hanger in
+  /// one and a photo album in the other.
+  static String iconFor(ActorSection section) => switch (section) {
+        ActorSection.overview => 'layout-line',
+        // A camera rather than a picture frame. This section is where the
+        // photograph is taken or replaced, not where pictures are listed.
+        ActorSection.appearance => 'camera-line',
+        ActorSection.voice => 'user-voice-line',
+        ActorSection.personality => 'emotion-line',
+        // A hanger: a look is an outfit.
+        ActorSection.looks => 'shirt-line',
+      };
+
   @override
   State<ActorEditor> createState() => _ActorEditorState();
 }
@@ -195,7 +209,7 @@ class _ActorEditorState extends State<ActorEditor> {
           Padding(
             padding: const EdgeInsets.only(bottom: 3),
             child: _RailRow(
-              icon: _iconFor(section),
+              icon: ActorEditor.iconFor(section),
               label: ActorEditor.labelFor(section),
               selected: _section == section,
               // Only where there is something to count. A "0" beside Looks
@@ -207,14 +221,6 @@ class _ActorEditorState extends State<ActorEditor> {
       ],
     );
   }
-
-  String _iconFor(ActorSection section) => switch (section) {
-        ActorSection.overview => 'layout-line',
-        ActorSection.appearance => 'image-line',
-        ActorSection.voice => 'user-voice-line',
-        ActorSection.personality => 'emotion-line',
-        ActorSection.looks => 'gallery-line',
-      };
 
   // ---- the middle column ---------------------------------------------------
 
@@ -338,9 +344,15 @@ class _ActorEditorState extends State<ActorEditor> {
       };
 
   List<({String icon, String label, String value})> get _factRows {
-    final age = VoiceTrait.labelFor('voiceAge', _draft.extraText('voiceAge'));
+    final years = ActorIdentity.ageOf(_draft);
+    // An actor saved before age became a number still has only the voice's
+    // band, and the band is a truer answer than "not set".
+    final age = years > 0
+        //: %1 is a whole number of years
+        ? tr('%1 years old').arg(years)
+        : VoiceTrait.labelFor('voiceAge', _draft.extraText('voiceAge'));
     final gender =
-        VoiceTrait.labelFor('voiceGender', _draft.extraText('voiceGender'));
+        VoiceTrait.labelFor('voiceGender', ActorIdentity.genderOf(_draft));
     final locale = VoiceLocale.find(_draft.extraText('voiceLocale'))?.label;
 
     return [
@@ -514,12 +526,17 @@ class _ActorEditorState extends State<ActorEditor> {
               _Hint(tr('The description is what the image model is told, and '
                   'what the search box matches on.')),
               const SizedBox(height: MqTheme.gap),
+              // Who the actor is, which is not a fact about their voice.
+              // Changing the voice used to change both of these, so a woman of
+              // 22 became "middle aged" the moment somebody picked a fuller
+              // voice for her -- see [ActorIdentity].
               Wrap(
                 spacing: MqTheme.gap,
                 runSpacing: MqTheme.gap,
                 children: [
+                  SizedBox(width: 138, child: _ageField()),
+                  SizedBox(width: 176, child: _genderField()),
                   SizedBox(width: 216, child: _languageField()),
-                  SizedBox(width: 216, child: _genderField()),
                 ],
               ),
             ],
@@ -533,7 +550,7 @@ class _ActorEditorState extends State<ActorEditor> {
             runSpacing: MqTheme.gap,
             children: [
               _SummaryTile(
-                icon: 'image-line',
+                icon: ActorEditor.iconFor(ActorSection.appearance),
                 title: tr('Appearance'),
                 //: %1 is a number of pictures
                 value: tr('%1 picture(s)').arg(_draft.media.length),
@@ -555,7 +572,7 @@ class _ActorEditorState extends State<ActorEditor> {
                 onTap: () => _go(ActorSection.personality),
               ),
               _SummaryTile(
-                icon: 'gallery-line',
+                icon: ActorEditor.iconFor(ActorSection.looks),
                 title: tr('Looks'),
                 //: %1 is a number of looks
                 value: tr('%1 look(s)').arg(_wardrobe.length),
@@ -602,14 +619,48 @@ class _ActorEditorState extends State<ActorEditor> {
         FieldLabel(tr('Gender')),
         const SizedBox(height: 6),
         StyledCombo<String>(
-          value: _draft.extraText('voiceGender'),
+          value: ActorIdentity.genderOf(_draft),
           options: [
-            MenuEntry(tr("doesn't matter"), ''),
+            MenuEntry(tr('Not set'), ''),
             for (final option in trait.options)
               MenuEntry(option.$1, option.$2),
           ],
           onPicked: (value) =>
-              setState(() => _draft.setExtra('voiceGender', value)),
+              setState(() => ActorIdentity.setGender(_draft, value)),
+        ),
+      ],
+    );
+  }
+
+  /// The actor's age, in years.
+  ///
+  /// A number rather than one of the voice library's three bands, because a
+  /// number is what somebody knows about the person they have just made and a
+  /// band is what a search needs to be told. The band the voice is looked up
+  /// under is worked out from it -- see [ActorIdentity.bandOf] -- so setting an
+  /// age still narrows the voice search without being decided by it.
+  Widget _ageField() {
+    final years = ActorIdentity.ageOf(_draft);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FieldLabel(tr('Age')),
+        const SizedBox(height: 6),
+        StyledCombo<String>(
+          value: years > 0 ? '$years' : '',
+          options: [
+            MenuEntry(tr('Not set'), ''),
+            for (var age = ActorIdentity.minAge;
+                age <= ActorIdentity.maxAge;
+                ++age)
+              //: %1 is a whole number of years
+              MenuEntry(tr('%1 years old').arg(age), '$age'),
+          ],
+          onPicked: (value) => setState(
+            () => ActorIdentity.setAge(_draft, int.tryParse(value) ?? 0),
+          ),
         ),
       ],
     );
@@ -753,14 +804,42 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- section: voice ------------------------------------------------------
 
+  /// The four dials, their ranges and where they sit when nobody has touched
+  /// them. Written down once because Reset needs the same numbers the sliders
+  /// draw from.
+  static const List<({String key, double from, double to, double fallback})>
+      _dials = [
+    (key: 'voiceSpeed', from: 0.7, to: 1.2, fallback: 1.0),
+    (key: 'voiceStability', from: 0, to: 1, fallback: 0.45),
+    (key: 'voiceSimilarity', from: 0, to: 1, fallback: 0.8),
+    (key: 'voiceStyle', from: 0, to: 1, fallback: 0.35),
+  ];
+
+  static String _dialLabel(String key) => switch (key) {
+        'voiceSpeed' => tr('Speed'),
+        'voiceStability' => tr('Stability'),
+        'voiceSimilarity' => tr('Similarity'),
+        _ => tr('Style exaggeration'),
+      };
+
+  /// Two steps, in the order they are taken: who reads the ad, then how.
+  ///
+  /// It used to be two equal cards called "Voice" and "Delivery", with the
+  /// listen button inside the second one, five loose filter chips inside the
+  /// first and four sliders stacked full width under both. Everything was
+  /// present and nothing said what to do first -- so the numbers, and the one
+  /// thing you actually do to a whole section sits in that section's heading.
   Widget _voice() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
         _SectionCard(
-          title: tr('Voice'),
-          subtitle: tr('Pick a voice, invent one, or clone your own.'),
+          step: 1,
+          title: tr('Choose a voice'),
+          subtitle: tr('Pick one from the library, invent one, or clone your '
+              'own.'),
+          action: _listenButton(),
           child: VoicePicker(
             app: widget.app,
             draft: _draft,
@@ -769,41 +848,74 @@ class _ActorEditorState extends State<ActorEditor> {
         ),
         const SizedBox(height: MqTheme.gap),
         _SectionCard(
+          step: 2,
           title: tr('Delivery'),
           subtitle: tr('The difference between a read that sounds human and '
               'one that sounds like an announcer.'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _dial(tr('Speed'), 'voiceSpeed', 0.7, 1.2, 1.0),
-              _dial(tr('Stability'), 'voiceStability', 0, 1, 0.45),
-              _dial(tr('Similarity'), 'voiceSimilarity', 0, 1, 0.8),
-              _dial(tr('Style exaggeration'), 'voiceStyle', 0, 1, 0.35),
-              const SizedBox(height: 8),
-              _audition(),
-            ],
-          ),
+          action: MqLink(text: tr('Reset'), onPressed: _resetDials),
+          child: _dialGrid(),
         ),
       ],
     );
   }
 
-  Widget _dial(
-    String label,
-    String key,
-    double from,
-    double to,
-    double fallback,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: LabeledSlider(
-        label: label,
-        value: _draft.extraNumber(key, fallback),
-        from: from,
-        to: to,
-        onChanged: (value) => setState(() => _draft.setExtra(key, value)),
+  void _resetDials() => setState(() {
+        for (final dial in _dials) {
+          _draft.setExtra(dial.key, dial.fallback);
+        }
+      });
+
+  /// The dials, two across.
+  ///
+  /// Four full-width sliders one under another made the section a form to work
+  /// down. Two across pairs them the way they are actually thought about --
+  /// how fast and how like the original, how steady and how much colour -- and
+  /// halves the height of the card.
+  Widget _dialGrid() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Under this a column is 130px, which is not a slider.
+        final columns = constraints.maxWidth >= 420 ? 2 : 1;
+        final width =
+            (constraints.maxWidth - MqTheme.gapLarge * (columns - 1)) / columns;
+
+        return Wrap(
+          spacing: MqTheme.gapLarge,
+          runSpacing: 2,
+          children: [
+            for (final dial in _dials)
+              SizedBox(width: width, child: _dial(dial)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _dial(({String key, double from, double to, double fallback}) dial) {
+    return LabeledSlider(
+      label: _dialLabel(dial.key),
+      value: _draft.extraNumber(dial.key, dial.fallback),
+      from: dial.from,
+      to: dial.to,
+      onChanged: (value) => setState(() => _draft.setExtra(dial.key, value)),
+    );
+  }
+
+  /// "Test the voice", in the heading of the section it tests.
+  ///
+  /// The audition line still lives on the Overview, where it is the fastest
+  /// answer to "is this actor right". Here it is a button and nothing else:
+  /// you have just changed something and want to hear what it did.
+  Widget _listenButton() {
+    final booth = widget.app.voiceBooth;
+    final ready = _draft.extraText('voiceId').isNotEmpty;
+
+    return GhostButton(
+      text: booth.auditioning ? tr('Listening…') : tr('Test the voice'),
+      enabled: !booth.auditioning && ready,
+      onPressed: () => booth.audition(
+        _draft.extras,
+        tr('Honestly, I did not think this would work.'),
       ),
     );
   }
@@ -944,11 +1056,26 @@ class _SectionCard extends StatelessWidget {
     required this.title,
     required this.child,
     this.subtitle = '',
+    this.step = 0,
+    this.action,
   });
 
   final String title;
   final String subtitle;
   final Widget child;
+
+  /// A number in a badge before the title, for the sections that are a
+  /// sequence.
+  ///
+  /// The voice section is the one that needed it: picking who reads the ad and
+  /// deciding how they read it are two jobs, in that order, and a page of four
+  /// equal cards said neither. Zero -- the default -- draws no badge, which is
+  /// right everywhere the cards are a list of subjects rather than steps.
+  final int step;
+
+  /// One control on the right of the heading: the thing you do to this section
+  /// as a whole rather than to any field in it.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -965,30 +1092,84 @@ class _SectionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: mq.textPrimary,
-              fontSize: MqTheme.fontTitle,
-              fontWeight: FontWeight.w600,
-              letterSpacing: MqTheme.trackTitle,
-              height: MqTheme.lineTight,
-            ),
-          ),
-          if (subtitle.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontSmall,
-                height: MqTheme.lineTight,
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (step > 0) ...[
+                _StepBadge(step: step),
+                const SizedBox(width: 10),
+              ],
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: mq.textPrimary,
+                        fontSize: MqTheme.fontTitle,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: MqTheme.trackTitle,
+                        height: MqTheme.lineTight,
+                      ),
+                    ),
+                    if (subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          color: mq.textTertiary,
+                          fontSize: MqTheme.fontSmall,
+                          height: MqTheme.lineTight,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              if (action != null) ...[
+                const SizedBox(width: 10),
+                action!,
+              ],
+            ],
+          ),
           const SizedBox(height: MqTheme.gap + 2),
           child,
         ],
+      ),
+    );
+  }
+}
+
+/// The number before a step's title.
+class _StepBadge extends StatelessWidget {
+  const _StepBadge({required this.step});
+
+  final int step;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      width: 24,
+      height: 24,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        border: Border.all(color: mq.border),
+      ),
+      child: Text(
+        '$step',
+        style: TextStyle(
+          color: mq.textSecondary,
+          fontSize: MqTheme.fontSmall,
+          fontWeight: FontWeight.w600,
+          height: 1,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }

@@ -27,7 +27,52 @@ class SecretBox {
   static const _tagSize = 32;
 
   /// 32-byte key derived from the machine + user identity.
-  static Uint8List deviceKey() {
+  ///
+  /// This is the one [seal] writes under, and its recipe is the Qt build's
+  /// verbatim, so a secrets.bin from before the migration still opens.
+  static Uint8List deviceKey() => _keyFrom(
+        userName: Platform.environment['USERNAME'] ?? '',
+        user: Platform.environment['USER'] ?? '',
+      );
+
+  /// Every key this machine might have sealed a file under, [deviceKey] first.
+  ///
+  /// The rest exist because the seed reads two environment variables, and on
+  /// Windows one of them is not a property of the machine at all: `USER` is
+  /// absent when the app is launched from Explorer and set by every
+  /// MSYS-derived shell, so `flutter run` from Git Bash and a double-click on
+  /// the exe derive two different keys on the same account. A blob written
+  /// under one then fails to authenticate under the other -- and a failed
+  /// unseal is indistinguishable from an empty store, so it read as "all your
+  /// keys are gone".
+  ///
+  /// Trying the variants makes that a non-event: whichever one the file was
+  /// written under, it opens, and [SettingsStore] re-seals it under the first
+  /// so the next launch needs no guessing.
+  static List<Uint8List> candidateKeys() {
+    final env = Platform.environment;
+    final userName = env['USERNAME'] ?? '';
+    final user = env['USER'] ?? '';
+
+    final seen = <String>{};
+    final keys = <Uint8List>[];
+
+    void add(String a, String b) {
+      final key = _keyFrom(userName: a, user: b);
+      // Two variants collapse onto one key whenever the variables agree --
+      // which is the common case, so the list is usually one entry long.
+      if (seen.add(_hex(key))) keys.add(key);
+    }
+
+    add(userName, user);
+    if (user.isNotEmpty) add(userName, '');
+    if (userName.isNotEmpty) add('', user);
+    add('', '');
+
+    return keys;
+  }
+
+  static Uint8List _keyFrom({required String userName, required String user}) {
     final seed = BytesBuilder();
     seed.add(utf8.encode('super-infinity/v1'));
 
@@ -38,12 +83,14 @@ class SecretBox {
       seed.add(utf8.encode(Platform.localHostname));
     }
 
-    final env = Platform.environment;
-    seed.add(utf8.encode(env['USERNAME'] ?? ''));
-    seed.add(utf8.encode(env['USER'] ?? ''));
+    seed.add(utf8.encode(userName));
+    seed.add(utf8.encode(user));
 
     return Uint8List.fromList(sha256.convert(seed.toBytes()).bytes);
   }
+
+  static String _hex(Uint8List bytes) =>
+      bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
 
   static Uint8List seal(Uint8List plain, Uint8List key) {
     final random = Random.secure();
@@ -171,8 +218,15 @@ class SecretBox {
     return diff == 0;
   }
 
+  /// Answered once. It cannot change while the app runs, and on Windows the
+  /// answer costs a subprocess -- which [candidateKeys] would otherwise pay for
+  /// four times over.
+  static String? _cachedMachineId;
+
   /// QSysInfo::machineUniqueId, per platform.
-  static String _machineUniqueId() {
+  static String _machineUniqueId() => _cachedMachineId ??= _readMachineId();
+
+  static String _readMachineId() {
     try {
       if (Platform.isWindows) {
         final result = Process.runSync('reg', [

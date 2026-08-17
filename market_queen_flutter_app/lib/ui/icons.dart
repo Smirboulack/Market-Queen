@@ -8,11 +8,19 @@ const _iconByName = <String, IconData>{
   'add-line': Icons.add,
   'arrow-down-s-line': Icons.keyboard_arrow_down,
   'arrow-left-line': Icons.arrow_back,
+  'arrow-right-line': Icons.arrow_forward,
   'arrow-right-s-line': Icons.keyboard_arrow_right,
   'arrow-up-line': Icons.arrow_upward,
   'arrow-up-s-line': Icons.keyboard_arrow_up,
+  // The shape of the frame, and how many pixels are in it. Two settings that
+  // sound alike and are not: 9:16 against 1536x1024.
+  'aspect-ratio-line': Icons.aspect_ratio_outlined,
+  'resize-line': Icons.photo_size_select_large_outlined,
   'attachment-line': Icons.attach_file,
   'calendar-line': Icons.calendar_today_outlined,
+  // A camera, for the section that is about the photograph itself -- as against
+  // `image-line`, which is any picture, and `gallery-line`, which is several.
+  'camera-line': Icons.photo_camera_outlined,
   'check-double-line': Icons.done_all,
   'check-line': Icons.check,
   'clapperboard-line': Icons.movie_creation_outlined,
@@ -60,6 +68,10 @@ const _iconByName = <String, IconData>{
   'settings-3-line': Icons.settings_outlined,
   'shopping-bag-3-line': Icons.shopping_bag_outlined,
   'shuffle-line': Icons.shuffle,
+  // A wardrobe hanger: the actor's looks are outfits, and a picture-gallery
+  // glyph said "more images of this person" rather than "what they are
+  // wearing".
+  'shirt-line': Icons.checkroom_outlined,
   'sound-module-line': Icons.graphic_eq,
   'sparkling-line': Icons.auto_awesome_outlined,
   'star-fill': Icons.star,
