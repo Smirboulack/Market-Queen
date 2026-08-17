@@ -171,7 +171,7 @@ void main() {
     expect(find.text('Create the scene'), findsOneWidget);
   });
 
-  testWidgets("the cast actor's cog opens the read, its name swaps them", (
+  testWidgets("the cast actor's name opens the read, the arrows swap them", (
     tester,
   ) async {
     app.actors.save(LibraryAsset(name: 'Camille', prompt: 'A woman, 30s'));
@@ -180,7 +180,9 @@ void main() {
 
     await pumpEditor(tester);
 
-    await tester.tap(find.byTooltip('Voice and delivery'));
+    // Pressing somebody's name is how every interface says "tell me about this
+    // one". It used to throw them off the ad and open the gallery.
+    await tester.tap(find.text('Camille').first);
     await settle(tester);
 
     expect(find.byType(CastPanel), findsOneWidget);
@@ -194,15 +196,16 @@ void main() {
       expect(find.text(dial), findsOneWidget, reason: dial);
     }
 
-    // The panel is a menu now: it hangs over the canvas from the cog, and a
-    // press anywhere else puts it away rather than falling through to whatever
-    // was under it.
+    // The panel is a menu: it hangs over the canvas from the chip, and a press
+    // anywhere else puts it away rather than falling through to whatever was
+    // under it.
     await tester.tapAt(const Offset(8, 8));
     await settle(tester);
     expect(find.byType(CastPanel), findsNothing);
 
-    // The name is the other door: it goes to the library to swap them.
-    await tester.tap(find.text('Camille').first);
+    // The crossed arrows are the other door: they go to the library to swap
+    // them.
+    await tester.tap(find.byTooltip('Cast somebody else').first);
     await settle(tester);
     expect(find.text('Select an actor'), findsOneWidget);
   });

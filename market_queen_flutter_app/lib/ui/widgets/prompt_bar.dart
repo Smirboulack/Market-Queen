@@ -153,7 +153,11 @@ class _PromptBarState extends State<PromptBar>
                   child: TextField(
                     controller: widget.controller,
                     focusNode: _focus,
-                    maxLines: null,
+                    // Six lines, then it scrolls. Same reason as the composer:
+                    // a bar that grows without a ceiling eventually owns the
+                    // window.
+                    minLines: 1,
+                    maxLines: 6,
                     onChanged: widget.onChanged,
                     cursorColor: mq.primary,
                     style: TextStyle(

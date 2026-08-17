@@ -290,9 +290,15 @@ class _LabeledFieldState extends State<LabeledField> {
   }
 }
 
-/// A multi-line field that grows with its content instead of scrolling inside
-/// itself: an inner scroll view would swallow the wheel and freeze the page
-/// scroll whenever the pointer happened to be over a text box.
+/// A multi-line field of a settled height, which scrolls inside itself.
+///
+/// It used to grow with its content, on the argument that an inner scroll view
+/// swallows the wheel. What that traded away was worse: the box is on cards
+/// laid out to a page that does not scroll, so a description with a dozen line
+/// breaks in it pushed the card underneath off the bottom of the modal -- and
+/// the field kept growing, because nothing stopped it. A box whose height is
+/// decided by the layout rather than by the typing is the only version that
+/// cannot break the page it is on.
 class LabeledArea extends StatefulWidget {
   const LabeledArea({
     super.key,
@@ -354,10 +360,9 @@ class _LabeledAreaState extends State<LabeledArea> {
       controller: _controller,
       focusNode: _focus,
       maxLines: null,
-      // A box that fills its slot has to be able to scroll inside itself: it
-      // cannot grow, and text typed past the bottom of a fixed height would
-      // otherwise be unreachable.
-      expands: widget.fills,
+      // The box has a height either way -- its slot's or its own -- so the text
+      // scrolls inside it rather than the box growing under the text.
+      expands: true,
       minLines: null,
       onChanged: (value) {
         if (widget.maxLength > 0) setState(() {});
@@ -389,10 +394,7 @@ class _LabeledAreaState extends State<LabeledArea> {
         hovered: _hovered,
         child: widget.fills
             ? field
-            : ConstrainedBox(
-                constraints: BoxConstraints(minHeight: widget.areaHeight),
-                child: field,
-              ),
+            : SizedBox(height: widget.areaHeight, child: field),
       ),
     );
 
@@ -430,6 +432,9 @@ class LabeledSlider extends StatelessWidget {
     this.to = 1.0,
     this.decimals = 2,
     this.hint = '',
+    this.enabled = true,
+    this.disabledHint = '',
+    this.steps = const [],
   });
 
   final String label;
@@ -440,9 +445,31 @@ class LabeledSlider extends StatelessWidget {
   final int decimals;
   final String hint;
 
+  /// Off for a setting the chosen engine will discard. Drawn dead, with
+  /// [disabledHint] under it, rather than left looking operable -- a dial that
+  /// moves while nothing happens is worse than one that says it cannot.
+  final bool enabled;
+  final String disabledHint;
+
+  /// The only values the far end will accept. Empty -- the default -- is a
+  /// continuum. Given a list, the slider snaps to the nearest of them, so the
+  /// number on screen is the number that will be sent.
+  final List<double> steps;
+
+  double _snap(double raw) {
+    if (steps.isEmpty) return raw;
+    var closest = steps.first;
+    for (final step in steps) {
+      if ((step - raw).abs() < (closest - raw).abs()) closest = step;
+    }
+    return closest;
+  }
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
+    final shown = enabled ? _snap(value.clamp(from, to)) : value.clamp(from, to);
+    final note = enabled ? hint : disabledHint;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,9 +484,9 @@ class LabeledSlider extends StatelessWidget {
             Expanded(child: FieldLabel(label)),
             const SizedBox(width: 8),
             Text(
-              value.toStringAsFixed(decimals),
+              enabled ? shown.toStringAsFixed(decimals) : tr('n/a'),
               style: TextStyle(
-                color: mq.textPrimary,
+                color: enabled ? mq.textPrimary : mq.textDisabled,
                 fontSize: MqTheme.fontSmall,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
@@ -469,25 +496,31 @@ class LabeledSlider extends StatelessWidget {
         SliderTheme(
           data: SliderThemeData(
             trackHeight: 4,
-            activeTrackColor: mq.primary,
+            activeTrackColor: enabled ? mq.primary : mq.borderStrong,
             inactiveTrackColor: mq.surfaceTertiary,
+            disabledActiveTrackColor: mq.borderStrong,
+            disabledInactiveTrackColor: mq.surfaceTertiary,
             thumbColor: mq.surface,
             overlayShape: SliderComponentShape.noOverlay,
-            thumbShape: _RingThumb(mq.primary),
+            thumbShape: _RingThumb(enabled ? mq.primary : mq.borderStrong),
           ),
           child: Slider(
-            value: value.clamp(from, to),
+            value: shown,
             min: from,
             max: to,
-            onChanged: onChanged,
+            // A three-setting engine gets three stops rather than a continuum
+            // it will quietly round.
+            divisions: steps.length > 1 ? steps.length - 1 : null,
+            onChanged: enabled ? (raw) => onChanged(_snap(raw)) : null,
           ),
         ),
-        if (hint.isNotEmpty)
+        if (note.isNotEmpty)
           Text(
-            hint,
+            note,
             style: TextStyle(
               color: mq.textTertiary,
               fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineTight,
             ),
           ),
       ],

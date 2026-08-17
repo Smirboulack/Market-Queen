@@ -935,7 +935,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           child: TextField(
             controller: _prompt,
             focusNode: _focus,
-            maxLines: null,
+            // Grows to eight lines and then scrolls. Unbounded, a script typed
+            // line by line pushed the send button, the settings row and the
+            // feed off the screen -- the bar ended up owning the window,
+            // which is the one thing a bar must never do.
+            minLines: 1,
+            maxLines: 8,
             onChanged: _tab == ComposerTab.actors
                 ? app.project.setScript
                 : null,
@@ -1581,9 +1586,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
       return [
         // Three things you can do to a cast actor, and all three are on the one
-        // bubble: press the name to swap them, the cog for the read, the cross
-        // to take them off. Nothing is behind a menu, because all three are
-        // single clicks you make constantly.
+        // bubble: press the name for their voice and delivery, the arrows to
+        // cast somebody else, the cross to take them off. Nothing is behind a
+        // menu, because all three are single clicks you make constantly.
         _CastChip(
           label: tr('Add an actor'),
           emptyIcon: 'user-add-line',
@@ -2052,10 +2057,16 @@ enum _Panel { none, settings, actor, scene }
 /// The actor or the scene on the ad.
 ///
 /// Empty, it is a plain chip that opens the library. Cast, it is one bubble
-/// carrying all three things you do to a casting: the face and the name swap
-/// them, the cog opens their settings, the cross takes them off. They used to
-/// be a chip with a cross floating beside it, which read as two controls that
-/// happened to be adjacent, and the settings were reachable from neither.
+/// carrying all three things you do to a casting: the face and the name open
+/// their settings, the middle button swaps them for somebody else, the cross
+/// takes them off.
+///
+/// The name and the cog used to be the other way round -- pressing the name
+/// threw the actor away and opened the gallery, and the settings were behind a
+/// 22px cog. That is backwards twice over: pressing somebody's name is how
+/// every interface in the world says "tell me about this one", and the
+/// destructive-ish action was the easiest thing on the chip to hit. Swapping
+/// them costs nothing and puts the common gesture on the big target.
 class _CastChip extends StatefulWidget {
   const _CastChip({
     required this.label,
@@ -2086,9 +2097,8 @@ class _CastChip extends StatefulWidget {
   final VoidCallback onSettings;
   final VoidCallback onCleared;
 
-  /// The panel hangs off the cog, not off the whole bubble, so it opens over
-  /// the button that was actually pressed -- which is why the portal is wrapped
-  /// around that button here rather than around the chip.
+  /// The panel hangs off the whole bubble, because the whole bubble is now what
+  /// opens it.
   final OverlayPortalController settingsPortal;
   final OverlayChildLayoutBuilder settingsPanel;
 
@@ -2121,7 +2131,10 @@ class _CastChipState extends State<_CastChip> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: AnimatedContainer(
+      child: OverlayPortal.overlayChildLayoutBuilder(
+        controller: widget.settingsPortal,
+        overlayChildBuilder: widget.settingsPanel,
+        child: AnimatedContainer(
         duration: _hovered ? Duration.zero : MqTheme.hoverDuration,
         height: 30,
         padding: const EdgeInsets.only(left: 5, right: 3),
@@ -2141,8 +2154,8 @@ class _CastChipState extends State<_CastChip> {
           children: [
             Flexible(
               child: Pressable(
-                onTap: widget.onPressed,
-                tooltip: widget.replaceTip,
+                onTap: widget.onSettings,
+                tooltip: widget.settingsTip,
                 focusRadius: MqTheme.radiusPill,
                 builder: (context, states) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -2187,15 +2200,14 @@ class _CastChipState extends State<_CastChip> {
             const SizedBox(width: 4),
             Container(width: 1, height: 16, color: mq.border),
             const SizedBox(width: 2),
-            OverlayPortal.overlayChildLayoutBuilder(
-              controller: widget.settingsPortal,
-              overlayChildBuilder: widget.settingsPanel,
-              child: MqIconButton(
-                icon: 'settings-3-line',
-                tip: widget.settingsTip,
-                size: 22,
-                onPressed: widget.onSettings,
-              ),
+            // Where the cog was. Two arrows crossing is what this actually
+            // does -- put somebody else in this part -- and the settings it
+            // used to open are now the name beside it.
+            MqIconButton(
+              icon: 'shuffle-line',
+              tip: widget.replaceTip,
+              size: 22,
+              onPressed: widget.onPressed,
             ),
             MqIconButton(
               icon: 'close-line',
@@ -2205,6 +2217,7 @@ class _CastChipState extends State<_CastChip> {
               onPressed: widget.onCleared,
             ),
           ],
+          ),
         ),
       ),
     );

@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 
 import '../../app_state.dart';
-import '../../core/http_util.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
-import '../../providers/types.dart';
-import '../../providers/voice_profile.dart';
+import '../dialogs/voice_picker.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
 import '../widgets/fields.dart';
 import '../widgets/media_drop.dart';
+import '../widgets/voice_player.dart';
 
 /// The column that opens when the cast actor or scene on the bar is pressed.
 ///
@@ -50,17 +48,17 @@ class CastPanel extends StatefulWidget {
 }
 
 class _CastPanelState extends State<CastPanel> {
-  Player? _player;
+  /// The panel's own player. One transport, so the disc, the bar and the clock
+  /// are three views of one thing rather than three states that can disagree.
+  final AudioTransport _transport = AudioTransport();
 
-  /// Who the brief turned up, best first, and what had to be given up to turn
-  /// up anybody at all.
-  List<LibraryVoice> _shortlist = const [];
-  List<String> _relaxed = const [];
-  bool _searching = false;
-  String _searchError = '';
-  bool _voicesOpen = false;
-
-  String _lastSample = '';
+  /// Where the dials stood when the last read was bought.
+  ///
+  /// A provider applies these on a text-to-speech call and nowhere else, so
+  /// what is on disk after a read is that read -- not this actor as they stand
+  /// now. Moving a dial makes the recording stale, and the disc has to buy a
+  /// new one rather than replay the old one under a changed label.
+  String _readSettings = '';
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
@@ -80,28 +78,61 @@ class _CastPanelState extends State<CastPanel> {
   @override
   void initState() {
     super.initState();
-    if (_isActor) {
-      widget.app.voiceBooth.addListener(_onBooth);
-      _search();
-    }
+    if (_isActor) widget.app.voiceBooth.addListener(_onBooth);
   }
 
   @override
   void dispose() {
     if (_isActor) widget.app.voiceBooth.removeListener(_onBooth);
-    _player?.dispose();
+    _transport.dispose();
     super.dispose();
   }
 
-  /// A fresh audition plays itself: hearing them is the whole point of the
-  /// button that produced it.
+  /// A fresh read plays itself: hearing them is the whole point of having
+  /// bought it.
   void _onBooth() {
     if (!mounted) return;
-    setState(() {});
     final sample = widget.app.voiceBooth.samplePath;
-    if (sample.isEmpty || sample == _lastSample) return;
-    _lastSample = sample;
-    (_player ??= Player()).open(Media(Uri.file(sample).toString()));
+    if (sample.isNotEmpty && !_transport.holds(sample)) {
+      _transport.toggle(sample);
+    }
+    setState(() {});
+  }
+
+  // ---- hearing the actor ---------------------------------------------------
+
+  /// The four dials as one string, for telling a fresh read from a stale one.
+  String _dialState(LibraryAsset asset) => [
+        for (final dial in _dials)
+          asset.extraNumber(dial.$2, dial.$5).toStringAsFixed(3),
+      ].join(',');
+
+  /// The read on disk, when it is still the read these dials describe.
+  String _readOf(LibraryAsset asset) =>
+      _readSettings == _dialState(asset) ? widget.app.voiceBooth.samplePath : '';
+
+  /// Buys one read of the ad's own first line, in the voice as it now stands.
+  ///
+  /// The ad's request rather than the asset's extras: it is what the render
+  /// will send, so what you hear is what you buy.
+  void _readAloud(LibraryAsset asset) {
+    _readSettings = _dialState(asset);
+    widget.app.voiceBooth.audition(widget.app.request(), _line);
+  }
+
+  /// Opens the catalogue in the middle of the screen rather than inside this
+  /// 300px column.
+  Future<void> _changeVoice(LibraryAsset asset) async {
+    await showVoiceStudio(
+      context,
+      app: widget.app,
+      actor: asset,
+      onSaved: (draft) {
+        _library.save(draft);
+        if (mounted) setState(() {});
+      },
+    );
+    if (mounted) setState(() {});
   }
 
   /// Writes one value on the cast asset and puts it back in the library.
@@ -117,87 +148,10 @@ class _CastPanelState extends State<CastPanel> {
     setState(() {});
   }
 
-  // ---- the voice -----------------------------------------------------------
-
-  String get _voiceProvider => widget.app.registry.providerOrDefault(
-        'voice',
-        widget.app.settings.prefString('voiceProvider'),
-      );
-
-  /// Runs the actor's brief past the provider. Cached for a day unless
-  /// [refresh].
-  Future<void> _search({bool refresh = false}) async {
-    final asset = _asset;
-    if (asset == null) return;
-
-    final casting = widget.app.voiceCasting;
-    final registry = widget.app.registry;
-    final settings = widget.app.settings;
-    final provider = _voiceProvider;
-    final profile = VoiceProfile.from(asset.extras);
-
-    if (!refresh) {
-      final known = casting.remembered(provider, profile);
-      if (known != null) {
-        setState(() {
-          _shortlist = known.voices;
-          _relaxed = known.relaxed;
-          _searchError = '';
-        });
-        return;
-      }
-    }
-
-    setState(() {
-      _searching = true;
-      _searchError = '';
-    });
-
-    try {
-      final found = await casting.shortlist(
-        providerId: provider,
-        apiKey: settings.apiKey(registry.credentialFor(provider)),
-        modelId: registry.resolveModel(
-          provider,
-          settings.prefString('voiceModel'),
-        ),
-        profile: profile,
-        refresh: refresh,
-      );
-      if (!mounted) return;
-      setState(() {
-        _shortlist = found.voices;
-        _relaxed = found.relaxed;
-        _searching = false;
-      });
-    } on ProviderException catch (error) {
-      if (!mounted) return;
-      setState(() {
-        _searching = false;
-        _searchError = error.message;
-        _shortlist = const [];
-      });
-    }
-  }
-
-  // ---- build ---------------------------------------------------------------
-
-  /// Whose brief the shortlist on screen belongs to. Casting somebody else
-  /// without this leaves the previous actor's voices sitting under the new
-  /// one's name, which is the sort of thing nobody notices until the render.
-  String _searchedFor = '';
-
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     final asset = _asset;
-
-    if (_isActor && asset != null && asset.id != _searchedFor) {
-      _searchedFor = asset.id;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _search();
-      });
-    }
 
     return ConstrainedBox(
       constraints: const BoxConstraints(maxHeight: CastPanel.maxHeight),
@@ -288,16 +242,29 @@ class _CastPanelState extends State<CastPanel> {
 
   // ---- the actor's read ----------------------------------------------------
 
+  /// The four ElevenLabs dials, in the order they matter: name, key, range and
+  /// where they sit untouched. They are the difference between a read that
+  /// sounds human and one that sounds like an announcer.
+  static List<(String, String, double, double, double)> get _dials => [
+        (tr('Speed'), 'voiceSpeed', 0.7, 1.2, 1.0),
+        (tr('Stability'), 'voiceStability', 0, 1, 0.45),
+        (tr('Similarity'), 'voiceSimilarity', 0, 1, 0.8),
+        (tr('Style exaggeration'), 'voiceStyle', 0, 1, 0.35),
+      ];
+
   List<Widget> _actorRows(LibraryAsset asset) {
     final mq = context.mq;
     final booth = widget.app.voiceBooth;
     final chosen = asset.extraText('voiceName');
+    final cast = asset.extraText('voiceId').isNotEmpty;
+    final read = _readOf(asset);
 
     return [
       PanelRow(
         label: tr('Voice'),
         child: Pressable(
-          onTap: () => setState(() => _voicesOpen = !_voicesOpen),
+          onTap: () => _changeVoice(asset),
+          tooltip: tr('Choose a voice'),
           focusRadius: MqTheme.radiusSmall,
           builder: (context, states) => Row(
             mainAxisSize: MainAxisSize.min,
@@ -316,7 +283,7 @@ class _CastPanelState extends State<CastPanel> {
               ),
               const SizedBox(width: 5),
               MqIcon(
-                _voicesOpen ? 'arrow-up-s-line' : 'arrow-down-s-line',
+                'arrow-right-s-line',
                 size: 15,
                 color: states.active ? mq.textPrimary : mq.textTertiary,
               ),
@@ -324,71 +291,70 @@ class _CastPanelState extends State<CastPanel> {
           ),
         ),
       ),
-      if (_voicesOpen) ...[
-        _brief(asset),
-        const SizedBox(height: 8),
-        _voiceList(asset),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                _resultLine,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontSmall,
-                ),
-              ),
-            ),
-            MqIconButton(
-              icon: _searching ? 'loader-4-line' : 'refresh-line',
-              tip: tr('Search the library again'),
-              size: 28,
-              enabled: !_searching,
-              onPressed: () => _search(refresh: true),
-            ),
-          ],
-        ),
-        if (_searchError.isNotEmpty)
-          Text(
-            _searchError,
-            style: TextStyle(color: mq.error, fontSize: MqTheme.fontSmall),
+      for (final dial in _dials)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: LabeledSlider(
+            label: dial.$1,
+            value: asset.extraNumber(dial.$2, dial.$5),
+            from: dial.$3,
+            to: dial.$4,
+            onChanged: (value) => _set(dial.$2, value),
           ),
-        const SizedBox(height: 10),
-      ],
-      // The four ElevenLabs dials, in the order they matter. They are the
-      // difference between a read that sounds human and one that sounds like an
-      // announcer, and until now they were on no screen at all.
-      _slider(asset, tr('Speed'), 'voiceSpeed', 0.7, 1.2, 1.0),
-      _slider(asset, tr('Stability'), 'voiceStability', 0, 1, 0.45),
-      _slider(asset, tr('Similarity'), 'voiceSimilarity', 0, 1, 0.8),
-      _slider(asset, tr('Style exaggeration'), 'voiceStyle', 0, 1, 0.35),
-      const SizedBox(height: 4),
+        ),
+      const SizedBox(height: 8),
+      // The player, where a "Hear the voice" button used to be. A button that
+      // spends money and then leaves you looking at a button is the wrong shape
+      // for this: what you want next is to hear it again, from halfway, without
+      // paying twice -- which is a transport, not a verb.
       Row(
         children: [
-          Expanded(
-            child: Text(
-              booth.error.isEmpty
-                  ? tr('Hearing the voice costs a fraction of a cent.')
-                  : booth.error,
-              style: TextStyle(
-                color: booth.error.isEmpty ? mq.textTertiary : mq.error,
-                fontSize: MqTheme.fontSmall,
-                height: MqTheme.lineTight,
+          if (booth.auditioning)
+            const SizedBox(
+              width: 30,
+              height: 30,
+              child: Center(
+                child: SizedBox(
+                  width: 15,
+                  height: 15,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
+            )
+          else
+            PlayDisc(
+              transport: _transport,
+              source: read,
+              enabled: cast,
+              tip: tr('Listen'),
+              // Nothing on disk for these settings: pressing play is how
+              // somebody asks for the line to be read with them.
+              onEmpty: () => _readAloud(asset),
+              emptyTip: tr('Read the line with these settings'),
             ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TransportLine(transport: _transport, source: read),
           ),
           const SizedBox(width: 8),
-          GhostButton(
-            text: booth.auditioning ? tr('Listening…') : tr('Hear the voice'),
-            enabled: !booth.auditioning &&
-                asset.extraText('voiceId').isNotEmpty,
-            // The ad's own request, not the asset's extras: it is what the
-            // render will send, so what you hear is what you buy.
-            onPressed: () => booth.audition(widget.app.request(), _line),
-          ),
+          TransportClock(transport: _transport, source: read),
         ],
+      ),
+      const SizedBox(height: 6),
+      Text(
+        booth.error.isNotEmpty
+            ? booth.error
+            : !cast
+            ? tr('Choose a voice first.')
+            : read.isEmpty
+            ? tr('These settings are only heard on a read, which costs a '
+                'fraction of a cent.')
+            : tr('Your read of the first line, with these settings on it.'),
+        style: TextStyle(
+          color: booth.error.isNotEmpty ? mq.error : mq.textTertiary,
+          fontSize: MqTheme.fontSmall,
+          height: MqTheme.lineTight,
+        ),
       ),
     ];
   }
@@ -403,132 +369,6 @@ class _CastPanelState extends State<CastPanel> {
     }
     final first = script.split(RegExp(r'(?<=[.!?])\s+')).first.trim();
     return first.length > 220 ? first.substring(0, 220) : first;
-  }
-
-  Widget _slider(
-    LibraryAsset asset,
-    String label,
-    String key,
-    double from,
-    double to,
-    double fallback,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: LabeledSlider(
-        label: label,
-        value: asset.extraNumber(key, fallback),
-        from: from,
-        to: to,
-        onChanged: (value) => _set(key, value),
-      ),
-    );
-  }
-
-  /// The casting brief. Every chip is optional: what is left unsaid widens the
-  /// search rather than blocking it.
-  Widget _brief(LibraryAsset asset) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Wrap(
-        spacing: 6,
-        runSpacing: 6,
-        children: [
-          MqPickChip(
-            label: tr('Language'),
-            icon: 'translate-line',
-            menuWidth: 260,
-            value: asset.extraText('voiceLocale'),
-            options: [
-              MenuOption(tr('Same as the ad'), ''),
-              for (final locale in VoiceLocale.all)
-                MenuOption(locale.menuLabel, locale.id),
-            ],
-            onPicked: (value) => _briefChanged(asset, 'voiceLocale', value),
-          ),
-          for (final trait in VoiceTrait.all)
-            MqChoiceChip(
-              label: trait.label,
-              value: asset.extraText(trait.key),
-              onPicked: (value) => _briefChanged(asset, trait.key, value),
-              options: [
-                for (final option in trait.options)
-                  MenuOption(option.$1, option.$2),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  void _briefChanged(LibraryAsset asset, String key, String value) {
-    if (asset.extraText(key) == value) return;
-    _set(key, value);
-    _search();
-  }
-
-  String get _resultLine {
-    if (_searching) return tr('Looking for voices...');
-    if (_searchError.isNotEmpty) return '';
-    if (_shortlist.isEmpty) return tr('No voice matches this brief.');
-    if (_relaxed.isEmpty) {
-      //: %1 is a number of voices
-      return tr('%1 voice(s) match').arg(_shortlist.length);
-    }
-    final dropped = _relaxed.map(VoiceProfile.filterLabel).join(tr(', '));
-    //: %1 is a number of voices, %2 a list of criteria such as "age, tone"
-    return tr('%1 voice(s) — widened on: %2')
-        .arg(_shortlist.length)
-        .arg(dropped);
-  }
-
-  Widget _voiceList(LibraryAsset asset) {
-    final mq = context.mq;
-    final chosen = asset.extraText('voiceId');
-
-    if (_shortlist.isEmpty) {
-      return Text(
-        _searching ? '' : tr('Widen the brief, or reload.'),
-        style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
-      );
-    }
-
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 150),
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-        border: Border.all(color: mq.border),
-      ),
-      child: ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.all(3),
-        children: [
-          for (final voice in _shortlist)
-            _VoiceRow(
-              name: voice.name,
-              traits: describeVoice(voice),
-              chosen: voice.id == chosen,
-              previewUrl: voice.previewUrl,
-              onChoose: () {
-                final draft = asset.copy()
-                  ..setExtra('voiceId', voice.id)
-                  // Travels with the id: a library voice has to be put on the
-                  // account before it can speak, and the render may be the
-                  // first thing that needs it.
-                  ..setExtra('voiceOwner', voice.ownerId)
-                  ..setExtra('voiceName', voice.name);
-                _library.save(draft);
-                setState(() {});
-              },
-              onPreview: () {
-                if (voice.previewUrl.isEmpty) return;
-                (_player ??= Player()).open(Media(voice.previewUrl));
-              },
-            ),
-        ],
-      ),
-    );
   }
 
   // ---- the scene's dials ---------------------------------------------------
@@ -688,88 +528,3 @@ class _PanelPick extends StatelessWidget {
 }
 
 /// One candidate: who they are, and what about them matched.
-class _VoiceRow extends StatelessWidget {
-  const _VoiceRow({
-    required this.name,
-    required this.traits,
-    required this.chosen,
-    required this.previewUrl,
-    required this.onChoose,
-    required this.onPreview,
-  });
-
-  final String name;
-  final String traits;
-  final bool chosen;
-  final String previewUrl;
-  final VoidCallback onChoose;
-  final VoidCallback onPreview;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Pressable(
-      onTap: onChoose,
-      snap: true,
-      builder: (context, states) => AnimatedContainer(
-        duration: states.duration,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        decoration: BoxDecoration(
-          color: chosen
-              ? mq.surfaceActive
-              : states.active
-              ? mq.surfaceHover
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-        ),
-        child: Row(
-          children: [
-            MqIcon(
-              chosen ? 'check-line' : 'mic-line',
-              size: 15,
-              color: chosen ? mq.primary : mq.textTertiary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontLabel,
-                      fontWeight: chosen ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
-                  if (traits.isNotEmpty)
-                    Text(
-                      traits,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: mq.textTertiary,
-                        fontSize: MqTheme.fontSmall,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            if (previewUrl.isNotEmpty) ...[
-              const SizedBox(width: 6),
-              MqIconButton(
-                icon: 'play-fill',
-                //: Playing the provider's own sample costs nothing
-                tip: tr('Listen — free'),
-                size: 26,
-                onPressed: onPreview,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}

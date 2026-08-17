@@ -891,45 +891,126 @@ class _AudioTile extends StatelessWidget {
 /// It stays in the feed rather than vanishing: a batch of ten where the third
 /// failed should say so in the third tile's place, and the reason belongs next
 /// to the gap it explains.
-class _Failure extends StatelessWidget {
+///
+/// **It is deliberately quiet.** A failure used to be a full-width bordered
+/// slab carrying the provider's entire complaint -- and providers complain at
+/// length: a quota error from Gemini runs to six lines of URLs and metric
+/// names. Five of those in a row buried the work they were interleaved with,
+/// which is exactly backwards: the feed is a record of what you made, and a
+/// failure is a footnote on the one that did not arrive.
+///
+/// So the batch-level failure is one line of grey text with a glyph, no box
+/// and no full-width fill, and the provider's full text is one click away
+/// rather than in your face. The tile-level one keeps a frame, because there
+/// it *is* the tile.
+class _Failure extends StatefulWidget {
   const _Failure({required this.message, this.compact = false});
 
   final String message;
   final bool compact;
 
   @override
+  State<_Failure> createState() => _FailureState();
+}
+
+class _FailureState extends State<_Failure> {
+  bool _open = false;
+
+  /// The first sentence, which is nearly always the whole of the useful part:
+  /// "Add your OpenAI key in Settings" says everything, and the paragraph of
+  /// rate-limit documentation after it says nothing anybody can act on here.
+  String get _head {
+    final message = widget.message.trim();
+    if (message.isEmpty) return tr('Nothing came back.');
+    final stop = message.indexOf(RegExp(r'(?<=[.!?])\s'));
+    if (stop <= 0 || stop > 140) {
+      return message.length > 140 ? '${message.substring(0, 140)}…' : message;
+    }
+    return message.substring(0, stop + 1).trim();
+  }
+
+  bool get _hasMore => widget.message.trim().length > _head.length;
+
+  @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      alignment: compact ? Alignment.center : AlignmentDirectional.centerStart,
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radius),
-        border: Border.all(color: mq.border),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: compact
-            ? CrossAxisAlignment.center
-            : CrossAxisAlignment.start,
-        children: [
-          MqIcon('error-warning-line', size: 18, color: mq.textTertiary),
-          const SizedBox(height: 8),
-          Text(
-            message.isEmpty ? tr('Nothing came back.') : message,
-            maxLines: compact ? 3 : 4,
-            overflow: TextOverflow.ellipsis,
-            textAlign: compact ? TextAlign.center : TextAlign.start,
-            style: TextStyle(
-              color: mq.textSecondary,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineTight,
+    if (widget.compact) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: mq.surfaceSecondary,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+          border: Border.all(color: mq.border),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MqIcon('error-warning-line', size: 18, color: mq.textTertiary),
+            const SizedBox(height: 8),
+            Text(
+              _head,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: mq.textSecondary,
+                fontSize: MqTheme.fontSmall,
+                height: MqTheme.lineTight,
+              ),
             ),
+          ],
+        ),
+      );
+    }
+
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: Pressable(
+        enabled: _hasMore,
+        onTap: () => setState(() => _open = !_open),
+        tooltip: _hasMore && !_open ? tr('Show what the provider said') : '',
+        focusRadius: MqTheme.radiusSmall,
+        builder: (context, states) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 1),
+                child: MqIcon(
+                  'error-warning-line',
+                  size: 14,
+                  color: mq.textTertiary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  _open ? widget.message.trim() : _head,
+                  maxLines: _open ? 12 : 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: states.active ? mq.textSecondary : mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                    height: MqTheme.lineTight,
+                  ),
+                ),
+              ),
+              if (_hasMore) ...[
+                const SizedBox(width: 6),
+                MqIcon(
+                  _open ? 'arrow-up-s-line' : 'arrow-down-s-line',
+                  size: 14,
+                  color: mq.textTertiary,
+                ),
+              ],
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -476,12 +476,19 @@ class _ActorEditorState extends State<ActorEditor> {
       provenance: _provenance,
       source: source,
       busy: booth.auditioning,
+      // Which of the two recordings this is, said plainly. A provider's sample
+      // was made months ago and cannot carry the delivery dials, so somebody
+      // who moves one and hears no difference is owed the reason rather than
+      // left to conclude the dials are broken.
       note: booth.error.isNotEmpty
           ? booth.error
           : booth.auditioning
           ? tr('Buying a line…')
-          : source.isNotEmpty
-          ? tr('Playing the sample is free.')
+          : sample.isNotEmpty
+          ? tr('Your read, with the delivery settings on it.')
+          : preview.isNotEmpty
+          ? tr("The provider's own sample. Free, and without the delivery "
+              'settings.')
           : tr('Listening costs a fraction of a cent.'),
       onDetach: () {
         _auditionedVoice = '';
@@ -723,33 +730,33 @@ class _ActorEditorState extends State<ActorEditor> {
           ),
         ),
         const SizedBox(height: MqTheme.gap),
-        _grow(
-          _SectionCard(
-            title: tr('The actor so far'),
-            action: Text(
-              _unfinishedCount == 0
-                  ? tr('Nothing left to finish')
-                  //: %1 is a number of unfinished sections
-                  : tr('%1 thing(s) to finish').arg(_unfinishedCount),
-              style: TextStyle(
-                color: _unfinishedCount == 0
-                    ? context.mq.textTertiary
-                    : context.mq.warningText,
-                fontSize: MqTheme.fontSmall,
-              ),
+        // Sized to its four lines rather than stretched to the bottom of the
+        // column. A card that fills the page because the page is that tall is a
+        // card with a hole in it.
+        _SectionCard(
+          title: tr('The actor so far'),
+          action: Text(
+            _unfinishedCount == 0
+                ? tr('Nothing left to finish')
+                //: %1 is a number of unfinished sections
+                : tr('%1 thing(s) to finish').arg(_unfinishedCount),
+            style: TextStyle(
+              color: _unfinishedCount == 0
+                  ? context.mq.textTertiary
+                  : context.mq.warningText,
+              fontSize: MqTheme.fontSmall,
             ),
-            child: _grow(_statusGrid()),
           ),
+          child: _statusGrid(),
         ),
       ],
     );
   }
 
-  /// Four tiles, two across, filling the card.
+  /// The four sections as a list: what each one holds, and the way into it.
   ///
-  /// Each says what the section *holds* and leads to it. They used to carry a
-  /// "Change" link underneath as well, which was a second target inside a tile
-  /// that was already a target, doing the same thing.
+  /// They used to carry a "Change" link underneath as well, which was a second
+  /// target inside a tile that was already a target, doing the same thing.
   Widget _statusGrid() {
     final voice = _draft.extraText('voiceName');
     final looks = ActorLooks.of(_draft).length;
@@ -790,30 +797,17 @@ class _ActorEditorState extends State<ActorEditor> {
       ),
     ];
 
-    // Two rows of two, sharing the card. On a page that scrolls they keep a
-    // fixed height instead: a tile stretched to fill a column of unknown length
-    // is a tile with a hole in it.
-    Widget rowAt(int row) => Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: tiles[row * 2]),
-            const SizedBox(width: MqTheme.gap),
-            Expanded(child: tiles[row * 2 + 1]),
-          ],
-        );
-
+    // A list, not a grid of panels. Four bordered boxes inside a bordered card
+    // was three frames deep for four short facts, and the boxes had to be
+    // stretched to fill the card -- which put an inch of nothing under each
+    // line. Rows separated by a hairline say the same thing and let the card be
+    // the only frame.
     return Column(
-      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        for (var row = 0; row < 2; ++row) ...[
-          if (row > 0) const SizedBox(height: MqTheme.gap),
-          if (_filled)
-            Expanded(child: rowAt(row))
-          else
-            // Both tiles as tall as the taller of the two. A fixed height here
-            // is a guess about how many lines a translated status runs to, and
-            // the guess is wrong in French.
-            IntrinsicHeight(child: rowAt(row)),
+        for (var i = 0; i < tiles.length; ++i) ...[
+          if (i > 0) Container(height: 1, color: context.mq.borderSubtle),
+          tiles[i],
         ],
       ],
     );
@@ -1413,12 +1407,16 @@ class _Pill extends StatelessWidget {
   }
 }
 
-/// One tile of the overview's grid: what a section holds, and the way into it.
+/// One line of the overview's status list: what a section holds, and the way
+/// into it.
 ///
 /// It says the *state*, not the count of things in it -- "No reference
 /// picture", "Audrey - Energetic Commercial" -- because the state is the thing
 /// somebody is checking, and it is amber when the state is "nobody has
 /// answered this yet".
+///
+/// One line, one glyph, no frame of its own. It is inside a card already, and a
+/// box drawn round every row of a list is a box round nothing.
 class _StatusTile extends StatelessWidget {
   const _StatusTile({
     required this.icon,
@@ -1441,63 +1439,51 @@ class _StatusTile extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       snap: true,
-      focusRadius: MqTheme.radius,
+      focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
-          color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
-          borderRadius: BorderRadius.circular(MqTheme.radius),
-          border: Border.all(
-            color: states.active ? mq.borderStrong : mq.border,
-          ),
+          color: states.active ? mq.surfaceHover : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         ),
         child: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: mq.surface,
-                borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                border: Border.all(color: mq.border),
+            MqIcon(icon, size: 16, color: mq.textTertiary),
+            const SizedBox(width: MqTheme.gap),
+            SizedBox(
+              // The four names line up, so the values start in one column and
+              // the list reads down rather than zig-zagging.
+              width: 92,
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textPrimary,
+                  fontSize: MqTheme.fontLabel,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              child: MqIcon(icon, size: 16, color: mq.textSecondary),
             ),
             const SizedBox(width: MqTheme.gap),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontLabel,
-                      fontWeight: FontWeight.w600,
-                      height: MqTheme.lineTight,
-                    ),
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    value,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: warn ? mq.warningText : mq.textTertiary,
-                      fontSize: MqTheme.fontSmall,
-                      height: MqTheme.lineTight,
-                    ),
-                  ),
-                ],
+              child: Text(
+                value,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: warn ? mq.warningText : mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                ),
               ),
             ),
             const SizedBox(width: 8),
-            MqIcon('arrow-right-s-line', size: 18, color: mq.textTertiary),
+            MqIcon(
+              'arrow-right-s-line',
+              size: 16,
+              color: states.active ? mq.textSecondary : mq.textTertiary,
+            ),
           ],
         ),
       ),

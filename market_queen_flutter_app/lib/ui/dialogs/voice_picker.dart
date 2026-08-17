@@ -7,10 +7,12 @@ import '../../core/http_util.dart';
 import '../../i18n/translator.dart';
 import '../../models/actor_smith.dart';
 import '../../models/asset_library.dart';
+import '../../models/voice_booth.dart';
 import '../../models/voice_forge.dart';
 import '../../models/voice_shelf.dart';
 import '../../providers/types.dart';
 import '../../providers/voice_profile.dart';
+import '../../providers/voice_providers.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
@@ -39,6 +41,87 @@ import '../widgets/voice_player.dart';
 /// made for one actor was invisible to the next -- so the second actor got a
 /// second design, and nobody could see, reuse or delete either.
 enum VoiceRoute { mine, library, design, clone }
+
+/// The voice section on its own, in the middle of the screen.
+///
+/// The composer's cast panel used to unfold the whole catalogue inside itself:
+/// a 300px popover that already held a name, four dials and a note grew a
+/// filter row, a scrolling list and a footer, and everything in it shrank to
+/// make room. Choosing a voice is a job with a shortlist, five filters and a
+/// play button per row -- it wants a table, not a drawer.
+///
+/// Saves through [onSaved] as it goes, on the same terms as the panel that
+/// opens it: every control here is one value and changing it is the whole of
+/// the intent, so there is nothing to cancel.
+Future<void> showVoiceStudio(
+  BuildContext context, {
+  required AppState app,
+  required LibraryAsset actor,
+  required ValueChanged<LibraryAsset> onSaved,
+}) {
+  return showMqModal<void>(
+    context: context,
+    child: _VoiceStudio(app: app, actor: actor, onSaved: onSaved),
+  );
+}
+
+class _VoiceStudio extends StatefulWidget {
+  const _VoiceStudio({
+    required this.app,
+    required this.actor,
+    required this.onSaved,
+  });
+
+  final AppState app;
+  final LibraryAsset actor;
+  final ValueChanged<LibraryAsset> onSaved;
+
+  @override
+  State<_VoiceStudio> createState() => _VoiceStudioState();
+}
+
+class _VoiceStudioState extends State<_VoiceStudio> {
+  late final LibraryAsset _draft = widget.actor.copy();
+  final AudioTransport _transport = AudioTransport();
+
+  @override
+  void dispose() {
+    _transport.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screen = MediaQuery.sizeOf(context);
+    final width = (screen.width - 160).clamp(720.0, 1020.0);
+    final height = (screen.height - 260).clamp(400.0, 620.0);
+
+    return MqModalCard(
+      width: width,
+      //: %1 is an actor's name
+      title: tr('The voice of %1').arg(_draft.name),
+      subtitle: tr('Who reads the script, and how.'),
+      actions: [
+        PrimaryButton(
+          text: tr('Done'),
+          onPressed: () => closeMqModal(context),
+        ),
+      ],
+      child: SizedBox(
+        height: height,
+        child: VoicePicker(
+          app: widget.app,
+          draft: _draft,
+          transport: _transport,
+          onChanged: () {
+            widget.onSaved(_draft);
+            setState(() {});
+          },
+        ),
+      ),
+    );
+  }
+}
 
 /// The voice section: who reads the ad, and how.
 ///
@@ -143,7 +226,69 @@ class _VoicePickerState extends State<VoicePicker> {
 
   VoiceShelf get _shelf => widget.app.voiceShelf;
 
+  VoiceBooth get _booth => widget.app.voiceBooth;
+
   AudioTransport get _transport => widget.transport;
+
+  /// Where the four dials stood when the last read was bought.
+  ///
+  /// The whole reason this exists: the dials only reach the provider on a
+  /// text-to-speech call, so moving one and pressing play on a *free sample*
+  /// changes nothing you can hear. That is not a bug in the plumbing -- the
+  /// values do travel -- it is the interface failing to say that hearing them
+  /// costs a read. Knowing what was last bought is what lets the button say
+  /// "these are not the settings you are listening to".
+  String _readSettings = '';
+
+  /// The four values as one string, for comparing against [_readSettings].
+  String get _dialState => [
+        for (final dial in dials)
+          _draft.extraNumber(dial.key, dial.fallback).toStringAsFixed(3),
+      ].join(',');
+
+  /// Whether a dial has moved since the last bought read.
+  bool get _dialsDirty =>
+      _draft.extraText('voiceId').isNotEmpty && _readSettings != _dialState;
+
+  /// What a read of the audition line costs.
+  String get _readCost {
+    final cost = _booth.estimate(_auditionLine);
+    return cost.known ? Format.estimated(cost.amount) : '';
+  }
+
+  /// What a bought read says. Short: this is a check on the delivery, not a
+  /// performance, and every character of it is billed.
+  String get _auditionLine =>
+      tr('Honestly, I did not think this would work.');
+
+  /// Buys one read of the actor's voice with the dials where they stand.
+  void _readAloud() {
+    _readSettings = _dialState;
+    _booth.audition(_draft.extras, _auditionLine);
+  }
+
+  /// A fresh read plays itself, into the screen's own transport.
+  void _onBooth() {
+    if (!mounted) return;
+    final sample = _booth.samplePath;
+    if (sample.isNotEmpty && !_transport.holds(sample)) {
+      _transport.toggle(sample);
+    }
+    setState(() {});
+  }
+
+  /// What the chosen engine will actually honour of the four dials.
+  ///
+  /// v3 is a different architecture: it takes no speed at all and has three
+  /// stability settings rather than a continuum. Drawing four identical
+  /// sliders over that is the interface telling a lie a user can only catch by
+  /// paying for two reads and hearing no difference.
+  ElevenLabsModel get _engine => ElevenLabsModel.of(
+        widget.app.registry.resolveModel(
+          _voiceProvider,
+          widget.app.settings.prefString('voiceModel'),
+        ),
+      );
 
   @override
   void initState() {
@@ -155,6 +300,7 @@ class _VoicePickerState extends State<VoicePicker> {
     _forge.addListener(_repaint);
     _shelf.addListener(_repaint);
     _transport.addListener(_repaint);
+    _booth.addListener(_onBooth);
     // Straight to designing when somebody has already written the brief: the
     // from-image route arrives here with a voice profile in hand, and making
     // the user re-choose the door they came through is a step for nothing.
@@ -171,6 +317,7 @@ class _VoicePickerState extends State<VoicePicker> {
     _forge.removeListener(_repaint);
     _shelf.removeListener(_repaint);
     _transport.removeListener(_repaint);
+    _booth.removeListener(_onBooth);
     _description.dispose();
     _cloneName.dispose();
     _byName.dispose();
@@ -1194,6 +1341,7 @@ class _VoicePickerState extends State<VoicePicker> {
             final width =
                 (constraints.maxWidth - MqTheme.gapLarge * (columns - 1)) /
                     columns;
+            final engine = _engine;
 
             return Wrap(
               spacing: MqTheme.gapLarge,
@@ -1207,6 +1355,17 @@ class _VoicePickerState extends State<VoicePicker> {
                       value: _draft.extraNumber(dial.key, dial.fallback),
                       from: dial.from,
                       to: dial.to,
+                      // A dial the engine throws away is drawn dead rather than
+                      // drawn working. v3 takes no speed, and a slider that
+                      // moves while nothing happens costs somebody two reads to
+                      // find out.
+                      enabled: dial.key != 'voiceSpeed' || engine.speed,
+                      disabledHint: tr('This engine reads at its own pace.'),
+                      // Snapped where the engine only has three settings, so
+                      // the number on screen is the number it will be sent.
+                      steps: dial.key == 'voiceStability'
+                          ? engine.stabilitySteps
+                          : const [],
                       onChanged: (value) => setState(() {
                         _draft.setExtra(dial.key, value);
                         widget.onChanged();
@@ -1217,6 +1376,72 @@ class _VoicePickerState extends State<VoicePicker> {
             );
           },
         ),
+        const SizedBox(height: 6),
+        _readRow(),
+      ],
+    );
+  }
+
+  /// The line that makes the dials honest.
+  ///
+  /// They are not live controls on the sample: a provider's preview is a fixed
+  /// recording of that voice, and no setting on this screen can change a file
+  /// that was made months ago. The only thing that hears them is a fresh read,
+  /// and a fresh read is billed -- so the button says so, and lights up as soon
+  /// as a dial has moved away from whatever was last bought.
+  Widget _readRow() {
+    final mq = context.mq;
+    final cast = _draft.extraText('voiceId').isNotEmpty;
+    final dirty = _dialsDirty;
+    final cost = _readCost;
+
+    final label = _booth.auditioning
+        ? tr('Reading…')
+        : cost.isEmpty
+        //: The button that spends money to hear the delivery settings applied
+        ? tr('Hear these settings')
+        //: %1 is a price
+        : tr('Hear these settings — %1').arg(cost);
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            _booth.error.isNotEmpty
+                ? _booth.error
+                : dirty
+                ? tr('Moved since the last read. The sample you can play is '
+                    'the voice as it was recorded, not as you have set it.')
+                : tr('These four are only heard on a read bought with them.'),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: _booth.error.isNotEmpty
+                  ? mq.error
+                  : dirty
+                  ? mq.warningText
+                  : mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineTight,
+            ),
+          ),
+        ),
+        const SizedBox(width: MqTheme.gap),
+        if (dirty)
+          SolidButton(
+            text: label,
+            icon: 'volume-up-line',
+            loading: _booth.auditioning,
+            enabled: cast && !_booth.auditioning,
+            onPressed: _readAloud,
+          )
+        else
+          GhostButton(
+            text: label,
+            icon: 'volume-up-line',
+            enabled: cast && !_booth.auditioning,
+            onPressed: _readAloud,
+          ),
       ],
     );
   }
@@ -1493,7 +1718,10 @@ class _VoiceRow extends StatelessWidget {
       focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
+        // No bottom padding: the transport gets that strip instead. It used to
+        // be laid over the content, which put a moving line a pixel under the
+        // row of tags -- and left it too thin to grab.
+        padding: const EdgeInsets.fromLTRB(8, 7, 8, 0),
         margin: const EdgeInsets.only(bottom: 3),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
@@ -1507,7 +1735,8 @@ class _VoiceRow extends StatelessWidget {
             color: chosen ? mq.primary : Colors.transparent,
           ),
         ),
-        child: Stack(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -1603,13 +1832,14 @@ class _VoiceRow extends StatelessWidget {
                 ),
               ],
             ),
-            if (loaded)
-              PositionedDirectional(
-                start: 0,
-                end: 0,
-                bottom: 0,
-                child: TransportLine(transport: transport, source: source),
-              ),
+            // Held whether or not it is loaded, so choosing a row never shifts
+            // the ones under it by a strip of twelve pixels.
+            SizedBox(
+              height: 12,
+              child: loaded
+                  ? TransportLine(transport: transport, source: source)
+                  : null,
+            ),
           ],
         ),
       ),

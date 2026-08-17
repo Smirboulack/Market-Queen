@@ -213,6 +213,17 @@ class PlayDisc extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Listening here rather than in the screen that hosts it. A play button
+    // whose glyph depends on a transport has to be rebuilt by that transport,
+    // or it shows "play" while the audio is already running -- which is exactly
+    // what it did when only the voice panel happened to be listening.
+    return ListenableBuilder(
+      listenable: transport,
+      builder: (context, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final mq = context.mq;
     final loadable = source.isNotEmpty || onEmpty != null;
     final live = enabled && loadable;
@@ -274,44 +285,145 @@ class PlayDisc extends StatelessWidget {
   }
 }
 
-/// The thin line that fills as the audio runs.
+/// The line that fills as the audio runs, and the handle that moves it.
 ///
-/// Two pixels and no handle: it reports, it is not a scrubber. A seek bar on a
-/// nine-second sample is a control nobody needs and a hit target that would
-/// have to be four times as tall as the line it draws.
-class TransportLine extends StatelessWidget {
+/// It reports and it scrubs, and the second half is why it is not two pixels
+/// tall: a nine-second sample is exactly the length where "play that bit again"
+/// matters, and a two-pixel line is a target nobody can hit. So the widget is
+/// [hitHeight] tall and mostly empty, the line itself is drawn [height] in the
+/// middle of it, and the handle appears under the pointer rather than sitting
+/// on a bar that is not playing anything.
+///
+/// The empty space is also the fix for the crowding: given its own strip, the
+/// line stops sitting on the row of tags above it.
+class TransportLine extends StatefulWidget {
   const TransportLine({
     super.key,
     required this.transport,
     required this.source,
-    this.height = 2,
+    this.height = 3,
+    this.hitHeight = 12,
   });
 
   final AudioTransport transport;
   final String source;
   final double height;
 
+  /// How tall the target is. The line is drawn in the middle of it.
+  final double hitHeight;
+
+  @override
+  State<TransportLine> createState() => _TransportLineState();
+}
+
+class _TransportLineState extends State<TransportLine> {
+  bool _hovered = false;
+  bool _dragging = false;
+
+  double _fractionAt(Offset local, double width) =>
+      width <= 0 ? 0 : (local.dx / width).clamp(0.0, 1.0);
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final live = transport.holds(source);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(height / 2),
-      child: SizedBox(
-        height: height,
-        child: ColoredBox(
-          color: mq.surfaceTertiary,
-          child: ValueListenableBuilder<double>(
-            valueListenable: transport.progress,
-            builder: (context, value, _) => FractionallySizedBox(
-              alignment: AlignmentDirectional.centerStart,
-              widthFactor: live ? value : 0,
-              child: ColoredBox(color: mq.primary),
-            ),
-          ),
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: widget.transport,
+      builder: (context, _) {
+        final live = widget.transport.holds(widget.source) &&
+            widget.transport.duration > Duration.zero;
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+
+            void scrub(Offset local) =>
+                widget.transport.seekTo(_fractionAt(local, width));
+
+            return MouseRegion(
+              cursor: live
+                  ? SystemMouseCursors.click
+                  : MouseCursor.defer,
+              onEnter: (_) => setState(() => _hovered = true),
+              onExit: (_) => setState(() => _hovered = false),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                // Nothing loaded means nothing to seek in, and a bar that
+                // swallows the click without doing anything is worse than one
+                // that lets the row underneath have it.
+                onTapDown: live ? (d) => scrub(d.localPosition) : null,
+                onHorizontalDragStart: live
+                    ? (d) {
+                        setState(() => _dragging = true);
+                        scrub(d.localPosition);
+                      }
+                    : null,
+                onHorizontalDragUpdate:
+                    live ? (d) => scrub(d.localPosition) : null,
+                onHorizontalDragEnd:
+                    live ? (_) => setState(() => _dragging = false) : null,
+                onHorizontalDragCancel:
+                    live ? () => setState(() => _dragging = false) : null,
+                child: SizedBox(
+                  height: widget.hitHeight,
+                  child: Center(
+                    child: ValueListenableBuilder<double>(
+                      valueListenable: widget.transport.progress,
+                      builder: (context, value, _) {
+                        final played = live ? value : 0.0;
+                        final handle = live && (_hovered || _dragging);
+
+                        return Stack(
+                          clipBehavior: Clip.none,
+                          alignment: AlignmentDirectional.centerStart,
+                          children: [
+                            ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(widget.height / 2),
+                              child: SizedBox(
+                                height: widget.height,
+                                width: double.infinity,
+                                child: ColoredBox(
+                                  color: mq.surfaceTertiary,
+                                  child: FractionallySizedBox(
+                                    alignment:
+                                        AlignmentDirectional.centerStart,
+                                    widthFactor: played,
+                                    child: ColoredBox(color: mq.primary),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            if (handle)
+                              Positioned(
+                                // Centred on the playhead and kept inside the
+                                // track at both ends, so it never hangs off
+                                // the edge of the row it is drawn in.
+                                left: (width - 12) * played,
+                                child: Container(
+                                  width: 12,
+                                  height: 12,
+                                  decoration: BoxDecoration(
+                                    color: mq.surface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: mq.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -331,22 +443,28 @@ class TransportClock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final live = transport.holds(source);
-    final total = Format.clock(live ? transport.duration : Duration.zero);
 
-    return ValueListenableBuilder<Duration>(
-      valueListenable: transport.elapsed,
-      builder: (context, value, _) => Text(
-        //: %1 is how far into a clip playback is, %2 how long it runs
-        tr('%1 / %2')
-            .arg(Format.clock(live ? value : Duration.zero))
-            .arg(total),
-        style: TextStyle(
-          color: mq.textTertiary,
-          fontSize: MqTheme.fontMicro,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      ),
+    return ListenableBuilder(
+      listenable: transport,
+      builder: (context, _) {
+        final live = transport.holds(source);
+        final total = Format.clock(live ? transport.duration : Duration.zero);
+
+        return ValueListenableBuilder<Duration>(
+          valueListenable: transport.elapsed,
+          builder: (context, value, _) => Text(
+            //: %1 is how far into a clip playback is, %2 how long it runs
+            tr('%1 / %2')
+                .arg(Format.clock(live ? value : Duration.zero))
+                .arg(total),
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontMicro,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -485,9 +603,11 @@ class VoicePlayerCard extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 9),
-          TransportLine(transport: transport, source: source),
-          const SizedBox(height: 6),
+          // The bar carries its own breathing room now, so the gaps around it
+          // are the difference rather than the whole of it.
+          const SizedBox(height: 4),
+          TransportLine(transport: transport, source: source, hitHeight: 14),
+          const SizedBox(height: 2),
           Row(
             children: [
               Expanded(

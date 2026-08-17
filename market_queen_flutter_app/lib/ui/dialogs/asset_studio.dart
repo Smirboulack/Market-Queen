@@ -20,6 +20,7 @@ import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
 import '../widgets/model_picker.dart';
 import '../widgets/mq_dialog.dart';
+import '../widgets/skeleton.dart';
 
 /// Making an actor or a scene out of a description.
 ///
@@ -457,17 +458,23 @@ class _AssetForgeState extends State<AssetForge> {
   /// screen size and pushing everything else out of the window.
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: _rounds.isEmpty && !_forge.running
-              ? _EmptyStudio(isActor: _isActor)
-              : _conversation(),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        _promptBar(),
-      ],
+    // One ticker for the three tiles waiting on a round, so they shimmer as one
+    // surface rather than three things that started at slightly different
+    // times. The canvas installs its own; this panel is opened from modals that
+    // are not underneath it.
+    return SkeletonScope(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _rounds.isEmpty && !_forge.running
+                ? _EmptyStudio(isActor: _isActor)
+                : _conversation(),
+          ),
+          const SizedBox(height: MqTheme.gap),
+          _promptBar(),
+        ],
+      ),
     );
   }
 
@@ -588,7 +595,11 @@ class _AssetForgeState extends State<AssetForge> {
                 child: TextField(
                   controller: _prompt,
                   focusNode: _focus,
-                  maxLines: null,
+                  // The bar sits under a picture feed that is sized from what
+                  // is left after it, so a prompt that grows without a ceiling
+                  // eats the pictures it is describing.
+                  minLines: 1,
+                  maxLines: 6,
                   cursorColor: mq.primary,
                   style: TextStyle(
                     color: mq.textPrimary,
@@ -799,12 +810,15 @@ class _Candidates extends StatelessWidget {
   Widget build(BuildContext context) {
     final mq = context.mq;
     final count = paths.isEmpty ? 3 : paths.length;
+    final waiting = paths.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          tr('Choose one — right-click for more'),
+          waiting
+              ? tr('Drawing three…')
+              : tr('Choose one — right-click for more'),
           style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
         ),
         const SizedBox(height: 8),
@@ -823,11 +837,14 @@ class _Candidates extends StatelessWidget {
                           onTap: () => onPicked(paths[i]),
                           onUseAsReference: () => onUseAsReference(paths[i]),
                         )
-                      : DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: mq.surfaceSecondary,
-                            borderRadius: BorderRadius.circular(MqTheme.radius),
-                          ),
+                      // The same skeleton the canvas uses. A flat grey
+                      // rectangle says "nothing here"; this one says "a picture
+                      // is on its way, and it has not stalled" -- which over
+                      // the thirty seconds a still takes is the difference
+                      // between waiting and pressing Generate again.
+                      : const SkeletonTile(
+                          aspectRatio: 3 / 4,
+                          glyph: 'image-line',
                         ),
                 ),
               ),
