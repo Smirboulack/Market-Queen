@@ -110,7 +110,7 @@ class VoiceBooth extends ChangeNotifier {
 
     final line = text.trim();
     if (line.isEmpty) {
-      _setError(tr('Write a line for them to say.'));
+      _setError(tr('Write a line for the actor to say.'));
       return;
     }
 

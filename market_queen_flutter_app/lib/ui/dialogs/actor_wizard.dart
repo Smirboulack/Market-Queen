@@ -289,15 +289,13 @@ class _WizardState extends State<_Wizard> {
         _Step.photo => tr('Photo'),
         _Step.action => tr('Action'),
         _Step.voice => tr('Voice'),
-        _Step.take => tr('Bring them to life'),
+        _Step.take => tr('Bring the actor to life'),
       };
 
   String _subtitleFor(_Step step) => switch (step) {
-        _Step.look => tr('Describe them, pick the one that is closest, then '
-            'say what to change.'),
+        _Step.look => tr('Describe the actor, pick the one that is closest, then say what to change.'),
         _Step.photo => tr('One picture. Everything else is read off it.'),
-        _Step.action => tr('What they do while they talk, and how they come '
-            'across.'),
+        _Step.action => tr('What the actor does while talking, and the personality behind it.'),
         _Step.voice => tr('Pick a voice, invent one, or clone your own.'),
         _Step.take => tr('A name, and one short clip bought from the same '
             'two models a real shot uses.'),
@@ -378,7 +376,7 @@ class _WizardState extends State<_Wizard> {
             children: [
               MediaDropZone(
                 paths: _photo.isEmpty ? const [] : [_photo],
-                title: tr('Drop their picture in'),
+                title: tr("Drop the actor's picture in"),
                 hint: tr('PNG, JPG or WebP. One person, face visible.'),
                 tileSize: 56,
                 onAdded: (paths) {
@@ -395,8 +393,7 @@ class _WizardState extends State<_Wizard> {
                 icon: 'sparkling-line',
                 title: tr('What happens next'),
                 lines: [
-                  tr('The picture is read: apparent age, presentation, style '
-                      'and the room around them.'),
+                  tr('The picture is read: apparent age, presentation, style and the room around it.'),
                   tr('That becomes a casting brief and a personality.'),
                   tr('A voice profile is inferred from it, and three voices '
                       'are designed to match.'),
@@ -469,7 +466,7 @@ class _WizardState extends State<_Wizard> {
             children: [
               LabeledArea(
                 controller: _action,
-                label: tr('What are they doing?'),
+                label: tr('What is the actor doing?'),
                 areaHeight: 72,
                 placeholder: tr(
                   'Talking to camera, holding the product in one hand, small '
@@ -478,8 +475,7 @@ class _WizardState extends State<_Wizard> {
               ),
               const SizedBox(height: 6),
               Text(
-                tr('This is handed to the video model as the motion for every '
-                    'shot they are in.'),
+                tr('This is handed to the video model as the motion for every shot the actor is in.'),
                 style: TextStyle(
                   color: mq.textTertiary,
                   fontSize: MqTheme.fontSmall,
@@ -558,13 +554,13 @@ class _WizardState extends State<_Wizard> {
                 controller: _name,
                 label: tr("Actor's name"),
                 placeholder: widget.app.actors.suggestedName(),
-                hint: tr('What you will look for them under later.'),
+                hint: tr('What you will look for the actor under later.'),
                 onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: MqTheme.gap),
               LabeledArea(
                 controller: _line,
-                label: tr('What do they say?'),
+                label: tr('What does the actor say?'),
                 areaHeight: 72,
                 onChanged: (_) => setState(() {}),
               ),
@@ -593,9 +589,9 @@ class _WizardState extends State<_Wizard> {
                     GhostButton(
                       text: cost.known
                           //: %1 is a price
-                          ? tr('Film them — %1')
+                          ? tr('Film the actor — %1')
                               .arg(Format.estimated(cost.amount))
-                          : tr('Film them'),
+                          : tr('Film the actor'),
                       enabled: hasVoice && _line.text.trim().isNotEmpty,
                       onPressed: _film,
                     ),
@@ -604,8 +600,7 @@ class _WizardState extends State<_Wizard> {
               if (!hasVoice) ...[
                 const SizedBox(height: 8),
                 Text(
-                  tr('Go back and give them a voice first — there is nothing '
-                      'to lip-sync to yet.'),
+                  tr('Go back and give the actor a voice first — there is nothing to lip-sync to yet.'),
                   style: TextStyle(
                     color: mq.warningText,
                     fontSize: MqTheme.fontSmall,
@@ -980,7 +975,7 @@ class PersonaEditor extends StatelessWidget {
         const SizedBox(height: MqTheme.gap),
         LabeledArea(
           controller: styleController,
-          label: tr('How they talk'),
+          label: tr('How the actor talks'),
           areaHeight: 64,
           placeholder: tr(
             'Speaks naturally and never sounds like an advert. Short '

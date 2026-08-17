@@ -132,8 +132,7 @@ class _AssetEditorState extends State<AssetEditor> {
       width: 660,
       title: _isActor ? tr('Edit the actor') : tr('Edit the scene'),
       subtitle: _isActor
-          ? tr('What they are called, what they look like, and the pictures '
-              'they were built from.')
+          ? tr('Its name, its look, and the pictures it was built from.')
           : tr('What it is called, what it looks like, and the pictures it '
               'was built from.'),
       actions: [

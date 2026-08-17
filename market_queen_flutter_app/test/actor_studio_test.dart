@@ -99,7 +99,7 @@ void main() {
         'Appearance',
         'Action',
         'Voice',
-        'Bring them to life',
+        'Bring the actor to life',
       ]) {
         expect(find.text(step), findsOneWidget, reason: step);
       }
@@ -130,7 +130,7 @@ void main() {
 
       expect(find.text('Photo'), findsOneWidget);
       expect(find.text('Voice'), findsOneWidget);
-      expect(find.text('Bring them to life'), findsOneWidget);
+      expect(find.text('Bring the actor to life'), findsOneWidget);
       // No Appearance or Action step: the picture answers both.
       expect(find.text('Appearance'), findsNothing);
 

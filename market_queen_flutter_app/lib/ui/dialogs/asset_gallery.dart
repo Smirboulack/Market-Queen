@@ -409,7 +409,7 @@ Future<AssetRoute?> askForAssetRoute(
                 child: BigChoice(
                   overline: tr('Describe'),
                   title: actor
-                      ? tr('Write who they are')
+                      ? tr('Write who the actor is')
                       : tr('Write where it is'),
                   subtitle: actor
                       ? tr('Say it in a sentence, pick from what comes back, '

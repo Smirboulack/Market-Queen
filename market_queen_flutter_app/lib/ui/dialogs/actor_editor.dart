@@ -154,8 +154,7 @@ class _ActorEditorState extends State<ActorEditor> {
     return MqModalCard(
       width: width,
       title: tr('Edit the actor'),
-      subtitle: tr('Their identity, their appearance, their voice and their '
-          'personality.'),
+      subtitle: tr("The actor's identity, appearance, voice and personality."),
       actions: [
         GhostButton(
           text: tr('Delete the actor'),
@@ -316,8 +315,7 @@ class _ActorEditorState extends State<ActorEditor> {
         if (take.isEmpty) ...[
           const SizedBox(height: 6),
           Text(
-            tr('No clip of them yet. One is filmed on the last step of the '
-                'creation wizard.'),
+            tr('No clip of the actor yet. One is filmed on the last step of the creation wizard.'),
             style: TextStyle(
               color: mq.textTertiary,
               fontSize: MqTheme.fontSmall,
@@ -663,8 +661,7 @@ class _ActorEditorState extends State<ActorEditor> {
         Expanded(
           child: Text(
             booth.error.isEmpty
-                ? tr('Hear a line in their voice. It costs a fraction of a '
-                    'cent.')
+                ? tr('Hear a line in this voice. It costs a fraction of a cent.')
                 : booth.error,
             style: TextStyle(
               color: booth.error.isEmpty ? mq.textTertiary : mq.error,
@@ -819,9 +816,8 @@ class _ActorEditorState extends State<ActorEditor> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _SectionCard(
-          title: tr('What are they doing?'),
-          subtitle: tr('Handed to the video model as the motion for every shot '
-              'they are in.'),
+          title: tr('What is the actor doing?'),
+          subtitle: tr('Handed to the video model as the motion for every shot the actor is in.'),
           child: LabeledArea(
             controller: _action,
             areaHeight: 64,
@@ -1605,8 +1601,7 @@ class _LookMakerState extends State<_LookMaker> {
       maxHeight: size.height,
       //: %1 is an actor's name
       title: tr('A new look for %1').arg(widget.actor.name),
-      subtitle: tr('Their own picture goes in as the reference, so the face '
-          'survives. Say what changes.'),
+      subtitle: tr("The actor's own picture goes in as the reference, so the face survives. Say what changes."),
       actions: [
         GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
         PrimaryButton(

@@ -530,7 +530,7 @@ class _VoicePickerState extends State<VoicePicker> {
       children: [
         LabeledArea(
           controller: _description,
-          label: tr('What should they sound like?'),
+          label: tr('What should the actor sound like?'),
           areaHeight: 76,
           placeholder: tr(
             'A young woman with a warm, slightly husky voice. American '

@@ -370,7 +370,7 @@ class _CastPanelState extends State<CastPanel> {
           Expanded(
             child: Text(
               booth.error.isEmpty
-                  ? tr('Hearing them costs a fraction of a cent.')
+                  ? tr('Hearing the voice costs a fraction of a cent.')
                   : booth.error,
               style: TextStyle(
                 color: booth.error.isEmpty ? mq.textTertiary : mq.error,
@@ -381,7 +381,7 @@ class _CastPanelState extends State<CastPanel> {
           ),
           const SizedBox(width: 8),
           GhostButton(
-            text: booth.auditioning ? tr('Listening…') : tr('Hear them'),
+            text: booth.auditioning ? tr('Listening…') : tr('Hear the voice'),
             enabled: !booth.auditioning &&
                 asset.extraText('voiceId').isNotEmpty,
             // The ad's own request, not the asset's extras: it is what the

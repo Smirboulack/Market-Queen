@@ -127,9 +127,7 @@ class _StudioState extends State<_Studio> {
       maxHeight: size.height,
       title: _isActor ? tr('Define your actor') : tr('Define your scene'),
       subtitle: _isActor
-          ? tr(
-              'Describe them, pick the one that is closest, then say what to '
-              'change.',
+          ? tr('Describe the actor, pick the one that is closest, then say what to change.',
             )
           : tr(
               'Describe it, pick the one that is closest, then say what to '
@@ -201,7 +199,7 @@ class NameRow extends StatelessWidget {
                 ? tr('Name of the actor — Sarah, James…')
                 : tr('Name of the scene — Kitchen, Bathroom…'),
             hint: actor
-                ? tr('What you will look for them under later.')
+                ? tr('What you will look for the actor under later.')
                 : tr('What you will look for it under later.'),
           ),
         ),
@@ -728,9 +726,7 @@ class _EmptyStudio extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 420),
           child: Text(
             isActor
-                ? tr(
-                    'Write who they are underneath. Add a picture to work '
-                    'from if you have one, and press Generate.',
+                ? tr('Write who the actor is underneath. Add a picture to work from if you have one, and press Generate.',
                   )
                 : tr(
                     'Write where it is underneath. Add a picture to work '

@@ -150,12 +150,12 @@ class ActorReel extends ChangeNotifier {
 
     final text = line.trim();
     if (text.isEmpty) {
-      _setError(tr('Write a line for them to say.'));
+      _setError(tr('Write a line for the actor to say.'));
       return;
     }
     final portrait = Http.toLocalPath(portraitPath);
     if (portrait.isEmpty || !File(portrait).existsSync()) {
-      _setError(tr('Pick the picture they are filmed from first.'));
+      _setError(tr('Pick the picture the actor is filmed from first.'));
       return;
     }
 
@@ -264,7 +264,7 @@ class ActorReel extends ChangeNotifier {
     required String motionPrompt,
     required String dir,
   }) async {
-    _report(tr('Bringing them to life...'));
+    _report(tr('Bringing the actor to life...'));
 
     final providerId = _avatarProvider;
     final model = avatarModel;
