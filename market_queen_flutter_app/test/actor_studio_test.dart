@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:market_queen/app_state.dart';
-import 'package:market_queen/i18n/translator.dart';
 import 'package:market_queen/models/actor_smith.dart';
 import 'package:market_queen/models/asset_library.dart';
 import 'package:market_queen/ui/dialogs/actor_editor.dart';
@@ -167,7 +166,7 @@ void main() {
         'Personality',
         'Looks',
       ]) {
-        await tester.tap(find.text(section));
+        await tester.tap(find.text(section).first);
         await settle(tester);
         expect(tester.takeException(), isNull, reason: section);
         expect(find.text('Camille'), findsWidgets, reason: section);
@@ -190,7 +189,7 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Personality'));
+      await tester.tap(find.text('Personality').first);
       await settle(tester);
 
       expect(find.text('Short sentences, never salesy'), findsOneWidget);
@@ -242,16 +241,21 @@ void main() {
         );
 
         for (final section in ActorSection.values) {
-          final label = switch (section) {
-            ActorSection.overview => tr('Overview'),
-            ActorSection.appearance => tr('Appearance'),
-            ActorSection.voice => tr('Voice'),
-            ActorSection.personality => tr('Personality'),
-            ActorSection.looks => tr('Looks'),
-          };
-          await tester.tap(find.text(label).last);
+          final label = ActorEditor.labelFor(section);
+          await tester.tap(find.text(label).first);
           await settle(tester);
-          expect(tester.takeException(), isNull, reason: '$label $size');
+          final thrown = tester.takeException();
+          if (thrown != null) {
+            // ignore: avoid_print
+            print('OVERFLOW in $label $size:');
+            if (thrown is FlutterError) {
+              for (final node in thrown.diagnostics) {
+                // ignore: avoid_print
+                print('   ${node.toStringDeep()}');
+              }
+            }
+          }
+          expect(thrown, isNull, reason: '$label $size');
         }
       });
     }
