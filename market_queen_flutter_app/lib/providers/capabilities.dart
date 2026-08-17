@@ -721,7 +721,11 @@ class ModelCapabilities {
       durationMin: 4,
       durationMax: 30,
       durationIsNumber: true,
-      resolutions: ['480p', '720p'],
+      // 1080p was documented for this model after the rest of this table was
+      // written. The price catalogue already carried the rate for it -- billed
+      // at 11.7 per million tokens rather than 10.7 -- so the only thing
+      // missing was the menu offering it.
+      resolutions: ['480p', '720p', '1080p'],
       defaultResolution: '720p',
       aspectRatios: ['16:9', '9:16', '1:1', '4:3', '3:4'],
       audioField: 'generate_audio',

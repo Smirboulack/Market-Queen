@@ -64,21 +64,50 @@ class AudioTransport extends ChangeNotifier {
   bool holds(String source) => source.isNotEmpty && source == _source;
 
   /// Plays [source], or pauses it if it is already the one playing.
+  ///
+  /// The button changes on the press rather than on the player's answer.
+  /// `stream.playing` comes back over a platform channel a frame or three
+  /// later, and a play button that waits for it reads as a click that did not
+  /// register -- so the state is set here and the stream is left to confirm it.
   void toggle(String source) {
     if (source.isEmpty) return;
 
     final player = _ensure();
     if (source == _source) {
-      _playing ? player.pause() : player.play();
+      if (_playing) {
+        _playing = false;
+        player.pause();
+      } else {
+        _playing = true;
+        player.play();
+      }
+      notifyListeners();
       return;
     }
 
     _source = source;
+    _playing = true;
     _duration = Duration.zero;
     progress.value = 0;
     elapsed.value = Duration.zero;
     notifyListeners();
     player.open(Media(source));
+  }
+
+  /// Jumps to [fraction] of the way through, 0 to 1.
+  ///
+  /// The bar moves immediately and the player is told after: a scrub that waits
+  /// for the decoder to seek before the line follows the pointer feels like a
+  /// control that is fighting you.
+  void seekTo(double fraction) {
+    if (_source.isEmpty || _duration <= Duration.zero) return;
+    final clamped = fraction.clamp(0.0, 1.0);
+    final position = Duration(
+      milliseconds: (_duration.inMilliseconds * clamped).round(),
+    );
+    progress.value = clamped;
+    elapsed.value = position;
+    _player?.seek(position);
   }
 
   /// Stops and forgets what was loaded -- for when the audio itself goes away:
