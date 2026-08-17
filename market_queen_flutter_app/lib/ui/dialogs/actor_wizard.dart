@@ -60,8 +60,10 @@ class _WizardState extends State<_Wizard> {
       LibraryAsset(name: widget.app.actors.suggestedName())
         ..setExtra('createdVia', widget.route.name);
 
-  late final TextEditingController _name =
-      TextEditingController(text: _draft.name);
+  /// Empty on purpose. The draft already carries the suggested name, so what
+  /// this holds is what the user actually typed -- and [_commit] only writes it
+  /// when there is something in it.
+  final TextEditingController _name = TextEditingController();
 
   final TextEditingController _action = TextEditingController();
   final TextEditingController _style = TextEditingController();
@@ -159,7 +161,11 @@ class _WizardState extends State<_Wizard> {
   /// move rather than only at the end, so stepping back and forth cannot lose
   /// what was typed.
   void _commit() {
-    _draft.name = _name.text.trim();
+    // Never blanks it: leaving the last step without typing a name keeps the
+    // suggestion, and a voice designed two steps earlier was already filed on
+    // the ElevenLabs account under it.
+    final typed = _name.text.trim();
+    if (typed.isNotEmpty) _draft.name = typed;
     _draft.setExtra(ActorPersona.actionKey, _action.text.trim());
     _draft.setExtra(ActorPersona.styleKey, _style.text.trim());
   }
@@ -242,6 +248,7 @@ class _WizardState extends State<_Wizard> {
 
     return MqModalCard(
       width: size.width,
+      maxHeight: size.height,
       title: tr('Create an actor'),
       subtitle: _subtitleFor(_step),
       actions: [
@@ -264,14 +271,14 @@ class _WizardState extends State<_Wizard> {
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
         children: [
           _StepRail(steps: _steps, at: _at, labelFor: _labelFor),
           const SizedBox(height: MqTheme.gapLarge),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxHeight: size.height + 120),
-            child: SingleChildScrollView(child: _body(size)),
-          ),
+          // The step takes whatever the rail, the header and the buttons left
+          // behind, and decides for itself whether it scrolls. Only one of
+          // them does not: the appearance step is a feed with a bar under it,
+          // and a feed inside a scroll view is two scrollbars arguing.
+          Expanded(child: _body()),
         ],
       ),
     );
@@ -288,45 +295,31 @@ class _WizardState extends State<_Wizard> {
   String _subtitleFor(_Step step) => switch (step) {
         _Step.look => tr('Describe them, pick the one that is closest, then '
             'say what to change.'),
-        _Step.photo => tr('A picture and a name. Everything else is read off '
-            'the picture.'),
+        _Step.photo => tr('One picture. Everything else is read off it.'),
         _Step.action => tr('What they do while they talk, and how they come '
             'across.'),
         _Step.voice => tr('Pick a voice, invent one, or clone your own.'),
-        _Step.take => tr('One short clip, from the same two models a real '
-            'shot is bought from.'),
+        _Step.take => tr('A name, and one short clip bought from the same '
+            'two models a real shot uses.'),
       };
 
-  Widget _body(({double width, double height}) size) => switch (_step) {
-        _Step.look => _lookStep(size.height),
-        _Step.photo => _photoStep(),
-        _Step.action => _actionStep(),
-        _Step.voice => _voiceStep(),
-        _Step.take => _takeStep(),
+  Widget _body() => switch (_step) {
+        _Step.look => _lookStep(),
+        _Step.photo => SingleChildScrollView(child: _photoStep()),
+        _Step.action => SingleChildScrollView(child: _actionStep()),
+        _Step.voice => SingleChildScrollView(child: _voiceStep()),
+        _Step.take => SingleChildScrollView(child: _takeStep()),
       };
 
   // ---- step: the look ------------------------------------------------------
 
-  Widget _lookStep(double height) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        NameRow(
-          controller: _name,
-          kind: AssetKind.actor,
-          placeholder: widget.app.actors.suggestedName(),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        AssetForge(
-          app: widget.app,
-          kind: AssetKind.actor,
-          draft: _draft,
-          history: _history,
-          height: height,
-          onChanged: () => setState(() {}),
-        ),
-      ],
+  Widget _lookStep() {
+    return AssetForge(
+      app: widget.app,
+      kind: AssetKind.actor,
+      draft: _draft,
+      history: _history,
+      onChanged: () => setState(() {}),
     );
   }
 
@@ -383,12 +376,6 @@ class _WizardState extends State<_Wizard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              LabeledField(
-                controller: _name,
-                label: tr("Actor's name"),
-                placeholder: tr('Name of the actor — Sarah, James…'),
-              ),
-              const SizedBox(height: MqTheme.gap),
               MediaDropZone(
                 paths: _photo.isEmpty ? const [] : [_photo],
                 title: tr('Drop their picture in'),
@@ -406,7 +393,7 @@ class _WizardState extends State<_Wizard> {
               const SizedBox(height: MqTheme.gapLarge),
               _Explainer(
                 icon: 'sparkling-line',
-                title: tr('What happens when you press Create'),
+                title: tr('What happens next'),
                 lines: [
                   tr('The picture is read: apparent age, presentation, style '
                       'and the room around them.'),
@@ -450,7 +437,7 @@ class _WizardState extends State<_Wizard> {
                   GhostButton(
                     text: smith.reading
                         ? tr('Reading the picture…')
-                        : tr('Create the actor'),
+                        : tr('Read this picture'),
                     enabled: _photo.isNotEmpty &&
                         smith.writer.exists &&
                         !smith.reading,
@@ -562,6 +549,19 @@ class _WizardState extends State<_Wizard> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
+              // The name, last. Asking for it first meant naming somebody
+              // before you had seen their face, which is a question with no
+              // answer yet -- so it got the suggestion, and libraries filled up
+              // with "Actor 3". By here there is a face, a voice and a way of
+              // moving to name.
+              LabeledField(
+                controller: _name,
+                label: tr("Actor's name"),
+                placeholder: widget.app.actors.suggestedName(),
+                hint: tr('What you will look for them under later.'),
+                onChanged: (_) => setState(() {}),
+              ),
+              const SizedBox(height: MqTheme.gap),
               LabeledArea(
                 controller: _line,
                 label: tr('What do they say?'),

@@ -6,8 +6,10 @@ import 'package:market_queen/models/actor_smith.dart';
 import 'package:market_queen/models/asset_library.dart';
 import 'package:market_queen/ui/dialogs/actor_editor.dart';
 import 'package:market_queen/ui/dialogs/actor_wizard.dart';
+import 'package:market_queen/ui/dialogs/asset_studio.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/widgets/buttons.dart';
+import 'package:market_queen/ui/widgets/mq_dialog.dart';
 
 /// An actor is now four things -- a face, a way of moving, a voice and a
 /// personality -- built over four steps and edited in five sections. None of
@@ -132,10 +134,67 @@ void main() {
       // No Appearance or Action step: the picture answers both.
       expect(find.text('Appearance'), findsNothing);
 
-      expect(find.text('What happens when you press Create'), findsOneWidget);
+      expect(find.text('What happens next'), findsOneWidget);
       // The claim the screen is not allowed to make, stated as the thing it
       // does instead.
       expect(find.text(ActorProfile.disclaimer), findsOneWidget);
+    });
+  });
+
+  group('nothing is taller than the window it opens in', () {
+    // The regression: the casting studio sized its picture strip from the
+    // screen and *then* stacked a header, a name row, a prompt bar and an
+    // action row around it, so the card came out taller than the screen it had
+    // just measured. The modal scrolls as one piece, so the bar you type in
+    // and the button you press both ended up below the bottom edge.
+    for (final size in const [
+      Size(1020, 700),
+      Size(1280, 800),
+      Size(1420, 940),
+      // Deliberately cramped: a laptop with a scaled display lands here.
+      Size(900, 600),
+    ]) {
+      testWidgets('the wizard fits at $size', (tester) async {
+        for (final route in ActorRoute.values) {
+          await tester.pumpWidget(const SizedBox.shrink());
+          await pumpHost(
+            tester,
+            size,
+            (context) => showActorWizard(context, app: app, route: route),
+          );
+
+          final card = tester.getSize(find.byType(MqModalCard));
+          expect(
+            card.height,
+            lessThanOrEqualTo(size.height),
+            reason: 'card $card taller than the window $size on $route',
+          );
+          expect(card.width, lessThanOrEqualTo(size.width), reason: '$route');
+          expect(tester.takeException(), isNull, reason: '$route $size');
+        }
+      });
+    }
+
+    testWidgets('the prompt bar stays on screen while the feed scrolls', (
+      tester,
+    ) async {
+      await pumpHost(
+        tester,
+        const Size(1020, 700),
+        (context) => showActorWizard(context, app: app),
+      );
+
+      // The bar and the buttons are inside the window, which is the whole
+      // point: they are what the feed gives its room up for.
+      for (final finder in [
+        find.byType(AssetForge),
+        find.text('Next'),
+        find.text('Cancel'),
+      ]) {
+        final box = tester.getRect(finder.first);
+        expect(box.bottom, lessThanOrEqualTo(700.0), reason: '$finder');
+        expect(box.top, greaterThanOrEqualTo(0.0), reason: '$finder');
+      }
     });
   });
 

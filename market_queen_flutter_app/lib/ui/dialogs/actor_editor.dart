@@ -1602,6 +1602,7 @@ class _LookMakerState extends State<_LookMaker> {
 
     return MqModalCard(
       width: size.width,
+      maxHeight: size.height,
       //: %1 is an actor's name
       title: tr('A new look for %1').arg(widget.actor.name),
       subtitle: tr('Their own picture goes in as the reference, so the face '
@@ -1617,7 +1618,6 @@ class _LookMakerState extends State<_LookMaker> {
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
             width: 360,
@@ -1628,12 +1628,13 @@ class _LookMakerState extends State<_LookMaker> {
             ),
           ),
           const SizedBox(height: MqTheme.gap),
-          AssetForge(
-            app: widget.app,
-            kind: AssetKind.actor,
-            draft: _draft,
-            height: size.height,
-            onChanged: () => setState(() {}),
+          Expanded(
+            child: AssetForge(
+              app: widget.app,
+              kind: AssetKind.actor,
+              draft: _draft,
+              onChanged: () => setState(() {}),
+            ),
           ),
         ],
       ),

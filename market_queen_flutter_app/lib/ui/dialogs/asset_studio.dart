@@ -46,19 +46,24 @@ Future<String?> showAssetStudio(
   );
 }
 
-/// How wide and how tall a window that exists to show generated pictures should
-/// be, given the screen it is on.
+/// How big a window that exists to show generated pictures may get.
 ///
 /// It used to stop at 880 by 460, which put three 9:16 portraits in frames
 /// about the size of a postage stamp -- and the entire question the screen asks
 /// is "is this face right?", which cannot be answered at that size. It takes
 /// the window now, within reason: the cap is there so a 4K monitor does not get
 /// a modal a metre wide.
+///
+/// [height] is the ceiling on the *whole card*, not on the pictures inside it.
+/// Sizing the strip from the screen and then stacking a header, a prompt bar
+/// and an action row around it is what made this window taller than the screen
+/// it was measured against: the modal then scrolled as one piece, so reaching
+/// the bar you type in meant scrolling the pictures off the top. What is left
+/// after the chrome is whatever it is, and the feed takes it.
 ({double width, double height}) studioSize(Size screen) => (
   width: (screen.width - 80).clamp(560.0, 1320.0),
-  // The subtraction is the room the header, the name row, the prompt bar and
-  // the modal's own margins take around the pictures.
-  height: (screen.height - 300).clamp(320.0, 720.0),
+  // The margin the modal keeps around itself, top and bottom.
+  height: screen.height - 2 * MqTheme.gapLarge,
 );
 
 /// One press of Generate: what was asked for, and what came back.
@@ -119,6 +124,7 @@ class _StudioState extends State<_Studio> {
 
     return MqModalCard(
       width: size.width,
+      maxHeight: size.height,
       title: _isActor ? tr('Define your actor') : tr('Define your scene'),
       subtitle: _isActor
           ? tr(
@@ -140,7 +146,6 @@ class _StudioState extends State<_Studio> {
       ],
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
         children: [
           NameRow(
             controller: _name,
@@ -148,12 +153,13 @@ class _StudioState extends State<_Studio> {
             placeholder: _library.suggestedName(),
           ),
           const SizedBox(height: MqTheme.gap),
-          AssetForge(
-            app: widget.app,
-            kind: widget.kind,
-            draft: _draft,
-            height: size.height,
-            onChanged: () => setState(() {}),
+          Expanded(
+            child: AssetForge(
+              app: widget.app,
+              kind: widget.kind,
+              draft: _draft,
+              onChanged: () => setState(() {}),
+            ),
           ),
         ],
       ),
@@ -221,7 +227,6 @@ class AssetForge extends StatefulWidget {
     required this.draft,
     required this.onChanged,
     this.history,
-    this.height = 420,
   });
 
   final AppState app;
@@ -236,8 +241,6 @@ class AssetForge extends StatefulWidget {
   /// panel and put it back -- the wizard -- and left null by the windows where
   /// the panel lives as long as the window does.
   final List<ForgeRound>? history;
-
-  final double height;
 
   @override
   State<AssetForge> createState() => _AssetForgeState();
@@ -447,14 +450,19 @@ class _AssetForgeState extends State<AssetForge> {
 
   // ---- build ---------------------------------------------------------------
 
+  /// Fills the height it is given: the feed takes what the bar does not.
+  ///
+  /// The caller has to hand it a bounded one, which every caller does -- they
+  /// all sit inside a modal card with a ceiling on it. That is the whole point
+  /// of the arrangement: the prompt bar and the buttons keep their room and the
+  /// pictures get the rest, rather than the pictures taking a number off the
+  /// screen size and pushing everything else out of the window.
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        SizedBox(
-          height: widget.height,
+        Expanded(
           child: _rounds.isEmpty && !_forge.running
               ? _EmptyStudio(isActor: _isActor)
               : _conversation(),

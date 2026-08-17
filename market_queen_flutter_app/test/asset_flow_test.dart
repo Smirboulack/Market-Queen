@@ -98,11 +98,11 @@ void main() {
     await tester.tap(find.text('Write who they are'));
     await settle(tester);
 
-    // Step one of the wizard is the old studio, with the name field promoted
-    // out of the button row.
+    // Step one is the studio and nothing else: naming happens at the end, once
+    // there is somebody to name.
     expect(find.text("Let's start"), findsOneWidget);
     expect(find.text('Appearance'), findsOneWidget);
-    expect(find.text("Actor's name"), findsOneWidget);
+    expect(find.text("Actor's name"), findsNothing);
     // Four steps, and no way past the first until a face has been chosen.
     for (final step in ['Appearance', 'Action', 'Voice', 'Bring them to life']) {
       expect(find.text(step), findsOneWidget, reason: step);
@@ -125,8 +125,10 @@ void main() {
     await settle(tester);
 
     expect(find.text('Drop their picture in'), findsOneWidget);
-    expect(find.text('Create the actor'), findsOneWidget);
-    expect(find.text('What happens when you press Create'), findsOneWidget);
+    expect(find.text('Read this picture'), findsOneWidget);
+    expect(find.text('What happens next'), findsOneWidget);
+    // The name is asked for on the last step, not this one.
+    expect(find.text("Actor's name"), findsNothing);
   });
 
   testWidgets('a scene still files a picture and nothing else', (tester) async {

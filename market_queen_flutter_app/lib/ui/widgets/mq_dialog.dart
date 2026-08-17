@@ -108,6 +108,7 @@ class MqModalCard extends StatelessWidget {
     this.subtitle = '',
     this.actions = const [],
     this.width = 520,
+    this.maxHeight = 0,
     this.showClose = true,
   });
 
@@ -116,14 +117,44 @@ class MqModalCard extends StatelessWidget {
   final Widget child;
   final List<Widget> actions;
   final double width;
+
+  /// A ceiling on the whole card, and the content is what gives way to it.
+  ///
+  /// Zero -- the default -- means the card is as tall as its contents and the
+  /// modal scrolls if that is more than the window holds. That is right for a
+  /// form: the fields are all the same size and scrolling past them is normal.
+  ///
+  /// It is wrong for a screen built around a feed. The casting studio sized
+  /// its picture strip from the window and then added a header, a prompt bar
+  /// and an action row underneath it, so the card came out taller than the
+  /// screen it was measured against and the whole thing scrolled -- including
+  /// the bar you type in and the button you press. Set this and the content is
+  /// handed a [Flexible] slot instead, so it is the feed that shrinks and the
+  /// controls that stay put.
+  final double maxHeight;
+
   final bool showClose;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
+    final content = Padding(
+      padding: const EdgeInsets.fromLTRB(
+        MqTheme.gapLarge,
+        MqTheme.gap + 2,
+        MqTheme.gapLarge,
+        MqTheme.gapLarge,
+      ),
+      child: child,
+    );
+
     return Container(
       width: width,
+      // Only when a ceiling was asked for: a `Flexible` under an unbounded
+      // column is an assertion, not a layout.
+      constraints:
+          maxHeight > 0 ? BoxConstraints(maxHeight: maxHeight) : null,
       decoration: BoxDecoration(
         color: mq.surface,
         borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
@@ -184,15 +215,7 @@ class MqModalCard extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              MqTheme.gapLarge,
-              MqTheme.gap + 2,
-              MqTheme.gapLarge,
-              MqTheme.gapLarge,
-            ),
-            child: child,
-          ),
+          if (maxHeight > 0) Flexible(child: content) else content,
           if (actions.isNotEmpty) ...[
             Container(height: 1, color: mq.divider),
             Padding(

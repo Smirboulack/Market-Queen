@@ -426,8 +426,8 @@ Future<AssetRoute?> askForAssetRoute(
                   overline: tr('From a picture'),
                   title: tr('Use a photograph'),
                   subtitle: actor
-                      ? tr('Hand over a face and a name. Everything else is '
-                          'read off the picture.')
+                      ? tr('Hand over a face. Everything else is read off the '
+                          'picture.')
                       : tr('The file you hand over is the picture every shot '
                           'is built on.'),
                   icon: 'upload-cloud-line',
