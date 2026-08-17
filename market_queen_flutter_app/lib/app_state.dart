@@ -6,6 +6,8 @@ import 'core/signal.dart';
 import 'core/version.dart';
 import 'i18n/translator.dart';
 import 'media/ffmpeg.dart';
+import 'models/actor_reel.dart';
+import 'models/actor_smith.dart';
 import 'models/ad_project.dart';
 import 'models/asset_library.dart';
 import 'models/casting.dart';
@@ -15,6 +17,7 @@ import 'models/line_doctor.dart';
 import 'models/prompt_doctor.dart';
 import 'models/studio_runner.dart';
 import 'models/voice_booth.dart';
+import 'models/voice_forge.dart';
 import 'models/workspace.dart';
 import 'pipeline/pipeline.dart';
 import 'providers/model_schemas.dart';
@@ -58,9 +61,16 @@ class AppState {
       scratchFolder: 'scenery',
     );
     voiceBooth = VoiceBooth(settings, registry, pricing, log, voiceCasting);
+    voiceForge = VoiceForge(settings, registry, pricing, log);
+    actorReel = ActorReel(settings, registry, pricing, log, voiceCasting);
     library = LibraryModel(settings);
     lineDoctor = LineDoctor(settings, registry, pricing, log);
     promptDoctor = PromptDoctor(settings, registry, log);
+    // Takes the doctor rather than picking a writer of its own: which model
+    // rewrites a prompt and which model reads a photograph is the same
+    // question -- "whichever one they have a key for" -- and answering it twice
+    // is how the two drift apart.
+    actorSmith = ActorSmith(settings, registry, log, promptDoctor);
     // Fires into the open ad's feed, which is where the canvas reads from. It
     // outlives any one ad: a batch sent just before you step back to the
     // project list still has somewhere to land.
@@ -132,6 +142,19 @@ class AppState {
   late final VoiceCasting voiceCasting;
 
   late final VoiceBooth voiceBooth;
+
+  /// Voices that do not exist yet: designed from a description, or cloned off
+  /// the user's own recordings.
+  late final VoiceForge voiceForge;
+
+  /// Reads a photograph and says who is in it, which is the whole of making an
+  /// actor from an image.
+  late final ActorSmith actorSmith;
+
+  /// One clip of an actor speaking, bought from the same two models a real shot
+  /// is bought from.
+  late final ActorReel actorReel;
+
   late final LineDoctor lineDoctor;
   late final LibraryModel library;
 
@@ -250,6 +273,9 @@ class AppState {
     actorForge.dispose();
     sceneForge.dispose();
     voiceBooth.dispose();
+    voiceForge.dispose();
+    actorSmith.dispose();
+    actorReel.dispose();
     lineDoctor.dispose();
     promptDoctor.dispose();
     library.dispose();

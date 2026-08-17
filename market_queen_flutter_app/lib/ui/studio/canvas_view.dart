@@ -1,20 +1,16 @@
-import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as p;
 
 import '../../app_state.dart';
-import '../../core/clipboard_media.dart';
 import '../../core/platform_util.dart';
 import '../../i18n/translator.dart';
-import '../../models/asset_library.dart' show isAudioPath, isVideoPath;
 import '../../models/canvas_feed.dart';
 import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
+import '../widgets/file_menu.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
 import '../widgets/skeleton.dart';
@@ -373,8 +369,9 @@ class _BatchBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (batch.allFailed) {
-      return _MediaMenu(
+      return MediaMenu(
         onRemove: batch.running ? null : onRemove,
+        removeLabel: tr('Remove from the canvas'),
         child: _Failure(message: batch.firstError),
       );
     }
@@ -439,150 +436,6 @@ double _ratioOf(CanvasBatch batch) {
   return width / height;
 }
 
-/// The right-click menu on anything the canvas produced.
-///
-/// The file is on disk already -- every generation is written the moment it
-/// lands -- so the four things anybody wants from a result are all file
-/// operations, and none of them belongs on a hover strip that can only hold
-/// three glyphs. A context menu is where a desktop keeps them.
-class _MediaMenu extends StatelessWidget {
-  const _MediaMenu({
-    required this.child,
-    this.path = '',
-    this.onRemove,
-  });
-
-  final Widget child;
-
-  /// Empty while the result is still pending or came back empty: the menu then
-  /// offers only the removal.
-  final String path;
-
-  /// Null while requests are still out for this batch -- removing then would
-  /// leave them writing into something nobody can see.
-  final VoidCallback? onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      // Secondary only: the primary tap belongs to whatever is underneath, and
-      // both gestures can live on the same pixels without an arena between
-      // them.
-      onSecondaryTapDown: (details) => _open(context, details.globalPosition),
-      child: child,
-    );
-  }
-
-  Future<void> _open(BuildContext context, Offset position) async {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (overlay == null) return;
-
-    final hasFile = path.isNotEmpty && File(path).existsSync();
-    final picked = await showMenu<_MediaAction>(
-      context: context,
-      // Shape, colour and elevation come from `popupMenuTheme`, like every
-      // other menu in the app.
-      position: RelativeRect.fromRect(
-        position & Size.zero,
-        Offset.zero & overlay.size,
-      ),
-      constraints: const BoxConstraints(minWidth: 240),
-      items: [
-        if (hasFile) ...[
-          _entry(context, _MediaAction.reveal, 'folder-line', tr('Show file')),
-          _entry(
-            context,
-            _MediaAction.saveAs,
-            'download-line',
-            tr('Save as...'),
-          ),
-          _entry(
-            context,
-            _MediaAction.copy,
-            'file-copy-line',
-            isVideoPath(path)
-                ? tr('Copy the video')
-                : isAudioPath(path)
-                ? tr('Copy the recording')
-                : tr('Copy the picture'),
-          ),
-        ],
-        if (hasFile && onRemove != null) const PopupMenuDivider(height: 9),
-        if (onRemove != null)
-          _entry(
-            context,
-            _MediaAction.remove,
-            'delete-bin-line',
-            tr('Remove from the canvas'),
-            destructive: true,
-          ),
-      ],
-    );
-
-    if (picked == null || !context.mounted) return;
-
-    switch (picked) {
-      case _MediaAction.reveal:
-        await PlatformUtil.revealPath(path);
-      case _MediaAction.saveAs:
-        await _saveAs(path);
-      case _MediaAction.copy:
-        await ClipboardMedia.copyFile(path);
-      case _MediaAction.remove:
-        onRemove?.call();
-    }
-  }
-
-  PopupMenuItem<_MediaAction> _entry(
-    BuildContext context,
-    _MediaAction value,
-    String icon,
-    String label, {
-    bool destructive = false,
-  }) {
-    final mq = context.mq;
-    final ink = destructive ? mq.errorText : mq.textPrimary;
-
-    return PopupMenuItem<_MediaAction>(
-      value: value,
-      height: 38,
-      child: Row(
-        children: [
-          MqIcon(icon, size: 16, color: ink),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: TextStyle(color: ink, fontSize: MqTheme.fontLabel),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// A copy, wherever they ask for it. The generated file itself stays where it
-  /// was written -- "save as" on something already saved is an export, and
-  /// moving the original would break the tile that points at it.
-  Future<void> _saveAs(String path) async {
-    final extension = p.extension(path).replaceFirst('.', '');
-    final location = await getSaveLocation(
-      suggestedName: p.basename(path),
-      acceptedTypeGroups: [
-        if (extension.isNotEmpty)
-          XTypeGroup(label: extension.toUpperCase(), extensions: [extension]),
-      ],
-    );
-    if (location == null) return;
-
-    try {
-      await File(path).copy(location.path);
-    } on FileSystemException {
-      // The dialog picked somewhere unwritable. Nothing was moved and nothing
-      // was lost; the original is still where it was.
-    }
-  }
-}
-
-enum _MediaAction { reveal, saveAs, copy, remove }
 
 /// One result, at whatever stage it is at.
 class _ResultTile extends StatefulWidget {
@@ -623,11 +476,12 @@ class _ResultTileState extends State<_ResultTile> {
   Widget build(BuildContext context) {
     final item = widget.item;
 
-    return _MediaMenu(
+    return MediaMenu(
       path: item.status == CanvasStatus.done ? item.path : '',
       // A tile still being generated is not one to pull out from under the
       // request that is about to fill it.
       onRemove: item.status == CanvasStatus.pending ? null : widget.onRemove,
+      removeLabel: tr('Remove from the canvas'),
       child: _body(context),
     );
   }

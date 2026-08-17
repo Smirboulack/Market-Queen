@@ -180,11 +180,15 @@ void main() {
       }
     });
 
-    test('fal carries Kling and nothing else', () {
-      // The one reseller left in the app, and it is a funding decision: Kling
-      // sells its own API in packs of several hundred dollars that expire.
-      // Every other provider is called directly on its own host. This is the
-      // line that keeps a second aggregator from creeping back in.
+    test('fal carries Kling and OmniHuman, and nothing else', () {
+      // The only reseller left in the app, and both models behind it are there
+      // for a funding reason rather than a technical one: Kling sells its own
+      // API in packs of several hundred dollars that expire, and OmniHuman
+      // needs a funded BytePlus account before it answers at all. Every other
+      // provider is called directly on its own host, and this is the line that
+      // keeps a general-purpose aggregator from creeping back in.
+      const allowed = ['kling', 'omnihuman'];
+
       final onFal = [
         for (final entry in registry.entries)
           if (entry.credential == 'fal')
@@ -193,7 +197,11 @@ void main() {
 
       expect(onFal, isNotEmpty);
       for (final id in onFal) {
-        expect(id, contains('kling'), reason: '$id is on fal but is not Kling');
+        expect(
+          allowed.any(id.contains),
+          isTrue,
+          reason: '$id is on fal but is neither Kling nor OmniHuman',
+        );
       }
     });
   });

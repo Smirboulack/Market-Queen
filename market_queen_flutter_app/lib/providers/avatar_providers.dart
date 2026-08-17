@@ -146,3 +146,57 @@ class FalAvatarTask extends AvatarTask {
     return deliverFromUrl(url);
   }
 }
+
+// ---------------------------------------------------------------------------
+// ByteDance OmniHuman 1.5, through fal.ai.
+//
+// The second and last thing bought through a reseller, and for the same kind of
+// reason as Kling: OmniHuman is served from BytePlus behind an account that has
+// to be set up and funded before it answers at all, and fal resells the same
+// weights by the second. It moves to the direct API the day that account is
+// ready; nothing above this class knows which host it came from.
+//
+// What it is *for* is different from the other two, which is why it is its own
+// entry rather than one more model id on the Kling one: HeyGen animates a
+// portrait cleanly, Kling animates it cinematically, and OmniHuman moves the
+// whole body -- gestures, weight shifts, the head turning to follow a thought.
+// It is the one that reads as a person rather than as a photograph talking.
+//
+// Its two resolutions are not a quality dial but a length one: 1080p refuses
+// audio over thirty seconds and 720p takes a minute of it.
+// ---------------------------------------------------------------------------
+class FalOmniHumanTask extends AvatarTask {
+  FalOmniHumanTask(super.request);
+
+  /// What fal caps each resolution at, in seconds of audio.
+  static const int secondsAt1080p = 30;
+  static const int secondsAt720p = 60;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'fal.ai');
+    if (request.imageDataUri.isEmpty) {
+      throw ProviderException(tr('No frame to animate.'));
+    }
+    if (request.audioDataUri.isEmpty) {
+      throw ProviderException(
+          tr('No audio for this shot, so there is nothing to lip-sync to.'));
+    }
+
+    final input = <String, Object?>{
+      'image_url': request.imageDataUri,
+      'audio_url': request.audioDataUri,
+      // Whatever the shot's motion prompt says, verbatim: OmniHuman reads it as
+      // direction for the body rather than as a description of the frame.
+      if (request.prompt.isNotEmpty) 'prompt': request.prompt,
+      if (request.resolution.isNotEmpty) 'resolution': request.resolution,
+    };
+
+    final result = await submitFal(request.apiKey, request.model, input);
+
+    var url = HttpTask.jsonPath(result, 'video.url');
+    if (url.isEmpty) url = HttpTask.jsonPath(result, 'videos.0.url');
+    if (url.isEmpty) url = HttpTask.jsonPath(result, 'url');
+    return deliverFromUrl(url);
+  }
+}

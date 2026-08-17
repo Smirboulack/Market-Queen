@@ -540,6 +540,165 @@ class ElevenLabsVoiceCloneTask extends HttpTask {
 }
 
 // ---------------------------------------------------------------------------
+// Voice design - POST /v1/text-to-voice/design
+//
+// A voice out of a sentence describing it. Three takes come back per call and
+// only one line of preview text is billed for all three, which is why the whole
+// feature costs about what one audition does.
+//
+// Nothing here creates anything on the account: a take is a `generated_voice_id`
+// that lives inside the design call until [ElevenLabsVoiceSaveTask] keeps it.
+// That separation is the reason the user can listen to three and throw two
+// away without three voices appearing in their library.
+// ---------------------------------------------------------------------------
+class ElevenLabsVoiceDesignTask extends HttpTask {
+  ElevenLabsVoiceDesignTask(this.request);
+
+  final VoiceDesignRequest request;
+
+  /// Their floor, and worth enforcing here rather than discovering as a 422:
+  /// a three-word description is not a brief anyone would want three takes of.
+  static const int minDescription = 20;
+
+  /// The preview line has to be 100–1000 characters or absent. A short one is
+  /// not an error -- it just means the engine writes its own.
+  static const int minPreviewText = 100;
+  static const int maxPreviewText = 1000;
+
+  /// Only the v3 engine takes a recording to colour the result.
+  bool get _takesReference => request.model.toLowerCase().contains('v3');
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'ElevenLabs');
+
+    final description = request.description.trim();
+    if (description.length < minDescription) {
+      throw ProviderException(
+        //: %1 is a number of characters
+        tr('Describe the voice in at least %1 characters.').arg(minDescription),
+      );
+    }
+
+    report(tr('Designing the voice...'));
+
+    final preview = request.previewText.trim();
+    final usable = preview.length >= minPreviewText
+        ? (preview.length > maxPreviewText
+            ? preview.substring(0, maxPreviewText)
+            : preview)
+        : '';
+
+    final reference = _takesReference ? request.referenceAudioBase64 : '';
+
+    final response = await postJson(
+      Uri.parse('https://api.elevenlabs.io/v1/text-to-voice/design'),
+      {
+        'voice_description': description,
+        'model_id': request.model,
+        if (usable.isNotEmpty)
+          'text': usable
+        else
+          'auto_generate_text': true,
+        'loudness': request.loudness,
+        'guidance_scale': request.guidance,
+        if (request.seed > 0) 'seed': request.seed,
+        if (reference.isNotEmpty) ...{
+          'reference_audio_base64': reference,
+          'prompt_strength': request.promptStrength,
+        },
+      },
+      headers: {'xi-api-key': request.apiKey},
+      // Three takes of a paragraph is not a fast call.
+      timeout: const Duration(minutes: 5),
+    );
+
+    final takes = <VoicePreview>[];
+    final raw = response['previews'];
+    if (raw is List) {
+      for (final entry in raw) {
+        if (entry is! Map) continue;
+        final id = '${entry['generated_voice_id'] ?? ''}';
+        if (id.isEmpty) continue;
+
+        Uint8List audio;
+        try {
+          audio = base64Decode('${entry['audio_base_64'] ?? ''}');
+        } on FormatException {
+          audio = Uint8List(0);
+        }
+        if (audio.isEmpty) continue;
+
+        takes.add(VoicePreview(
+          generatedVoiceId: id,
+          audio: audio,
+          extension: _extensionOf('${entry['media_type'] ?? ''}'),
+          durationSeconds: (entry['duration_secs'] as num?)?.toDouble() ?? 0,
+          language: '${entry['language'] ?? ''}',
+        ));
+      }
+    }
+
+    if (takes.isEmpty) {
+      throw ProviderException(tr('ElevenLabs returned no voice previews.'));
+    }
+
+    return {'previews': takes, 'text': '${response['text'] ?? ''}'};
+  }
+
+  /// "audio/mpeg" -> "mp3". The endpoint answers in mp3 unless asked
+  /// otherwise, but the media type is what it actually sent.
+  static String _extensionOf(String mediaType) {
+    final type = mediaType.toLowerCase();
+    if (type.contains('wav')) return 'wav';
+    if (type.contains('ogg')) return 'ogg';
+    if (type.contains('pcm')) return 'pcm';
+    return 'mp3';
+  }
+}
+
+/// Keeps one of the three designed takes as a real voice on the account.
+///
+/// POST /v1/text-to-voice. The takes that were listened to and passed over are
+/// sent with it: ElevenLabs asks for them, and they are the only signal their
+/// designer gets about what a rejection looks like.
+class ElevenLabsVoiceSaveTask extends HttpTask {
+  ElevenLabsVoiceSaveTask(this.request);
+
+  final VoiceSaveRequest request;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(request.apiKey, 'ElevenLabs');
+    if (request.generatedVoiceId.isEmpty) {
+      throw ProviderException(tr('Pick one of the takes first.'));
+    }
+
+    report(tr('Adding the voice to your account...'));
+
+    final response = await postJson(
+      Uri.parse('https://api.elevenlabs.io/v1/text-to-voice'),
+      {
+        'voice_name': request.name.trim().isEmpty
+            ? tr('Market Queen voice')
+            : request.name.trim(),
+        'voice_description': request.description.trim(),
+        'generated_voice_id': request.generatedVoiceId,
+        if (request.passedOver.isNotEmpty)
+          'played_not_selected_voice_ids': request.passedOver,
+      },
+      headers: {'xi-api-key': request.apiKey},
+    );
+
+    final voiceId = '${response['voice_id'] ?? ''}';
+    if (voiceId.isEmpty) {
+      throw ProviderException(tr('ElevenLabs did not return a voice id.'));
+    }
+    return {'voiceId': voiceId, 'name': '${response['name'] ?? request.name}'};
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Voice catalogues
 // ---------------------------------------------------------------------------
 class ElevenLabsVoiceListTask extends HttpTask {

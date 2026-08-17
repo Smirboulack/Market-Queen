@@ -8,8 +8,12 @@ import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/fields.dart';
+import '../widgets/file_menu.dart';
 import '../widgets/media_drop.dart';
+import '../widgets/media_preview.dart';
 import '../widgets/mq_dialog.dart';
+import 'actor_editor.dart';
+import 'actor_wizard.dart';
 import 'asset_editor.dart';
 import 'asset_studio.dart';
 
@@ -104,18 +108,13 @@ class _GalleryState extends State<_Gallery> {
 
   // ---- actions -------------------------------------------------------------
 
-  Future<void> _create(AssetRoute route) async {
-    final id = await createAsset(
-      context,
-      app: widget.app,
-      kind: widget.kind,
-      route: route,
-    );
+  Future<void> _create() async {
+    final id = await createAsset(context, app: widget.app, kind: widget.kind);
     if (id != null && mounted) closeMqModal(context, id);
   }
 
   Future<void> _edit(LibraryAsset asset) async {
-    final id = await showAssetEditor(
+    final id = await editAsset(
       context,
       app: widget.app,
       kind: widget.kind,
@@ -166,8 +165,9 @@ class _GalleryState extends State<_Gallery> {
   /// and the same portrait tile was cutting the sides off every one of them and
   /// then stacking eight of them into a wall of slivers. The card underneath is
   /// one widget for both; only the cell it is given differs.
-  ({double extent, double height}) get _cell =>
-      _isActor ? (extent: 176, height: 226) : (extent: 232, height: 172);
+  ({double extent, double height}) get _cell => _isActor
+      ? (extent: 176, height: 244)
+      : (extent: 232, height: 172);
 
   @override
   Widget build(BuildContext context) {
@@ -282,23 +282,21 @@ class _GalleryState extends State<_Gallery> {
               crossAxisSpacing: MqTheme.gap,
               mainAxisSpacing: MqTheme.gap,
             ),
-            // The two makers are the first two tiles rather than a button in
-            // the corner: an empty library then reads as two things to press
-            // instead of an empty box with an instruction beside it. They used
-            // to be one tile that opened a modal asking which of the two you
-            // meant -- a question with two answers, both of which are right
-            // here, one click earlier.
-            itemCount: assets.length + AssetRoute.values.length,
+            // The maker is the first tile rather than a button in the corner:
+            // an empty library then reads as something to press instead of an
+            // empty box with an instruction beside it.
+            //
+            // One tile, not two. It was two for a while -- "create" and "turn a
+            // picture into one" -- and that put the *method* on the grid before
+            // the intent, so the first decision anybody made about a new actor
+            // was a technical one. There is one thing to press now, and it asks
+            // which way you want to go once you have pressed it.
+            itemCount: assets.length + 1,
             itemBuilder: (context, index) {
-              if (index < AssetRoute.values.length) {
-                final route = AssetRoute.values[index];
-                return CreateAssetTile(
-                  kind: widget.kind,
-                  route: route,
-                  onTap: () => _create(route),
-                );
+              if (index == 0) {
+                return CreateAssetTile(kind: widget.kind, onTap: _create);
               }
-              final asset = assets[index - AssetRoute.values.length];
+              final asset = assets[index - 1];
               return AssetCard(
                 asset: asset,
                 onTap: () => closeMqModal(context, asset.id),
@@ -327,22 +325,121 @@ class _GalleryState extends State<_Gallery> {
 /// The two ways to make an actor or a scene.
 enum AssetRoute { generate, upload }
 
-/// Opens whichever of the two the user pressed.
+/// Makes one, whichever way the user chooses.
 ///
-/// Returns the id of what was made, or null.
+/// Asks first, in a small modal, and the question is worth asking: describing
+/// somebody and photographing somebody are not two settings of one screen, they
+/// are two different jobs with different inputs, and putting both doors on the
+/// library grid meant every new actor started with a decision about *method*
+/// before anybody had thought about the person.
 ///
-/// There used to be a modal between the tile and this, asking which of the two
-/// was meant -- a question the tile itself now answers, one click and one
-/// window earlier.
+/// Returns the id of what was made, or null when the user backed out of either
+/// window.
 Future<String?> createAsset(
   BuildContext context, {
   required AppState app,
   required AssetKind kind,
-  AssetRoute route = AssetRoute.generate,
-}) {
+}) async {
+  final route = await askForAssetRoute(context, kind: kind);
+  if (route == null || !context.mounted) return null;
+
+  // An actor is not a picture: it has a voice, a way of moving and a
+  // personality, and neither door is finished until all three exist. Both lead
+  // into the same wizard, which differs only in where it starts.
+  if (kind == AssetKind.actor) {
+    return showActorWizard(
+      context,
+      app: app,
+      route: route == AssetRoute.generate
+          ? ActorRoute.describe
+          : ActorRoute.fromImage,
+    );
+  }
+
   return route == AssetRoute.generate
       ? showAssetStudio(context, app: app, kind: kind)
       : showAssetImport(context, app: app, kind: kind);
+}
+
+/// Opens the right editor for the kind.
+///
+/// An actor gets a screen of its own -- five sections and the face on screen
+/// throughout -- and a scene gets the one card it fits on.
+Future<String?> editAsset(
+  BuildContext context, {
+  required AppState app,
+  required AssetKind kind,
+  required LibraryAsset asset,
+}) {
+  if (kind == AssetKind.actor) {
+    return showActorEditor(context, app: app, actor: asset);
+  }
+  return showAssetEditor(context, app: app, kind: kind, asset: asset);
+}
+
+/// "Describe them, or hand over a photograph?"
+///
+/// Returns null when the user closed it, which cancels the whole creation
+/// rather than falling through to a default.
+Future<AssetRoute?> askForAssetRoute(
+  BuildContext context, {
+  required AssetKind kind,
+}) {
+  final actor = kind == AssetKind.actor;
+
+  return showMqModal<AssetRoute>(
+    context: context,
+    child: Builder(
+      builder: (context) => MqModalCard(
+        width: 620,
+        title: actor ? tr('Create an actor') : tr('Create a scene'),
+        subtitle: actor
+            ? tr('Two ways in. Either one ends with a face, a voice and a '
+                'personality.')
+            : tr('Two ways in.'),
+        // Stretched so the two doors are the same height whichever of them
+        // has the longer sentence on it, and wrapped in an IntrinsicHeight
+        // because the card's content sits in a scroll view: a stretching Row
+        // under an unbounded height asks its children for an infinite one.
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: BigChoice(
+                  overline: tr('Describe'),
+                  title: actor
+                      ? tr('Write who they are')
+                      : tr('Write where it is'),
+                  subtitle: actor
+                      ? tr('Say it in a sentence, pick from what comes back, '
+                          'then say what to change.')
+                      : tr('Say it in a sentence and pick from what comes '
+                          'back.'),
+                  icon: 'sparkling-line',
+                  onPressed: () => closeMqModal(context, AssetRoute.generate),
+                ),
+              ),
+              const SizedBox(width: MqTheme.gap),
+              Expanded(
+                child: BigChoice(
+                  overline: tr('From a picture'),
+                  title: tr('Use a photograph'),
+                  subtitle: actor
+                      ? tr('Hand over a face and a name. Everything else is '
+                          'read off the picture.')
+                      : tr('The file you hand over is the picture every shot '
+                          'is built on.'),
+                  icon: 'upload-cloud-line',
+                  onPressed: () => closeMqModal(context, AssetRoute.upload),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// One actor or scene, as a card. Used by the gallery and by both library
@@ -358,6 +455,8 @@ class AssetCard extends StatelessWidget {
     this.onToggleSelect,
     this.selected = false,
     this.selecting = false,
+    this.onDuplicate,
+    this.onCreateLook,
   });
 
   final LibraryAsset asset;
@@ -365,6 +464,12 @@ class AssetCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final bool chosen;
+
+  /// The two things a right-click offers that a hover strip has no room for.
+  /// Left null in the casting gallery, where the card is a thing to pick rather
+  /// than a thing to manage.
+  final VoidCallback? onDuplicate;
+  final VoidCallback? onCreateLook;
 
   /// Set on the pages where several can be picked out at once. Null in the
   /// casting gallery, where picking one is the whole point and picking two
@@ -383,6 +488,72 @@ class AssetCard extends StatelessWidget {
   /// targets.
   final bool selecting;
 
+  /// Actors carry a voice and a casting brief; scenes carry neither. The card
+  /// tells them apart by what the asset has rather than by being handed a kind,
+  /// so the two library pages keep sharing one widget.
+  bool get _isActor =>
+      asset.extras.containsKey('voiceGender') ||
+      asset.extras.containsKey('voiceName') ||
+      asset.extras.containsKey('createdVia');
+
+  /// Who they read as, and where their voice came from: "Female · Young ·
+  /// Designed". The dot-separated line the mock-ups have under every face.
+  Widget _voiceLine(MqTheme mq) {
+    final facts = <String>[
+      VoiceTrait.labelFor('voiceGender', asset.extraText('voiceGender')),
+      VoiceTrait.labelFor('voiceAge', asset.extraText('voiceAge')),
+    ].where((part) => part.isNotEmpty).join(' · ');
+
+    final voice = asset.extraText('voiceName');
+    final provenance = switch (asset.extraText('voiceKind')) {
+      'designed' => tr('Designed'),
+      'cloned' => tr('Cloned'),
+      'library' => tr('Library'),
+      _ => voice.isEmpty ? tr('Cast at render time') : voice,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (facts.isNotEmpty)
+          Text(
+            facts,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: mq.textTertiary,
+              fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineTight,
+            ),
+          ),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            MqIcon(
+              voice.isEmpty ? 'mic-line' : 'user-voice-line',
+              size: 12,
+              color: voice.isEmpty ? mq.textTertiary : mq.textSecondary,
+            ),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                provenance,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                  height: MqTheme.lineTight,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
@@ -392,6 +563,53 @@ class AssetCard extends StatelessWidget {
     // appear on the same page, so one look serves both.
     final marked = chosen || selected;
 
+    // The right-click menu is where the actions that will not fit on a hover
+    // strip live. A card has room for two glyphs and an actor has five things
+    // worth doing to it, and the two that were cut -- duplicating one, giving
+    // one another outfit -- are exactly the ones you reach for once a face
+    // finally works.
+    return MediaMenu(
+      path: thumbnail,
+      actions: [
+        if (!selecting) ...[
+          if (onEdit != null)
+            MediaMenuAction(
+              icon: 'edit-line',
+              label: tr('Edit'),
+              onPressed: onEdit!,
+            ),
+          if (onDuplicate != null)
+            MediaMenuAction(
+              icon: 'file-copy-line',
+              label: tr('Duplicate'),
+              onPressed: onDuplicate!,
+            ),
+          if (onCreateLook != null)
+            MediaMenuAction(
+              icon: 'gallery-line',
+              label: tr('Create a look'),
+              onPressed: onCreateLook!,
+            ),
+          if (thumbnail.isNotEmpty)
+            MediaMenuAction(
+              icon: 'fullscreen-line',
+              label: tr('View full size'),
+              onPressed: () => showMediaPreview(context, thumbnail),
+            ),
+        ],
+      ],
+      onRemove: selecting ? null : onDelete,
+      removeLabel: tr('Delete'),
+      child: _card(context, mq, thumbnail, marked),
+    );
+  }
+
+  Widget _card(
+    BuildContext context,
+    MqTheme mq,
+    String thumbnail,
+    bool marked,
+  ) {
     return Pressable(
       onTap: selecting && onToggleSelect != null ? onToggleSelect : onTap,
       // Cards sit in a grid: hover snaps both ways, fill and border together.
@@ -518,8 +736,15 @@ class AssetCard extends StatelessWidget {
                 height: MqTheme.lineTight,
               ),
             ),
-            if (asset.prompt.trim().isNotEmpty) ...[
-              const SizedBox(height: 2),
+            const SizedBox(height: 2),
+            // An actor is a person, and the two things worth knowing about one
+            // at a glance are who they read as and how they sound -- not the
+            // first line of the prompt that drew them, which is what this said
+            // before and which is the same eleven words on every card in a
+            // library built from one brief.
+            if (_isActor)
+              _voiceLine(mq)
+            else if (asset.prompt.trim().isNotEmpty)
               Text(
                 asset.prompt.trim(),
                 maxLines: 1,
@@ -530,7 +755,6 @@ class AssetCard extends StatelessWidget {
                   height: MqTheme.lineTight,
                 ),
               ),
-            ],
           ],
         ),
       ),
@@ -579,32 +803,20 @@ class _SelectBox extends StatelessWidget {
   }
 }
 
-/// One of the two tiles at the head of a grid of actors or scenes: the two ways
-/// to make another one.
+/// The tile at the head of a grid of actors or scenes: the way to make another
+/// one.
 class CreateAssetTile extends StatelessWidget {
-  const CreateAssetTile({
-    super.key,
-    required this.kind,
-    required this.onTap,
-    this.route = AssetRoute.generate,
-  });
+  const CreateAssetTile({super.key, required this.kind, required this.onTap});
 
   final AssetKind kind;
-  final AssetRoute route;
   final VoidCallback onTap;
-
-  bool get _generating => route == AssetRoute.generate;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     final actor = kind == AssetKind.actor;
 
-    final label = _generating
-        ? (actor ? tr('Create an actor') : tr('Create a scene'))
-        : (actor
-              ? tr('Turn a picture into an actor')
-              : tr('Turn a picture into a scene'));
+    final label = actor ? tr('Create an actor') : tr('Create a scene');
 
     return Pressable(
       onTap: onTap,
@@ -639,7 +851,7 @@ class CreateAssetTile extends StatelessWidget {
                 ),
               ),
               child: MqIcon(
-                _generating ? 'sparkling-line' : 'upload-cloud-line',
+                'add-line',
                 size: 20,
                 color: states.active ? mq.textPrimary : mq.textTertiary,
               ),

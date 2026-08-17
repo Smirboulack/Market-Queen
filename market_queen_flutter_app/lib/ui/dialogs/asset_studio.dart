@@ -15,7 +15,9 @@ import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
 import '../widgets/fields.dart';
+import '../widgets/file_menu.dart';
 import '../widgets/media_drop.dart';
+import '../widgets/media_preview.dart';
 import '../widgets/model_picker.dart';
 import '../widgets/mq_dialog.dart';
 
@@ -44,9 +46,30 @@ Future<String?> showAssetStudio(
   );
 }
 
+/// How wide and how tall a window that exists to show generated pictures should
+/// be, given the screen it is on.
+///
+/// It used to stop at 880 by 460, which put three 9:16 portraits in frames
+/// about the size of a postage stamp -- and the entire question the screen asks
+/// is "is this face right?", which cannot be answered at that size. It takes
+/// the window now, within reason: the cap is there so a 4K monitor does not get
+/// a modal a metre wide.
+({double width, double height}) studioSize(Size screen) => (
+  width: (screen.width - 80).clamp(560.0, 1320.0),
+  // The subtraction is the room the header, the name row, the prompt bar and
+  // the modal's own margins take around the pictures.
+  height: (screen.height - 300).clamp(320.0, 720.0),
+);
+
 /// One press of Generate: what was asked for, and what came back.
-class _Round {
-  _Round(this.prompt, this.images);
+///
+/// Public, and owned by whoever put the forge on screen rather than by the
+/// forge itself. The wizard is why: its first step is an [AssetForge] and its
+/// second is not, so pressing Back used to unmount the panel and take half an
+/// hour of iterating with it -- the chosen picture survived on the draft, but
+/// the row it was chosen from did not.
+class ForgeRound {
+  ForgeRound(this.prompt, this.images);
 
   final String prompt;
   final List<String> images;
@@ -72,27 +95,178 @@ class _StudioState extends State<_Studio> {
   late final TextEditingController _name = TextEditingController(
     text: _draft.name,
   );
-  final TextEditingController _prompt = TextEditingController();
-  final FocusNode _focus = FocusNode();
-  final ScrollController _scroll = ScrollController();
-
-  /// Everything asked for this session, oldest first.
-  final List<_Round> _rounds = [];
-
-  /// Pictures the user dropped in as a starting point. Separate from the
-  /// picture they have chosen: the reference is what they brought, the choice
-  /// is what the model made of it.
-  final List<String> _references = [];
-
-  /// Whether the batch in the air has already been filed into a round.
-  bool _awaiting = false;
 
   bool get _isActor => widget.kind == AssetKind.actor;
 
   AssetLibrary get _library => _isActor ? widget.app.actors : widget.app.scenes;
 
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  void _save() {
+    _draft.name = _name.text.trim();
+    final id = _library.save(_draft);
+    if (mounted) closeMqModal(context, id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = studioSize(MediaQuery.sizeOf(context));
+    final chosen = _draft.previewPath.isNotEmpty;
+
+    return MqModalCard(
+      width: size.width,
+      title: _isActor ? tr('Define your actor') : tr('Define your scene'),
+      subtitle: _isActor
+          ? tr(
+              'Describe them, pick the one that is closest, then say what to '
+              'change.',
+            )
+          : tr(
+              'Describe it, pick the one that is closest, then say what to '
+              'change.',
+            ),
+      actions: [
+        GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
+        PrimaryButton(
+          text: _isActor ? tr('Select this actor') : tr('Select this scene'),
+          enabled: chosen,
+          tooltip: chosen ? '' : tr('Pick one of the pictures first.'),
+          onPressed: _save,
+        ),
+      ],
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          NameRow(
+            controller: _name,
+            kind: widget.kind,
+            placeholder: _library.suggestedName(),
+          ),
+          const SizedBox(height: MqTheme.gap),
+          AssetForge(
+            app: widget.app,
+            kind: widget.kind,
+            draft: _draft,
+            height: size.height,
+            onChanged: () => setState(() {}),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// What the thing being made is called.
+///
+/// It was a bare box wedged between two buttons on the action row, with the
+/// suggested name as its only hint -- so it read as one more control rather
+/// than as the one field on the screen, and half the actors in a library end
+/// up called "Actor 3". Labelled, at the top, where a name belongs.
+class NameRow extends StatelessWidget {
+  const NameRow({
+    super.key,
+    required this.controller,
+    required this.kind,
+    required this.placeholder,
+  });
+
+  final TextEditingController controller;
+  final AssetKind kind;
+  final String placeholder;
+
+  @override
+  Widget build(BuildContext context) {
+    final actor = kind == AssetKind.actor;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 360,
+          child: LabeledField(
+            controller: controller,
+            label: actor ? tr("Actor's name") : tr("Scene's name"),
+            placeholder: actor
+                ? tr('Name of the actor — Sarah, James…')
+                : tr('Name of the scene — Kitchen, Bathroom…'),
+            hint: actor
+                ? tr('What you will look for them under later.')
+                : tr('What you will look for it under later.'),
+          ),
+        ),
+        const Spacer(),
+      ],
+    );
+  }
+}
+
+/// The conversation itself: the rounds so far, and the bar that asks for
+/// another.
+///
+/// Split out of the studio window because it is no longer only a window: making
+/// an actor is several steps now and this is the first of them, so the same
+/// panel has to sit inside a wizard as well as inside a modal of its own. It
+/// writes straight into [draft] -- the chosen picture, the references, the
+/// description -- and tells the parent when any of that moved.
+class AssetForge extends StatefulWidget {
+  const AssetForge({
+    super.key,
+    required this.app,
+    required this.kind,
+    required this.draft,
+    required this.onChanged,
+    this.history,
+    this.height = 420,
+  });
+
+  final AppState app;
+  final AssetKind kind;
+
+  /// Mutated in place. The parent owns it and decides whether it is ever saved.
+  final LibraryAsset draft;
+
+  final VoidCallback onChanged;
+
+  /// Everything asked for so far. Supplied by a parent that can unmount this
+  /// panel and put it back -- the wizard -- and left null by the windows where
+  /// the panel lives as long as the window does.
+  final List<ForgeRound>? history;
+
+  final double height;
+
+  @override
+  State<AssetForge> createState() => _AssetForgeState();
+}
+
+class _AssetForgeState extends State<AssetForge> {
+  final TextEditingController _prompt = TextEditingController();
+  final FocusNode _focus = FocusNode();
+  final ScrollController _scroll = ScrollController();
+
+  /// Everything asked for this session, oldest first.
+  late final List<ForgeRound> _rounds = widget.history ?? [];
+
+  /// Whether the batch in the air has already been filed into a round.
+  bool _awaiting = false;
+
+  String _lastAsked = '';
+
+  bool get _isActor => widget.kind == AssetKind.actor;
+
+  LibraryAsset get _draft => widget.draft;
+
   ImageForge get _forge =>
       _isActor ? widget.app.actorForge : widget.app.sceneForge;
+
+  /// Pictures the user brought in as a starting point. They live on the draft
+  /// so that saving it keeps them, and so the wizard's later steps can see what
+  /// this actor was built from.
+  List<String> get _references => _draft.media;
 
   /// How many come back per press. Three fills a row and is enough to see the
   /// model's range without tripling the bill of a single try.
@@ -112,7 +286,6 @@ class _StudioState extends State<_Studio> {
     _prompt
       ..removeListener(_repaint)
       ..dispose();
-    _name.dispose();
     _focus.dispose();
     _scroll.dispose();
     super.dispose();
@@ -132,7 +305,9 @@ class _StudioState extends State<_Studio> {
 
     if (_awaiting && !_forge.running && _forge.images.isNotEmpty) {
       _awaiting = false;
-      _rounds.add(_Round(_lastAsked, List.of(_forge.images)));
+      _rounds.add(ForgeRound(_lastAsked, List.of(_forge.images)));
+      _draft.prompt = _describe();
+      widget.onChanged();
       // The newest row is the one being chosen from.
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_scroll.hasClients) return;
@@ -146,8 +321,6 @@ class _StudioState extends State<_Studio> {
 
     setState(() {});
   }
-
-  String _lastAsked = '';
 
   // ---- generating ----------------------------------------------------------
 
@@ -171,12 +344,18 @@ class _StudioState extends State<_Studio> {
     ..._references,
   ];
 
+  bool get _ready => _prompt.text.trim().isNotEmpty || _seed.isNotEmpty;
+
   void _generate() {
+    if (_forge.running || !_ready) return;
+
     final asked = _prompt.text.trim();
-    if (asked.isEmpty && _seed.isEmpty) return;
 
     _lastAsked = asked;
     _awaiting = true;
+    // Cleared on the way out rather than on the way back: the round is now up
+    // on the wall above, and a bar still holding what you just sent is a bar
+    // you have to empty by hand before the next sentence.
     _prompt.clear();
 
     _forge.generate(
@@ -191,6 +370,18 @@ class _StudioState extends State<_Studio> {
     final saved = widget.app.settings.prefString('assetAspect');
     // Both are shot vertical by default, because the ad is.
     return saved.isEmpty ? '9:16' : saved;
+  }
+
+  /// What the asset is described by, once it is saved: everything that was
+  /// asked for, in order. It is what the search box matches on and what the
+  /// pipeline is handed, so a face refined over four rounds is not filed under
+  /// the last three words the user typed.
+  String _describe() {
+    final asked = [
+      for (final round in _rounds)
+        if (round.prompt.trim().isNotEmpty) round.prompt.trim(),
+    ];
+    return asked.isEmpty ? _draft.prompt : asked.join('. ');
   }
 
   /// The wand, on the same key as the composer's: a description of a person or
@@ -236,93 +427,41 @@ class _StudioState extends State<_Studio> {
   }
 
   void _addReferences(List<String> paths) {
-    setState(() {
-      for (final path in paths) {
-        if (path.isEmpty || isVideoPath(path) || _references.contains(path)) {
-          continue;
-        }
-        _references.add(path);
+    var added = false;
+    for (final path in paths) {
+      if (path.isEmpty || isVideoPath(path) || _references.contains(path)) {
+        continue;
       }
-    });
+      _references.add(path);
+      added = true;
+    }
+    if (!added) return;
+    setState(() {});
+    widget.onChanged();
   }
 
-  void _save() {
-    _draft
-      ..name = _name.text.trim()
-      ..prompt = _describe();
-    _draft.media
-      ..clear()
-      ..addAll(_references);
-
-    final id = _library.save(_draft);
-    if (mounted) closeMqModal(context, id);
-  }
-
-  /// What the asset is described by, once it is saved: everything that was
-  /// asked for, in order. It is what the search box matches on and what the
-  /// pipeline is handed, so a face refined over four rounds is not filed under
-  /// the last three words the user typed.
-  String _describe() {
-    final asked = [
-      for (final round in _rounds)
-        if (round.prompt.trim().isNotEmpty) round.prompt.trim(),
-    ];
-    return asked.isEmpty ? _draft.prompt : asked.join('. ');
+  void _removeReference(int index) {
+    setState(() => _references.removeAt(index));
+    widget.onChanged();
   }
 
   // ---- build ---------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    final screen = MediaQuery.sizeOf(context);
-    final width = (screen.width - 120).clamp(520.0, 880.0);
-    final height = (screen.height - 200).clamp(300.0, 460.0);
-    final chosen = _draft.previewPath.isNotEmpty;
-
-    return MqModalCard(
-      width: width,
-      title: _isActor ? tr('Define your actor') : tr('Define your scene'),
-      subtitle: _isActor
-          ? tr(
-              'Describe them, pick the one that is closest, then say what to '
-              'change.',
-            )
-          : tr(
-              'Describe it, pick the one that is closest, then say what to '
-              'change.',
-            ),
-      actions: [
-        // Flexible rather than 200 wide: the two buttons beside it are as long
-        // as whatever language the app is in makes them, and a fixed field is
-        // what pushed the row off the end of the card in French.
-        Expanded(
-          child: LabeledField(
-            controller: _name,
-            placeholder: _library.suggestedName(),
-          ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          height: widget.height,
+          child: _rounds.isEmpty && !_forge.running
+              ? _EmptyStudio(isActor: _isActor)
+              : _conversation(),
         ),
-        GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
-        PrimaryButton(
-          text: _isActor ? tr('Select this actor') : tr('Select this scene'),
-          enabled: chosen,
-          tooltip: chosen ? '' : tr('Pick one of the pictures first.'),
-          onPressed: _save,
-        ),
+        const SizedBox(height: MqTheme.gap),
+        _promptBar(),
       ],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            height: height,
-            child: _rounds.isEmpty && !_forge.running
-                ? _EmptyStudio(isActor: _isActor)
-                : _conversation(),
-          ),
-          const SizedBox(height: MqTheme.gap),
-          _promptBar(),
-        ],
-      ),
     );
   }
 
@@ -338,14 +477,23 @@ class _StudioState extends State<_Studio> {
             _Candidates(
               paths: round.images,
               chosen: _draft.previewPath,
-              onPicked: (path) => setState(() => _draft.previewPath = path),
+              onPicked: (path) {
+                setState(() => _draft.previewPath = path);
+                widget.onChanged();
+              },
+              onUseAsReference: (path) => _addReferences([path]),
             ),
             const SizedBox(height: MqTheme.gapLarge),
           ],
           if (_forge.running) ...[
             if (_lastAsked.isNotEmpty) _Asked(text: _lastAsked),
             const SizedBox(height: 10),
-            _Candidates(paths: const [], chosen: '', onPicked: (_) {}),
+            _Candidates(
+              paths: const [],
+              chosen: '',
+              onPicked: (_) {},
+              onUseAsReference: (_) {},
+            ),
             const SizedBox(height: 8),
             Text(
               //: %1 and %2 are counts of pictures
@@ -374,7 +522,6 @@ class _StudioState extends State<_Studio> {
   Widget _promptBar() {
     final mq = context.mq;
     final cost = _forge.estimate(_perRound);
-    final ready = _prompt.text.trim().isNotEmpty || _seed.isNotEmpty;
 
     return DropTarget(
       onDragDone: (detail) =>
@@ -398,7 +545,12 @@ class _StudioState extends State<_Studio> {
                     MediaTile(
                       path: _references[i],
                       size: 46,
-                      onRemove: () => setState(() => _references.removeAt(i)),
+                      // A reference is a picture you are asking a model to work
+                      // from, and a 46px square is not something anybody can
+                      // check they picked the right one from.
+                      onTap: () =>
+                          showMediaPreview(context, _references[i]),
+                      onRemove: () => _removeReference(i),
                     ),
                 ],
               ),
@@ -408,11 +560,24 @@ class _StudioState extends State<_Studio> {
               constraints: const BoxConstraints(minHeight: 44, maxHeight: 120),
               // Enter generates and Shift+Enter breaks the line, the same way
               // round as the composer's own bar.
-              child: CallbackShortcuts(
-                bindings: {
-                  const SingleActivator(LogicalKeyboardKey.enter): () {
-                    if (!_forge.running) _generate();
-                  },
+              //
+              // Handled on the focus node rather than through `Shortcuts`, and
+              // that is not a style choice: a multi-line `TextField` consumes
+              // Enter itself to insert a newline, so a shortcut declared above
+              // it never fires. This runs first and stops the propagation, so
+              // Enter really does send.
+              child: Focus(
+                onKeyEvent: (node, event) {
+                  if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                  if (event.logicalKey != LogicalKeyboardKey.enter &&
+                      event.logicalKey != LogicalKeyboardKey.numpadEnter) {
+                    return KeyEventResult.ignored;
+                  }
+                  if (HardwareKeyboard.instance.isShiftPressed) {
+                    return KeyEventResult.ignored;
+                  }
+                  _generate();
+                  return KeyEventResult.handled;
                 },
                 child: TextField(
                   controller: _prompt,
@@ -499,7 +664,7 @@ class _StudioState extends State<_Studio> {
                         //: %1 is a price
                         ? tr('Generate — %1').arg(Format.estimated(cost.amount))
                         : tr('Generate'),
-                    enabled: ready,
+                    enabled: _ready,
                     onPressed: _generate,
                   ),
               ],
@@ -618,11 +783,13 @@ class _Candidates extends StatelessWidget {
     required this.paths,
     required this.chosen,
     required this.onPicked,
+    required this.onUseAsReference,
   });
 
   final List<String> paths;
   final String chosen;
   final ValueChanged<String> onPicked;
+  final ValueChanged<String> onUseAsReference;
 
   @override
   Widget build(BuildContext context) {
@@ -633,7 +800,7 @@ class _Candidates extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          tr('Choose one'),
+          tr('Choose one — right-click for more'),
           style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
         ),
         const SizedBox(height: 8),
@@ -650,6 +817,7 @@ class _Candidates extends StatelessWidget {
                           path: paths[i],
                           chosen: paths[i] == chosen,
                           onTap: () => onPicked(paths[i]),
+                          onUseAsReference: () => onUseAsReference(paths[i]),
                         )
                       : DecoratedBox(
                           decoration: BoxDecoration(
@@ -677,55 +845,76 @@ class _Candidate extends StatelessWidget {
     required this.path,
     required this.chosen,
     required this.onTap,
+    required this.onUseAsReference,
   });
 
   final String path;
   final bool chosen;
   final VoidCallback onTap;
+  final VoidCallback onUseAsReference;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return Pressable(
-      onTap: onTap,
-      snap: true,
-      focusRadius: MqTheme.radius,
-      builder: (context, states) => AnimatedContainer(
-        duration: states.duration,
-        decoration: BoxDecoration(
-          color: mq.background,
-          borderRadius: BorderRadius.circular(MqTheme.radius),
-          border: Border.all(
-            color: chosen
-                ? mq.primary
-                : states.active
-                ? mq.borderStrong
-                : mq.border,
-            width: chosen ? 2 : 1,
-          ),
+    return MediaMenu(
+      path: path,
+      // The two things that are about this screen rather than about the file.
+      // Taking a near miss back in as a reference is what the whole studio is
+      // for -- it is how "her, but outdoors" gets asked -- and it was only
+      // reachable by saving the picture and dropping it back in by hand.
+      actions: [
+        MediaMenuAction(
+          icon: 'fullscreen-line',
+          label: tr('View full size'),
+          onPressed: () => showMediaPreview(context, path),
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            LocalImage(path),
-            if (chosen)
-              PositionedDirectional(
-                end: 6,
-                top: 6,
-                child: Container(
-                  width: 22,
-                  height: 22,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: mq.primary,
-                    shape: BoxShape.circle,
+        MediaMenuAction(
+          icon: 'image-add-line',
+          label: tr('Use as a reference'),
+          onPressed: onUseAsReference,
+        ),
+      ],
+      child: Pressable(
+        onTap: onTap,
+        snap: true,
+        focusRadius: MqTheme.radius,
+        builder: (context, states) => AnimatedContainer(
+          duration: states.duration,
+          decoration: BoxDecoration(
+            color: mq.background,
+            borderRadius: BorderRadius.circular(MqTheme.radius),
+            border: Border.all(
+              color: chosen
+                  ? mq.primary
+                  : states.active
+                  ? mq.borderStrong
+                  : mq.border,
+              width: chosen ? 2 : 1,
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              LocalImage(path),
+              if (chosen)
+                PositionedDirectional(
+                  end: 6,
+                  top: 6,
+                  child: Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: mq.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: MqIcon('check-line', size: 14, color: mq.onPrimary),
                   ),
-                  child: MqIcon('check-line', size: 14, color: mq.onPrimary),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -734,10 +923,15 @@ class _Candidate extends StatelessWidget {
 
 // ---- the other door --------------------------------------------------------
 
-/// Turning a picture the user already has into an actor or a scene.
+/// Turning a picture the user already has into a scene.
 ///
 /// Nothing is generated and nothing is bought: the file becomes the still, and
 /// that still is what every shot is built on. Returns the id, or null.
+///
+/// Actors do not come through here any more. A picture of a person is not a
+/// finished actor -- it has no voice, no personality and nothing that moves --
+/// so that door leads into the wizard instead, which fills all three in from
+/// the picture itself.
 Future<String?> showAssetImport(
   BuildContext context, {
   required AppState app,
@@ -835,13 +1029,22 @@ class _ImportState extends State<_Import> {
                         ),
                       ),
                     )
-                  : Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(MqTheme.radius),
-                        border: Border.all(color: mq.borderStrong),
+                  : Pressable(
+                      onTap: () => showMediaPreview(context, _picture),
+                      tooltip: tr('View full size'),
+                      focusRadius: MqTheme.radius,
+                      builder: (context, states) => Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(MqTheme.radius),
+                          border: Border.all(
+                            color: states.active
+                                ? mq.borderStrong
+                                : mq.borderStrong,
+                          ),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: LocalImage(_picture),
                       ),
-                      clipBehavior: Clip.antiAlias,
-                      child: LocalImage(_picture),
                     ),
             ),
           ),

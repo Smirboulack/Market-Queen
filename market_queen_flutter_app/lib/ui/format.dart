@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 import '../core/pricing.dart';
 import '../i18n/translator.dart';
 
@@ -33,6 +35,12 @@ class Format {
           : value.toStringAsFixed(1),
     );
   }
+
+  /// A date on its own, for the facts nobody edits. Same pattern the library
+  /// page uses, without the time: an actor made this morning and one made this
+  /// afternoon are both "today" as far as anybody cares.
+  static String day(DateTime when) =>
+      DateFormat('d MMM yyyy').format(when.toLocal());
 
   /// The same, marked as the estimate it is.
   static String estimated(double? amount) {

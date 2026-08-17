@@ -171,6 +171,13 @@
     "fal-ai/kling-video/ai-avatar/v2/standard": { "unit": "second", "amount": 0.0562 },
     "fal-ai/kling-video/ai-avatar/v2/pro": { "unit": "second", "amount": 0.115 },
 
+    "fal-ai/bytedance/omnihuman/v1.5": {
+      "unit": "second",
+      "amount": 0.16,
+      "_note": "Billed on the video that comes back, which is exactly as long as the audio sent in. One rate for both resolutions: 1080p refuses audio over 30s and 720p takes 60s, so the choice is about length rather than price. Dearer than everything else on this shelf, and the reason to pick it is body movement rather than a talking head.",
+      "source": "https://fal.ai/models/fal-ai/bytedance/omnihuman/v1.5"
+    },
+
     "_comment_images": "---- Images ----",
 
     "_comment_gemini_image": [
@@ -514,6 +521,21 @@
     },
     "eleven_multilingual_v2": { "unit": "kchars", "amount": 0.1 },
     "eleven_flash_v2_5": { "unit": "kchars", "amount": 0.05 },
+
+    "_comment_voice_design": [
+      "Designing a voice from a description bills the preview line once, at the",
+      "ordinary text-to-speech rate, even though three takes come back from it.",
+      "So a design is priced exactly like reading its preview text aloud, and",
+      "the app quotes it that way. Keeping the voice afterwards costs nothing.",
+      "Marked approx because the engine writes its own preview line when none",
+      "is given, and its length is then its decision rather than ours."
+    ],
+    "eleven_ttv_v3": { "unit": "kchars", "amount": 0.1, "approx": true },
+    "eleven_multilingual_ttv_v2": {
+      "unit": "kchars",
+      "amount": 0.1,
+      "approx": true
+    },
 
     "speech-2.8-hd": {
       "unit": "kchars",

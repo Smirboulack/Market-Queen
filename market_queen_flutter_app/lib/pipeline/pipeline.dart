@@ -491,7 +491,7 @@ class Pipeline extends ChangeNotifier {
         productName: _text('productName'),
         productDescription: _text('productDescription'),
         audience: _text('audience'),
-        avatarBrief: _text('avatarBrief'),
+        avatarBrief: _actorBrief,
         extraInstructions: _text('extraInstructions'),
         lines: [for (final shot in _run.shots) shot.line],
         referenceImageDataUri: _run.productImageDataUri,
@@ -610,7 +610,7 @@ class Pipeline extends ChangeNotifier {
           audience: _text('audience'),
           tone: _text('tone'),
           language: _text('language'),
-          avatarBrief: _text('avatarBrief'),
+          avatarBrief: _actorBrief,
           extraInstructions: _text('extraInstructions'),
           durationSeconds: (_request['durationSeconds'] as num?)?.toInt() ?? 20,
           shotCount: shotCount,
@@ -909,6 +909,34 @@ class Pipeline extends ChangeNotifier {
   // 3. Frames -- one still per shot
   // ---------------------------------------------------------------------
 
+  /// Who is on camera, for the writer: how they look, and how they behave.
+  ///
+  /// The personality is the half of an actor with nothing to show for itself,
+  /// and leaving it out is why an actor cast as blunt and Gen-Z used to be
+  /// handed a script written in the same neutral voice as everybody else and
+  /// then simply read it in a young one.
+  String get _actorBrief {
+    final look = _text('avatarBrief').trim();
+    final persona = _text('actorPersona').trim();
+    if (persona.isEmpty) return look;
+    if (look.isEmpty) return persona;
+    return '$look. $persona';
+  }
+
+  /// The motion an avatar model is given for one shot.
+  ///
+  /// Two instructions, and the shot's own comes second on purpose: the actor's
+  /// is a standing description of how this person carries themselves, and the
+  /// shot's is what they do in these few seconds, so the specific one is the
+  /// last thing the model reads.
+  String _motionFor(String shotPrompt) {
+    final action = _text('actorAction').trim();
+    final shot = shotPrompt.trim();
+    if (action.isEmpty) return shot;
+    if (shot.isEmpty) return action;
+    return '$action. $shot';
+  }
+
   /// What a shot is drawn from when nothing wrote a prompt for it.
   ///
   /// Which is now the ordinary case: the studio no longer cuts the ad into
@@ -1091,7 +1119,7 @@ class Pipeline extends ChangeNotifier {
             model: model,
             imageDataUri: shot.frameDataUri,
             audioDataUri: shot.voiceDataUri,
-            prompt: shot.videoPrompt,
+            prompt: _motionFor(shot.videoPrompt),
           ),
         );
         if (task == null) {

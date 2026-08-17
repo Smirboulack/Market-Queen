@@ -8,6 +8,7 @@ import 'package:market_queen/ui/dialogs/asset_gallery.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/mq_dialog.dart';
 import 'package:market_queen/ui/widgets/video_poster.dart';
 
 /// The studio, walked in French.
@@ -94,10 +95,15 @@ void main() {
         await settle(tester);
         expect(tester.takeException(), isNull, reason: 'gallery $kind $size');
 
-        // Straight into the maker: the modal that used to ask which of the two
-        // you meant is gone, and both doors are tiles in the grid.
-        expect(find.byType(CreateAssetTile), findsNWidgets(2));
-        await tester.tap(find.byType(CreateAssetTile).first);
+        // One maker tile, which asks which way in. Both doors are on that
+        // modal, and both of them are a paragraph long in French.
+        expect(find.byType(CreateAssetTile), findsOneWidget);
+        await tester.tap(find.byType(CreateAssetTile));
+        await settle(tester);
+        expect(tester.takeException(), isNull, reason: 'doors $kind $size');
+
+        expect(find.byType(BigChoice), findsNWidgets(2));
+        await tester.tap(find.byType(BigChoice).first);
         await settle(tester);
         expect(tester.takeException(), isNull, reason: 'studio $kind $size');
       }

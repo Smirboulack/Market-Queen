@@ -262,6 +262,24 @@ class Registry extends ChangeNotifier {
             'registered on your HeyGen account first.'),
       ),
 
+      // The one that moves a whole body rather than a face. It is placed after
+      // HeyGen on purpose: the head of this list is what a fresh install picks,
+      // and OmniHuman is bought through a reseller, so it should be chosen
+      // rather than inherited.
+      ProviderEntry(
+        id: 'fal-omnihuman',
+        category: 'avatar',
+        label: 'ByteDance OmniHuman (via fal.ai)',
+        credential: 'fal',
+        models: const [
+          ModelEntry('fal-ai/bytedance/omnihuman/v1.5', 'OmniHuman 1.5'),
+        ],
+        defaultModel: 'fal-ai/bytedance/omnihuman/v1.5',
+        note: tr('The most natural movement of the three: gestures and body, '
+            'not just the mouth. Through fal.ai until BytePlus is set up. '
+            'Lines over 30 seconds have to be shot at 720p.'),
+      ),
+
       ProviderEntry(
         id: 'fal-avatar',
         category: 'avatar',
@@ -873,15 +891,16 @@ class Registry extends ChangeNotifier {
         CredentialEntry(
           id: 'fal',
           // Named for what it buys rather than for who sells it. The account is
-          // a fal one, but every model behind it is Kling, and a card headed
-          // "fal.ai" in the middle of a page of first-party providers reads as
-          // an aggregator that got left in.
-          label: 'Kling (via fal.ai)',
+          // a fal one, but everything behind it is Kling or OmniHuman, and a
+          // card headed "fal.ai" in the middle of a page of first-party
+          // providers reads as an aggregator that got left in.
+          label: 'Kling & OmniHuman (via fal.ai)',
           envVar: 'FAL_KEY',
           signupUrl: 'https://fal.ai/dashboard/keys',
-          note: tr('Kling only. Everything else calls its provider directly; '
-              "Kling's own API is sold in packs of several hundred dollars, so "
-              'it is bought by the second here instead.'),
+          note: tr('Two models and no more. Everything else calls its provider '
+              "directly; Kling's own API is sold in packs of several hundred "
+              'dollars and OmniHuman needs a funded BytePlus account, so both '
+              'are bought by the second here instead.'),
         ),
       ];
 }
@@ -951,6 +970,7 @@ class ProviderFactory {
       switch (providerId) {
         'heygen-avatar' => HeyGenAvatarTask(request),
         'fal-avatar' => FalAvatarTask(request),
+        'fal-omnihuman' => FalOmniHumanTask(request),
         _ => null,
       };
 

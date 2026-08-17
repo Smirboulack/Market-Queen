@@ -1,8 +1,8 @@
 - Retravailler chaque modèle indépendemment pour en exploiter correctement les paramètres et option.
 
-- Ajouter la fonctionnalité pour cloner la voix et pour générer une voix grâce à l'api d'elevenLabs.
+- [x] Ajouter la fonctionnalité pour cloner la voix et pour générer une voix grâce à l'api d'elevenLabs. — `VoiceForge` + `ElevenLabsVoiceDesignTask` / `ElevenLabsVoiceSaveTask` / `ElevenLabsVoiceCloneTask`, dans l'étape Voix du wizard et la section Voix de l'éditeur d'acteur.
 
-- Ajouter la fonctionnalité pour générer une voix grâce au speech to generate voice d'eleven labs.
+- [x] Ajouter la fonctionnalité pour générer une voix grâce au speech to generate voice d'eleven labs. — le moteur Voice Design v3 accepte un enregistrement de référence (`reference_audio_base64`), proposé par la puce « Ajouter un enregistrement » à côté du choix du moteur.
 
 CREATE VOICE
 
@@ -15,13 +15,13 @@ CREATE VOICE
 └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
-- ![alt text](image.png) Si on décide de cloner avec sa propre voix, alors il faudrait lire un text. Le screen shot provient de Heygen.
+- [x] Fait, en trois onglets (Bibliothèque / Concevoir / Cloner) plutôt qu'en trois cartes : la voix déjà choisie reste visible au-dessus quel que soit l'onglet, ce qui est la seule chose que les trois se disputent.
+
+- ![alt text](image.png) Si on décide de cloner avec sa propre voix, alors il faudrait lire un text. Le screen shot provient de Heygen. — pas fait : le clonage prend un fichier, il ne fait pas encore lire une phrase imposée à l'écran.
 
 - Ajouter la possibilité de pouvoir se cloner sois-même grâce à l'api de Heygen en utilisant le modèle Avatar. 
 
-- Améliorer l'UI de réglage de l'acteur pour la voix car actuellement c'est vraiment dégueulasse. 
-
-- S'assurer que si on lance les générations en plusieurs exemplaires, ces générations soient bien lancer en même temps/parallèles. Pour ne pas que le temps d'attente soit additionnel. 
+- [x] Améliorer l'UI de réglage de l'acteur pour la voix car actuellement c'est vraiment dégueulasse. — l'acteur a son propre écran (`actor_editor.dart`) : portrait à gauche, cinq sections à droite (Vue d'ensemble, Apparence, Voix, Personnalité, Looks).
 
 - `kling.png` est dans `assets/brand/providers/` mais n'est utilisé nulle part : l'id du credential est `fal`, donc c'est `fal.png` que la carte lit. La carte s'appelle pourtant « Kling (via fal.ai) » — si la marque Kling parle plus, renommer `kling.png` par-dessus `fal.png`.
 
@@ -29,9 +29,9 @@ CREATE VOICE
 
 - Dans le studio, on pourra mettre un bouton qui, lorsqu'on appuie dessus, lance un tutoriel d'un workflow éprouvé et produisant un résultat très correct. Tout sera montrer avec des petites animations à chaque fois pour que ça soit très clair pour l'utilisateur. 
 
-- Il manque encore le tarif sur le modèle Seedream 5.0 il le faut absolument. Je ne veux aucun modèle sans tarif, c'est non négociable.
+- [x] Il faut aussi ajouter le modèle OmniHuman 1.5 de ByteDance pour les acteurs parlants — fait via fal.ai (`fal-ai/bytedance/omnihuman/v1.5`, 0,16 $/s), en attendant BytePlus. Il est proposé après HeyGen dans la catégorie « avatar » plutôt qu'en tête : la tête de liste est ce qu'une installation neuve choisit, et un modèle acheté chez un revendeur doit être choisi, pas hérité. Le reste de l'analyse ci-dessous (Kling 3.0 Omni en catégorie « AI Actor ») n'est pas fait.
 
-- Il faut aussi ajouter le modèle OmniHuman 1.5 de ByteDance pour les acteurs parlants d'après ce que me dis chatGPT : 
+  D'après ce que me disait chatGPT : 
 
 ```
 Oui. Pour **Market Queen**, je ne chercherais pas à intégrer beaucoup de modèles : il vaut mieux avoir **quelques modèles réellement différenciés**, avec chacun un rôle clair.

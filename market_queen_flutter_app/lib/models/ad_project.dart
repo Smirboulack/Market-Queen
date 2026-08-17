@@ -295,6 +295,16 @@ class AdProject extends ChangeNotifier {
       // was read as "English".
       'language': Translator.instance.currentLabel,
       'avatarBrief': actor?.prompt.trim() ?? '',
+      // Kept apart from the brief above rather than folded into it, and the
+      // reason is that the two are read by different models for different
+      // jobs. The brief describes a photograph and goes to the image model;
+      // this describes a person and goes to the writer. Pouring "Friendly,
+      // Confident, high energy" into a prompt for a still is how a portrait
+      // comes back grinning at nothing.
+      'actorPersona': actor == null ? '' : ActorPersona.brief(actor),
+      // The standing instruction for how this actor moves. The avatar model
+      // takes it as the motion for every shot they are in.
+      'actorAction': actor?.extraText(ActorPersona.actionKey) ?? '',
       'extraInstructions': sceneBrief(scenes),
       // No scenes any more: the pipeline cuts the user's own script into shots
       // itself, which is the only cutting an authentic UGC ad wants.

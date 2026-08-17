@@ -420,6 +420,167 @@ class SceneLibrary extends AssetLibrary {
   String suggestedName() => tr('Scene %1').arg(count + 1);
 }
 
+/// One appearance of an actor.
+///
+/// An actor is not a picture. Sarah in a blazer at a desk and Sarah in a hoodie
+/// in her kitchen are the same person, and an app that models them as two
+/// actors makes the user cast, voice and describe her twice -- then leaves the
+/// two copies to drift apart. A look is the picture; the actor is who is in it.
+///
+/// The default look is the actor's own [LibraryAsset.previewPath], so an actor
+/// that never gets a second one costs nothing and behaves exactly as it did
+/// before looks existed.
+class ActorLook {
+  const ActorLook({
+    required this.id,
+    required this.name,
+    required this.path,
+    this.prompt = '',
+  });
+
+  factory ActorLook.fromJson(Map<String, Object?> json) => ActorLook(
+    id: '${json['id'] ?? ''}',
+    name: '${json['name'] ?? ''}',
+    path: '${json['path'] ?? ''}',
+    prompt: '${json['prompt'] ?? ''}',
+  );
+
+  final String id;
+  final String name;
+
+  /// The still. Adopted into the library folder like any other, so clearing
+  /// scratch cannot orphan it.
+  final String path;
+
+  /// What was asked for to get it, when it was generated rather than dropped.
+  final String prompt;
+
+  Map<String, Object?> toJson() => {
+    'id': id,
+    'name': name,
+    'path': path,
+    'prompt': prompt,
+  };
+}
+
+/// Where an actor's looks are kept, and the only place that shape is written.
+class ActorLooks {
+  ActorLooks._();
+
+  static const key = 'looks';
+
+  static List<ActorLook> of(LibraryAsset actor) {
+    final raw = actor.extras[key];
+    if (raw is! List) return const [];
+    return [
+      for (final entry in raw)
+        if (entry is Map) ActorLook.fromJson(entry.cast<String, Object?>()),
+    ];
+  }
+
+  static void save(LibraryAsset actor, List<ActorLook> looks) {
+    actor.setExtra(key, looks.isEmpty ? null : [
+      for (final look in looks) look.toJson(),
+    ]);
+  }
+
+  static String newId() =>
+      DateTime.now().microsecondsSinceEpoch.toRadixString(16);
+}
+
+/// Who the actor is, as against what they look like and how they sound.
+///
+/// It is the third leg of the same object -- looks, voice, personality -- and
+/// the one with no picture and no audio to show for itself, which is why it
+/// used to fall off the screen entirely. It is not decoration: every field here
+/// ends up in the brief the script writer is handed, so an actor described as
+/// blunt and Gen-Z gets written blunt and Gen-Z rather than written neutral and
+/// then read out in a young voice.
+class ActorPersona {
+  ActorPersona._();
+
+  static const traitsKey = 'personaTraits';
+  static const energyKey = 'personaEnergy';
+  static const styleKey = 'speakingStyle';
+
+  /// What the actor is doing on camera. Not personality but the same kind of
+  /// thing -- a standing instruction about this person rather than about one
+  /// shot -- and it is handed to the avatar model as its motion prompt.
+  static const actionKey = 'actorAction';
+
+  /// How they come across. Several at once, because nobody is one adjective.
+  static List<(String, String)> get tones => [
+    (tr('Friendly'), 'friendly'),
+    (tr('Confident'), 'confident'),
+    (tr('Playful'), 'playful'),
+    (tr('Professional'), 'professional'),
+    (tr('Warm'), 'warm'),
+    (tr('Bold'), 'bold'),
+  ];
+
+  /// The register they speak in.
+  static List<(String, String)> get styles => [
+    (tr('Casual'), 'casual'),
+    (tr('Luxury'), 'luxury'),
+    (tr('Gen-Z'), 'gen-z'),
+    (tr('Expert'), 'expert'),
+    (tr('Relatable'), 'relatable'),
+  ];
+
+  static List<(String, String)> get all => [...tones, ...styles];
+
+  static String labelFor(String value) {
+    for (final option in all) {
+      if (option.$2 == value) return option.$1;
+    }
+    return value;
+  }
+
+  static List<String> traitsOf(LibraryAsset actor) {
+    final raw = actor.extras[traitsKey];
+    if (raw is List) return [for (final entry in raw) '$entry'];
+    // A single value from an older save reads as a list of one rather than as
+    // nothing at all.
+    final single = actor.extraText(traitsKey);
+    return single.isEmpty ? const [] : [single];
+  }
+
+  static void setTraits(LibraryAsset actor, List<String> values) =>
+      actor.setExtra(traitsKey, values.isEmpty ? null : values);
+
+  static void toggleTrait(LibraryAsset actor, String value) {
+    final traits = List<String>.of(traitsOf(actor));
+    if (!traits.remove(value)) traits.add(value);
+    setTraits(actor, traits);
+  }
+
+  /// How much they give. Zero is flat and even, one is all energy.
+  static double energyOf(LibraryAsset actor) =>
+      actor.extraNumber(energyKey, 0.6);
+
+  /// The persona in one sentence, in the words a writer can use. Empty when
+  /// nothing was set, so it can be appended to a brief unconditionally.
+  static String brief(LibraryAsset actor) {
+    final traits = [for (final value in traitsOf(actor)) labelFor(value)];
+    final style = actor.extraText(styleKey).trim();
+    final energy = actor.extras.containsKey(energyKey)
+        ? energyOf(actor)
+        : -1.0;
+
+    final parts = <String>[
+      if (traits.isNotEmpty) traits.join(', '),
+      if (energy >= 0)
+        energy > 0.75
+            ? tr('high energy')
+            : energy < 0.3
+            ? tr('low key')
+            : tr('even energy'),
+      if (style.isNotEmpty) style,
+    ];
+    return parts.join('. ');
+  }
+}
+
 /// The optional dials a scene can carry. Not traits in the old sense: a scene
 /// is written in words like everything else, and these only pin down the four
 /// things a sentence tends to leave vague.

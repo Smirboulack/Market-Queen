@@ -87,6 +87,7 @@ class TextRequest {
     this.baseUrl = '',
     this.system = '',
     this.user = '',
+    this.imageDataUri = '',
     this.maxTokens = 700,
   });
 
@@ -98,6 +99,13 @@ class TextRequest {
 
   final String system;
   final String user;
+
+  /// A picture the question is about, for the vision-capable writers.
+  ///
+  /// This is what turns "rewrite my prompt" into "look at this face and tell me
+  /// what it sounds like": the same three wire formats, one more part in the
+  /// message. A model without vision simply never gets handed one.
+  final String imageDataUri;
 
   /// A rewritten prompt is a paragraph. The ceiling is here so a model that
   /// decides to explain itself cannot bill for a page of it.
@@ -255,6 +263,7 @@ class AvatarRequest {
     this.imageDataUri = '',
     this.audioDataUri = '',
     this.prompt = '',
+    this.resolution = '',
   });
 
   final String apiKey;
@@ -268,6 +277,98 @@ class AvatarRequest {
 
   /// Optional nudge on the motion.
   final String prompt;
+
+  /// "720p" or "1080p", for the engines that price and cap themselves by it.
+  /// Empty leaves the provider's own default alone.
+  final String resolution;
+}
+
+/// A voice conjured out of a description instead of picked off a shelf.
+///
+/// The point of it, for this app, is the actor made from a photograph: nothing
+/// in a picture is a voice, but a young woman filming herself in a kitchen has
+/// a plausible one, and describing it is something a vision model can do. What
+/// comes back is an *inference*, never a recovery -- see [VoicePreview].
+class VoiceDesignRequest {
+  VoiceDesignRequest({
+    this.apiKey = '',
+    this.model = 'eleven_ttv_v3',
+    this.description = '',
+    this.previewText = '',
+    this.referenceAudioBase64 = '',
+    this.promptStrength = 0.5,
+    this.loudness = 0.5,
+    this.guidance = 5.0,
+    this.seed = 0,
+  });
+
+  final String apiKey;
+
+  /// `eleven_ttv_v3` or `eleven_multilingual_ttv_v2`. Only the v3 engine reads
+  /// [referenceAudioBase64].
+  final String model;
+
+  /// What the voice should sound like, in words. ElevenLabs wants at least
+  /// twenty characters of it.
+  final String description;
+
+  /// The line the previews read. Their endpoint takes 100–1000 characters or
+  /// nothing at all; anything shorter is dropped and the engine writes its own.
+  final String previewText;
+
+  /// A recording to take the timbre from, base64 with no data: prefix.
+  final String referenceAudioBase64;
+
+  /// How much of the answer comes from the words rather than the recording.
+  final double promptStrength;
+
+  final double loudness;
+
+  /// How closely the engine sticks to the description. Higher is more literal
+  /// and less varied.
+  final double guidance;
+
+  /// Zero means "let it choose", which is what makes two presses differ.
+  final int seed;
+}
+
+/// One of the three takes a design comes back with.
+///
+/// It is not a voice yet: it exists only inside the design call until somebody
+/// picks it, which is what [VoiceSaveRequest] does with the id.
+class VoicePreview {
+  const VoicePreview({
+    required this.generatedVoiceId,
+    required this.audio,
+    this.extension = 'mp3',
+    this.durationSeconds = 0,
+    this.language = '',
+  });
+
+  final String generatedVoiceId;
+  final Uint8List audio;
+  final String extension;
+  final double durationSeconds;
+  final String language;
+}
+
+/// Keeping one of the three. The two that were played and passed over travel
+/// with it: ElevenLabs asks for them, and they are what teaches the designer
+/// what a rejection looks like.
+class VoiceSaveRequest {
+  VoiceSaveRequest({
+    this.apiKey = '',
+    this.name = '',
+    this.description = '',
+    this.generatedVoiceId = '',
+    this.passedOver = const [],
+  });
+
+  final String apiKey;
+  final String name;
+  final String description;
+  final String generatedVoiceId;
+  final List<String> passedOver;
 }
 
 class VoiceRequest {

@@ -521,14 +521,22 @@ class SegmentedControl<T> extends StatelessWidget {
         borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         border: Border.all(color: mq.border),
       ),
+      // Sized to its own words where there is room, and flexible where there
+      // is not. Three translated labels in a column that also has to hold a
+      // portrait is the case that broke it: the row took its intrinsic width
+      // whatever it was handed, so "Bibliothèque · Concevoir · Cloner" ran two
+      // hundred pixels past the card in stripes. A segment gives in on its
+      // label now rather than the control giving in on the layout.
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final option in options)
-            _Segment(
-              label: option.label,
-              selected: option.value == value,
-              onTap: () => onPicked(option.value),
+            Flexible(
+              child: _Segment(
+                label: option.label,
+                selected: option.value == value,
+                onTap: () => onPicked(option.value),
+              ),
             ),
         ],
       ),
@@ -575,6 +583,8 @@ class _Segment extends StatelessWidget {
         ),
         child: Text(
           label,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
           style: TextStyle(
             color: selected
                 ? mq.textPrimary

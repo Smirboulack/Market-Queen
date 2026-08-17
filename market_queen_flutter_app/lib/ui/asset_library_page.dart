@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_state.dart';
 import '../i18n/translator.dart';
 import '../models/asset_library.dart';
-import 'dialogs/asset_editor.dart';
+import 'dialogs/actor_editor.dart';
 import 'dialogs/asset_gallery.dart';
 import 'icons.dart';
 import 'theme.dart';
@@ -70,11 +70,33 @@ class _AssetLibraryPageState extends State<AssetLibraryPage> {
     return {..._selected.where(ids.contains)};
   }
 
-  Future<void> _create(AssetRoute route) =>
-      createAsset(context, app: app, kind: widget.kind, route: route);
+  Future<void> _create() =>
+      createAsset(context, app: app, kind: widget.kind);
 
   Future<void> _edit(LibraryAsset asset) =>
-      showAssetEditor(context, app: app, kind: widget.kind, asset: asset);
+      editAsset(context, app: app, kind: widget.kind, asset: asset);
+
+  /// A second copy, under its own name and its own id.
+  ///
+  /// What it is for: an actor who works, wanted again with one thing changed --
+  /// a different voice for a different market, the same face for a second
+  /// brand. Doing that by editing the original loses the original.
+  void _duplicate(LibraryAsset asset) {
+    final copy = asset.copy()
+      ..id = ''
+      //: %1 is the name of the actor or scene being copied
+      ..name = tr('%1 (copy)').arg(asset.name);
+    _library.save(copy);
+  }
+
+  Future<void> _createLook(LibraryAsset asset) async {
+    final look = await showLookMaker(context, app: app, actor: asset);
+    if (look == null) return;
+
+    final draft = asset.copy();
+    ActorLooks.save(draft, [...ActorLooks.of(draft), look]);
+    _library.save(draft);
+  }
 
   void _remove(String id) {
     if (_isActor) {
@@ -164,27 +186,28 @@ class _AssetLibraryPageState extends State<AssetLibraryPage> {
               const SizedBox(height: MqTheme.gapLarge),
               Expanded(
                 child: GridView.builder(
-                  gridDelegate:
-                      const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 186,
-                        mainAxisExtent: 238,
-                        crossAxisSpacing: MqTheme.gap,
-                        mainAxisSpacing: MqTheme.gap,
-                      ),
-                  // The same two first tiles as the gallery, for the same
-                  // reason: an empty library reads as something to press rather
-                  // than as an empty box with an instruction beside it.
-                  itemCount: assets.length + AssetRoute.values.length,
+                  // An actor's card carries two more lines than a scene's --
+                  // who they read as, and where their voice came from -- and
+                  // a shared height would have taken those out of the picture
+                  // above them.
+                  gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                    maxCrossAxisExtent: 186,
+                    mainAxisExtent: _isActor ? 256 : 238,
+                    crossAxisSpacing: MqTheme.gap,
+                    mainAxisSpacing: MqTheme.gap,
+                  ),
+                  // The same first tile as the gallery, for the same reason: an
+                  // empty library reads as something to press rather than as an
+                  // empty box with an instruction beside it.
+                  itemCount: assets.length + 1,
                   itemBuilder: (context, index) {
-                    if (index < AssetRoute.values.length) {
-                      final route = AssetRoute.values[index];
+                    if (index == 0) {
                       return CreateAssetTile(
                         kind: widget.kind,
-                        route: route,
-                        onTap: () => _create(route),
+                        onTap: _create,
                       );
                     }
-                    final asset = assets[index - AssetRoute.values.length];
+                    final asset = assets[index - 1];
                     return AssetCard(
                       asset: asset,
                       selecting: _selecting,
@@ -193,6 +216,11 @@ class _AssetLibraryPageState extends State<AssetLibraryPage> {
                       onTap: () => _edit(asset),
                       onEdit: () => _edit(asset),
                       onDelete: () => _deleteOne(asset),
+                      onDuplicate: () => _duplicate(asset),
+                      // Only an actor has a wardrobe. A scene is the place,
+                      // and a second version of it is a second scene.
+                      onCreateLook:
+                          _isActor ? () => _createLook(asset) : null,
                     );
                   },
                 ),

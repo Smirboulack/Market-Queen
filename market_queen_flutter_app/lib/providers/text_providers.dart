@@ -14,7 +14,11 @@ String _sectionIfSet(String label, String value) =>
 
 /// Models like to answer with ```json ... ``` or with a sentence before the
 /// object. Pull out the first balanced JSON object instead of failing.
-Map<String, dynamic> _extractJsonObject(String text) {
+///
+/// Public because the writers are no longer the only thing that asks a model
+/// for a JSON answer: reading a face out of a photograph does too, and the
+/// three ways a model can wrap an object are the same wherever it is asked.
+Map<String, dynamic> extractJsonObject(String text) {
   Object? decoded;
   try {
     decoded = jsonDecode(text);
@@ -294,7 +298,7 @@ abstract class ScriptTask extends HttpTask {
       throw ProviderException(tr('The model returned an empty answer.'));
     }
 
-    final obj = _extractJsonObject(rawText);
+    final obj = extractJsonObject(rawText);
 
     if (request.mode == ScriptMode.planShots) {
       return _deliverPlan(obj, inputTokens, outputTokens);
@@ -381,6 +385,15 @@ abstract class TextTask extends HttpTask {
 
   final TextRequest request;
 
+  /// Splits "data:image/png;base64,AAAA" into its media type and payload.
+  /// Empty when there is no picture, which is the ordinary case.
+  (String, String) splitDataUri(String uri) {
+    final comma = uri.indexOf(',');
+    final semicolon = uri.indexOf(';');
+    if (comma <= 0 || semicolon <= 5 || semicolon > comma) return ('', '');
+    return (uri.substring(5, semicolon), uri.substring(comma + 1));
+  }
+
   /// What came back, trimmed of the quotes and the "Here is your prompt:" a
   /// model sometimes wraps it in.
   Map<String, Object?> deliver(String text) {
@@ -419,13 +432,26 @@ class OpenAiTextTask extends TextTask {
     final fallback = host.isEmpty ? 'https://api.openai.com/v1' : host;
     final base = request.baseUrl.isEmpty ? fallback : request.baseUrl;
 
+    // A plain string when there is no picture: the compatible hosts accept the
+    // parts array too, but a bare string is what every one of them documents
+    // and the one shape none of them can get wrong.
+    final Object content = request.imageDataUri.isEmpty
+        ? request.user
+        : <Map<String, Object?>>[
+            {'type': 'text', 'text': request.user},
+            {
+              'type': 'image_url',
+              'image_url': {'url': request.imageDataUri},
+            },
+          ];
+
     final response = await postJson(
       Uri.parse('$base/chat/completions'),
       {
         'model': request.model,
         'messages': [
           {'role': 'system', 'content': request.system},
-          {'role': 'user', 'content': request.user},
+          {'role': 'user', 'content': content},
         ],
       },
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
@@ -442,6 +468,18 @@ class AnthropicTextTask extends TextTask {
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'Anthropic');
 
+    final content = <Map<String, Object?>>[];
+    if (request.imageDataUri.isNotEmpty) {
+      final (mediaType, payload) = splitDataUri(request.imageDataUri);
+      if (mediaType.isNotEmpty) {
+        content.add({
+          'type': 'image',
+          'source': {'type': 'base64', 'media_type': mediaType, 'data': payload},
+        });
+      }
+    }
+    content.add({'type': 'text', 'text': request.user});
+
     final response = await postJson(
       Uri.parse('https://api.anthropic.com/v1/messages'),
       {
@@ -449,7 +487,7 @@ class AnthropicTextTask extends TextTask {
         'max_tokens': request.maxTokens,
         'system': request.system,
         'messages': [
-          {'role': 'user', 'content': request.user},
+          {'role': 'user', 'content': content},
         ],
       },
       headers: {
@@ -477,17 +515,24 @@ class GeminiTextTask extends TextTask {
   Future<Map<String, Object?>> execute() async {
     requireKey(request.apiKey, 'Google Gemini');
 
+    final parts = <Map<String, Object?>>[
+      {'text': request.user},
+    ];
+    if (request.imageDataUri.isNotEmpty) {
+      final (mimeType, payload) = splitDataUri(request.imageDataUri);
+      if (mimeType.isNotEmpty) {
+        parts.add({
+          'inline_data': {'mime_type': mimeType, 'data': payload},
+        });
+      }
+    }
+
     final response = await postJson(
       Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/'
           '${request.model}:generateContent'),
       {
         'contents': [
-          {
-            'role': 'user',
-            'parts': [
-              {'text': request.user},
-            ],
-          },
+          {'role': 'user', 'parts': parts},
         ],
         'systemInstruction': {
           'parts': [
