@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../../i18n/translator.dart';
 import '../theme.dart';
 import 'buttons.dart';
 
@@ -67,6 +69,56 @@ class FieldLabel extends StatelessWidget {
   }
 }
 
+/// A label with the room left in the field on the other end of the line.
+///
+/// The count is on the label rather than inside or under the box, and that is
+/// the whole point: a limit you find out about by being unable to type is a
+/// limit the interface kept from you. Up here it is readable before the first
+/// keystroke and never moves the field when it changes.
+class CountedLabel extends StatelessWidget {
+  const CountedLabel({
+    super.key,
+    required this.text,
+    required this.length,
+    required this.limit,
+  });
+
+  final String text;
+  final int length;
+
+  /// Zero draws no counter at all, so the same widget serves the fields that
+  /// have no ceiling.
+  final int limit;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        Expanded(child: FieldLabel(text)),
+        if (limit > 0) ...[
+          const SizedBox(width: 8),
+          Text(
+            //: %1 is how many characters are typed, %2 the most allowed
+            tr('%1 / %2').arg(length).arg(limit),
+            style: TextStyle(
+              // Amber at the end of the rope. It is not an error -- nothing is
+              // wrong yet -- but "9 characters left" is worth noticing before
+              // the field stops accepting them.
+              color: length >= limit ? mq.warningText : mq.textTertiary,
+              fontSize: MqTheme.fontMicro,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 /// A single-line text field with an optional label above and hint below.
 class LabeledField extends StatefulWidget {
   const LabeledField({
@@ -82,11 +134,17 @@ class LabeledField extends StatefulWidget {
     this.onChanged,
     this.onEditingComplete,
     this.onSubmitted,
+    this.maxLength = 0,
   });
 
   final String label;
   final String placeholder;
   final String hint;
+
+  /// A ceiling on what can be typed, and a count beside the label. Zero -- the
+  /// default -- is no limit and no counter.
+  final int maxLength;
+
   final TextEditingController? controller;
 
   /// Supplied when the caller needs to put the caret here itself -- a field
@@ -163,7 +221,11 @@ class _LabeledFieldState extends State<LabeledField> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (widget.label.isNotEmpty) ...[
-          FieldLabel(widget.label),
+          CountedLabel(
+            text: widget.label,
+            length: _controller.text.characters.length,
+            limit: widget.maxLength,
+          ),
           const SizedBox(height: 6),
         ],
         MouseRegion(
@@ -181,8 +243,16 @@ class _LabeledFieldState extends State<LabeledField> {
                 autofocus: widget.autofocus,
                 readOnly: widget.readOnly,
                 obscureText: widget.obscure,
-                onChanged: widget.onChanged,
+                // Rebuilt so the counter follows the caret whether or not the
+                // caller cared about the keystroke.
+                onChanged: (value) {
+                  if (widget.maxLength > 0) setState(() {});
+                  widget.onChanged?.call(value);
+                },
                 onSubmitted: widget.onSubmitted,
+                inputFormatters: widget.maxLength > 0
+                    ? [LengthLimitingTextInputFormatter(widget.maxLength)]
+                    : null,
                 cursorColor: mq.primary,
                 style: TextStyle(
                   color: widget.readOnly ? mq.textSecondary : mq.textPrimary,
@@ -231,13 +301,27 @@ class LabeledArea extends StatefulWidget {
     this.areaHeight = 96,
     this.controller,
     this.onChanged,
+    this.maxLength = 0,
+    this.fills = false,
   });
 
   final String label;
   final String placeholder;
+
+  /// How tall the box is, when it is not a [fills] one.
   final double areaHeight;
+
+  /// Take the whole slot rather than a fixed height, for a section laid out to
+  /// a page that does not scroll: the last field on the card is what absorbs
+  /// the rounding, and a box that is 40px short of the bottom looks like a
+  /// mistake where one that reaches it looks like a decision.
+  final bool fills;
+
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
+
+  /// A ceiling on what can be typed, and a count beside the label.
+  final int maxLength;
 
   @override
   State<LabeledArea> createState() => _LabeledAreaState();
@@ -266,45 +350,65 @@ class _LabeledAreaState extends State<LabeledArea> {
   Widget build(BuildContext context) {
     final mq = context.mq;
 
+    final field = TextField(
+      controller: _controller,
+      focusNode: _focus,
+      maxLines: null,
+      // A box that fills its slot has to be able to scroll inside itself: it
+      // cannot grow, and text typed past the bottom of a fixed height would
+      // otherwise be unreachable.
+      expands: widget.fills,
+      minLines: null,
+      onChanged: (value) {
+        if (widget.maxLength > 0) setState(() {});
+        widget.onChanged?.call(value);
+      },
+      inputFormatters: widget.maxLength > 0
+          ? [LengthLimitingTextInputFormatter(widget.maxLength)]
+          : null,
+      textAlignVertical: TextAlignVertical.top,
+      cursorColor: mq.primary,
+      style: TextStyle(color: mq.textPrimary, fontSize: MqTheme.fontBody),
+      decoration: InputDecoration(
+        isDense: true,
+        border: InputBorder.none,
+        contentPadding: const EdgeInsets.all(10),
+        hintText: widget.placeholder,
+        hintStyle: TextStyle(
+          color: mq.textTertiary,
+          fontSize: MqTheme.fontBody,
+        ),
+      ),
+    );
+
+    final box = MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: FieldFrame(
+        focused: _focus.hasFocus,
+        hovered: _hovered,
+        child: widget.fills
+            ? field
+            : ConstrainedBox(
+                constraints: BoxConstraints(minHeight: widget.areaHeight),
+                child: field,
+              ),
+      ),
+    );
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: widget.fills ? MainAxisSize.max : MainAxisSize.min,
       children: [
         if (widget.label.isNotEmpty) ...[
-          FieldLabel(widget.label),
+          CountedLabel(
+            text: widget.label,
+            length: _controller.text.characters.length,
+            limit: widget.maxLength,
+          ),
           const SizedBox(height: 6),
         ],
-        MouseRegion(
-          onEnter: (_) => setState(() => _hovered = true),
-          onExit: (_) => setState(() => _hovered = false),
-          child: FieldFrame(
-            focused: _focus.hasFocus,
-            hovered: _hovered,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: widget.areaHeight),
-              child: TextField(
-                controller: _controller,
-                focusNode: _focus,
-                maxLines: null,
-                onChanged: widget.onChanged,
-                cursorColor: mq.primary,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontBody,
-                ),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.all(10),
-                  hintText: widget.placeholder,
-                  hintStyle: TextStyle(
-                    color: mq.textTertiary,
-                    fontSize: MqTheme.fontBody,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+        if (widget.fills) Expanded(child: box) else box,
       ],
     );
   }

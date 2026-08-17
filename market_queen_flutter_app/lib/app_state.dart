@@ -18,6 +18,7 @@ import 'models/prompt_doctor.dart';
 import 'models/studio_runner.dart';
 import 'models/voice_booth.dart';
 import 'models/voice_forge.dart';
+import 'models/voice_shelf.dart';
 import 'models/workspace.dart';
 import 'pipeline/pipeline.dart';
 import 'providers/model_schemas.dart';
@@ -62,6 +63,10 @@ class AppState {
     );
     voiceBooth = VoiceBooth(settings, registry, pricing, log, voiceCasting);
     voiceForge = VoiceForge(settings, registry, pricing, log);
+    // One shelf for the whole app: a voice designed for one actor has to be
+    // offerable to the next, and two lists of the same account drift the moment
+    // one of them deletes something.
+    voiceShelf = VoiceShelf(settings, registry, log);
     actorReel = ActorReel(settings, registry, pricing, log, voiceCasting);
     library = LibraryModel(settings);
     lineDoctor = LineDoctor(settings, registry, pricing, log);
@@ -146,6 +151,10 @@ class AppState {
   /// Voices that do not exist yet: designed from a description, or cloned off
   /// the user's own recordings.
   late final VoiceForge voiceForge;
+
+  /// The ones that do: what is already on the user's provider account, and the
+  /// only place they can be listened to again or thrown away.
+  late final VoiceShelf voiceShelf;
 
   /// Reads a photograph and says who is in it, which is the whole of making an
   /// actor from an image.
@@ -274,6 +283,7 @@ class AppState {
     sceneForge.dispose();
     voiceBooth.dispose();
     voiceForge.dispose();
+    voiceShelf.dispose();
     actorSmith.dispose();
     actorReel.dispose();
     lineDoctor.dispose();

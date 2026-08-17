@@ -17,6 +17,10 @@ const _iconByName = <String, IconData>{
   'aspect-ratio-line': Icons.aspect_ratio_outlined,
   'resize-line': Icons.photo_size_select_large_outlined,
   'attachment-line': Icons.attach_file,
+  // Keeping a voice on the account, as against choosing it for this actor. Two
+  // verbs, two glyphs: the ribbon files it away, the tick casts it.
+  'bookmark-line': Icons.bookmark_border,
+  'bookmark-fill': Icons.bookmark,
   'calendar-line': Icons.calendar_today_outlined,
   // A camera, for the section that is about the photograph itself -- as against
   // `image-line`, which is any picture, and `gallery-line`, which is several.
@@ -57,6 +61,8 @@ const _iconByName = <String, IconData>{
   'mic-line': Icons.mic_none,
   'more-line': Icons.more_horiz,
   'movie-2-line': Icons.video_library_outlined,
+  // Somebody else's shelf of voices, as against `bookmark-*`, which is yours.
+  'music-library-line': Icons.library_music_outlined,
   'pause-fill': Icons.pause,
   'play-fill': Icons.play_arrow,
   'refresh-line': Icons.refresh,

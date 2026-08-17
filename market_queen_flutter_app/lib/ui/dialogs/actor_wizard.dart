@@ -16,6 +16,7 @@ import '../widgets/media_preview.dart';
 import '../widgets/model_picker.dart';
 import '../widgets/mq_dialog.dart';
 import '../widgets/video_player.dart';
+import '../widgets/voice_player.dart';
 import 'asset_studio.dart';
 import 'voice_picker.dart';
 
@@ -88,6 +89,11 @@ class _WizardState extends State<_Wizard> {
   /// with it.
   final List<ForgeRound> _history = [];
 
+  /// One player for the whole wizard, for the same reason the editor has one:
+  /// the voice step is a page of play buttons and only one of them may be
+  /// making a noise.
+  final AudioTransport _transport = AudioTransport();
+
   _Step get _step => _steps[_at];
 
   @override
@@ -108,6 +114,7 @@ class _WizardState extends State<_Wizard> {
   void dispose() {
     widget.app.actorSmith.removeListener(_repaint);
     widget.app.actorReel.removeListener(_repaint);
+    _transport.dispose();
     _name.dispose();
     _action.dispose();
     _style.dispose();
@@ -501,12 +508,50 @@ class _WizardState extends State<_Wizard> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 240, child: _portrait()),
+        SizedBox(
+          width: 240,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _portrait(),
+              const SizedBox(height: MqTheme.gap),
+              // Who is cast, under the face they are being cast for. It is what
+              // the four tabs are competing to change, and a choice you cannot
+              // see is one you make twice.
+              VoicePlayerCard(
+                transport: _transport,
+                name: _draft.extraText('voiceName'),
+                provenance: _provenance,
+                source: _draft.extraText('voicePreview'),
+                note: tr('Playing the sample is free.'),
+                onDetach: () => setState(() {
+                  for (final key in const [
+                    'voiceId',
+                    'voiceOwner',
+                    'voiceName',
+                    'voiceKind',
+                    'voiceDescription',
+                    'voicePreview',
+                  ]) {
+                    _draft.setExtra(key, '');
+                  }
+                  _transport.clear();
+                }),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(width: MqTheme.gapLarge),
         Expanded(
           child: VoicePicker(
             app: widget.app,
             draft: _draft,
+            transport: _transport,
+            // No dials here. The actor has no voice yet on most of the way
+            // through this step, and four sliders for nobody is a form to fill
+            // in before the decision they modify has been made.
+            showDials: false,
             suggestedDescription: _profile?.voiceDescription ?? '',
             onChanged: () => setState(() {}),
           ),
@@ -514,6 +559,14 @@ class _WizardState extends State<_Wizard> {
       ],
     );
   }
+
+  /// Where the cast voice came from, in the words the card has room for.
+  String get _provenance => switch (_draft.extraText('voiceKind')) {
+        'designed' => tr('Designed · ElevenLabs'),
+        'cloned' => tr('Cloned from your recordings · ElevenLabs'),
+        'library' => tr('Voice library · ElevenLabs'),
+        _ => '',
+      };
 
   // ---- step: the take ------------------------------------------------------
 
@@ -912,76 +965,123 @@ class PersonaEditor extends StatelessWidget {
     required this.draft,
     required this.styleController,
     required this.onChanged,
+    this.fills = false,
   });
 
   final LibraryAsset draft;
   final TextEditingController styleController;
   final VoidCallback onChanged;
 
+  /// Lay out to a slot of a known height rather than to the content.
+  ///
+  /// The editor gives this a card on a page that does not scroll, so the dial
+  /// and the pills go side by side -- they are read together, "how much and of
+  /// what" -- and the free-text box takes the rest of the card. The wizard
+  /// gives it a column in a scroll view, where side by side would put a slider
+  /// and six pills in 300px, so it keeps the stack.
+  final bool fills;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
     final chosen = ActorPersona.traitsOf(draft);
 
-    return Column(
+    Widget pills(List<(String, String)> options) => Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            for (final option in options)
+              _TraitPill(
+                label: option.$1,
+                selected: chosen.contains(option.$2),
+                onTap: () {
+                  ActorPersona.toggleTrait(draft, option.$2);
+                  onChanged();
+                },
+              ),
+          ],
+        );
+
+    final energy = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        FieldLabel(tr('Energy')),
         LabeledSlider(
-          label: tr('Low to high'),
+          label: tr('Energy'),
           value: ActorPersona.energyOf(draft),
           onChanged: (value) {
             draft.setExtra(ActorPersona.energyKey, value);
             onChanged();
           },
         ),
-        const SizedBox(height: MqTheme.gap),
-        FieldLabel(tr('Tone')),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            for (final option in ActorPersona.tones)
-              _TraitPill(
-                label: option.$1,
-                selected: chosen.contains(option.$2),
-                onTap: () {
-                  ActorPersona.toggleTrait(draft, option.$2);
-                  onChanged();
-                },
+            for (final end in [tr('Level'), tr('Buzzing')])
+              Text(
+                end,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontMicro,
+                ),
               ),
           ],
         ),
+      ],
+    );
+
+    final traits = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FieldLabel(tr('Tone')),
+        const SizedBox(height: 8),
+        pills(ActorPersona.tones),
         const SizedBox(height: MqTheme.gap),
         FieldLabel(tr('Style')),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final option in ActorPersona.styles)
-              _TraitPill(
-                label: option.$1,
-                selected: chosen.contains(option.$2),
-                onTap: () {
-                  ActorPersona.toggleTrait(draft, option.$2);
-                  onChanged();
-                },
-              ),
-          ],
-        ),
-        const SizedBox(height: MqTheme.gap),
-        LabeledArea(
-          controller: styleController,
-          label: tr('How the actor talks'),
-          areaHeight: 64,
-          placeholder: tr(
-            'Speaks naturally and never sounds like an advert. Short '
-            'sentences, a bit of humour.',
+        pills(ActorPersona.styles),
+      ],
+    );
+
+    final talk = LabeledArea(
+      controller: styleController,
+      label: tr('How the actor talks'),
+      areaHeight: 64,
+      fills: fills,
+      placeholder: tr(
+        'Speaks naturally and never sounds like an advert. Short '
+        'sentences, a bit of humour.',
+      ),
+    );
+
+    if (fills) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: energy),
+              const SizedBox(width: MqTheme.gapLarge),
+              Expanded(child: traits),
+            ],
           ),
-        ),
+          const SizedBox(height: MqTheme.gap + 2),
+          Expanded(child: talk),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        energy,
+        const SizedBox(height: MqTheme.gap),
+        traits,
+        const SizedBox(height: MqTheme.gap),
+        talk,
         const SizedBox(height: 6),
         Text(
           tr('All of this goes to the script writer as direction for this '

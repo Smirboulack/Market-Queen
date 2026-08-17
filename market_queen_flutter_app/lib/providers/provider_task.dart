@@ -125,6 +125,35 @@ abstract class HttpTask extends ProviderTask {
     return _decodeJson(response);
   }
 
+  /// DELETE, where the status code is the answer.
+  ///
+  /// Deliberately more forgiving than [getJson]: a delete that succeeds and says
+  /// so with an empty body has done exactly what was asked, and failing it for
+  /// having nothing to parse would be the API's politeness costing the user
+  /// their click.
+  Future<Map<String, dynamic>> deleteJson(
+    Uri url, {
+    Map<String, String> headers = const {},
+    Duration timeout = const Duration(seconds: 60),
+  }) async {
+    final response = await _send(
+      http.Request('DELETE', url)..headers.addAll(Http.jsonHeaders(headers)),
+      timeout,
+    );
+    if (response.statusCode >= 400) {
+      throw ProviderException(
+          Http.describeError(response.statusCode, response.body));
+    }
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } on FormatException {
+      // Nothing to read, which is not a problem: the status code already said
+      // it worked.
+    }
+    return const {};
+  }
+
   /// POSTs JSON and takes the raw body back -- the TTS endpoints answer with
   /// audio, not with a JSON envelope around it.
   Future<http.Response> postJsonForBytes(

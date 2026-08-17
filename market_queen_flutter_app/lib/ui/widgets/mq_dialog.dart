@@ -107,6 +107,7 @@ class MqModalCard extends StatelessWidget {
     required this.child,
     this.subtitle = '',
     this.actions = const [],
+    this.leadingActions = const [],
     this.width = 520,
     this.maxHeight = 0,
     this.showClose = true,
@@ -116,6 +117,17 @@ class MqModalCard extends StatelessWidget {
   final String subtitle;
   final Widget child;
   final List<Widget> actions;
+
+  /// Actions pinned to the *other* end of the footer, away from the confirm
+  /// button.
+  ///
+  /// One thing goes here and it is always the same kind of thing: the action
+  /// that destroys the object the dialog is editing. "Delete the actor" beside
+  /// "Save changes" is a 6mm gap between the button you press every time and
+  /// the one you can never take back, and putting it at the far end costs the
+  /// user a deliberate movement -- which is the entire point.
+  final List<Widget> leadingActions;
+
   final double width;
 
   /// A ceiling on the whole card, and the content is what gives way to it.
@@ -216,13 +228,17 @@ class MqModalCard extends StatelessWidget {
             ),
           ),
           if (maxHeight > 0) Flexible(child: content) else content,
-          if (actions.isNotEmpty) ...[
+          if (actions.isNotEmpty || leadingActions.isNotEmpty) ...[
             Container(height: 1, color: mq.divider),
             Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  for (var i = 0; i < leadingActions.length; ++i) ...[
+                    if (i > 0) const SizedBox(width: 8),
+                    leadingActions[i],
+                  ],
+                  const Spacer(),
                   for (var i = 0; i < actions.length; ++i) ...[
                     if (i > 0) const SizedBox(width: 8),
                     actions[i],

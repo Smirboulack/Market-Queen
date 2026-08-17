@@ -745,6 +745,92 @@ class ElevenLabsVoiceListTask extends HttpTask {
   }
 }
 
+/// The same endpoint, read for the shelf rather than for a dropdown.
+///
+/// [ElevenLabsVoiceListTask] flattens a voice to a name and a line of
+/// descriptors, which is all a model picker needs. The shelf needs to play one,
+/// say where it came from, and know whether it is the account's copy of a
+/// shared voice -- so it keeps the fields rather than joining them, and an
+/// account with nothing on it is an empty list rather than an error: a user who
+/// has designed no voices yet is in a normal state, not a failed one.
+class ElevenLabsAccountVoicesTask extends HttpTask {
+  ElevenLabsAccountVoicesTask(this.apiKey);
+
+  final String apiKey;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'ElevenLabs');
+
+    final response = await getJson(
+      Uri.parse('https://api.elevenlabs.io/v1/voices'),
+      headers: {'xi-api-key': apiKey},
+    );
+
+    final voices = <AccountVoice>[];
+    final array = response['voices'];
+    if (array is! List) return {'voices': voices};
+
+    for (final value in array) {
+      if (value is! Map) continue;
+      final id = '${value['voice_id'] ?? ''}';
+      if (id.isEmpty) continue;
+
+      final sharing = value['sharing'];
+      final labels = value['labels'];
+
+      // The labels are the only description most voices carry: a designed one
+      // has the brief it was made from, a cloned one has nothing at all.
+      final descriptors = <String>[];
+      if (labels is Map) {
+        for (final key in ['accent', 'gender', 'age', 'use_case']) {
+          final descriptor = '${labels[key] ?? ''}';
+          if (descriptor.isNotEmpty) descriptors.add(descriptor);
+        }
+      }
+
+      voices.add(AccountVoice(
+        id: id,
+        name: '${value['name'] ?? ''}',
+        category: '${value['category'] ?? ''}',
+        description: '${value['description'] ?? ''}'.trim().isEmpty
+            ? descriptors.join(' · ')
+            : '${value['description']}',
+        previewUrl: '${value['preview_url'] ?? ''}',
+        sharedId: sharing is Map ? '${sharing['original_voice_id'] ?? ''}' : '',
+      ));
+    }
+
+    return {'voices': voices};
+  }
+}
+
+/// Takes a voice off the account for good.
+///
+/// The one destructive call in the voice code, and it is deliberately not the
+/// same gesture as taking a voice off an actor: this reaches every actor that
+/// was using it, and the provider has no undo.
+class ElevenLabsVoiceDeleteTask extends HttpTask {
+  ElevenLabsVoiceDeleteTask({required this.apiKey, required this.voiceId});
+
+  final String apiKey;
+  final String voiceId;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'ElevenLabs');
+    if (voiceId.isEmpty) throw ProviderException(tr('No voice to delete.'));
+
+    report(tr('Removing the voice from your account...'));
+
+    await deleteJson(
+      Uri.parse('https://api.elevenlabs.io/v1/voices/$voiceId'),
+      headers: {'xi-api-key': apiKey},
+    );
+    return {'voiceId': voiceId};
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Casting: a brief in, a shortlist out
 // ---------------------------------------------------------------------------

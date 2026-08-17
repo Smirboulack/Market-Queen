@@ -14,6 +14,7 @@ import '../widgets/file_menu.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
 import '../widgets/mq_dialog.dart';
+import '../widgets/voice_player.dart';
 import 'actor_wizard.dart';
 import 'asset_studio.dart';
 import 'voice_picker.dart';
@@ -29,6 +30,13 @@ import 'voice_picker.dart';
 /// Three columns: where you are, who you are looking at, and the one subject
 /// you are changing. The middle column never moves, because every control on
 /// the right is a claim about the person in it.
+///
+/// **Nothing on this screen scrolls.** Each section is laid out to the height
+/// it is given, and the one thing allowed to overflow is the voice catalogue,
+/// inside its own panel. That is not tidiness: this screen carries a player, a
+/// portrait and a Save button that a scrolling page can put out of reach, and
+/// the section you are working on has no business moving the actor you are
+/// working on off the top of the window.
 ///
 /// Returns the id if it was saved, or null.
 Future<String?> showActorEditor(
@@ -94,6 +102,12 @@ class _ActorEditorState extends State<ActorEditor> {
   late final TextEditingController _style =
       TextEditingController(text: _draft.extraText(ActorPersona.styleKey));
 
+  /// The screen's one player. Every disc on the page -- the card under the
+  /// portrait, every row of the catalogue, all three designed takes -- drives
+  /// this, so only one thing is ever making a noise and the card can show the
+  /// progress of a voice that was started three sections ago.
+  final AudioTransport _transport = AudioTransport();
+
   ActorSection _section = ActorSection.overview;
 
   /// Which of the wardrobe is in the big frame. Zero is the actor's own
@@ -101,17 +115,40 @@ class _ActorEditorState extends State<ActorEditor> {
   /// changes nothing on the draft.
   int _showing = 0;
 
+  /// Whether this window is big enough for the sections to be laid out to it.
+  /// Settled once per build, in [build], and read by every section.
+  bool _filled = true;
+
+  /// Which voice the audition on disk was bought for.
+  ///
+  /// The booth keeps the last file it wrote and nothing else, so an audition
+  /// outlives the voice that produced it. Without this, casting a second voice
+  /// left the player showing the new name over the old recording -- the one
+  /// mistake a player is not allowed to make.
+  String _auditionedVoice = '';
+
+  /// What each free-text field will take. Written down because the counter and
+  /// the formatter have to agree, and because a ceiling somebody meets while
+  /// typing has to have been visible before they started.
+  static const int _nameLimit = 50;
+  static const int _descriptionLimit = 250;
+
+  /// The child takes the rest of the column on a page laid out to a height, and
+  /// simply its own height on one that scrolls.
+  Widget _grow(Widget child) => _filled ? Expanded(child: child) : child;
+
   @override
   void initState() {
     super.initState();
-    widget.app.voiceBooth.addListener(_repaint);
+    widget.app.voiceBooth.addListener(_onBooth);
     // A design left over from the last actor edited is not this actor's.
     widget.app.voiceForge.reset();
   }
 
   @override
   void dispose() {
-    widget.app.voiceBooth.removeListener(_repaint);
+    widget.app.voiceBooth.removeListener(_onBooth);
+    _transport.dispose();
     _name.dispose();
     _prompt.dispose();
     _action.dispose();
@@ -121,6 +158,31 @@ class _ActorEditorState extends State<ActorEditor> {
 
   void _repaint() {
     if (mounted) setState(() {});
+  }
+
+  /// An audition that has landed is played, not merely announced.
+  ///
+  /// The old screen bought one and left it on disk: the button said "Listen",
+  /// the money was spent, and nothing came out of the speakers. Pressing play
+  /// is the whole of what somebody meant, so the file goes straight into the
+  /// transport the moment it exists.
+  void _onBooth() {
+    if (!mounted) return;
+    final sample = widget.app.voiceBooth.samplePath;
+    if (sample.isNotEmpty && !_transport.holds(sample)) {
+      _auditionedVoice = _draft.extraText('voiceId');
+      _transport.toggle(sample);
+    }
+    setState(() {});
+  }
+
+  /// The audition on disk, when it is still this voice's. Empty otherwise, so
+  /// the card falls back to the provider's own sample rather than playing
+  /// somebody else.
+  String get _audition {
+    final voice = _draft.extraText('voiceId');
+    if (voice.isEmpty || voice != _auditionedVoice) return '';
+    return widget.app.voiceBooth.samplePath;
   }
 
   void _save() {
@@ -159,22 +221,48 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- build ---------------------------------------------------------------
 
+  /// The room a section needs before it can be laid out to the page rather than
+  /// down it.
+  ///
+  /// The design is 1280 x 775 on a 1440 x 900 window, and at that size nothing
+  /// here scrolls. Below it something has to give, and the honest answer is a
+  /// scrollbar on the one column that has more in it than there is room for --
+  /// not a portrait squeezed to a stamp, and not a card silently clipping the
+  /// field somebody is typing into. So the laid-out page is what you get on the
+  /// window it was drawn for, and a short or narrow window falls back rather
+  /// than overflowing.
+  static const double _laidOutHeight = 540;
+  static const double _laidOutWidth = 520;
+
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
     final width = (screen.width - 100).clamp(840.0, 1280.0);
-    final height = (screen.height - 250).clamp(430.0, 720.0);
+    // 650 at the size this was drawn for, and the ceiling rather than the
+    // number: the three columns are laid out to whatever this comes to, so a
+    // laptop gets a shorter portrait and a shorter catalogue rather than a
+    // scrollbar.
+    final height = (screen.height - 250).clamp(430.0, 650.0);
+    // What the right-hand column comes out at: the card's padding, the rail,
+    // the portrait and the two gaps between them come off the top.
+    final bodyWidth = width - MqTheme.gapLarge * 4 - 178 - 264;
+    _filled = height >= _laidOutHeight && bodyWidth >= _laidOutWidth;
 
     return MqModalCard(
       width: width,
       title: tr('Edit the actor'),
       subtitle: tr("The actor's identity, appearance, voice and personality."),
-      actions: [
+      // At the far end of the footer, out of reach of Save. Two buttons that
+      // differ by one being undoable should not be neighbours.
+      leadingActions: [
         GhostButton(
+          icon: 'delete-bin-line',
           text: tr('Delete the actor'),
           destructive: true,
           onPressed: _delete,
         ),
+      ],
+      actions: [
         GhostButton(text: tr('Cancel'), onPressed: () => closeMqModal(context)),
         PrimaryButton(text: tr('Save changes'), onPressed: _save),
       ],
@@ -185,12 +273,9 @@ class _ActorEditorState extends State<ActorEditor> {
           children: [
             SizedBox(width: 178, child: _rail()),
             const SizedBox(width: MqTheme.gapLarge),
-            SizedBox(
-              width: 264,
-              child: SingleChildScrollView(child: _identity()),
-            ),
+            SizedBox(width: 264, child: _identity()),
             const SizedBox(width: MqTheme.gapLarge),
-            Expanded(child: SingleChildScrollView(child: _body())),
+            Expanded(child: _body()),
           ],
         ),
       ),
@@ -199,11 +284,26 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- the rail ------------------------------------------------------------
 
-  Widget _rail() {
-    final looks = ActorLooks.of(_draft).length;
+  /// Which sections still have something in them nobody has answered.
+  ///
+  /// Not validation -- an actor with no reference pictures is saveable and
+  /// works. It is the difference between a screen that lists five subjects and
+  /// one that says which of them you have not finished, and it is the same
+  /// answer in two places: the dot on the rail and the count on the overview.
+  bool _unfinished(ActorSection section) => switch (section) {
+        ActorSection.appearance => _draft.media.isEmpty,
+        ActorSection.voice => _draft.extraText('voiceId').isEmpty,
+        ActorSection.personality => ActorPersona.traitsOf(_draft).isEmpty,
+        // A second look is an option, not an omission.
+        _ => false,
+      };
 
-    return ListView(
-      padding: EdgeInsets.zero,
+  int get _unfinishedCount =>
+      ActorSection.values.where(_unfinished).length;
+
+  Widget _rail() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final section in ActorSection.values)
           Padding(
@@ -212,9 +312,7 @@ class _ActorEditorState extends State<ActorEditor> {
               icon: ActorEditor.iconFor(section),
               label: ActorEditor.labelFor(section),
               selected: _section == section,
-              // Only where there is something to count. A "0" beside Looks
-              // says what the empty section already says, twice.
-              count: section == ActorSection.looks && looks > 0 ? looks : 0,
+              unfinished: _unfinished(section),
               onTap: () => _go(section),
             ),
           ),
@@ -232,19 +330,44 @@ class _ActorEditorState extends State<ActorEditor> {
           (name: look.name, path: look.path),
       ];
 
+  /// Who this actor is, as one line under their name.
+  ///
+  /// It replaced five labelled rows -- Age, Gender, Language, Created, Changed
+  /// -- in a bordered box. Three of those were the same three answers the
+  /// Overview's own pickers were showing eight inches to the right, and a fact
+  /// stated twice on one screen is a fact that can disagree with itself.
+  String get _metaLine {
+    final years = ActorIdentity.ageOf(_draft);
+    final age = years > 0
+        //: %1 is a whole number of years
+        ? tr('%1 years old').arg(years)
+        : VoiceTrait.labelFor('voiceAge', _draft.extraText('voiceAge'));
+    final gender =
+        VoiceTrait.labelFor('voiceGender', ActorIdentity.genderOf(_draft));
+    final locale = VoiceLocale.find(_draft.extraText('voiceLocale'))?.label;
+
+    return [
+      if (gender.isNotEmpty) gender,
+      age.isEmpty ? tr('Age not set') : age,
+      // An unset language is not "none": it is whatever the ad is written in,
+      // which is what the caster will actually search on.
+      locale ?? tr('Same as the ad'),
+    ].join(' · ');
+  }
+
   Widget _identity() {
     final mq = context.mq;
     final wardrobe = _wardrobe;
     final shown =
         _showing < wardrobe.length ? wardrobe[_showing] : wardrobe.first;
-    final take = _draft.extraText('takePath');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        AspectRatio(
-          aspectRatio: 4 / 5,
+        // The portrait takes what the fixed rows below it left. A 4:5 frame at
+        // a fixed 330 is right at one window size and wrong at every other one;
+        // the picture is cropped to fill either way.
+        Expanded(
           child: Stack(
             children: [
               Positioned.fill(child: _portrait(shown.path)),
@@ -273,12 +396,15 @@ class _ActorEditorState extends State<ActorEditor> {
         ),
         const SizedBox(height: 10),
         _wardrobeStrip(wardrobe),
-        const SizedBox(height: MqTheme.gap),
+        const SizedBox(height: MqTheme.gap + 2),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
           children: [
             Flexible(
               child: Text(
                 _name.text.trim().isEmpty ? _draft.name : _name.text.trim(),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: mq.textPrimary,
@@ -297,41 +423,95 @@ class _ActorEditorState extends State<ActorEditor> {
             Flexible(child: _Pill(label: _madeLabel)),
           ],
         ),
-        if (_prompt.text.trim().isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            _prompt.text.trim(),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: mq.textTertiary,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineTight,
-            ),
+        const SizedBox(height: 6),
+        Text(
+          _metaLine,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: mq.textSecondary,
+            fontSize: MqTheme.fontSmall,
+            height: MqTheme.lineTight,
           ),
-        ],
-        const SizedBox(height: MqTheme.gap),
-        _Facts(rows: _factRows),
-        const SizedBox(height: MqTheme.gap),
-        GhostButton(
-          text: tr('Preview the actor'),
-          enabled: take.isNotEmpty,
-          onPressed: () => showMediaPreview(context, take),
         ),
-        if (take.isEmpty) ...[
-          const SizedBox(height: 6),
-          Text(
-            tr('No clip of the actor yet. One is filmed on the last step of the creation wizard.'),
-            style: TextStyle(
-              color: mq.textTertiary,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineTight,
-            ),
+        const SizedBox(height: 2),
+        Text(
+          //: %1 and %2 are dates
+          tr('Created %1 · changed %2')
+              .arg(Format.day(_draft.createdAt))
+              .arg(Format.day(_draft.updatedAt)),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: mq.textTertiary,
+            fontSize: MqTheme.fontMicro,
+            height: MqTheme.lineTight,
           ),
-        ],
+        ),
+        const SizedBox(height: MqTheme.gap + 2),
+        _player(),
       ],
     );
   }
+
+  /// The one player, under the portrait, on all five sections.
+  ///
+  /// It replaced three controls that all did some of this: "Quick listen" on
+  /// the overview, "Test the voice" in the voice section's heading, and a
+  /// "Listen" button that bought an audition and never played it. Who reads the
+  /// ad is a fact about the person, so it belongs beside the person rather than
+  /// in the section that happens to change it.
+  Widget _player() {
+    final booth = widget.app.voiceBooth;
+    final sample = _audition;
+    final preview = _draft.extraText('voicePreview');
+    // What is already on disk first: an audition is this actor's own voice
+    // reading with these four dials on, which the provider's stock sample is
+    // not.
+    final source = sample.isNotEmpty ? sample : preview;
+
+    return VoicePlayerCard(
+      transport: _transport,
+      name: _draft.extraText('voiceName'),
+      provenance: _provenance,
+      source: source,
+      busy: booth.auditioning,
+      note: booth.error.isNotEmpty
+          ? booth.error
+          : booth.auditioning
+          ? tr('Buying a line…')
+          : source.isNotEmpty
+          ? tr('Playing the sample is free.')
+          : tr('Listening costs a fraction of a cent.'),
+      onDetach: () {
+        _auditionedVoice = '';
+        _draft
+          ..setExtra('voiceId', '')
+          ..setExtra('voiceOwner', '')
+          ..setExtra('voiceName', '')
+          ..setExtra('voiceKind', '')
+          ..setExtra('voiceDescription', '')
+          ..setExtra('voicePreview', '');
+        _transport.clear();
+        _repaint();
+      },
+      // Nothing on disk and nothing free to fall back on: pressing play is how
+      // somebody asks for a line to be read.
+      onAudition: _draft.extraText('voiceId').isEmpty
+          ? null
+          : () => booth.audition(
+                _draft.extras,
+                tr('Honestly, I did not think this would work.'),
+              ),
+    );
+  }
+
+  String get _provenance => switch (_draft.extraText('voiceKind')) {
+        'designed' => tr('Designed · ElevenLabs'),
+        'cloned' => tr('Cloned from your recordings · ElevenLabs'),
+        'library' => tr('Voice library · ElevenLabs'),
+        _ => '',
+      };
 
   /// How this actor came into being, as a badge.
   ///
@@ -342,47 +522,6 @@ class _ActorEditorState extends State<ActorEditor> {
         'describe' => tr('Described'),
         _ => tr('Actor'),
       };
-
-  List<({String icon, String label, String value})> get _factRows {
-    final years = ActorIdentity.ageOf(_draft);
-    // An actor saved before age became a number still has only the voice's
-    // band, and the band is a truer answer than "not set".
-    final age = years > 0
-        //: %1 is a whole number of years
-        ? tr('%1 years old').arg(years)
-        : VoiceTrait.labelFor('voiceAge', _draft.extraText('voiceAge'));
-    final gender =
-        VoiceTrait.labelFor('voiceGender', ActorIdentity.genderOf(_draft));
-    final locale = VoiceLocale.find(_draft.extraText('voiceLocale'))?.label;
-
-    return [
-      (icon: 'timer-line', label: tr('Age'), value: age.isEmpty ? _unset : age),
-      (
-        icon: 'user-line',
-        label: tr('Gender'),
-        value: gender.isEmpty ? _unset : gender,
-      ),
-      (
-        icon: 'translate-line',
-        label: tr('Language'),
-        // An unset language is not "none": it is whatever the ad is written
-        // in, which is what the caster will actually search on.
-        value: locale ?? tr('Same as the ad'),
-      ),
-      (
-        icon: 'calendar-line',
-        label: tr('Created'),
-        value: Format.day(_draft.createdAt),
-      ),
-      (
-        icon: 'history-line',
-        label: tr('Last changed'),
-        value: Format.day(_draft.updatedAt),
-      ),
-    ];
-  }
-
-  String get _unset => tr('Not set');
 
   Widget _portrait(String path) {
     final mq = context.mq;
@@ -428,13 +567,21 @@ class _ActorEditorState extends State<ActorEditor> {
     );
   }
 
-  /// The wardrobe as a row of thumbnails under the face.
+  /// The wardrobe as a row of thumbnails under the face, and the filmed take
+  /// on the end of it.
   ///
-  /// It is a viewer, not a picker: pressing one changes which look is in the
+  /// It is a viewer, not a picker: pressing a look changes which one is in the
   /// big frame and nothing else. Promoting one is a decision with consequences
   /// for every ad that casts this actor, and it lives in the Looks section
   /// where there is room to say so.
+  ///
+  /// The clip used to be a "Preview the actor" button that was disabled on
+  /// every actor that had never been filmed -- which is most of them -- so the
+  /// screen carried a dead control to say a clip did not exist. Here, an actor
+  /// with no take simply has one fewer thumbnail.
   Widget _wardrobeStrip(List<({String name, String path})> wardrobe) {
+    final take = _draft.extraText('takePath');
+
     return SizedBox(
       height: 52,
       child: ListView(
@@ -451,6 +598,16 @@ class _ActorEditorState extends State<ActorEditor> {
                 onTap: () => setState(() => _showing = i),
               ),
             ),
+          if (take.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: _StripTile(
+                path: take,
+                name: tr('The filmed take'),
+                isClip: true,
+                onTap: () => showMediaPreview(context, take),
+              ),
+            ),
           _StripAdd(onTap: _createLook),
         ],
       ),
@@ -459,23 +616,27 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- the right-hand column -----------------------------------------------
 
-  Widget _body() => switch (_section) {
-        ActorSection.overview => _overview(),
-        ActorSection.appearance => _appearance(),
-        ActorSection.voice => _voice(),
-        ActorSection.personality => _personality(),
-        ActorSection.looks => _looks(),
-      };
+  Widget _body() {
+    final section = switch (_section) {
+      ActorSection.overview => _overview(),
+      ActorSection.appearance => _appearance(),
+      ActorSection.voice => _voice(),
+      ActorSection.personality => _personality(),
+      ActorSection.looks => _looks(),
+    };
+
+    return _filled ? section : SingleChildScrollView(child: section);
+  }
 
   // ---- section: overview ---------------------------------------------------
 
   Widget _overview() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
       children: [
         _SectionCard(
-          title: tr('General'),
+          title: tr('Identity'),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
@@ -485,16 +646,23 @@ class _ActorEditorState extends State<ActorEditor> {
                   final name = LabeledField(
                     controller: _name,
                     label: tr("Actor's name"),
+                    maxLength: _nameLimit,
                     placeholder: widget.app.actors.suggestedName(),
+                    hint: tr('The name the actor is cast under.'),
                     onChanged: (_) => setState(() {}),
                   );
                   final description = LabeledArea(
                     controller: _prompt,
                     label: tr('Description'),
-                    areaHeight: 76,
+                    areaHeight: 96,
+                    maxLength: _descriptionLimit,
                     placeholder: tr('A woman in her twenties, tired, no '
                         'make-up, plain grey t-shirt…'),
                     onChanged: (_) => setState(() {}),
+                  );
+                  final hint = _Hint(
+                    tr('Handed to the image model, and what the search box '
+                        'matches on.'),
                   );
 
                   // Side by side where there is room, stacked where there is
@@ -509,6 +677,8 @@ class _ActorEditorState extends State<ActorEditor> {
                         name,
                         const SizedBox(height: MqTheme.gap),
                         description,
+                        const SizedBox(height: 6),
+                        hint,
                       ],
                     );
                   }
@@ -516,16 +686,24 @@ class _ActorEditorState extends State<ActorEditor> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(child: name),
-                      const SizedBox(width: MqTheme.gap),
-                      Expanded(child: description),
+                      const SizedBox(width: MqTheme.gap + 4),
+                      Expanded(
+                        flex: 3,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            description,
+                            const SizedBox(height: 6),
+                            hint,
+                          ],
+                        ),
+                      ),
                     ],
                   );
                 },
               ),
-              const SizedBox(height: 6),
-              _Hint(tr('The description is what the image model is told, and '
-                  'what the search box matches on.')),
-              const SizedBox(height: MqTheme.gap),
+              const SizedBox(height: MqTheme.gap + 2),
               // Who the actor is, which is not a fact about their voice.
               // Changing the voice used to change both of these, so a woman of
               // 22 became "middle aged" the moment somebody picked a fuller
@@ -539,51 +717,104 @@ class _ActorEditorState extends State<ActorEditor> {
                   SizedBox(width: 216, child: _languageField()),
                 ],
               ),
+              const SizedBox(height: 8),
+              _Hint(tr('These three also aim the voice search.')),
             ],
           ),
         ),
         const SizedBox(height: MqTheme.gap),
-        _SectionCard(
-          title: tr('At a glance'),
-          child: Wrap(
-            spacing: MqTheme.gap,
-            runSpacing: MqTheme.gap,
-            children: [
-              _SummaryTile(
-                icon: ActorEditor.iconFor(ActorSection.appearance),
-                title: tr('Appearance'),
-                //: %1 is a number of pictures
-                value: tr('%1 picture(s)').arg(_draft.media.length),
-                action: tr('Change'),
-                onTap: () => _go(ActorSection.appearance),
+        _grow(
+          _SectionCard(
+            title: tr('The actor so far'),
+            action: Text(
+              _unfinishedCount == 0
+                  ? tr('Nothing left to finish')
+                  //: %1 is a number of unfinished sections
+                  : tr('%1 thing(s) to finish').arg(_unfinishedCount),
+              style: TextStyle(
+                color: _unfinishedCount == 0
+                    ? context.mq.textTertiary
+                    : context.mq.warningText,
+                fontSize: MqTheme.fontSmall,
               ),
-              _SummaryTile(
-                icon: 'user-voice-line',
-                title: tr('Voice'),
-                value: _voiceSummary,
-                action: tr('Change'),
-                onTap: () => _go(ActorSection.voice),
-              ),
-              _SummaryTile(
-                icon: 'emotion-line',
-                title: tr('Personality'),
-                value: _personaSummary,
-                action: tr('Change'),
-                onTap: () => _go(ActorSection.personality),
-              ),
-              _SummaryTile(
-                icon: ActorEditor.iconFor(ActorSection.looks),
-                title: tr('Looks'),
-                //: %1 is a number of looks
-                value: tr('%1 look(s)').arg(_wardrobe.length),
-                action: tr('Manage'),
-                onTap: () => _go(ActorSection.looks),
-              ),
-            ],
+            ),
+            child: _grow(_statusGrid()),
           ),
         ),
-        const SizedBox(height: MqTheme.gap),
-        _SectionCard(title: tr('Quick listen'), child: _audition()),
+      ],
+    );
+  }
+
+  /// Four tiles, two across, filling the card.
+  ///
+  /// Each says what the section *holds* and leads to it. They used to carry a
+  /// "Change" link underneath as well, which was a second target inside a tile
+  /// that was already a target, doing the same thing.
+  Widget _statusGrid() {
+    final voice = _draft.extraText('voiceName');
+    final looks = ActorLooks.of(_draft).length;
+
+    final tiles = <Widget>[
+      _StatusTile(
+        icon: ActorEditor.iconFor(ActorSection.appearance),
+        title: ActorEditor.labelFor(ActorSection.appearance),
+        value: _draft.media.isEmpty
+            ? tr('No reference picture')
+            //: %1 is a number of pictures
+            : tr('%1 reference picture(s)').arg(_draft.media.length),
+        warn: _draft.media.isEmpty,
+        onTap: () => _go(ActorSection.appearance),
+      ),
+      _StatusTile(
+        icon: ActorEditor.iconFor(ActorSection.voice),
+        title: ActorEditor.labelFor(ActorSection.voice),
+        value: voice.isEmpty ? tr('Cast at render time') : voice,
+        warn: voice.isEmpty,
+        onTap: () => _go(ActorSection.voice),
+      ),
+      _StatusTile(
+        icon: ActorEditor.iconFor(ActorSection.personality),
+        title: ActorEditor.labelFor(ActorSection.personality),
+        value: _personaSummary,
+        warn: ActorPersona.traitsOf(_draft).isEmpty,
+        onTap: () => _go(ActorSection.personality),
+      ),
+      _StatusTile(
+        icon: ActorEditor.iconFor(ActorSection.looks),
+        title: ActorEditor.labelFor(ActorSection.looks),
+        value: looks == 0
+            ? tr('The default look only')
+            //: %1 is a number of looks besides the default
+            : tr('%1 look(s) besides the default').arg(looks),
+        onTap: () => _go(ActorSection.looks),
+      ),
+    ];
+
+    // Two rows of two, sharing the card. On a page that scrolls they keep a
+    // fixed height instead: a tile stretched to fill a column of unknown length
+    // is a tile with a hole in it.
+    Widget rowAt(int row) => Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: tiles[row * 2]),
+            const SizedBox(width: MqTheme.gap),
+            Expanded(child: tiles[row * 2 + 1]),
+          ],
+        );
+
+    return Column(
+      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
+      children: [
+        for (var row = 0; row < 2; ++row) ...[
+          if (row > 0) const SizedBox(height: MqTheme.gap),
+          if (_filled)
+            Expanded(child: rowAt(row))
+          else
+            // Both tiles as tall as the taller of the two. A fixed height here
+            // is a guess about how many lines a translated status runs to, and
+            // the guess is wrong in French.
+            IntrinsicHeight(child: rowAt(row)),
+        ],
       ],
     );
   }
@@ -666,80 +897,25 @@ class _ActorEditorState extends State<ActorEditor> {
     );
   }
 
-  String get _voiceSummary {
-    final name = _draft.extraText('voiceName');
-    if (name.isEmpty) return tr('Cast at render time');
-    return switch (_draft.extraText('voiceKind')) {
-      'designed' => tr('Designed'),
-      'cloned' => tr('Cloned'),
-      _ => tr('Library'),
-    };
-  }
-
   String get _personaSummary {
     final traits = ActorPersona.traitsOf(_draft);
-    if (traits.isEmpty) return tr('Not set');
-    return traits.take(2).map(ActorPersona.labelFor).join(tr(', '));
-  }
-
-  /// The one control worth having on two screens: hearing them.
-  ///
-  /// It is on the Overview because it is the fastest answer to "is this actor
-  /// right", and in the Voice section because that is where you have just
-  /// changed something and want to hear what it did.
-  Widget _audition() {
-    final mq = context.mq;
-    final booth = widget.app.voiceBooth;
-
-    return Row(
-      children: [
-        Container(
-          width: 34,
-          height: 34,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: mq.surfaceSecondary,
-            shape: BoxShape.circle,
-            border: Border.all(color: mq.border),
-          ),
-          child: MqIcon(
-            booth.auditioning ? 'loader-4-line' : 'play-fill',
-            size: 16,
-            color: mq.textSecondary,
-          ),
-        ),
-        const SizedBox(width: MqTheme.gap),
-        Expanded(
-          child: Text(
-            booth.error.isEmpty
-                ? tr('Hear a line in this voice. It costs a fraction of a cent.')
-                : booth.error,
-            style: TextStyle(
-              color: booth.error.isEmpty ? mq.textTertiary : mq.error,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineTight,
-            ),
-          ),
-        ),
-        const SizedBox(width: MqTheme.gap),
-        GhostButton(
-          text: booth.auditioning ? tr('Listening…') : tr('Listen'),
-          enabled: !booth.auditioning && _draft.extraText('voiceId').isNotEmpty,
-          onPressed: () => booth.audition(
-            _draft.extras,
-            tr('Honestly, I did not think this would work.'),
-          ),
-        ),
-      ],
-    );
+    final energy = ActorPersona.energyOf(_draft);
+    if (traits.isEmpty) return tr('Nothing said yet');
+    return [
+      traits.take(2).map(ActorPersona.labelFor).join(tr(', ')),
+      //: %1 is a number between 0 and 1
+      tr('energy %1').arg(energy.toStringAsFixed(2)),
+    ].join(' · ');
   }
 
   // ---- section: appearance -------------------------------------------------
 
   Widget _appearance() {
+    final mq = context.mq;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
       children: [
         _SectionCard(
           title: tr('Main picture'),
@@ -749,29 +925,51 @@ class _ActorEditorState extends State<ActorEditor> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              GhostButton(text: tr('Shoot it again'), onPressed: _reshoot),
-              GhostButton(text: tr('Replace with a file'), onPressed: _replace),
+              GhostButton(
+                icon: 'camera-line',
+                text: tr('Shoot it again'),
+                onPressed: _reshoot,
+              ),
+              GhostButton(
+                icon: 'upload-line',
+                text: tr('Replace with a file'),
+                onPressed: _replace,
+              ),
             ],
           ),
         ),
         const SizedBox(height: MqTheme.gap),
-        _SectionCard(
-          title: tr('Reference pictures'),
-          subtitle: tr('The first one is the face every shot keeps.'),
-          child: MediaDropZone(
-            paths: _draft.media,
-            title: tr('Drop pictures in'),
-            hint: tr('PNG, JPG or WebP.'),
-            tileSize: 56,
-            onAdded: (paths) => setState(() {
-              for (final path in paths) {
-                if (!_draft.media.contains(path)) _draft.media.add(path);
-              }
-            }),
-            onRemoved: (index) => setState(() => _draft.media.removeAt(index)),
-            onPrimary: (index) => setState(() {
-              _draft.media.insert(0, _draft.media.removeAt(index));
-            }),
+        _grow(
+          _SectionCard(
+            title: tr('Reference pictures'),
+            subtitle: tr('The first one is the face every shot keeps. Two or '
+                'three angles is plenty.'),
+            action: Text(
+              //: %1 is a number of pictures
+              tr('%1 picture(s)').arg(_draft.media.length),
+              style: TextStyle(
+                color: mq.textTertiary,
+                fontSize: MqTheme.fontSmall,
+              ),
+            ),
+            child: _grow(
+              MediaDropZone(
+                paths: _draft.media,
+                title: tr('Drop pictures in'),
+                hint: tr('PNG, JPG or WebP · or click to choose a file'),
+                tileSize: 64,
+                onAdded: (paths) => setState(() {
+                  for (final path in paths) {
+                    if (!_draft.media.contains(path)) _draft.media.add(path);
+                  }
+                }),
+                onRemoved: (index) =>
+                    setState(() => _draft.media.removeAt(index)),
+                onPrimary: (index) => setState(() {
+                  _draft.media.insert(0, _draft.media.removeAt(index));
+                }),
+              ),
+            ),
           ),
         ),
       ],
@@ -804,118 +1002,63 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- section: voice ------------------------------------------------------
 
-  /// The four dials, their ranges and where they sit when nobody has touched
-  /// them. Written down once because Reset needs the same numbers the sliders
-  /// draw from.
-  static const List<({String key, double from, double to, double fallback})>
-      _dials = [
-    (key: 'voiceSpeed', from: 0.7, to: 1.2, fallback: 1.0),
-    (key: 'voiceStability', from: 0, to: 1, fallback: 0.45),
-    (key: 'voiceSimilarity', from: 0, to: 1, fallback: 0.8),
-    (key: 'voiceStyle', from: 0, to: 1, fallback: 0.35),
-  ];
-
-  static String _dialLabel(String key) => switch (key) {
-        'voiceSpeed' => tr('Speed'),
-        'voiceStability' => tr('Stability'),
-        'voiceSimilarity' => tr('Similarity'),
-        _ => tr('Style exaggeration'),
-      };
-
-  /// Two steps, in the order they are taken: who reads the ad, then how.
+  /// One card, four doors and the dials underneath.
   ///
-  /// It used to be two equal cards called "Voice" and "Delivery", with the
-  /// listen button inside the second one, five loose filter chips inside the
-  /// first and four sliders stacked full width under both. Everything was
-  /// present and nothing said what to do first -- so the numbers, and the one
-  /// thing you actually do to a whole section sits in that section's heading.
+  /// It used to be two cards -- "Choose a voice" and "Delivery" -- stacked in a
+  /// scrolling column, with a shortlist that had its own scrollbar inside the
+  /// first. Two scrollbars, one inside the other, and picking a voice meant
+  /// scrolling the page back up to find the dials that change how it reads.
   Widget _voice() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _SectionCard(
-          step: 1,
-          title: tr('Choose a voice'),
-          subtitle: tr('Pick one from the library, invent one, or clone your '
-              'own.'),
-          action: _listenButton(),
-          child: VoicePicker(
-            app: widget.app,
-            draft: _draft,
-            onChanged: () => setState(() {}),
+    return _SectionCard(
+      title: tr('Voice'),
+      subtitle: tr('Who reads the script, and how. The player on the left '
+          'always plays the voice in place.'),
+      action: _providerBadge(),
+      child: _grow(
+        VoicePicker(
+          app: widget.app,
+          draft: _draft,
+          transport: _transport,
+          onChanged: _repaint,
+        ),
+      ),
+    );
+  }
+
+  /// Whether there is an account behind any of this, said once rather than
+  /// discovered on each of the four tabs.
+  Widget _providerBadge() {
+    final mq = context.mq;
+    final ready = widget.app.voiceForge.ready;
+
+    return Container(
+      height: 22,
+      padding: const EdgeInsets.symmetric(horizontal: 9),
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+        border: Border.all(color: mq.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: ready ? mq.success : mq.warning,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        _SectionCard(
-          step: 2,
-          title: tr('Delivery'),
-          subtitle: tr('The difference between a read that sounds human and '
-              'one that sounds like an announcer.'),
-          action: MqLink(text: tr('Reset'), onPressed: _resetDials),
-          child: _dialGrid(),
-        ),
-      ],
-    );
-  }
-
-  void _resetDials() => setState(() {
-        for (final dial in _dials) {
-          _draft.setExtra(dial.key, dial.fallback);
-        }
-      });
-
-  /// The dials, two across.
-  ///
-  /// Four full-width sliders one under another made the section a form to work
-  /// down. Two across pairs them the way they are actually thought about --
-  /// how fast and how like the original, how steady and how much colour -- and
-  /// halves the height of the card.
-  Widget _dialGrid() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Under this a column is 130px, which is not a slider.
-        final columns = constraints.maxWidth >= 420 ? 2 : 1;
-        final width =
-            (constraints.maxWidth - MqTheme.gapLarge * (columns - 1)) / columns;
-
-        return Wrap(
-          spacing: MqTheme.gapLarge,
-          runSpacing: 2,
-          children: [
-            for (final dial in _dials)
-              SizedBox(width: width, child: _dial(dial)),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _dial(({String key, double from, double to, double fallback}) dial) {
-    return LabeledSlider(
-      label: _dialLabel(dial.key),
-      value: _draft.extraNumber(dial.key, dial.fallback),
-      from: dial.from,
-      to: dial.to,
-      onChanged: (value) => setState(() => _draft.setExtra(dial.key, value)),
-    );
-  }
-
-  /// "Test the voice", in the heading of the section it tests.
-  ///
-  /// The audition line still lives on the Overview, where it is the fastest
-  /// answer to "is this actor right". Here it is a button and nothing else:
-  /// you have just changed something and want to hear what it did.
-  Widget _listenButton() {
-    final booth = widget.app.voiceBooth;
-    final ready = _draft.extraText('voiceId').isNotEmpty;
-
-    return GhostButton(
-      text: booth.auditioning ? tr('Listening…') : tr('Test the voice'),
-      enabled: !booth.auditioning && ready,
-      onPressed: () => booth.audition(
-        _draft.extras,
-        tr('Honestly, I did not think this would work.'),
+          const SizedBox(width: 6),
+          Text(
+            ready ? tr('ElevenLabs connected') : tr('No ElevenLabs key'),
+            style: TextStyle(
+              color: mq.textSecondary,
+              fontSize: MqTheme.fontMicro,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -925,28 +1068,35 @@ class _ActorEditorState extends State<ActorEditor> {
   Widget _personality() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
       children: [
         _SectionCard(
           title: tr('What is the actor doing?'),
-          subtitle: tr('Handed to the video model as the motion for every shot the actor is in.'),
+          subtitle: tr('Handed to the video model as the motion for every shot '
+              'the actor is in.'),
           child: LabeledArea(
             controller: _action,
             areaHeight: 64,
+            maxLength: _descriptionLimit,
             placeholder: tr(
               'Talking to camera, holding the product, small natural gestures…',
             ),
           ),
         ),
         const SizedBox(height: MqTheme.gap),
-        _SectionCard(
-          title: tr('Personality'),
-          subtitle: tr('All of this goes to the script writer as direction for '
-              'this actor.'),
-          child: PersonaEditor(
-            draft: _draft,
-            styleController: _style,
-            onChanged: () => setState(() {}),
+        _grow(
+          _SectionCard(
+            title: tr('Personality'),
+            subtitle: tr('All of this goes to the script writer as direction '
+                'for this actor.'),
+            child: _grow(
+              PersonaEditor(
+                draft: _draft,
+                styleController: _style,
+                fills: _filled,
+                onChanged: _repaint,
+              ),
+            ),
           ),
         ),
       ],
@@ -969,11 +1119,18 @@ class _ActorEditorState extends State<ActorEditor> {
       title: tr('Looks'),
       subtitle: tr('The same person, dressed for a different ad. The default '
           'is the main picture; anything else you add can be picked per ad.'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Wrap(
+      action: Text(
+        //: %1 is a number of looks, counting the default
+        tr('%1 look(s)').arg(looks.length + 1),
+        style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
+      ),
+      child: _grow(
+        SingleChildScrollView(
+          // The wardrobe is the one grid with no ceiling on it -- an actor may
+          // have twenty looks -- so it scrolls inside its own card rather than
+          // taking the page with it.
+          physics: _filled ? null : const NeverScrollableScrollPhysics(),
+          child: Wrap(
             spacing: MqTheme.gap,
             runSpacing: MqTheme.gap,
             children: [
@@ -1019,17 +1176,7 @@ class _ActorEditorState extends State<ActorEditor> {
               _AddLookTile(onTap: _createLook),
             ],
           ),
-          if (looks.isEmpty) ...[
-            const SizedBox(height: MqTheme.gap),
-            Text(
-              tr('No extra looks yet.'),
-              style: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontSmall,
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
@@ -1051,12 +1198,14 @@ class _ActorEditorState extends State<ActorEditor> {
 /// The sections used to be bare stacks of controls, which made a screen with
 /// four unrelated things on it read as one long form. A card with a heading is
 /// what says "this part is about the voice, and it ends here".
+///
+/// [child] is laid out in a `Column`, so a section that should take the rest of
+/// the card hands over an `Expanded` and one that should not simply does not.
 class _SectionCard extends StatelessWidget {
   const _SectionCard({
     required this.title,
     required this.child,
     this.subtitle = '',
-    this.step = 0,
     this.action,
   });
 
@@ -1064,17 +1213,8 @@ class _SectionCard extends StatelessWidget {
   final String subtitle;
   final Widget child;
 
-  /// A number in a badge before the title, for the sections that are a
-  /// sequence.
-  ///
-  /// The voice section is the one that needed it: picking who reads the ad and
-  /// deciding how they read it are two jobs, in that order, and a page of four
-  /// equal cards said neither. Zero -- the default -- draws no badge, which is
-  /// right everywhere the cards are a list of subjects rather than steps.
-  final int step;
-
-  /// One control on the right of the heading: the thing you do to this section
-  /// as a whole rather than to any field in it.
+  /// One control or one figure on the right of the heading: what this section
+  /// holds, or the thing you do to it as a whole.
   final Widget? action;
 
   @override
@@ -1095,10 +1235,6 @@ class _SectionCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (step > 0) ...[
-                _StepBadge(step: step),
-                const SizedBox(width: 10),
-              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1118,6 +1254,8 @@ class _SectionCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: mq.textTertiary,
                           fontSize: MqTheme.fontSmall,
@@ -1142,39 +1280,6 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
-/// The number before a step's title.
-class _StepBadge extends StatelessWidget {
-  const _StepBadge({required this.step});
-
-  final int step;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Container(
-      width: 24,
-      height: 24,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-        border: Border.all(color: mq.border),
-      ),
-      child: Text(
-        '$step',
-        style: TextStyle(
-          color: mq.textSecondary,
-          fontSize: MqTheme.fontSmall,
-          fontWeight: FontWeight.w600,
-          height: 1,
-          fontFeatures: const [FontFeature.tabularFigures()],
-        ),
-      ),
-    );
-  }
-}
-
 /// A grey line under a field.
 class _Hint extends StatelessWidget {
   const _Hint(this.text);
@@ -1185,6 +1290,8 @@ class _Hint extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
       style: TextStyle(
         color: context.mq.textTertiary,
         fontSize: MqTheme.fontSmall,
@@ -1195,20 +1302,25 @@ class _Hint extends StatelessWidget {
 }
 
 /// A row of the section rail.
+///
+/// The dot is amber and five pixels across, and it is the only thing on the
+/// rail that is not greyscale: "there is something here you have not answered"
+/// is worth a colour, and a count in a pill would be a number nobody can act on
+/// -- there is never more than one thing missing per section.
 class _RailRow extends StatelessWidget {
   const _RailRow({
     required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
-    this.count = 0,
+    this.unfinished = false,
   });
 
   final String icon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final int count;
+  final bool unfinished;
 
   @override
   Widget build(BuildContext context) {
@@ -1248,22 +1360,16 @@ class _RailRow extends StatelessWidget {
                 ),
               ),
             ),
-            if (count > 0) ...[
+            if (unfinished) ...[
               const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                  color: mq.surfaceTertiary,
-                  borderRadius: BorderRadius.circular(MqTheme.radiusPill),
-                ),
-                child: Text(
-                  '$count',
-                  style: TextStyle(
-                    color: mq.textSecondary,
-                    fontSize: MqTheme.fontMicro,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
-                    fontFeatures: const [FontFeature.tabularFigures()],
+              Tooltip(
+                message: tr('Something here is not finished'),
+                child: Container(
+                  width: 5,
+                  height: 5,
+                  decoration: BoxDecoration(
+                    color: mq.warning,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
@@ -1307,157 +1413,92 @@ class _Pill extends StatelessWidget {
   }
 }
 
-/// A label-and-value list, for the facts nobody edits here.
-class _Facts extends StatelessWidget {
-  const _Facts({required this.rows});
-
-  final List<({String icon, String label, String value})> rows;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radius),
-        border: Border.all(color: mq.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < rows.length; ++i) ...[
-            if (i > 0) ...[
-              const SizedBox(height: 7),
-              Container(height: 1, color: mq.borderSubtle),
-              const SizedBox(height: 7),
-            ],
-            Row(
-              children: [
-                MqIcon(rows[i].icon, size: 14, color: mq.textTertiary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    rows[i].label,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textSecondary,
-                      fontSize: MqTheme.fontSmall,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    rows[i].value,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontSmall,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// One tile of the overview's summary: what a section holds, and a way into it.
-class _SummaryTile extends StatelessWidget {
-  const _SummaryTile({
+/// One tile of the overview's grid: what a section holds, and the way into it.
+///
+/// It says the *state*, not the count of things in it -- "No reference
+/// picture", "Audrey - Energetic Commercial" -- because the state is the thing
+/// somebody is checking, and it is amber when the state is "nobody has
+/// answered this yet".
+class _StatusTile extends StatelessWidget {
+  const _StatusTile({
     required this.icon,
     required this.title,
     required this.value,
-    required this.action,
     required this.onTap,
+    this.warn = false,
   });
 
   final String icon;
   final String title;
   final String value;
-  final String action;
   final VoidCallback onTap;
+  final bool warn;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return SizedBox(
-      width: 148,
-      child: Pressable(
-        onTap: onTap,
-        snap: true,
-        focusRadius: MqTheme.radius,
-        builder: (context, states) => AnimatedContainer(
-          duration: states.duration,
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
-            borderRadius: BorderRadius.circular(MqTheme.radius),
-            border: Border.all(
-              color: states.active ? mq.borderStrong : mq.border,
+    return Pressable(
+      onTap: onTap,
+      snap: true,
+      focusRadius: MqTheme.radius,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+          border: Border.all(
+            color: states.active ? mq.borderStrong : mq.border,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: mq.surface,
+                borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+                border: Border.all(color: mq.border),
+              ),
+              child: MqIcon(icon, size: 16, color: mq.textSecondary),
             ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: mq.surface,
-                  borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                  border: Border.all(color: mq.border),
-                ),
-                child: MqIcon(icon, size: 15, color: mq.textSecondary),
+            const SizedBox(width: MqTheme.gap),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: mq.textPrimary,
+                      fontSize: MqTheme.fontLabel,
+                      fontWeight: FontWeight.w600,
+                      height: MqTheme.lineTight,
+                    ),
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    value,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: warn ? mq.warningText : mq.textTertiary,
+                      fontSize: MqTheme.fontSmall,
+                      height: MqTheme.lineTight,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontLabel,
-                  fontWeight: FontWeight.w600,
-                  height: MqTheme.lineTight,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontSmall,
-                  height: MqTheme.lineTight,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                action,
-                style: TextStyle(
-                  color: mq.textPrimary,
-                  fontSize: MqTheme.fontSmall,
-                  fontWeight: FontWeight.w600,
-                  decoration: states.active
-                      ? TextDecoration.underline
-                      : TextDecoration.none,
-                  decorationColor: mq.textPrimary,
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            MqIcon('arrow-right-s-line', size: 18, color: mq.textTertiary),
+          ],
         ),
       ),
     );
@@ -1469,14 +1510,19 @@ class _StripTile extends StatelessWidget {
   const _StripTile({
     required this.path,
     required this.name,
-    required this.selected,
     required this.onTap,
+    this.selected = false,
+    this.isClip = false,
   });
 
   final String path;
   final String name;
-  final bool selected;
   final VoidCallback onTap;
+  final bool selected;
+
+  /// The filmed take rather than a look: it opens in the previewer instead of
+  /// going into the frame above, and carries a play badge to say so.
+  final bool isClip;
 
   @override
   Widget build(BuildContext context) {
@@ -1503,15 +1549,34 @@ class _StripTile extends StatelessWidget {
           ),
         ),
         clipBehavior: Clip.antiAlias,
-        child: path.isEmpty
-            ? Center(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (path.isEmpty)
+              Center(
                 child: MqIcon(
-                  'user-smile-line',
+                  isClip ? 'file-video-line' : 'user-smile-line',
                   size: 15,
                   color: mq.textTertiary,
                 ),
               )
-            : LocalImage(path),
+            else
+              LocalImage(path),
+            if (isClip)
+              Center(
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: mq.overlay,
+                    shape: BoxShape.circle,
+                  ),
+                  child: MqIcon('play-fill', size: 12, color: mq.textInverse),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

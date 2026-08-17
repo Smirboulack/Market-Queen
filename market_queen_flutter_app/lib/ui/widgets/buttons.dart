@@ -433,12 +433,19 @@ class GhostButton extends StatelessWidget {
     this.enabled = true,
     this.checked = false,
     this.canRequestFocus = true,
+    this.icon = '',
   });
 
   final String text;
   final VoidCallback? onPressed;
   final bool destructive;
   final bool enabled;
+
+  /// A glyph before the label, for the buttons that name an object rather than
+  /// a step -- reshooting the photograph, deleting the actor. Empty everywhere
+  /// else: a row of glyphs on buttons that only differ in their verb reads as
+  /// decoration.
+  final String icon;
 
   /// For the two-state ghosts (Show / Hide on a key field).
   final bool checked;
@@ -475,29 +482,154 @@ class GhostButton extends StatelessWidget {
           _ => (Colors.transparent, mq.border),
         };
 
+        final ink = !states.enabled
+            ? mq.textDisabled
+            : destructive
+            ? mq.errorText
+            : mq.textPrimary;
+
         return AnimatedContainer(
           duration: states.duration,
           height: 34,
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          alignment: Alignment.center,
+          // No `alignment`, and that is the whole difference between a button
+          // and a bar: a Container that is told to align its child fills every
+          // bounded box it is put in, so two of these in a `Wrap` came out full
+          // width and stacked instead of sitting side by side. The row centres
+          // the label for the call sites that *do* stretch it.
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
             border: Border.all(color: line),
           ),
-          child: Text(
-            text,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: !states.enabled
-                  ? mq.textDisabled
-                  : destructive
-                  ? mq.errorText
-                  : mq.textPrimary,
-              fontSize: MqTheme.fontLabel,
-              fontWeight: FontWeight.w500,
-              letterSpacing: MqTheme.trackSmall,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon.isNotEmpty) ...[
+                MqIcon(
+                  icon,
+                  size: 15,
+                  // The glyph is a step quieter than the label at rest, and
+                  // catches up with it under the pointer -- the same two
+                  // colours the label already moves between.
+                  color: !states.enabled
+                      ? mq.textDisabled
+                      : destructive || states.active
+                      ? ink
+                      : mq.textSecondary,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Text(
+                  text,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: ink,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: MqTheme.trackSmall,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// The action that commits a section, filled with ink.
+///
+/// It sits between [GhostButton] and [PrimaryButton], and the gap it fills is
+/// real: generating three voices, keeping one and cloning one all spend money
+/// on the provider, so an outline is too quiet for them -- but the brand ramp
+/// belongs to the button that saves the whole screen, and two ramps on one card
+/// name neither.
+class SolidButton extends StatelessWidget {
+  const SolidButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.enabled = true,
+    this.loading = false,
+    this.icon = '',
+    this.tooltip = '',
+  });
+
+  final String text;
+  final VoidCallback? onPressed;
+  final bool enabled;
+
+  /// The work this button starts is out. Its label is the caller's to change --
+  /// "Keeping…" -- and this only stops it being pressed twice.
+  final bool loading;
+
+  final String icon;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final active = enabled && !loading && onPressed != null;
+
+    return Pressable(
+      enabled: active,
+      onTap: onPressed,
+      tooltip: tooltip,
+      builder: (context, states) {
+        final fill = !states.enabled
+            ? mq.surfaceTertiary
+            : states.pressed
+            ? mq.primaryActive
+            : states.hovered
+            ? mq.primaryHover
+            : mq.primary;
+        final ink = states.enabled ? mq.onPrimary : mq.textDisabled;
+
+        return AnimatedContainer(
+          duration: states.duration,
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: fill,
+            borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (loading) ...[
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation(mq.textDisabled),
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ] else if (icon.isNotEmpty) ...[
+                MqIcon(icon, size: 15, color: ink),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Text(
+                  text,
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                  style: TextStyle(
+                    color: ink,
+                    fontSize: MqTheme.fontLabel,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: MqTheme.trackSmall,
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },

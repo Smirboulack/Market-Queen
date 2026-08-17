@@ -444,6 +444,46 @@ class VoiceOption {
   final String description;
 }
 
+/// A voice the user actually keeps, as against one they could pick.
+///
+/// [VoiceOption] answers "what can this provider say a line with"; this answers
+/// "what is on my shelf" -- which is a different question with different
+/// consequences, because everything here was either designed, cloned or saved
+/// on purpose and deleting one takes it off every actor using it.
+///
+/// [sharedId] is the whole reason this is not a [VoiceOption]. A voice adopted
+/// out of the shared library gets a fresh id on the account, so the shortlist
+/// row and the shelf entry for one voice carry two different ids; without the
+/// original the interface cannot tell that the row you are looking at is
+/// already saved, and offers to save it again.
+class AccountVoice {
+  const AccountVoice({
+    required this.id,
+    this.name = '',
+    this.category = '',
+    this.description = '',
+    this.previewUrl = '',
+    this.sharedId = '',
+  });
+
+  final String id;
+  final String name;
+
+  /// ElevenLabs' own word for where it came from: `premade`, `cloned`,
+  /// `generated` or `professional`.
+  final String category;
+
+  final String description;
+  final String previewUrl;
+
+  /// The shared-library id this was adopted from, empty when it was not.
+  final String sharedId;
+
+  /// Whether the user made this one, as against it being stock. The shelf shows
+  /// only theirs: twenty premade voices nobody chose are not "my voices".
+  bool get mine => category.isNotEmpty && category != 'premade';
+}
+
 /// A voice a search turned up, with the metadata it was matched on.
 ///
 /// The metadata travels with the voice so the interface can show *why* it is on

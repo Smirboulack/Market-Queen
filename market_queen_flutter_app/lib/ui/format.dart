@@ -36,6 +36,17 @@ class Format {
     );
   }
 
+  /// A position on a transport: "0:07", "1:12".
+  ///
+  /// Not [seconds], which measures a clip and is prose. This one is read while
+  /// it moves, so it is a clock -- fixed shape, tabular figures at the call
+  /// site -- and untranslated, because a colon between minutes and seconds is
+  /// what every media player on every desktop shows.
+  static String clock(Duration span) {
+    final total = span.inSeconds < 0 ? 0 : span.inSeconds;
+    return '${total ~/ 60}:${(total % 60).toString().padLeft(2, '0')}';
+  }
+
   /// A date on its own, for the facts nobody edits. Same pattern the library
   /// page uses, without the time: an actor made this morning and one made this
   /// afternoon are both "today" as far as anybody cares.

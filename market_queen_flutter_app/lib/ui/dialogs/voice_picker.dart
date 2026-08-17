@@ -1,14 +1,14 @@
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:path/path.dart' as p;
 
 import '../../app_state.dart';
-import '../../i18n/translator.dart';
 import '../../core/http_util.dart';
+import '../../i18n/translator.dart';
 import '../../models/actor_smith.dart';
 import '../../models/asset_library.dart';
 import '../../models/voice_forge.dart';
+import '../../models/voice_shelf.dart';
 import '../../providers/types.dart';
 import '../../providers/voice_profile.dart';
 import '../format.dart';
@@ -18,32 +18,48 @@ import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
 import '../widgets/fields.dart';
 import '../widgets/media_drop.dart';
+import '../widgets/mq_dialog.dart';
+import '../widgets/voice_player.dart';
 
-/// The three ways an actor ends up with a voice.
+/// The four ways an actor ends up with a voice.
 ///
-/// They are genuinely different operations rather than three presets of one,
-/// and the difference the user has to understand is about truth rather than
-/// technique:
+/// The last three are genuinely different operations rather than three presets
+/// of one, and the difference the user has to understand is about truth rather
+/// than technique:
 ///
 ///  * [library] picks somebody who already exists and can be listened to first.
 ///  * [design] invents one from a description. It sounds like the brief; it is
 ///    nobody.
 ///  * [clone] copies a real voice off a recording, and is the only one of the
 ///    three where the app may say the voice *is* somebody's.
-enum VoiceRoute { library, design, clone }
+///
+/// [mine] is not a fourth way of making one: it is everything the other three
+/// already made. It exists because designing and cloning leave something
+/// permanent on the account, and without a list of what is up there a voice
+/// made for one actor was invisible to the next -- so the second actor got a
+/// second design, and nobody could see, reuse or delete either.
+enum VoiceRoute { mine, library, design, clone }
 
-/// The voice step: pick one, invent one, or clone one.
+/// The voice section: who reads the ad, and how.
 ///
 /// Writes onto [draft] and nowhere else -- the caller decides when that draft
 /// reaches the library -- so the same panel serves the creation wizard and the
 /// editor's Voice section without either knowing about the other.
+///
+/// It does not play anything itself. Every disc on it drives [transport], which
+/// belongs to the screen: the row you press and the player under the portrait
+/// are two views of one transport, which is what stops three things playing at
+/// once and what lets the card show the progress of a row you scrolled past.
 class VoicePicker extends StatefulWidget {
   const VoicePicker({
     super.key,
     required this.app,
     required this.draft,
+    required this.transport,
     required this.onChanged,
     this.suggestedDescription = '',
+    this.bodyHeight = 330,
+    this.showDials = true,
   });
 
   final AppState app;
@@ -51,19 +67,36 @@ class VoicePicker extends StatefulWidget {
   /// The actor being given a voice. Mutated in place.
   final LibraryAsset draft;
 
+  /// The screen's one player.
+  final AudioTransport transport;
+
   final VoidCallback onChanged;
 
   /// What the design box opens on. Filled in by the from-image route, where a
   /// vision model has already proposed one; empty everywhere else.
   final String suggestedDescription;
 
+  /// How tall the route's own panel is when nobody has said.
+  ///
+  /// Two hosts, two answers. The editor gives this a card of a known height and
+  /// wants the catalogue to be the one thing on the page that scrolls, so the
+  /// panel takes whatever the tabs and the dials left. The wizard drops it into
+  /// a scroll view, where there is no height to take a share of and a
+  /// [Flexible] is an assertion rather than a layout -- so it gets this number
+  /// instead. Which one applies is read off the constraints rather than passed
+  /// in, so neither caller has to know the other exists.
+  final double bodyHeight;
+
+  /// The four interpretation dials, docked under the routes. Off in the wizard,
+  /// where the actor has no voice yet and the dials would be four sliders for
+  /// nobody.
+  final bool showDials;
+
   @override
   State<VoicePicker> createState() => _VoicePickerState();
 }
 
 class _VoicePickerState extends State<VoicePicker> {
-  Player? _player;
-
   VoiceRoute _route = VoiceRoute.library;
 
   // ---- the library search
@@ -96,9 +129,21 @@ class _VoicePickerState extends State<VoicePicker> {
   final List<String> _samples = [];
   final TextEditingController _cloneName = TextEditingController();
 
+  /// The most anybody may type into the two free-text boxes on this panel.
+  ///
+  /// The brief is a paragraph, not an essay: the design endpoint reads the
+  /// first few sentences and a wall of text is how somebody ends up paying for
+  /// three takes of a description that was never going to fit.
+  static const int _briefLimit = 250;
+  static const int _nameLimit = 50;
+
   LibraryAsset get _draft => widget.draft;
 
   VoiceForge get _forge => widget.app.voiceForge;
+
+  VoiceShelf get _shelf => widget.app.voiceShelf;
+
+  AudioTransport get _transport => widget.transport;
 
   @override
   void initState() {
@@ -108,6 +153,8 @@ class _VoicePickerState extends State<VoicePicker> {
     // designed voices somebody had already been billed for. Whoever opened the
     // screen resets the forge, once.
     _forge.addListener(_repaint);
+    _shelf.addListener(_repaint);
+    _transport.addListener(_repaint);
     // Straight to designing when somebody has already written the brief: the
     // from-image route arrives here with a voice profile in hand, and making
     // the user re-choose the door they came through is a step for nothing.
@@ -116,15 +163,17 @@ class _VoicePickerState extends State<VoicePicker> {
     }
     _seedBrief();
     _search();
+    _shelf.load();
   }
 
   @override
   void dispose() {
     _forge.removeListener(_repaint);
+    _shelf.removeListener(_repaint);
+    _transport.removeListener(_repaint);
     _description.dispose();
     _cloneName.dispose();
     _byName.dispose();
-    _player?.dispose();
     super.dispose();
   }
 
@@ -132,13 +181,8 @@ class _VoicePickerState extends State<VoicePicker> {
     if (mounted) setState(() {});
   }
 
-  void _play(String source) {
-    if (source.isEmpty) return;
-    (_player ??= Player()).open(Media(source));
-  }
-
   /// Puts a chosen voice on the actor. [kind] is what the card and the editor
-  /// show as its provenance, and it is the only place the three routes are
+  /// show as its provenance, and it is the only place the four routes are
   /// distinguishable after the fact.
   void _adopt({
     required String voiceId,
@@ -146,6 +190,7 @@ class _VoicePickerState extends State<VoicePicker> {
     String ownerId = '',
     required String kind,
     String description = '',
+    String preview = '',
   }) {
     _draft
       ..setExtra('voiceId', voiceId)
@@ -155,7 +200,11 @@ class _VoicePickerState extends State<VoicePicker> {
       ..setExtra('voiceOwner', ownerId)
       ..setExtra('voiceName', name)
       ..setExtra('voiceKind', kind)
-      ..setExtra('voiceDescription', description);
+      ..setExtra('voiceDescription', description)
+      // What the player under the portrait plays when nothing has been
+      // auditioned yet. The provider's own sample, so hearing the voice you
+      // just cast is free from every section of the editor.
+      ..setExtra('voicePreview', preview);
     setState(() {});
     widget.onChanged();
   }
@@ -256,7 +305,9 @@ class _VoicePickerState extends State<VoicePicker> {
     if (_shortlist.isEmpty) return tr('No voice matches this brief.');
     if (_relaxed.isEmpty) {
       //: %1 is a number of voices
-      return tr('%1 voice(s) match').arg(_shortlist.length);
+      return tr('%1 voice(s) match the brief — a row casts one, the ribbon '
+              'keeps it')
+          .arg(_shortlist.length);
     }
     final dropped = _relaxed.map(VoiceProfile.filterLabel).join(tr(', '));
     //: %1 is a number of voices, %2 a list of criteria such as "age, tone"
@@ -277,11 +328,15 @@ class _VoicePickerState extends State<VoicePicker> {
     if (!mounted) return;
     // Playing the first take straight away: the whole point of three is to
     // compare them, and a silent list of three identical rows is not a choice.
-    if (_forge.takes.isNotEmpty) _play(_forge.takes.first.path);
+    if (_forge.takes.isNotEmpty) {
+      setState(() => _picked = 0);
+      _transport.toggle(_forge.takes.first.path);
+    }
   }
 
   Future<void> _keepDesigned() async {
     if (_picked < 0) return;
+    final take = _forge.takes[_picked];
     final kept = await _forge.keep(
       index: _picked,
       name: _voiceNameFor(),
@@ -294,7 +349,12 @@ class _VoicePickerState extends State<VoicePicker> {
       name: kept.name,
       kind: 'designed',
       description: _description.text.trim(),
+      // The take on disk, which is the only recording of this voice that
+      // exists until somebody asks it to read a line.
+      preview: take.path,
     );
+    // It is on the account now, so the shelf has one more voice on it.
+    await _shelf.load(refresh: true);
   }
 
   /// Whether the chosen engine will read a recording at all. v2 ignores one,
@@ -342,106 +402,248 @@ class _VoicePickerState extends State<VoicePicker> {
       kind: 'cloned',
       description: tr('Cloned from your own recordings.'),
     );
+    await _shelf.load(refresh: true);
+  }
+
+  // ---- the shelf -----------------------------------------------------------
+
+  /// Saves a shared-library voice onto the account, so the next actor can be
+  /// given it without going through the search again.
+  Future<void> _keepShared(LibraryVoice voice) async {
+    final kept = await _shelf.keep(
+      voiceId: voice.id,
+      ownerId: voice.ownerId,
+      name: voice.name,
+    );
+    if (!mounted || kept.isEmpty) return;
+    // Keeping the voice the actor is already reading means the actor should
+    // read the account's own copy: that is the id text-to-speech accepts.
+    if (_draft.extraText('voiceId') == voice.id) {
+      _draft
+        ..setExtra('voiceId', kept)
+        ..setExtra('voiceOwner', '');
+      widget.onChanged();
+    }
+  }
+
+  /// Takes a voice off the account for good.
+  ///
+  /// Asked about first, and in the words that matter: this is not the cross on
+  /// the player, which only takes the voice off this one actor.
+  Future<void> _deleteKept(AccountVoice voice) async {
+    final confirmed = await askToConfirm(
+      context,
+      //: %1 is a voice's name
+      title: tr('Delete "%1" from your account?').arg(voice.name),
+      message: tr('It goes off every actor using it, and off the provider. '
+          'Taking a voice off one actor is the cross on the player instead.'),
+      confirmLabel: tr('Delete'),
+    );
+    if (!confirmed || !mounted) return;
+
+    final gone = await _shelf.remove(voice.id);
+    if (!gone || !mounted) return;
+
+    // The actor was reading it. Saying nothing here would leave a name on the
+    // card for a voice that no longer exists.
+    if (_draft.extraText('voiceId') == voice.id) {
+      _adopt(voiceId: '', name: '', kind: '');
+      _transport.clear();
+    }
   }
 
   // ---- build ---------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _chosenRow(),
-        const SizedBox(height: MqTheme.gap),
-        // One word each. The heading above already says these are voices, and
-        // three "... a voice" labels is the same noun three times in a control
-        // narrow enough that the noun is what gets cut.
-        SegmentedControl<VoiceRoute>(
-          value: _route,
-          options: [
-            MenuEntry(tr('Library'), VoiceRoute.library),
-            MenuEntry(tr('Design'), VoiceRoute.design),
-            MenuEntry(tr('Clone'), VoiceRoute.clone),
-          ],
-          onPicked: (route) => setState(() => _route = route),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        switch (_route) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final measured = constraints.hasBoundedHeight;
+        final route = switch (_route) {
+          VoiceRoute.mine => _mineRoute(),
           VoiceRoute.library => _libraryRoute(),
           VoiceRoute.design => _designRoute(),
           VoiceRoute.clone => _cloneRoute(),
-        },
-      ],
+        };
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: measured ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            _tabs(),
+            const SizedBox(height: MqTheme.gap),
+            if (measured)
+              Expanded(child: route)
+            else
+              SizedBox(height: widget.bodyHeight, child: route),
+            if (widget.showDials) _dials(),
+          ],
+        );
+      },
     );
   }
 
-  /// Who is cast right now, and where they came from. Always on screen, in
-  /// every mode: it is what the three tabs are competing to change, and a
-  /// choice you cannot see is one you make twice.
-  Widget _chosenRow() {
+  /// The four doors, as one control.
+  ///
+  /// A segmented control rather than the app's [SegmentedControl] because these
+  /// carry glyphs: four one-word labels in a row are four grey words, and the
+  /// ribbon, the shelf, the wand and the waveform are what make them readable
+  /// at a glance in any language.
+  Widget _tabs() {
     final mq = context.mq;
-    final name = _draft.extraText('voiceName');
-    final kind = _draft.extraText('voiceKind');
 
-    final provenance = switch (kind) {
-      'designed' => tr('Designed · ElevenLabs'),
-      'cloned' => tr('Cloned from your recordings · ElevenLabs'),
-      'library' => tr('Voice library · ElevenLabs'),
-      _ => '',
-    };
+    const routes = <(VoiceRoute, String)>[
+      (VoiceRoute.mine, 'bookmark-line'),
+      (VoiceRoute.library, 'music-library-line'),
+      (VoiceRoute.design, 'magic-line'),
+      (VoiceRoute.clone, 'sound-module-line'),
+    ];
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+      height: 34,
+      padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
         color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radius),
-        border: Border.all(color: name.isEmpty ? mq.border : mq.borderStrong),
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        border: Border.all(color: mq.border),
       ),
       child: Row(
         children: [
-          MqIcon(
-            name.isEmpty ? 'mic-line' : 'user-voice-line',
-            size: 17,
-            color: name.isEmpty ? mq.textTertiary : mq.primary,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name.isEmpty ? tr('No voice yet') : name,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: name.isEmpty ? mq.textTertiary : mq.textPrimary,
-                    fontSize: MqTheme.fontBody,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (provenance.isNotEmpty)
-                  Text(
-                    provenance,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textTertiary,
-                      fontSize: MqTheme.fontSmall,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (name.isNotEmpty)
-            MqIconButton(
-              icon: 'close-line',
-              tip: tr('Take the voice off'),
-              size: 26,
-              onPressed: () => _adopt(voiceId: '', name: '', kind: ''),
+          for (final (route, icon) in routes)
+            Expanded(
+              child: _Tab(
+                icon: icon,
+                label: labelForRoute(route),
+                selected: _route == route,
+                onTap: () => setState(() => _route = route),
+              ),
             ),
         ],
       ),
     );
+  }
+
+  /// What each door is called. Public so the editor's rail and this control
+  /// cannot drift apart.
+  static String labelForRoute(VoiceRoute route) => switch (route) {
+        VoiceRoute.mine => tr('My voices'),
+        VoiceRoute.library => tr('Library'),
+        VoiceRoute.design => tr('Design'),
+        VoiceRoute.clone => tr('Clone'),
+      };
+
+  // ---- route: my voices ----------------------------------------------------
+
+  Widget _mineRoute() {
+    final mq = context.mq;
+    final kept = _shelf.voices;
+    final chosen = _draft.extraText('voiceId');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Expanded(
+              child: Text(
+                tr('The voices kept on your provider account. Reusable on any '
+                    'actor.'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                  height: MqTheme.lineTight,
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            if (kept.isNotEmpty)
+              Text(
+                //: %1 is a number of voices
+                tr('%1 voice(s)').arg(kept.length),
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Expanded(
+          child: _Panel(
+            child: kept.isEmpty
+                ? _Empty(
+                    text: _shelf.loading
+                        ? tr('Reading your account…')
+                        : _shelf.error.isNotEmpty
+                        ? _shelf.error
+                        : !_shelf.ready
+                        ? tr('Add your ElevenLabs key under Models to see the '
+                            'voices on your account.')
+                        : tr('Nothing kept yet. Design one, clone one, or save '
+                            'one from the library with the ribbon.'),
+                    isError: _shelf.error.isNotEmpty,
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(4),
+                    itemCount: kept.length,
+                    itemBuilder: (context, index) {
+                      final voice = kept[index];
+                      return _VoiceRow(
+                        transport: _transport,
+                        name: voice.name,
+                        detail: _keptDetail(voice),
+                        source: voice.previewUrl,
+                        chosen: voice.id == chosen,
+                        onChoose: () => _adopt(
+                          voiceId: voice.id,
+                          name: voice.name,
+                          kind: switch (voice.category) {
+                            'generated' => 'designed',
+                            'cloned' || 'professional' => 'cloned',
+                            _ => 'library',
+                          },
+                          description: voice.description,
+                          preview: voice.previewUrl,
+                        ),
+                        trailing: _RowAction(
+                          icon: 'delete-bin-line',
+                          tip: tr('Delete from your provider account'),
+                          destructive: true,
+                          enabled: !_shelf.working,
+                          onTap: () => _deleteKept(voice),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          tr('Deleting a voice takes it off the account and off every actor '
+              'using it. The cross on the player only takes it off this one.'),
+          style: TextStyle(
+            color: mq.textTertiary,
+            fontSize: MqTheme.fontSmall,
+            height: MqTheme.lineTight,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Where a kept voice came from and what it costs to keep -- the line under
+  /// its name.
+  String _keptDetail(AccountVoice voice) {
+    final parts = <String>[
+      VoiceShelf.provenanceOf(voice),
+      if (voice.description.isNotEmpty) voice.description,
+    ];
+    return parts.join(' · ');
   }
 
   // ---- route: the library --------------------------------------------------
@@ -457,89 +659,98 @@ class _VoicePickerState extends State<VoicePicker> {
   }
 
   Widget _libraryRoute() {
+    final mq = context.mq;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
         _filterBar(),
         const SizedBox(height: 10),
-        _voiceList(),
-        const SizedBox(height: 7),
-        _resultFooter(),
+        Expanded(child: _voiceList()),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                _searchError.isEmpty ? _resultLine : _searchError,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _searchError.isEmpty ? mq.textTertiary : mq.error,
+                  fontSize: MqTheme.fontSmall,
+                  height: MqTheme.lineTight,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            MqIconButton(
+              icon: _searching ? 'loader-4-line' : 'refresh-line',
+              tip: tr('Search the library again'),
+              size: 26,
+              enabled: !_searching,
+              onPressed: () => _search(refresh: true),
+            ),
+          ],
+        ),
       ],
     );
   }
 
-  /// One line of filters, and a box to find a voice by name.
+  /// The brief, on one line.
   ///
-  /// It was a loose Wrap of five chips of five different widths, none of which
-  /// said what it was until you had read its value -- so the row read as a pile
-  /// rather than as a brief. They are one shape now, each naming its own field,
-  /// and the search box is pinned to the right where a search box goes.
+  /// Five chips carrying their values and nothing else. They used to read
+  /// "Language · Same as the ad", "Gender · Female", "Age · Any" -- the field
+  /// names taking two thirds of the row to say what the glyphs already say,
+  /// while the values, which are the thing being scanned, were pushed off the
+  /// end. The name is on hover, and an unset chip says "Any age" rather than
+  /// going blank.
   Widget _filterBar() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final chips = Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            MqPickChip(
-              label: tr('Language'),
-              icon: 'translate-line',
-              menuWidth: 260,
-              value: _draft.extraText('voiceLocale'),
-              options: [
-                MenuOption(tr('Same as the ad'), ''),
-                for (final locale in VoiceLocale.all)
-                  MenuOption(locale.menuLabel, locale.id),
-              ],
-              onPicked: (value) => _briefChanged('voiceLocale', value),
-            ),
-            for (final trait in VoiceTrait.all)
-              MqPickChip(
-                label: trait.label,
-                icon: _traitIcons[trait.key] ?? '',
-                value: _draft.extraText(trait.key),
-                onPicked: (value) => _briefChanged(trait.key, value),
-                options: [
-                  // Taking a filter off has to be as easy as putting it on, and
-                  // an empty one widens the search rather than emptying it.
-                  MenuOption(tr('Any'), ''),
-                  for (final option in trait.options)
-                    MenuOption(option.$1, option.$2),
-                ],
-              ),
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        MqPickChip(
+          label: tr('Language'),
+          icon: 'translate-line',
+          compact: true,
+          menuWidth: 260,
+          value: _draft.extraText('voiceLocale'),
+          options: [
+            MenuOption(tr('Same as the ad'), ''),
+            for (final locale in VoiceLocale.all)
+              MenuOption(locale.menuLabel, locale.id),
           ],
-        );
-
-        final search = SizedBox(
-          width: 176,
-          child: _NameSearch(
-            controller: _byName,
-            onChanged: (_) => setState(() {}),
+          onPicked: (value) => _briefChanged('voiceLocale', value),
+        ),
+        for (final trait in VoiceTrait.all)
+          MqPickChip(
+            label: trait.label,
+            icon: _traitIcons[trait.key] ?? '',
+            compact: true,
+            value: _draft.extraText(trait.key),
+            onPicked: (value) => _briefChanged(trait.key, value),
+            options: [
+              // Taking a filter off has to be as easy as putting it on, and an
+              // empty one widens the search rather than emptying it. Its label
+              // names the field, because in a compact chip it is the only
+              // wording an unset filter has.
+              MenuOption(_anyLabel(trait.key), ''),
+              for (final option in trait.options)
+                MenuOption(option.$1, option.$2),
+            ],
           ),
-        );
-
-        // Stacked on a narrow card: a 176px box beside five chips leaves the
-        // chips two to a line and the box unreadable.
-        if (constraints.maxWidth < 520) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [chips, const SizedBox(height: 8), search],
-          );
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: chips),
-            const SizedBox(width: 10),
-            search,
-          ],
-        );
-      },
+      ],
     );
   }
+
+  /// What "no filter" is called, per field. One phrase each rather than four
+  /// chips all reading "Any".
+  static String _anyLabel(String key) => switch (key) {
+        'voiceGender' => tr('Any gender'),
+        'voiceAge' => tr('Any age'),
+        'voiceUse' => tr('Any use'),
+        _ => tr('Any tone'),
+      };
 
   /// A glyph per filter, so a row of five reads as five different questions
   /// rather than as five grey pills.
@@ -551,86 +762,66 @@ class _VoicePickerState extends State<VoicePicker> {
   };
 
   Widget _voiceList() {
-    final mq = context.mq;
     final chosen = _draft.extraText('voiceId');
     final voices = _listed;
 
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 262),
-      decoration: BoxDecoration(
-        color: mq.surfaceSecondary,
-        borderRadius: BorderRadius.circular(MqTheme.radius),
-        border: Border.all(color: mq.border),
-      ),
-      child: voices.isEmpty
-          ? Padding(
-              padding: const EdgeInsets.all(14),
-              child: Text(
-                _searching
-                    ? ''
-                    : _byName.text.trim().isNotEmpty
-                    ? tr('No voice by that name in this shortlist.')
-                    : tr('Widen the brief, or reload.'),
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontSmall,
-                ),
-              ),
-            )
-          : ListView.builder(
-              shrinkWrap: true,
-              padding: const EdgeInsets.all(4),
-              itemCount: voices.length,
-              itemBuilder: (context, index) {
-                final voice = voices[index];
-                return _VoiceRow(
-                  name: voice.name,
-                  tags: voiceTags(voice),
-                  chosen: voice.id == chosen,
-                  onChoose: () => _adopt(
-                    voiceId: voice.id,
-                    ownerId: voice.ownerId,
-                    name: voice.name,
-                    kind: 'library',
-                    description: describeVoice(voice),
-                  ),
-                  onPlay: voice.previewUrl.isEmpty
-                      ? null
-                      : () => _play(voice.previewUrl),
-                  //: Playing the provider's own sample costs nothing
-                  playTip: tr('Listen — free'),
-                );
-              },
-            ),
-    );
-  }
-
-  /// How many the brief found, and the way to ask again.
-  Widget _resultFooter() {
-    final mq = context.mq;
-
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            _searchError.isEmpty ? _resultLine : _searchError,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: _searchError.isEmpty ? mq.textTertiary : mq.error,
-              fontSize: MqTheme.fontSmall,
-              height: MqTheme.lineTight,
-            ),
+    return _Panel(
+      child: Column(
+        children: [
+          // The search box heads the panel it filters, rather than sitting off
+          // to the side of the chips: it does not narrow the brief, it narrows
+          // the answer, and the answer is what is underneath it.
+          _SearchHeader(
+            controller: _byName,
+            //: %1 is a number of voices
+            placeholder: tr('Find a name among the %1 voices found')
+                .arg(_shortlist.length),
+            onChanged: (_) => setState(() {}),
           ),
-        ),
-        MqIconButton(
-          icon: _searching ? 'loader-4-line' : 'refresh-line',
-          tip: tr('Search the library again'),
-          size: 28,
-          enabled: !_searching,
-          onPressed: () => _search(refresh: true),
-        ),
-      ],
+          Expanded(
+            child: voices.isEmpty
+                ? _Empty(
+                    text: _searching
+                        ? tr('Looking for voices...')
+                        : _byName.text.trim().isNotEmpty
+                        ? tr('No voice by that name in this shortlist.')
+                        : tr('Widen the brief, or reload.'),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(4),
+                    itemCount: voices.length,
+                    itemBuilder: (context, index) {
+                      final voice = voices[index];
+                      final saved = _shelf.holds(voice.id);
+                      return _VoiceRow(
+                        transport: _transport,
+                        name: voice.name,
+                        tags: voiceTags(voice),
+                        source: voice.previewUrl,
+                        chosen: voice.id == chosen,
+                        onChoose: () => _adopt(
+                          voiceId: voice.id,
+                          ownerId: voice.ownerId,
+                          name: voice.name,
+                          kind: 'library',
+                          description: describeVoice(voice),
+                          preview: voice.previewUrl,
+                        ),
+                        trailing: _RowAction(
+                          icon: saved ? 'bookmark-fill' : 'bookmark-line',
+                          tip: saved
+                              ? tr('Already in My voices')
+                              : tr('Keep in My voices'),
+                          lit: saved,
+                          enabled: !saved && !_shelf.working,
+                          onTap: () => _keepShared(voice),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -643,12 +834,12 @@ class _VoicePickerState extends State<VoicePicker> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
         LabeledArea(
           controller: _description,
           label: tr('What should the actor sound like?'),
-          areaHeight: 76,
+          areaHeight: 82,
+          maxLength: _briefLimit,
           placeholder: tr(
             'A young woman with a warm, slightly husky voice. American '
             'English, conversational, a little quick, like she is telling a '
@@ -659,6 +850,8 @@ class _VoicePickerState extends State<VoicePicker> {
         const SizedBox(height: 6),
         Text(
           ActorProfile.disclaimer,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: mq.textTertiary,
             fontSize: MqTheme.fontSmall,
@@ -676,6 +869,8 @@ class _VoicePickerState extends State<VoicePicker> {
                 children: [
                   MqPickChip(
                     label: tr('Engine'),
+                    icon: 'equalizer-line',
+                    compact: true,
                     value: _designModel,
                     options: [
                       for (final model in VoiceForge.designModels)
@@ -691,7 +886,7 @@ class _VoicePickerState extends State<VoicePicker> {
                   if (_takesReference)
                     MqChip(
                       label: _designReference.isEmpty
-                          ? tr('Add a recording')
+                          ? tr('Reference audio')
                           : p.basename(_designReference),
                       icon: 'file-music-line',
                       active: _designReference.isNotEmpty,
@@ -712,82 +907,109 @@ class _VoicePickerState extends State<VoicePicker> {
                 onPressed: _forge.cancel,
               )
             else
-              GhostButton(
+              SolidButton(
+                icon: 'magic-line',
                 text: cost.known
                     //: %1 is a price
                     ? tr('Generate 3 voices — %1')
                         .arg(Format.estimated(cost.amount))
                     : tr('Generate 3 voices'),
                 enabled: ready && _forge.ready && !_forge.busy,
+                tooltip: !_forge.ready
+                    ? tr('Add your ElevenLabs key under Models first.')
+                    : ready
+                    ? ''
+                    : tr('Describe the voice in a sentence or two first.'),
                 onPressed: _design,
               ),
           ],
         ),
-        if (!_forge.ready) ...[
-          const SizedBox(height: 8),
-          Text(
-            tr('Add your ElevenLabs key under Models first.'),
-            style: TextStyle(color: mq.warningText, fontSize: MqTheme.fontSmall),
-          ),
-        ],
         if (_forge.error.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
             _forge.error,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(color: mq.error, fontSize: MqTheme.fontSmall),
           ),
         ],
-        if (_forge.designing) ...[
-          const SizedBox(height: MqTheme.gap),
-          Text(
-            tr('Designing three voices…'),
-            style: TextStyle(color: mq.textTertiary, fontSize: MqTheme.fontSmall),
-          ),
-        ],
-        if (_forge.takes.isNotEmpty) ...[
-          const SizedBox(height: MqTheme.gap),
-          FieldLabel(tr('Listen, then keep one')),
-          const SizedBox(height: 8),
-          for (var i = 0; i < _forge.takes.length; ++i)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 6),
-              child: _VoiceRow(
-                //: %1 is a number: the first, second or third take
-                name: tr('Take %1').arg(i + 1),
-                detail: _forge.spokenText,
-                chosen: _picked == i,
-                onChoose: () {
-                  setState(() => _picked = i);
-                  _play(_forge.takes[i].path);
-                },
-                onPlay: () => _play(_forge.takes[i].path),
-                playTip: tr('Listen'),
-                framed: true,
-              ),
-            ),
-          const SizedBox(height: 6),
-          Row(
+        const SizedBox(height: MqTheme.gap + 2),
+        Expanded(child: _takes()),
+      ],
+    );
+  }
+
+  /// The three candidates, side by side.
+  ///
+  /// Three rows one under another invited reading them in order; three cards
+  /// invite comparing them, which is the whole reason there are three.
+  Widget _takes() {
+    final mq = context.mq;
+
+    if (_forge.takes.isEmpty) {
+      return _Panel(
+        child: _Empty(
+          text: _forge.designing
+              ? tr('Designing three voices…')
+              : tr('Three takes on the description appear here. Nothing is '
+                  'kept until you say so.'),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FieldLabel(tr('Listen, then keep one')),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(
-                child: Text(
-                  tr('Keeping one puts it on your ElevenLabs account. The '
-                      'other two are thrown away.'),
-                  style: TextStyle(
-                    color: mq.textTertiary,
-                    fontSize: MqTheme.fontSmall,
-                    height: MqTheme.lineTight,
+              for (var i = 0; i < _forge.takes.length; ++i) ...[
+                if (i > 0) const SizedBox(width: MqTheme.gap),
+                Expanded(
+                  child: _TakeCard(
+                    transport: _transport,
+                    //: %1 is a number: the first, second or third take
+                    label: tr('Take %1').arg(i + 1),
+                    source: _forge.takes[i].path,
+                    picked: _picked == i,
+                    onPick: () => setState(() => _picked = i),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              GhostButton(
-                text: _forge.keeping ? tr('Keeping…') : tr('Keep this voice'),
-                enabled: _picked >= 0 && !_forge.busy,
-                onPressed: _keepDesigned,
-              ),
+              ],
             ],
           ),
-        ],
+        ),
+        const SizedBox(height: MqTheme.gap),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                tr('Keeping a take adds it to My voices and gives it to the '
+                    'actor. The other two are thrown away.'),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontSmall,
+                  height: MqTheme.lineTight,
+                ),
+              ),
+            ),
+            const SizedBox(width: MqTheme.gap),
+            SolidButton(
+              text: _forge.keeping
+                  ? tr('Keeping…')
+                  //: %1 is a number: the first, second or third take
+                  : tr('Keep take %1').arg(_picked + 1),
+              loading: _forge.keeping,
+              enabled: _picked >= 0 && !_forge.busy,
+              onPressed: _keepDesigned,
+            ),
+          ],
+        ),
       ],
     );
   }
@@ -799,70 +1021,421 @@ class _VoicePickerState extends State<VoicePicker> {
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        MediaDropZone(
-          paths: _samples,
-          title: tr('Drop your recordings in'),
-          hint: tr('MP3, WAV or M4A. One clean minute beats ten noisy ones.'),
-          tileSize: 56,
-          onAdded: (paths) => setState(() {
-            for (final path in paths) {
-              if (isAudioPath(path) && !_samples.contains(path)) {
-                _samples.add(path);
+        Expanded(
+          child: MediaDropZone(
+            paths: _samples,
+            title: tr('Drop your recordings in'),
+            hint: tr('MP3, WAV or M4A. One clean minute beats ten noisy ones.'),
+            tileSize: 56,
+            onAdded: (paths) => setState(() {
+              for (final path in paths) {
+                if (isAudioPath(path) && !_samples.contains(path)) {
+                  _samples.add(path);
+                }
               }
-            }
-          }),
-          onRemoved: (index) => setState(() => _samples.removeAt(index)),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        LabeledField(
-          controller: _cloneName,
-          label: tr('Name for the voice'),
-          placeholder: _voiceNameFor(),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          tr('Only clone a voice you own or have permission to use. This one '
-              'really is the voice in your files.'),
-          style: TextStyle(
-            color: mq.textTertiary,
-            fontSize: MqTheme.fontSmall,
-            height: MqTheme.lineTight,
+            }),
+            onRemoved: (index) => setState(() => _samples.removeAt(index)),
           ),
         ),
         if (_forge.error.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
             _forge.error,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(color: mq.error, fontSize: MqTheme.fontSmall),
           ),
         ],
         const SizedBox(height: MqTheme.gap),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MqIconButton(
-              icon: 'attachment-line',
-              tip: tr('Add a recording'),
-              size: 32,
-              onPressed: _browseSamples,
-            ),
-            const Spacer(),
-            if (_forge.cloning)
-              GhostButton(
-                text: tr('Cancel'),
-                destructive: true,
-                onPressed: _forge.cancel,
-              )
-            else
-              GhostButton(
-                text: tr('Clone this voice'),
-                enabled: _samples.isNotEmpty && _forge.ready && !_forge.busy,
-                onPressed: _clone,
+            SizedBox(
+              width: 260,
+              child: LabeledField(
+                controller: _cloneName,
+                label: tr('Name for the voice'),
+                maxLength: _nameLimit,
+                placeholder: _voiceNameFor(),
               ),
+            ),
+            const SizedBox(width: MqTheme.gapLarge),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 22),
+                child: Text(
+                  tr('Only clone a voice you own or have permission to use. '
+                      'This one really is the voice in your files, and it '
+                      'joins My voices.'),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                    height: MqTheme.lineTight,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: MqTheme.gap),
+            Padding(
+              padding: const EdgeInsets.only(top: 22),
+              child: Row(
+                children: [
+                  MqIconButton(
+                    icon: 'attachment-line',
+                    tip: tr('Add a recording'),
+                    size: 32,
+                    onPressed: _browseSamples,
+                  ),
+                  const SizedBox(width: 8),
+                  if (_forge.cloning)
+                    GhostButton(
+                      text: tr('Cancel'),
+                      destructive: true,
+                      onPressed: _forge.cancel,
+                    )
+                  else
+                    SolidButton(
+                      text: tr('Clone this voice'),
+                      enabled:
+                          _samples.isNotEmpty && _forge.ready && !_forge.busy,
+                      tooltip: _forge.ready
+                          ? ''
+                          : tr('Add your ElevenLabs key under Models first.'),
+                      onPressed: _clone,
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ],
+    );
+  }
+
+  // ---- the dials -----------------------------------------------------------
+
+  /// The four dials, their ranges and where they sit when nobody has touched
+  /// them. Written down once because Reset needs the same numbers the sliders
+  /// draw from.
+  static const List<({String key, double from, double to, double fallback})>
+      dials = [
+    (key: 'voiceSpeed', from: 0.7, to: 1.2, fallback: 1.0),
+    (key: 'voiceStability', from: 0, to: 1, fallback: 0.45),
+    (key: 'voiceSimilarity', from: 0, to: 1, fallback: 0.8),
+    (key: 'voiceStyle', from: 0, to: 1, fallback: 0.35),
+  ];
+
+  static String _dialLabel(String key) => switch (key) {
+        'voiceSpeed' => tr('Speed'),
+        'voiceStability' => tr('Stability'),
+        'voiceSimilarity' => tr('Similarity'),
+        _ => tr('Style exaggeration'),
+      };
+
+  /// How the voice reads, docked under whichever door is open.
+  ///
+  /// They belong to the actor rather than to any of the four routes -- a speed
+  /// set while looking at the library is still the speed after designing a new
+  /// voice -- so they sit below all four rather than inside one, and are two
+  /// across because that is how they are thought about: how fast and how like
+  /// the original, how steady and how much colour.
+  Widget _dials() {
+    final mq = context.mq;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: MqTheme.gap),
+        Container(height: 1, color: mq.divider),
+        const SizedBox(height: MqTheme.gap),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Expanded(
+              child: RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontFamily: MqTheme.fontFamily,
+                    fontSize: MqTheme.fontSmall,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: MqTheme.trackSmall,
+                  ),
+                  children: [
+                    TextSpan(text: tr('Delivery')),
+                    TextSpan(
+                      text: tr(' — the difference between a human read and an '
+                          'announcer'),
+                      style: TextStyle(
+                        color: mq.textTertiary,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            MqLink(text: tr('Reset'), onPressed: _resetDials),
+          ],
+        ),
+        const SizedBox(height: 2),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Under this a column is 130px, which is not a slider.
+            final columns = constraints.maxWidth >= 420 ? 2 : 1;
+            final width =
+                (constraints.maxWidth - MqTheme.gapLarge * (columns - 1)) /
+                    columns;
+
+            return Wrap(
+              spacing: MqTheme.gapLarge,
+              runSpacing: 0,
+              children: [
+                for (final dial in dials)
+                  SizedBox(
+                    width: width,
+                    child: LabeledSlider(
+                      label: _dialLabel(dial.key),
+                      value: _draft.extraNumber(dial.key, dial.fallback),
+                      from: dial.from,
+                      to: dial.to,
+                      onChanged: (value) => setState(() {
+                        _draft.setExtra(dial.key, value);
+                        widget.onChanged();
+                      }),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  void _resetDials() => setState(() {
+        for (final dial in dials) {
+          _draft.setExtra(dial.key, dial.fallback);
+        }
+        widget.onChanged();
+      });
+}
+
+// ---- the pieces the routes are built from -----------------------------------
+
+/// One door of the voice control.
+class _Tab extends StatelessWidget {
+  const _Tab({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Pressable(
+      onTap: onTap,
+      snap: true,
+      focusRadius: MqTheme.radiusSmall - 2,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? mq.surfaceRaised
+              : states.active
+              ? mq.surfaceHover
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall - 2),
+          border: Border.all(
+            color: selected ? mq.border : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MqIcon(
+              icon,
+              size: 15,
+              color: selected ? mq.textPrimary : mq.textTertiary,
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                softWrap: false,
+                style: TextStyle(
+                  color: selected || states.active
+                      ? mq.textPrimary
+                      : mq.textSecondary,
+                  fontSize: MqTheme.fontLabel,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                  letterSpacing: MqTheme.trackSmall,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The sunken panel a catalogue lives in. The one thing on this screen that
+/// scrolls.
+class _Panel extends StatelessWidget {
+  const _Panel({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radius),
+        border: Border.all(color: mq.border),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// What a panel says when it has nothing in it.
+class _Empty extends StatelessWidget {
+  const _Empty({required this.text, this.isError = false});
+
+  final String text;
+  final bool isError;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          text,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isError ? mq.error : mq.textTertiary,
+            fontSize: MqTheme.fontSmall,
+            height: MqTheme.lineTight,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The search box at the head of the panel it filters.
+class _SearchHeader extends StatefulWidget {
+  const _SearchHeader({
+    required this.controller,
+    required this.placeholder,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String placeholder;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_SearchHeader> createState() => _SearchHeaderState();
+}
+
+class _SearchHeaderState extends State<_SearchHeader> {
+  final FocusNode _focus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      height: 36,
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: mq.border)),
+      ),
+      child: Row(
+        children: [
+          MqIcon(
+            'search-line',
+            size: 15,
+            color: _focus.hasFocus ? mq.textSecondary : mq.textTertiary,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: TextField(
+              controller: widget.controller,
+              focusNode: _focus,
+              onChanged: widget.onChanged,
+              cursorColor: mq.primary,
+              style: TextStyle(
+                color: mq.textPrimary,
+                fontSize: MqTheme.fontLabel,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                hintText: widget.placeholder,
+                hintStyle: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontLabel,
+                ),
+              ),
+            ),
+          ),
+          if (widget.controller.text.isNotEmpty)
+            MqIconButton(
+              icon: 'close-line',
+              tip: tr('Clear'),
+              size: 24,
+              canRequestFocus: false,
+              onPressed: () {
+                widget.controller.clear();
+                widget.onChanged('');
+              },
+            ),
+        ],
+      ),
     );
   }
 }
@@ -874,39 +1447,45 @@ class _VoicePickerState extends State<VoicePicker> {
 /// six of them run together with dots read as one long grey line, and the one
 /// you are checking -- is this actually French? -- is never the one you find
 /// first. The tick is on the right, where a list puts the state of a row.
+///
+/// The line at the very bottom is the transport's, and only the playing row
+/// draws one: it is how a list of twenty says which of them is making the
+/// noise.
 class _VoiceRow extends StatelessWidget {
   const _VoiceRow({
+    required this.transport,
     required this.name,
+    required this.source,
     required this.chosen,
     required this.onChoose,
-    required this.playTip,
     this.tags = const [],
     this.detail = '',
-    this.onPlay,
-    this.framed = false,
+    this.trailing,
   });
 
+  final AudioTransport transport;
   final String name;
 
-  /// The facts, one per tag. Empty for a designed take, which has no library
-  /// metadata to show -- it has [detail] instead.
+  /// What the disc plays: the provider's own sample.
+  final String source;
+
+  /// The facts, one per tag. Empty for a kept voice, which has [detail].
   final List<String> tags;
 
-  /// One line under the name, for the rows that are not library voices.
+  /// One line under the name, for the rows that are not library listings.
   final String detail;
 
   final bool chosen;
   final VoidCallback onChoose;
-  final VoidCallback? onPlay;
-  final String playTip;
 
-  /// Designed takes sit on the card rather than inside a list, so they carry
-  /// their own outline.
-  final bool framed;
+  /// The row's own verb -- keep it, or delete it. Never "choose it": that is
+  /// the row itself.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
+    final loaded = transport.holds(source);
 
     return Pressable(
       onTap: onChoose,
@@ -914,103 +1493,123 @@ class _VoiceRow extends StatelessWidget {
       focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        padding: const EdgeInsets.fromLTRB(6, 6, 8, 6),
+        padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
         margin: const EdgeInsets.only(bottom: 3),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: chosen
-              ? mq.surfaceActive
+              ? mq.primarySubtle
               : states.active
               ? mq.surfaceHover
-              : framed
-              ? mq.surfaceSecondary
               : Colors.transparent,
           borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
           border: Border.all(
-            color: chosen
-                ? mq.primary
-                : framed
-                ? mq.border
-                : Colors.transparent,
+            color: chosen ? mq.primary : Colors.transparent,
           ),
         ),
-        child: Row(
+        child: Stack(
           children: [
-            _PlayDisc(tip: playTip, onPressed: onPlay),
-            const SizedBox(width: 9),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: mq.textPrimary,
-                      fontSize: MqTheme.fontLabel,
-                      fontWeight: chosen ? FontWeight.w600 : FontWeight.w500,
-                      height: MqTheme.lineTight,
-                    ),
-                  ),
-                  if (detail.isNotEmpty) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      detail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: mq.textTertiary,
-                        fontSize: MqTheme.fontSmall,
-                        height: MqTheme.lineTight,
+            Row(
+              children: [
+                PlayDisc(
+                  transport: transport,
+                  source: source,
+                  //: Playing the provider's own sample costs nothing
+                  tip: tr('Listen — free'),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: mq.textPrimary,
+                          fontSize: MqTheme.fontLabel,
+                          fontWeight:
+                              chosen ? FontWeight.w600 : FontWeight.w500,
+                          height: MqTheme.lineTight,
+                        ),
                       ),
-                    ),
-                  ],
-                  if (tags.isNotEmpty) ...[
-                    const SizedBox(height: 5),
-                    // Clipped to one line: a voice with six tags must not make
-                    // its row twice the height of the one above it.
-                    SizedBox(
-                      height: 18,
-                      child: ClipRect(
-                        child: OverflowBox(
-                          alignment: AlignmentDirectional.centerStart,
-                          maxWidth: double.infinity,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (final tag in tags) _VoiceTag(text: tag),
-                            ],
+                      if (detail.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          detail,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: mq.textTertiary,
+                            fontSize: MqTheme.fontMicro + 0.5,
+                            height: MqTheme.lineTight,
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Held whether or not it is lit, so a row does not reflow when it
-            // becomes the chosen one.
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: chosen
-                  ? DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: mq.primary,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: MqIcon(
-                          'check-line',
-                          size: 12,
-                          color: mq.onPrimary,
+                      ],
+                      if (tags.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        // Clipped to one line: a voice with six tags must not
+                        // make its row twice the height of the one above it.
+                        SizedBox(
+                          height: 18,
+                          child: ClipRect(
+                            child: OverflowBox(
+                              alignment: AlignmentDirectional.centerStart,
+                              maxWidth: double.infinity,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  for (final tag in tags) _VoiceTag(text: tag),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    )
-                  : null,
+                      ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (loaded) ...[
+                  TransportClock(transport: transport, source: source),
+                  const SizedBox(width: 6),
+                ],
+                if (trailing != null) ...[trailing!, const SizedBox(width: 4)],
+                // Held whether or not it is lit, so a row does not reflow when
+                // it becomes the chosen one.
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: chosen
+                      ? Tooltip(
+                          message: tr("This actor's voice"),
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: mq.primary,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: MqIcon(
+                                'check-line',
+                                size: 12,
+                                color: mq.onPrimary,
+                              ),
+                            ),
+                          ),
+                        )
+                      : null,
+                ),
+              ],
             ),
+            if (loaded)
+              PositionedDirectional(
+                start: 0,
+                end: 0,
+                bottom: 0,
+                child: TransportLine(transport: transport, source: source),
+              ),
           ],
         ),
       ),
@@ -1018,47 +1617,64 @@ class _VoiceRow extends StatelessWidget {
   }
 }
 
-/// The round play button at the head of a voice row.
+/// The verb on the end of a voice row: keep it, or delete it.
 ///
-/// Its own target inside the row rather than a second meaning for it: pressing
-/// the row always chooses that voice, which is what you do once, and the disc
-/// plays it, which is what you do twenty times.
-class _PlayDisc extends StatelessWidget {
-  const _PlayDisc({required this.tip, this.onPressed});
+/// Its own target inside the row rather than a second meaning for it. Pressing
+/// the row always casts that voice, which is what you do once; this is what you
+/// do to your shelf, which is a different subject entirely.
+class _RowAction extends StatelessWidget {
+  const _RowAction({
+    required this.icon,
+    required this.tip,
+    required this.onTap,
+    this.lit = false,
+    this.destructive = false,
+    this.enabled = true,
+  });
 
+  final String icon;
   final String tip;
-  final VoidCallback? onPressed;
+  final VoidCallback onTap;
+
+  /// Already done -- the ribbon on a voice that is already kept. Drawn in ink
+  /// and inert, because there is nothing left to press it for.
+  final bool lit;
+
+  final bool destructive;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-    final live = onPressed != null;
 
     return Pressable(
-      enabled: live,
-      onTap: onPressed,
-      tooltip: live ? tip : tr('No sample for this voice'),
-      focusRadius: MqTheme.radiusPill,
+      enabled: enabled,
+      onTap: onTap,
+      tooltip: tip,
+      focusRadius: MqTheme.radiusSmall,
       builder: (context, states) => AnimatedContainer(
         duration: states.duration,
-        width: 30,
-        height: 30,
+        width: 26,
+        height: 26,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: states.pressed
-              ? mq.surfaceActive
-              : states.hovered
-              ? mq.surfaceHover
-              : mq.surface,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: states.active ? mq.borderStrong : mq.border,
-          ),
+          color: !states.active
+              ? Colors.transparent
+              : destructive
+              ? mq.errorSubtle
+              : mq.surfaceActive,
+          borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
         ),
         child: MqIcon(
-          'play-fill',
-          size: 14,
-          color: live ? mq.textSecondary : mq.textDisabled,
+          icon,
+          size: 15,
+          color: lit
+              ? mq.textPrimary
+              : destructive && states.active
+              ? mq.error
+              : states.active
+              ? mq.textPrimary
+              : mq.textTertiary,
         ),
       ),
     );
@@ -1097,87 +1713,107 @@ class _VoiceTag extends StatelessWidget {
   }
 }
 
-/// Find a voice by name inside the shortlist you are already looking at.
-class _NameSearch extends StatefulWidget {
-  const _NameSearch({required this.controller, required this.onChanged});
+/// One of the three designed candidates.
+///
+/// A radio and a transport in one card: picking it is the decision, playing it
+/// is how the decision gets made, and the two are separate targets because
+/// comparing three takes means pressing play far more often than pressing
+/// choose.
+class _TakeCard extends StatelessWidget {
+  const _TakeCard({
+    required this.transport,
+    required this.label,
+    required this.source,
+    required this.picked,
+    required this.onPick,
+  });
 
-  final TextEditingController controller;
-  final ValueChanged<String> onChanged;
-
-  @override
-  State<_NameSearch> createState() => _NameSearchState();
-}
-
-class _NameSearchState extends State<_NameSearch> {
-  final FocusNode _focus = FocusNode();
-  bool _hovered = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _focus.addListener(() {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _focus.dispose();
-    super.dispose();
-  }
+  final AudioTransport transport;
+  final String label;
+  final String source;
+  final bool picked;
+  final VoidCallback onPick;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: FieldFrame(
-        focused: _focus.hasFocus,
-        hovered: _hovered,
-        child: SizedBox(
-          height: 30,
-          child: Row(
-            children: [
-              const SizedBox(width: 9),
-              MqIcon('search-line', size: 14, color: mq.textTertiary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: TextField(
-                  controller: widget.controller,
-                  focusNode: _focus,
-                  onChanged: widget.onChanged,
-                  cursorColor: mq.primary,
-                  style: TextStyle(
-                    color: mq.textPrimary,
-                    fontSize: MqTheme.fontLabel,
-                  ),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 6),
-                    hintText: tr('Find a voice'),
-                    hintStyle: TextStyle(
-                      color: mq.textTertiary,
+    return Pressable(
+      onTap: onPick,
+      snap: true,
+      focusRadius: MqTheme.radius,
+      builder: (context, states) => AnimatedContainer(
+        duration: states.duration,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: picked
+              ? mq.primarySubtle
+              : states.active
+              ? mq.surfaceHover
+              : mq.surfaceSecondary,
+          borderRadius: BorderRadius.circular(MqTheme.radius),
+          border: Border.all(
+            color: picked
+                ? mq.primary
+                : states.active
+                ? mq.borderStrong
+                : mq.border,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: mq.textPrimary,
                       fontSize: MqTheme.fontLabel,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
-              ),
-              if (widget.controller.text.isNotEmpty)
-                MqIconButton(
-                  icon: 'close-line',
-                  tip: tr('Clear'),
-                  size: 24,
-                  onPressed: () {
-                    widget.controller.clear();
-                    widget.onChanged('');
-                  },
+                const SizedBox(width: 8),
+                Container(
+                  width: 18,
+                  height: 18,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: picked ? mq.primary : mq.surface,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: picked ? mq.primary : mq.borderStrong,
+                    ),
+                  ),
+                  child: picked
+                      ? MqIcon('check-line', size: 12, color: mq.onPrimary)
+                      : null,
                 ),
-              const SizedBox(width: 4),
-            ],
-          ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                PlayDisc(
+                  transport: transport,
+                  source: source,
+                  tip: tr('Listen'),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: TransportLine(transport: transport, source: source),
+                ),
+                const SizedBox(width: 8),
+                TransportClock(transport: transport, source: source),
+              ],
+            ),
+          ],
         ),
       ),
     );

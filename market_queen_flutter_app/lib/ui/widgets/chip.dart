@@ -353,6 +353,7 @@ class MqPickChip extends StatelessWidget {
     required this.onPicked,
     this.icon = '',
     this.menuWidth = 220,
+    this.compact = false,
   });
 
   final String label;
@@ -361,6 +362,19 @@ class MqPickChip extends StatelessWidget {
   final ValueChanged<String> onPicked;
   final String icon;
   final double menuWidth;
+
+  /// Carry the value alone and let the glyph name the field.
+  ///
+  /// For a row of chips that is read as one sentence -- a casting brief, where
+  /// five of them have to fit on one line. "Language · Same as the ad" three
+  /// times over is the field names taking two thirds of the room to say what
+  /// the icons already say, and it is the *values* somebody is scanning. The
+  /// name is still there on hover, and the empty option carries its own words
+  /// ("Any age") so an unset chip is never a mystery.
+  ///
+  /// Off by default: everywhere a chip stands on its own, the name is the only
+  /// thing that says what it is.
+  final bool compact;
 
   String get _currentLabel {
     for (final option in options) {
@@ -375,11 +389,16 @@ class MqPickChip extends StatelessWidget {
 
     return Builder(
       builder: (anchor) => MqChip(
-        //: %1 is a setting's name, %2 the value it currently holds
-        label: current.isEmpty ? label : tr('%1 · %2').arg(label).arg(current),
+        label: compact
+            ? (current.isEmpty ? label : current)
+            //: %1 is a setting's name, %2 the value it currently holds
+            : current.isEmpty
+            ? label
+            : tr('%1 · %2').arg(label).arg(current),
         icon: icon,
         opensMenu: true,
         active: current.isNotEmpty,
+        tooltip: compact ? label : '',
         onPressed: () async {
           final picked = await showChipMenu<String>(
             anchor,
