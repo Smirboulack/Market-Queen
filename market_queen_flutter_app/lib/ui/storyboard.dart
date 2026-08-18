@@ -6,7 +6,6 @@ import '../app_state.dart';
 import '../core/pricing.dart';
 import '../i18n/translator.dart';
 import 'format.dart';
-import 'icons.dart';
 import 'theme.dart';
 import 'widgets/buttons.dart';
 import 'widgets/media_drop.dart';
@@ -108,7 +107,6 @@ class _StoryboardState extends State<Storyboard> {
                 path: shots[i].framePath,
                 index: i,
                 duration: shots[i].duration,
-                broll: shots[i].kind == 'broll',
                 current: _selected == i,
                 onTap: () {
                   setState(() => _selected = i);
@@ -137,11 +135,8 @@ class _StoryboardState extends State<Storyboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  current.kind == 'broll'
-                      //: %1 is a shot number
-                      ? tr('Scene %1 · product shot').arg(_selected + 1)
-                      //: %1 is a shot number
-                      : tr('Scene %1 · on camera').arg(_selected + 1),
+                  //: %1 is a shot number
+                  tr('Scene %1 · on camera').arg(_selected + 1),
                   style: TextStyle(
                     color: mq.textSecondary,
                     fontSize: MqTheme.fontSmall,
@@ -211,7 +206,6 @@ class _Cell extends StatelessWidget {
     required this.path,
     required this.index,
     required this.duration,
-    required this.broll,
     required this.current,
     required this.onTap,
   });
@@ -219,11 +213,6 @@ class _Cell extends StatelessWidget {
   final String path;
   final int index;
   final double duration;
-
-  /// A shot with no face in it, so the strip reads as a cut list rather than a
-  /// row of identical thumbnails.
-  final bool broll;
-
   final bool current;
   final VoidCallback onTap;
 
@@ -255,23 +244,6 @@ class _Cell extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             LocalImage(path),
-            if (broll)
-              Positioned(
-                top: 4,
-                left: 4,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: mq.background.withValues(alpha: 0.88),
-                    borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
-                  ),
-                  child: MqIcon(
-                    'shopping-bag-3-line',
-                    size: 11,
-                    color: mq.textSecondary,
-                  ),
-                ),
-              ),
             Positioned(
               left: 0,
               right: 0,

@@ -116,11 +116,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   ComposerTab _tab = ComposerTab.actors;
 
-  /// The advanced modes taken out of "See more", in the order they were added.
-  /// They sit on the pill row beside the three permanent ones until they are
-  /// put away again.
-  final List<ComposerTab> _extras = [];
-
   /// Which of the three panels is showing, if any. They share one slot because
   /// they answer one question -- "what exactly is about to be generated" -- and
   /// two of them open at once would be two answers.
@@ -449,17 +444,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           reason: tr('Still needs %1.').arg(project.missing.join(', ')),
         );
 
-      case ComposerTab.captions:
-        return _refs.any(isVideoPath)
-            ? (ready: true, reason: '')
-            : (ready: false, reason: tr('Drop in the clip to subtitle.'));
-
-      case ComposerTab.upscale:
-        return _refs.any((path) => !isVideoPath(path))
-            ? (ready: true, reason: '')
-            : (ready: false, reason: tr('Drop in the picture to enlarge.'));
-
-      default:
+      case ComposerTab.image:
+      case ComposerTab.video:
         return _prompt.text.trim().isEmpty
             ? (ready: false, reason: tr('Write a prompt first.'))
             : (ready: true, reason: '');
@@ -472,24 +458,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     switch (_tab) {
       case ComposerTab.actors:
         _shootAd();
-      case ComposerTab.captions:
-        await app.runner.burnCaptions(
-          videoPath: _refs.firstWhere(isVideoPath),
-        );
-        setState(_refs.clear);
-      case ComposerTab.upscale:
-        await app.runner.send(
-          GenerationOrder(
-            kind: CanvasKind.image,
-            category: 'upscale',
-            prompt: _prompt.text.trim(),
-            references: [_refs.firstWhere((path) => !isVideoPath(path))],
-            aspectRatio: '',
-            count: 1,
-          ),
-        );
-        setState(_refs.clear);
-      default:
+      case ComposerTab.image:
+      case ComposerTab.video:
         await _sendPrompted();
     }
   }
@@ -711,9 +681,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                     alignment: AlignmentDirectional.centerStart,
                     child: ComposerTabBar(
                       current: _tab,
-                      extras: _extras,
-                      onPicked: _pickTab,
-                      onRemoved: _dropTab,
+                      onPicked: (tab) => setState(() => _tab = tab),
                     ),
                   ),
                   const SizedBox(height: MqTheme.gap),
@@ -795,26 +763,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   void _hidePortal(_Panel panel) {
     final portal = _portals[panel];
     if (portal != null && portal.isShowing) portal.hide();
-  }
-
-  /// A pill was pressed, or a mode was chosen out of "See more". Either way the
-  /// composer switches to it; an advanced one also earns a pill of its own.
-  void _pickTab(ComposerTab tab) {
-    setState(() {
-      _tab = tab;
-      if (ComposerSpec.secondary.contains(tab) && !_extras.contains(tab)) {
-        _extras.add(tab);
-      }
-    });
-  }
-
-  /// The cross on an advanced pill. Putting away the mode you are standing in
-  /// falls back to the talking actor, which is where the studio starts.
-  void _dropTab(ComposerTab tab) {
-    setState(() {
-      _extras.remove(tab);
-      if (_tab == tab) _tab = ComposerTab.actors;
-    });
   }
 
   Widget _bar() {
@@ -1403,25 +1351,28 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         ],
         onPicked: (value) => project.setMaxSeconds(int.tryParse(value) ?? 0),
       ),
-      // "Subtitled", not "Subtitles": the pill row already has a mode called
-      // Subtitles -- the one that burns them into an existing clip -- and two
-      // controls with the same word on the same screen doing different things
-      // is a coin toss.
-      _Switch(
-        label: tr('Subtitled'),
-        icon: 'check-double-line',
-        value: project.captions,
-        onChanged: project.setCaptions,
-      ),
-      _Switch(
-        label: tr('Product shots'),
-        icon: 'shopping-bag-3-line',
-        value: project.broll,
-        tooltip: project.broll
-            ? tr('The lines about the product are filmed on the product, with '
-                'your voice over them.')
-            : tr('Every line is filmed on the actor.'),
-        onChanged: project.setBroll,
+      // The voice belongs on this bar, not on a shelf of its own. The engine
+      // that reads the ad was only reachable from the Voice-over mode, which is
+      // a place nobody looks while writing an ad -- so the choice between a
+      // continuous read and a line-by-line one was made by whatever happened to
+      // be saved, and heard for the first time in the finished film.
+      _Choice(
+        label: tr('Voice'),
+        icon: 'volume-up-line',
+        value: app.runner.modelLabel('voice'),
+        current: '${app.runner.providerFor('voice')}'
+            '|${app.runner.modelFor('voice')}',
+        options: _modelOptions(category: 'voice'),
+        menuWidth: 380,
+        onLocked: _unlock,
+        onPicked: (value) {
+          final parts = value.split('|');
+          if (parts.length != 2) return;
+          app.settings
+            ..setPref('voiceProvider', parts[0])
+            ..setPref('voiceModel', parts[1]);
+          setState(() {});
+        },
       ),
     ];
   }
@@ -1436,10 +1387,15 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// silently drops Veo because Google is not set up is a menu that says this app
   /// cannot make Veo clips, and the fix -- one key -- is four seconds away. See
   /// [showChipMenu]'s `onLocked`.
-  List<MenuOption<String>> _modelOptions() {
+  /// Every model on one shelf, priced, with its account's mark beside it.
+  ///
+  /// [category] names the shelf when it is not the one the current mode buys
+  /// from: the talking-actor bar sets its voice as well as its avatar.
+  List<MenuOption<String>> _modelOptions({String category = ''}) {
     final registry = app.registry;
     final settings = app.settings;
-    final providers = registry.providers(_spec.category);
+    final providers =
+        registry.providers(category.isEmpty ? _spec.category : category);
     final named = providers.length > 1;
 
     final options = <MenuOption<String>>[];
@@ -1510,9 +1466,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     aspectRatio: _aspect,
     seconds: _seconds,
     count: _count,
-    voiceSource: withSources && _tab == ComposerTab.audio
-        ? app.request()
-        : const {},
     resolution: app.settings.prefString('videoResolution'),
     audio: app.settings.pref<bool>('videoAudio', true) ?? true,
     size: _imageSize,
@@ -1794,9 +1747,8 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// What the rewriter is being asked to write, on this tab.
   PromptKind get _promptKind => switch (_tab) {
     ComposerTab.actors => PromptKind.script,
-    ComposerTab.audio => PromptKind.voice,
     ComposerTab.video => PromptKind.video,
-    _ => PromptKind.image,
+    ComposerTab.image => PromptKind.image,
   };
 
   /// Hands the prompt to a writer and puts back what came out.

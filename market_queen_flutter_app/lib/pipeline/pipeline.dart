@@ -14,19 +14,14 @@ import '../core/signal.dart';
 import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
-import '../providers/capabilities.dart';
-import '../providers/model_schemas.dart';
 import '../providers/provider_task.dart';
 import '../providers/registry.dart';
-import '../providers/text_providers.dart';
 import '../providers/types.dart';
 import '../providers/voice_casting.dart';
-import '../providers/voice_providers.dart';
-import 'shot_planner.dart';
 
 /// The voice-over is recorded before anything is drawn, because how long each
 /// shot is on screen is what decides the clip we have to buy for it.
-enum PipelineStep { script, voice, frames, videos, captions, assemble }
+enum PipelineStep { script, voice, frames, videos, assemble }
 
 enum StepPhase { pending, running, done, skipped, failed }
 
@@ -38,15 +33,17 @@ class StepInfo {
   String detail;
 }
 
-/// One camera setup: the words spoken over it, the still it starts from and the
-/// clip that still was animated into.
+/// The take: the words spoken, the still it starts from and the clip that
+/// still was animated into.
+///
+/// Still a list of one rather than four loose fields, because re-shooting is
+/// written against it and because the day a second camera setup earns its
+/// place, it is a second entry rather than a second pipeline.
 class Shot {
-  Shot({required this.line, this.kind = 'talking'});
+  Shot({required this.line});
 
   final String line;
 
-  /// talking | broll
-  String kind;
   String imagePrompt = '';
   String videoPrompt = '';
   String framePath = '';
@@ -81,7 +78,6 @@ class _RunState {
   String script = '';
   String caption = '';
   String voicePath = '';
-  String srtPath = '';
   String finalPath = '';
   double voiceDuration = -1.0;
 
@@ -99,24 +95,7 @@ class _RunFailed implements Exception {
   final String message;
 }
 
-const _captionsFile = 'captions.srt';
 const _finalFile = 'final.mp4';
-
-/// Burned-in captions, UGC style: bold white with a hard outline, sitting above
-/// the bottom UI of the social apps.
-const _subtitleStyle =
-    'FontName=Arial,FontSize=22,Bold=1,PrimaryColour=&H00FFFFFF,'
-    'OutlineColour=&H00000000,BorderStyle=1,Outline=3,Shadow=0,'
-    'Alignment=2,MarginV=90';
-
-/// One canvas for the whole ad. Shots come back from different models at
-/// different sizes, and concat will not join streams whose dimensions differ,
-/// so they all get padded onto this before being cut together.
-({int width, int height}) _outputSize(String aspectRatio) => switch (aspectRatio) {
-      '16:9' => (width: 1920, height: 1080),
-      '1:1' => (width: 1080, height: 1080),
-      _ => (width: 1080, height: 1920),
-    };
 
 /// Turns one form submission into a finished MP4.
 ///
@@ -130,7 +109,6 @@ class Pipeline extends ChangeNotifier {
     this._pricing,
     this._log,
     this._casting,
-    this._modelSchemas,
   ) {
     // Show the plan before anything runs.
     _resetSteps();
@@ -141,7 +119,6 @@ class Pipeline extends ChangeNotifier {
   final Pricing _pricing;
   final LogModel _log;
   final VoiceCasting _casting;
-  final ModelSchemas _modelSchemas;
 
   /// (success, outputFile).
   final Event<({bool success, String outputFile})> finished = Event();
@@ -190,7 +167,6 @@ class Pipeline extends ChangeNotifier {
         PipelineStep.voice => tr('Voice-over'),
         PipelineStep.frames => tr('Frames'),
         PipelineStep.videos => tr('Shots'),
-        PipelineStep.captions => tr('Subtitles'),
         PipelineStep.assemble => tr('Final cut'),
       };
 
@@ -236,8 +212,12 @@ class Pipeline extends ChangeNotifier {
     _resetSteps();
     _setStatus('');
 
-    // One folder per run, so every intermediate file stays inspectable.
-    final label = '${request['productName'] ?? ''}';
+    // One folder per run, so every intermediate file stays inspectable. The
+    // label is the ad's name when there is no product: naming the folder is the
+    // only job it has, and the product fields are read by the models.
+    final label = '${request['runLabel'] ?? ''}'.isEmpty
+        ? '${request['productName'] ?? ''}'
+        : '${request['runLabel'] ?? ''}';
     final folder = '${_stamp(DateTime.now())}-${Paths.slugify(label)}';
     _run.dir = Paths.ensureDir(p.join(_settings.projectsDir, folder));
 
@@ -310,30 +290,21 @@ class Pipeline extends ChangeNotifier {
     if (index < 0 || index >= _run.shots.length) return CostEstimate.unknown;
 
     final shot = _run.shots[index];
-    final talking = shot.kind != 'broll';
 
     final imageProvider = '${_request['imageProvider'] ?? ''}';
     final imageModel = _registry.resolveModel(
         imageProvider, '${_request['imageModel'] ?? ''}');
 
-    final clipProvider = talking
-        ? '${_request['avatarProvider'] ?? ''}'
-        : '${_request['videoProvider'] ?? ''}';
+    final clipProvider = '${_request['avatarProvider'] ?? ''}';
     final clipModel = _registry.resolveModel(
-      clipProvider,
-      talking
-          ? '${_request['avatarModel'] ?? ''}'
-          : '${_request['videoModel'] ?? ''}',
-    );
+        clipProvider, '${_request['avatarModel'] ?? ''}');
 
     final framePrice = _pricing.unitPrice(imageModel);
     final clipPrice = _pricing.unitPrice(clipModel);
     if (framePrice == null || clipPrice == null) return CostEstimate.unknown;
 
-    final seconds =
-        talking ? shot.duration : Pricing.clipSeconds(shot.duration).toDouble();
     final amount = framePrice.amount +
-        clipPrice.amount * (clipPrice.unit == 'video' ? 1.0 : seconds);
+        clipPrice.amount * (clipPrice.unit == 'video' ? 1.0 : shot.duration);
 
     return CostEstimate(true, amount);
   }
@@ -360,8 +331,6 @@ class Pipeline extends ChangeNotifier {
             await _stepFrames();
           case PipelineStep.videos:
             await _stepVideos();
-          case PipelineStep.captions:
-            await _stepCaptions();
           case PipelineStep.assemble:
             await _stepAssemble();
         }
@@ -403,7 +372,10 @@ class Pipeline extends ChangeNotifier {
       [int durationSeconds = 0]) {
     final resolved =
         _registry.resolveModel(providerId, requestedModel, durationSeconds);
-    if (Registry.isAuto(requestedModel) && resolved.isNotEmpty) {
+    // Said whenever the id changed on the way through, not only for "auto": a
+    // preference naming a retired model is resolved the same way, and the run
+    // is priced on what it says here.
+    if (resolved.isNotEmpty && resolved != requestedModel) {
       _log.info(tr('Auto picked %1.').arg(resolved));
     }
     return resolved;
@@ -412,10 +384,12 @@ class Pipeline extends ChangeNotifier {
   /// Records what a step actually bought, so the run can report a real cost
   /// instead of repeating the estimate.
   void _recordUsage(String step, String providerId, String modelId, double units,
-      [double unitsOut = 0.0]) {
-    _run.consumed.add(Usage(step, providerId, modelId, units, unitsOut));
+      [double unitsOut = 0.0, String quality = '', String size = '']) {
+    _run.consumed
+        .add(Usage(step, providerId, modelId, units, unitsOut, quality, size));
     notifyListeners();
   }
+
 
   String _writeArtifact(String fileName, List<int> data) {
     final path = p.join(_run.dir, fileName);
@@ -451,143 +425,37 @@ class Pipeline extends ChangeNotifier {
   // 1. Script
   // ---------------------------------------------------------------------
 
-  /// Cuts a scenario the user wrote into shots.
+  /// The whole scenario, as one take.
   ///
-  /// The rules live in [ShotPlanner], where the pricer can reach them too: what
-  /// the estimate quotes and what the run buys have to be the same list.
-  void _splitOwnScript() {
+  /// It used to be cut into a shot per beat, each with its own read, its own
+  /// still and its own clip, stitched back together at the end. That is four
+  /// or five times the bill for an ad whose joins are audible: every line was
+  /// a separate TTS call, so the delivery restarted at each cut.
+  ///
+  /// One read, one frame, one clip. What comes back is what was written.
+  void _oneTake() {
     _run.shots
       ..clear()
-      ..addAll([for (final line in ShotPlanner.split(_run.script)) Shot(line: line)]);
+      ..add(Shot(line: _run.script.trim()));
   }
 
-  /// Puts a camera on each shot of a scenario the user wrote.
-  ///
-  /// This is what stops an ad being one unbroken talking head. A UGC ad that
-  /// stays on the same face for its whole length reads as an advert, and the
-  /// product never gets seen -- so the lines that describe the thing are filmed
-  /// on the thing, with the read carrying over them.
-  ///
-  /// It never fails a run. Every shot already has a line and a default frame
-  /// prompt; a plan that could not be bought only costs the cutaways.
-  Future<void> _planShots() async {
-    if (_request['brollEnabled'] == false) return;
-
-    // Two shots is a cut, not a cut list. There is nothing to cut away to.
-    if (_run.shots.length < ShotPlanner.minShotsToDirect) return;
-
-    final providerId = _text('textProvider');
-    final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
-    if (providerId.isEmpty || apiKey.isEmpty) return;
-
-    final model = _pickModel(providerId, _text('textModel'));
-
-    final task = ProviderFactory.script(
-      providerId,
-      ScriptRequest(
-        mode: ScriptMode.planShots,
-        apiKey: apiKey,
-        model: model,
-        productName: _text('productName'),
-        productDescription: _text('productDescription'),
-        audience: _text('audience'),
-        avatarBrief: _actorBrief,
-        extraInstructions: _text('extraInstructions'),
-        lines: [for (final shot in _run.shots) shot.line],
-        referenceImageDataUri: _run.productImageDataUri,
-      ),
-    );
-
-    // Cutaways are worth having, not worth failing a run over: an unknown
-    // writer leaves the ad exactly as the user wrote it.
-    if (task == null) return;
-
-    _setStatus(tr('Planning the shots...'));
-
-    try {
-      final result = await _await(task, PipelineStep.script);
-
-      _recordUsage(
-        'script',
-        providerId,
-        model,
-        (result['inputTokens'] as num?)?.toDouble() ?? 0,
-        (result['outputTokens'] as num?)?.toDouble() ?? 0,
-      );
-
-      // By position, and only ever the camera. A plan that came back short
-      // leaves the rest of the ad exactly as it was.
-      final plan = (result['plan'] as List?) ?? const [];
-
-      for (var index = 0; index < plan.length && index < _run.shots.length; ++index) {
-        final entry = plan[index];
-        if (entry is! Map) continue;
-
-        final shot = _run.shots[index];
-        shot.kind = ScriptTask.shotKind(entry['kind']);
-        shot.imagePrompt = '${entry['imagePrompt'] ?? ''}'.trim();
-        shot.videoPrompt = '${entry['videoPrompt'] ?? ''}'.trim();
-      }
-
-      // A face has to open and close the ad: the hook is a person looking at
-      // you, and so is the call to action. Enforced here rather than trusted to
-      // the prompt, because it is the one arrangement that is always wrong.
-      _run.shots.first.kind = 'talking';
-      _run.shots.last.kind = 'talking';
-
-      final broll = _run.shots.where((shot) => shot.kind == 'broll').length;
-      _log.success(tr('%1 talking shot(s), %2 product shot(s).')
-          .arg(_run.shots.length - broll)
-          .arg(broll));
-    } on ProviderException catch (error) {
-      _throwIfCancelling();
-      _log.warning(tr('Could not plan the shots (%1). Filming every line on camera.')
-          .arg(error.message));
-    }
-  }
+  /// The shape the whole run is in: the frame, the clip and anything a model
+  /// crops for itself. Read from one place so a picture and the video made
+  /// out of it cannot disagree about it.
+  String get _aspectRatio =>
+      _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio');
 
   Future<void> _stepScript() async {
-    final shotCount = Pricing.shotCount(
-        (_request['durationSeconds'] as num?)?.toInt() ?? 20);
-
-    // Scenes the studio cut and directed: the shot list is already decided, so
-    // there is nothing to write and nothing to guess at.
-    final scenes = (_request['scenes'] as List?) ?? const [];
-    if (scenes.isNotEmpty) {
-      _run.shots.clear();
-      for (final entry in scenes) {
-        if (entry is! Map) continue;
-        final line = '${entry['line'] ?? ''}'.trim();
-        if (line.isEmpty) continue;
-
-        _run.shots.add(Shot(line: line, kind: '${entry['kind'] ?? 'talking'}')
-          ..imagePrompt = '${entry['imagePrompt'] ?? ''}'.trim()
-          ..videoPrompt = '${entry['videoPrompt'] ?? ''}'.trim());
-      }
-    }
-
     final ownScript = _text('script').trim();
-
-    if (_run.shots.isNotEmpty) {
-      _run.script = ownScript;
-      _run.hook = _run.shots.first.line;
-      _log.info(tr('Using your %1 scene(s).').arg(_run.shots.length));
-      _setStep(PipelineStep.script, StepPhase.skipped, tr('your own scenes'));
-      return;
-    }
 
     if (ownScript.isNotEmpty) {
       _setStep(PipelineStep.script, StepPhase.running);
 
       _run.script = ownScript;
-      _splitOwnScript();
-      _run.hook = _run.shots.isEmpty ? ownScript : _run.shots.first.line;
+      _oneTake();
+      _run.hook = ownScript;
 
-      _log.info(tr('Using the scenario you wrote, cut into %1 shot(s).')
-          .arg(_run.shots.length));
-
-      // Not a word of it changes; only where the camera points.
-      await _planShots();
+      _log.info(tr('Filming your scenario in one take.'));
 
       _setStep(PipelineStep.script, StepPhase.done, tr('your own scenario'));
       return;
@@ -613,7 +481,6 @@ class Pipeline extends ChangeNotifier {
           avatarBrief: _actorBrief,
           extraInstructions: _text('extraInstructions'),
           durationSeconds: (_request['durationSeconds'] as num?)?.toInt() ?? 20,
-          shotCount: shotCount,
           referenceImageDataUri: _run.productImageDataUri,
         ),
       ),
@@ -632,34 +499,32 @@ class Pipeline extends ChangeNotifier {
     _run.hook = '${result['hook'] ?? ''}';
     _run.caption = '${result['caption'] ?? ''}';
 
-    final shotsJson = <Map<String, Object?>>[];
-    for (final entry in (result['shots'] as List?) ?? const []) {
-      if (entry is! Map) continue;
-      final shot = Shot(
-        line: '${entry['line'] ?? ''}',
-        kind: ScriptTask.shotKind(entry['kind']),
-      )
-        ..imagePrompt = '${entry['imagePrompt'] ?? ''}'
-        ..videoPrompt = '${entry['videoPrompt'] ?? ''}';
-      _run.shots.add(shot);
-      shotsJson.add({
-        'line': shot.line,
-        'kind': shot.kind,
-        'imagePrompt': shot.imagePrompt,
-        'videoPrompt': shot.videoPrompt,
-      });
+    // The writer still answers with a shot list; it is read as prose here and
+    // filmed in one take. Its own `script` field is what it thinks the whole
+    // read is, so that wins, and the lines are joined only when it left the
+    // field empty.
+    if (_run.script.trim().isEmpty) {
+      final lines = <String>[];
+      for (final entry in (result['shots'] as List?) ?? const []) {
+        if (entry is! Map) continue;
+        final line = '${entry['line'] ?? ''}'.trim();
+        if (line.isNotEmpty) lines.add(line);
+      }
+      _run.script = lines.join(' ');
     }
 
-    // Same rule as a scenario the user wrote: a face opens the ad and a face
-    // closes it, whatever the writer thought.
-    if (_run.shots.isNotEmpty) {
-      _run.shots.first.kind = 'talking';
-      _run.shots.last.kind = 'talking';
-    }
-
-    if (_run.shots.isEmpty) {
+    if (_run.script.trim().isEmpty) {
       throw _RunFailed(tr('The model answer did not contain a script.'));
     }
+
+    _oneTake();
+    if (_run.hook.trim().isEmpty) _run.hook = _run.script.trim();
+
+    // The writer describes the still and the movement in the same answer, so
+    // the take is filmed on its own directions rather than on the generic ones.
+    _run.shots.first
+      ..imagePrompt = '${result['imagePrompt'] ?? ''}'.trim()
+      ..videoPrompt = '${result['videoPrompt'] ?? ''}'.trim();
 
     _writeArtifact(
       'script.json',
@@ -667,34 +532,26 @@ class Pipeline extends ChangeNotifier {
         'hook': _run.hook,
         'script': _run.script,
         'caption': _run.caption,
-        'shots': shotsJson,
       })),
     );
 
-    _log.success(tr('Script ready in %1 shot(s): "%2"')
-        .arg(_run.shots.length)
-        .arg(_run.hook));
+    _log.success(tr('Script ready: "%1"').arg(_run.hook));
     _setStep(PipelineStep.script, StepPhase.done, _run.hook);
   }
 
   // ---------------------------------------------------------------------
-  // 2. Voice-over -- one take per scene, then the measured cut plan
+  // 2. Voice-over -- the whole read, in one recording
   // ---------------------------------------------------------------------
   //
-  // The read is recorded scene by scene rather than in one piece, because a
-  // talking shot is lip-synced to its own audio: the model needs the words for
-  // that shot and nothing else.
+  // One call, one file. It used to be a call per beat, because each beat was
+  // lip-synced to its own audio -- and every one of those calls started the
+  // delivery again from nothing, so the finished ad restarted its own
+  // intonation at each cut. Whatever context fields the engine took could
+  // soften that; they could not remove it.
   //
-  // Recorded naively that would sound like a series of fresh takes, so each
-  // request carries the neighbouring lines in previous_text/next_text. The
-  // engine uses them for context only -- it never speaks them -- and the
-  // delivery carries across the joins. Not every engine takes them, though, and
-  // one that does not is sent a body without them rather than a 400: what each
-  // one accepts is declared in [ElevenLabsModel].
-  //
-  // The gain is that a scene's length stops being an estimate. It is however
-  // long its audio turned out to be, measured, which is what finally removes
-  // every reason to stretch, loop or trim a clip.
+  // Recorded whole, the ad's length also stops being an estimate: it is
+  // however long the audio turned out to be, measured, and the clip is bought
+  // against that.
 
   Future<void> _stepVoice() async {
     _setStep(PipelineStep.voice, StepPhase.running);
@@ -702,20 +559,7 @@ class Pipeline extends ChangeNotifier {
     final providerId = _text('voiceProvider');
     final apiKey = _settings.apiKey(_registry.credentialFor(providerId));
 
-    // Said once, when it is actually true, because the alternative is one
-    // setting away: v3 is the expressive engine but takes no context fields, so
-    // on a multi-shot ad every line is a fresh take. Multilingual v2 carries the
-    // delivery across the joins instead.
-    if (_run.shots.length > 1 &&
-        providerId == 'elevenlabs' &&
-        !ElevenLabsModel.of(_pickModel(providerId, _text('voiceModel'))).stitching) {
-      _log.info(tr('Eleven v3 records each line on its own: it takes no context '
-          'from the neighbouring ones. Multilingual v2 does, if you would rather '
-          'have one continuous read.'));
-    }
-
-    // Cast once, before the first line: every shot is the same person speaking,
-    // and a brief resolved per shot would be four round trips to say so.
+    // Cast before the read: which voice, resolved from the actor.
     final voiceId = await _castVoice(providerId, apiKey);
 
     for (var index = 0; index < _run.shots.length; ++index) {
@@ -841,8 +685,7 @@ class Pipeline extends ChangeNotifier {
     }
     _run.voiceDuration = cursor;
 
-    _log.info(tr('%1 shot(s) over %2s.')
-        .arg(_run.shots.length)
+    _log.info(tr('The read runs %1s.')
         .arg(_run.voiceDuration.toStringAsFixed(1)));
   }
 
@@ -906,7 +749,7 @@ class Pipeline extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------
-  // 3. Frames -- one still per shot
+  // 3. The frame -- one still, of the actor, in the shape of the ad
   // ---------------------------------------------------------------------
 
   /// Who is on camera, for the writer: how they look, and how they behave.
@@ -944,7 +787,7 @@ class Pipeline extends ChangeNotifier {
   /// the actor as they were described, the room they are in, and the thing they
   /// are holding. Composed rather than fixed, because a generic "a person
   /// holding X" throws away the two fields the user spent the most time on.
-  String _defaultFramePrompt(String kind) {
+  String _defaultFramePrompt() {
     final actor = _text('avatarBrief').trim();
     final decor = _text('extraInstructions').trim();
     final product = _text('productName').trim();
@@ -952,25 +795,6 @@ class Pipeline extends ChangeNotifier {
     // A product shot has the same room and the same light -- it is the same
     // person filming, a moment later -- but no face in it. That is the whole
     // point of cutting to it.
-    if (kind == 'broll') {
-      return [
-        tr('A vertical close-up taken on a phone, held in one hand.'),
-        //: %1 is a product name
-        if (product.isNotEmpty)
-          tr('In frame: %1, and nothing else.').arg(product)
-        else
-          tr('In frame: the product being used, held in someone\'s hands.'),
-        //: %1 is how the user described the room the ad is filmed in
-        if (decor.isNotEmpty) tr('Shot in %1.').arg(decor),
-        tr(
-          'Nobody\'s face in the shot: hands only. Ordinary room light, visible '
-          'texture, no retouching, slightly imperfect focus. Not an '
-          'advertisement: no studio lighting, no colour grading, no product '
-          'hero shot.',
-        ),
-      ].join(' ');
-    }
-
     return [
       tr('A vertical photo taken on a phone, held at arm\'s length.'),
       if (actor.isEmpty)
@@ -1019,18 +843,14 @@ class Pipeline extends ChangeNotifier {
           tr('Drawing shot %1 of %2...').arg(index + 1).arg(_run.shots.length));
 
       final model = _pickModel(providerId, _text('imageModel'));
+      final size = _text('imageSize');
+      final quality = _text('imageQuality');
 
-      // One reference per model, so it has to be the one the shot is about: the
-      // face for a talking shot, the thing itself for a product shot. Handing a
-      // product shot the actor's portrait is how a cutaway comes back with her
-      // in it.
-      final reference = shot.kind == 'broll'
-          ? (_run.productImageDataUri.isEmpty
-              ? _run.actorPortraitDataUri
-              : _run.productImageDataUri)
-          : (_run.actorPortraitDataUri.isEmpty
-              ? _run.productImageDataUri
-              : _run.actorPortraitDataUri);
+      // One reference per model, and for a talking ad it is the face: the
+      // product photo only stands in when there is no actor to look at.
+      final reference = _run.actorPortraitDataUri.isEmpty
+          ? _run.productImageDataUri
+          : _run.actorPortraitDataUri;
 
       final result = await _await(
         ProviderFactory.image(
@@ -1038,24 +858,19 @@ class Pipeline extends ChangeNotifier {
           ImageRequest(
             apiKey: apiKey,
             model: model,
-            aspectRatio: _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio'),
+            aspectRatio: _aspectRatio,
             referenceImageDataUri: reference,
             prompt: shot.imagePrompt.isEmpty
-                ? _defaultFramePrompt(shot.kind)
+                ? _defaultFramePrompt()
                 : shot.imagePrompt,
-            // The picture shelf's own two settings: a frame of the ad and a
-            // still asked for by hand come off the same model, and only one of
-            // them having a size would be the odd one out.
-            size: ImageCapabilities.of(model)
-                .sizeOr(_settings.prefString('imageSize')),
-            quality: ImageCapabilities.of(model)
-                .qualityOr(_settings.prefString('imageQuality')),
+            size: size,
+            quality: quality,
           ),
         ),
         PipelineStep.frames,
       );
 
-      _recordUsage('frames', providerId, model, 1.0);
+      _recordUsage('frames', providerId, model, 1.0, 0, quality, size);
 
       final data = result['data'] as Uint8List? ?? Uint8List(0);
       final extension = '${result['extension'] ?? 'png'}';
@@ -1073,103 +888,56 @@ class Pipeline extends ChangeNotifier {
   }
 
   // ---------------------------------------------------------------------
-  // 4. Shots -- talking ones are lip-synced, the rest are animated
+  // 4. The take -- the still, lip-synced to the read
   // ---------------------------------------------------------------------
   //
-  // A talking shot goes to an avatar model: it takes the still and the line's
-  // audio and gives back a clip whose mouth matches, exactly as long as the
-  // audio. Nothing is asked for in seconds and nothing needs trimming
-  // afterwards.
-  //
-  // A product shot has no face to sync, so it stays on the ordinary
-  // image-to-video path and buys the smallest clip that covers its slot.
+  // The avatar model takes the still and the audio and gives back a clip whose
+  // mouth matches, exactly as long as the audio. Nothing is asked for in
+  // seconds, so nothing comes back needing to be stretched or trimmed -- which
+  // is why this is the only video path an ad has. The image-to-video shelf
+  // belongs to the Video mode, where the length is the thing you are buying.
 
   Future<void> _stepVideos() async {
     _setStep(PipelineStep.videos, StepPhase.running);
 
-    final first = _onlyShot >= 0 ? _onlyShot : 0;
-    final last = _onlyShot >= 0 ? _onlyShot : _run.shots.length - 1;
-
-    for (var index = first; index <= last && index < _run.shots.length; ++index) {
+    for (var index = 0; index < _run.shots.length; ++index) {
       _throwIfCancelling();
       final shot = _run.shots[index];
-      final talking = shot.kind != 'broll' && shot.voiceDataUri.isNotEmpty;
 
-      _shotLabel = '${index + 1}/${_run.shots.length}';
-      _setStep(PipelineStep.videos, StepPhase.running, _shotLabel);
-      _setStatus(talking
-          ? tr('Filming shot %1 of %2...').arg(index + 1).arg(_run.shots.length)
-          : tr('Filming the product for shot %1...').arg(index + 1));
+      if (shot.voiceDataUri.isEmpty) {
+        throw _RunFailed(
+            tr('No voice-over was recorded, so there is nothing to lip-sync to.'));
+      }
 
-      final String providerId;
-      final String model;
-      final ProviderTask? task;
+      _setStatus(tr('Filming your actor...'));
 
-      if (talking) {
-        // The default is asked for rather than named: hardcoding one here is
-        // how a provider that has since been dropped stays wired into the one
-        // path nobody reads until a render fails.
-        providerId = _registry.providerOrDefault(
-            'avatar', '${_request['avatarProvider'] ?? ''}');
-        model = _pickModel(providerId, _text('avatarModel'));
-        task = ProviderFactory.avatar(
-          providerId,
-          AvatarRequest(
-            apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
-            model: model,
-            imageDataUri: shot.frameDataUri,
-            audioDataUri: shot.voiceDataUri,
-            prompt: _motionFor(shot.videoPrompt),
-          ),
-        );
-        if (task == null) {
-          throw _RunFailed(tr('No avatar provider called %1.').arg(providerId));
-        }
-      } else {
-        providerId = _text('videoProvider');
-        final clipSeconds = Pricing.clipSeconds(shot.duration);
-        model = _pickModel(providerId, _text('videoModel'), clipSeconds);
-        task = ProviderFactory.video(
-          providerId,
-          () {
-            final aspect =
-                _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio');
-            // The b-roll clip is silent: its sound is the voice-over laid over
-            // it in the cut, and a model that also generates audio would be
-            // paid for a track that is thrown away.
-            final shaped = _modelSchemas
-                .capabilities(providerId, model)
-                .videoInput(
-                  seconds: clipSeconds,
-                  resolution: _text('videoResolution'),
-                  audio: false,
-                  aspectRatio: aspect,
-                );
+      // The default is asked for rather than named: hardcoding one here is how
+      // a provider that has since been dropped stays wired into the one path
+      // nobody reads until a render fails.
+      final providerId = _registry.providerOrDefault(
+          'avatar', '${_request['avatarProvider'] ?? ''}');
+      final model = _pickModel(providerId, _text('avatarModel'));
 
-            return VideoRequest(
-              apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
-              model: model,
-              aspectRatio: aspect,
-              imageDataUri: shot.frameDataUri,
-              prompt: shot.videoPrompt.isEmpty
-                  ? tr('Slow handheld move around the product, natural light, '
-                      'nobody on screen.')
-                  : shot.videoPrompt,
-              durationSeconds: clipSeconds,
-              imageField: shaped.imageField,
-              extraInput: shaped.input,
-            );
-          }(),
-        );
+      final task = ProviderFactory.avatar(
+        providerId,
+        AvatarRequest(
+          apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
+          model: model,
+          imageDataUri: shot.frameDataUri,
+          audioDataUri: shot.voiceDataUri,
+          prompt: _motionFor(shot.videoPrompt),
+          aspectRatio: _aspectRatio,
+        ),
+      );
+      if (task == null) {
+        throw _RunFailed(tr('No avatar provider called %1.').arg(providerId));
       }
 
       final result = await _await(task, PipelineStep.videos);
 
-      // Billed by the second of clip; for a talking shot the clip is the line.
-      final seconds = talking
-          ? shot.duration
-          : Pricing.clipSeconds(shot.duration).toDouble();
-      _recordUsage('video', providerId, model, seconds, 1);
+      // Billed by the second, and the clip is the line: the avatar model is
+      // handed the audio and gives back exactly that much video.
+      _recordUsage('video', providerId, model, shot.duration, 1);
 
       final data = result['data'] as Uint8List? ?? Uint8List(0);
       final extension = '${result['extension'] ?? 'mp4'}';
@@ -1181,198 +949,40 @@ class Pipeline extends ChangeNotifier {
           .arg((data.length / 1048576.0).toStringAsFixed(1)));
     }
 
-    await _probeClipDurations();
-
-    _shotLabel = '';
-    _setStep(PipelineStep.videos, StepPhase.done,
-        tr('%1 shot(s)').arg(_run.shots.length));
-  }
-
-  /// Measures every clip so the cut can trim each one to its slot. A clip that
-  /// came back shorter than we asked for would otherwise leave a gap.
-  Future<void> _probeClipDurations() async {
-    final exe = _ffmpeg;
-    if (exe.isEmpty) return;
-
-    final first = _onlyShot >= 0 ? _onlyShot : 0;
-    final last = _onlyShot >= 0 ? _onlyShot : _run.shots.length - 1;
-
-    for (var index = first; index <= last && index < _run.shots.length; ++index) {
-      _throwIfCancelling();
-      _run.shots[index].clipDuration =
-          await probeDuration(exe, _run.shots[index].clipPath);
-    }
+    _setStep(PipelineStep.videos, StepPhase.done);
   }
 
   // ---------------------------------------------------------------------
-  // 5. Subtitles
+  // 5. Delivery
   // ---------------------------------------------------------------------
-
-  Future<void> _stepCaptions() async {
-    if (_request['captionsEnabled'] == false) {
-      _setStep(PipelineStep.captions, StepPhase.skipped, tr('off'));
-      return;
-    }
-
-    // Re-shooting a scene changes the picture, never the read, so the subtitles
-    // that were timed against it are still exactly right.
-    if (_onlyShot >= 0 && _run.srtPath.isNotEmpty) {
-      _setStep(PipelineStep.captions, StepPhase.skipped, tr('unchanged'));
-      return;
-    }
-
-    final providerId = _text('captionsProvider');
-    final model = _text('captionsModel').isEmpty ? 'whisper-1' : _text('captionsModel');
-
-    _setStep(PipelineStep.captions, StepPhase.running);
-    _setStatus(tr('Timing the subtitles...'));
-
-    final task = ProviderFactory.transcribe(
-      providerId,
-      TranscribeRequest(
-        apiKey: _settings.apiKey(_registry.credentialFor(providerId)),
-        model: model,
-        audioPath: _run.voicePath,
-      ),
-    );
-
-    if (task == null) {
-      _log.warning(tr('No subtitle provider selected, skipping.'));
-      _setStep(PipelineStep.captions, StepPhase.skipped);
-      return;
-    }
-
-    try {
-      final result = await _await(task, PipelineStep.captions);
-
-      // Whisper bills the length of the audio it listened to.
-      _recordUsage('captions', providerId, model,
-          math.max(0.0, _run.voiceDuration) / 60.0);
-
-      _run.srtPath =
-          _writeArtifact(_captionsFile, utf8.encode('${result['srt'] ?? ''}'));
-      _log.success(tr('Subtitles ready.'));
-      _setStep(PipelineStep.captions, StepPhase.done);
-    } on ProviderException catch (error) {
-      _throwIfCancelling();
-      // Subtitles are a nice-to-have: a failure here must not lose the video.
-      _log.warning(tr('Subtitles unavailable (%1). Continuing without them.')
-          .arg(error.message));
-      _setStep(PipelineStep.captions, StepPhase.skipped, tr('failed'));
-    }
-  }
-
-  // ---------------------------------------------------------------------
-  // 6. Final cut
-  // ---------------------------------------------------------------------
-  //
-  // Every shot is trimmed to its slot and the slots are laid end to end, so the
-  // picture keeps moving for the whole ad without a single frame being
-  // stretched or looped. One ffmpeg pass does the lot: trim, normalise,
-  // concatenate, burn in the subtitles and mux the voice-over.
 
   Future<void> _stepAssemble() async {
     _setStep(PipelineStep.assemble, StepPhase.running);
-    _setStatus(tr('Assembling the final video...'));
 
-    final exe = _ffmpeg;
-    if (exe.isEmpty) {
-      _log.error(tr('FFmpeg is required to cut the shots together with the '
-              'voice-over and the subtitles. Install it or set its path in '
-              'Settings. Your generated files are in %1.')
-          .arg(_run.dir));
-      throw _RunFailed(tr('FFmpeg not found.'));
+    final clip = _run.shots.isEmpty ? '' : _run.shots.first.clipPath;
+    if (clip.isEmpty || !File(clip).existsSync()) {
+      throw _RunFailed(tr('No shot was rendered, so there is nothing to deliver.'));
     }
 
-    final usable = _run.shots.where((shot) => shot.clipPath.isNotEmpty).toList();
-    if (usable.isEmpty) {
-      throw _RunFailed(tr('No shot was rendered, so there is nothing to cut together.'));
-    }
-
-    final frame = _outputSize(
-        _text('aspectRatio').isEmpty ? '9:16' : _text('aspectRatio'));
-    final hasSubtitles = _run.srtPath.isNotEmpty;
-
-    final args = <String>['-y', '-hide_banner'];
-    for (final shot in usable) {
-      args.addAll(['-i', p.basename(shot.clipPath)]);
-    }
-    args.addAll(['-i', p.basename(_run.voicePath)]);
-
-    // Clips come from different models at different sizes and frame rates.
-    // concat refuses to join streams that do not match, so each one is padded
-    // to the same canvas and resampled to the same rate first.
+    // The avatar model was handed the frame, the line and the shape of the ad,
+    // and what it gives back is the ad: already the right size, already
+    // carrying its own audio in sync with the mouth. Sending it through ffmpeg
+    // to be padded, concatenated and re-encoded is a generation of quality and
+    // a dependency, spent on producing the same file.
     //
-    // Every shot is then made exactly as long as its own line: trimmed if the
-    // clip overran, and holding its last frame if it came back short. Because
-    // each length is the measured length of that line's audio, the shots add up
-    // to the voice-over on their own -- so nothing is stretched, nothing is
-    // looped, and there is no -shortest deciding where the ad ends.
-    final chains = <String>[];
-    var concatInputs = '';
-    var shortfall = 0.0;
+    // This is what a one-take ad buys beyond the money: nothing has to be cut,
+    // so nothing can be cut wrong, and the machine does not need ffmpeg at all.
+    _setStatus(tr('Finishing the video...'));
 
-    for (var i = 0; i < usable.length; ++i) {
-      final shot = usable[i];
-      final slot = shot.duration;
-      final available =
-          shot.clipDuration > 0 ? math.min(slot, shot.clipDuration) : slot;
-      final pad = math.max(0.0, slot - available);
-      shortfall += pad;
-
-      var chain = '[$i:v]trim=0:${available.toStringAsFixed(3)},'
-          'setpts=PTS-STARTPTS,'
-          'scale=${frame.width}:${frame.height}:force_original_aspect_ratio=decrease,'
-          'pad=${frame.width}:${frame.height}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30';
-
-      if (pad > 0.02) {
-        chain += ',tpad=stop_mode=clone:stop_duration=${pad.toStringAsFixed(3)}';
-      }
-
-      chains.add('$chain[v$i]');
-      concatInputs += '[v$i]';
+    final destination = p.join(_run.dir, _finalFile);
+    try {
+      File(clip).copySync(destination);
+    } on FileSystemException {
+      throw _RunFailed(tr('Could not write the finished video into %1.')
+          .arg(_run.dir));
     }
 
-    if (shortfall > 0.5) {
-      _log.warning(
-          tr('The clips are %1s short in total; those shots hold their last frame.')
-              .arg(shortfall.toStringAsFixed(1)));
-    }
-
-    var lastLabel = 'vc';
-    chains.add('${concatInputs}concat=n=${usable.length}:v=1:a=0[vc]');
-    if (hasSubtitles) {
-      chains.add("[vc]subtitles=${Ffmpeg.escapeFilterPath(_captionsFile)}:"
-          "force_style='$_subtitleStyle'[vs]");
-      lastLabel = 'vs';
-    }
-
-    args.addAll([
-      '-filter_complex', chains.join(';'),
-      '-map', '[$lastLabel]',
-      '-map', '${usable.length}:a:0',
-      '-c:v', 'libx264',
-      '-preset', 'medium',
-      '-crf', '20',
-      '-pix_fmt', 'yuv420p',
-      '-c:a', 'aac',
-      '-b:a', '192k',
-      '-movflags', '+faststart',
-      _finalFile,
-    ]);
-
-    _log.info(tr('Cutting %1 shot(s) into %2x%3.')
-        .arg(usable.length)
-        .arg(frame.width)
-        .arg(frame.height));
-
-    final task = FfmpegTask(exe, args, workingDirectory: _run.dir);
-    await _await(task, PipelineStep.assemble);
-
-    _run.finalPath = p.join(_run.dir, _finalFile);
-    if (!File(_run.finalPath).existsSync()) {
-      throw _RunFailed(tr('FFmpeg finished but produced no file.'));
-    }
+    _run.finalPath = destination;
     _setStep(PipelineStep.assemble, StepPhase.done, _finalFile);
   }
 
@@ -1402,7 +1012,6 @@ class Pipeline extends ChangeNotifier {
         for (final shot in _run.shots)
           {
             'line': shot.line,
-            'kind': shot.kind,
             'imagePrompt': shot.imagePrompt,
             'videoPrompt': shot.videoPrompt,
             'frame': relative(shot.framePath),
@@ -1414,7 +1023,6 @@ class Pipeline extends ChangeNotifier {
       // The first shot's still doubles as the project thumbnail.
       'frame': _run.shots.isEmpty ? '' : relative(_run.shots.first.framePath),
       'voice': relative(_run.voicePath),
-      'captions': relative(_run.srtPath),
       'final': relative(_run.finalPath),
       // What the providers billed, estimated from their published prices.
       'cost': cost.toJson(),

@@ -94,6 +94,32 @@ class ImageCapabilities {
   String sizeOr(String saved) =>
       sizes.contains(saved) ? saved : (defaultSize.isEmpty ? '' : defaultSize);
 
+  /// The frame to ask for when the shape is not negotiable.
+  ///
+  /// [sizeOr] answers the studio's question -- what a still asked for by hand
+  /// is drawn at. This answers the pipeline's, which is narrower: a frame of
+  /// an ad has to be the shape of the ad. A saved size that disagrees is
+  /// dropped rather than corrected, because a model that takes an explicit
+  /// size also knows which frames it sells for a given ratio -- and on the
+  /// models where the size wins outright over the ratio, honouring it is how a
+  /// vertical ad gets shot in 4K landscape.
+  String frameFor(String saved, String aspectRatio) {
+    final asked = sizeOr(saved);
+
+    final frame = asked.toLowerCase().split('x');
+    if (frame.length != 2) return asked; // "auto", "1K": not a literal frame
+    final width = double.tryParse(frame[0]) ?? 0;
+    final height = double.tryParse(frame[1]) ?? 0;
+    if (width <= 0 || height <= 0) return asked;
+
+    final ratio = aspectRatio.split(':');
+    final wide = double.tryParse(ratio.first) ?? 0;
+    final tall = ratio.length > 1 ? double.tryParse(ratio[1]) ?? 0 : 0;
+    if (wide <= 0 || tall <= 0) return asked;
+
+    return ((width / height) - (wide / tall)).abs() <= 0.05 ? asked : '';
+  }
+
   String qualityOr(String saved) => qualities.contains(saved)
       ? saved
       : (defaultQuality.isEmpty ? '' : defaultQuality);

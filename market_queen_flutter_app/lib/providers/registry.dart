@@ -250,16 +250,19 @@ class Registry extends ChangeNotifier {
         credential: 'heygen',
         models: const [
           // The engine, not a model id: HeyGen has one endpoint and picks the
-          // renderer from `engine.type`. Avatar IV is their default for new
-          // integrations and the only one that animates an arbitrary photo, so
-          // it leads -- the others need an avatar registered on the account.
+          // renderer from which job is created. Avatar IV animates the frame
+          // where it stands and leads for it; the other two only exist on the
+          // job that names its subject by look id, so the frame is registered
+          // as a photo avatar first -- two more calls, a wait while it trains,
+          // and both are opt-in per account.
           ModelEntry('avatar_iv', 'Avatar IV'),
           ModelEntry('avatar_v', 'Avatar V'),
-          ModelEntry('avatar_iii', 'Avatar III (4K)'),
+          ModelEntry('avatar_iii', 'Avatar III'),
         ],
         defaultModel: 'avatar_iv',
-        note: tr('Animates a photo you supply. Avatar V and III need an avatar '
-            'registered on your HeyGen account first.'),
+        note: tr('Animates a photo you supply. Avatar V and III register that '
+            'photo on your HeyGen account first, which takes longer and has to '
+            'be enabled on the account.'),
       ),
 
       // The one that moves a whole body rather than a face. It is placed after
@@ -678,32 +681,40 @@ class Registry extends ChangeNotifier {
   /// The model id to actually send.
   ///
   /// Everything the menus offer is already concrete, so this is a pass-through
-  /// for anything chosen today. The one thing it still does is rescue an
-  /// install whose preferences say "auto": that becomes the head of the
-  /// provider's list, which is what the old placeholder resolved to anyway.
+  /// for anything chosen today. What it still does is rescue a saved preference
+  /// that has stopped meaning anything: an install whose settings say "auto",
+  /// and one naming a model since retired from the catalogue. Both end the same
+  /// way otherwise -- an id the provider has never heard of, sent, rejected,
+  /// and priced from a table entry for something that was never rendered.
   String resolveModel(String providerId, String modelId, [int durationSeconds = 0]) {
-    if (!isAuto(modelId)) return modelId;
+    // An empty id is not a stale one: it is a caller that has nothing saved
+    // yet, and several of them read the emptiness as "say nothing here".
+    if (modelId.isEmpty) return '';
 
-    for (final entry in _entries) {
-      if (entry.id != providerId) continue;
-
-      // Models are listed best-first, so the first concrete one is the pick.
-      // For a long shot we skip ahead to a family that can do 10 seconds in one
-      // go, rather than leaving the pipeline to loop a 5s clip.
-      final needsLongClip = entry.category == 'video' && durationSeconds > 7;
-
-      var firstConcrete = '';
-      for (final model in entry.models) {
-        if (isAuto(model.id)) continue;
-        if (firstConcrete.isEmpty) firstConcrete = model.id;
-        if (!needsLongClip) return model.id;
-        // Veo tops out at eight seconds and Sora at twelve; the rest of the
-        // list runs to fifteen or beyond, so a long shot skips past Veo.
-        if (!model.id.startsWith('veo-')) return model.id;
-      }
-      return firstConcrete;
+    final entry = provider(providerId);
+    if (entry == null || entry.models.isEmpty) {
+      return isAuto(modelId) ? '' : modelId;
     }
-    return '';
+    if (!isAuto(modelId) &&
+        entry.models.any((model) => model.id == modelId)) {
+      return modelId;
+    }
+
+    // Models are listed best-first, so the first concrete one is the pick.
+    // For a long shot we skip ahead to a family that can do 10 seconds in one
+    // go, rather than leaving the pipeline to loop a 5s clip.
+    final needsLongClip = entry.category == 'video' && durationSeconds > 7;
+
+    var firstConcrete = '';
+    for (final model in entry.models) {
+      if (isAuto(model.id)) continue;
+      if (firstConcrete.isEmpty) firstConcrete = model.id;
+      if (!needsLongClip) return model.id;
+      // Veo tops out at eight seconds and Sora at twelve; the rest of the
+      // list runs to fifteen or beyond, so a long shot skips past Veo.
+      if (!model.id.startsWith('veo-')) return model.id;
+    }
+    return firstConcrete;
   }
 
   List<ProviderEntry> providers(String category) =>

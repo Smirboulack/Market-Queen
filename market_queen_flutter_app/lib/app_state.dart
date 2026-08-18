@@ -39,7 +39,7 @@ class AppState {
     // One caster for the whole app: the booth and the pipeline have to agree on
     // who is reading the ad, and they agree by sharing the record of it.
     voiceCasting = VoiceCasting(settings);
-    pipeline = Pipeline(settings, registry, pricing, log, voiceCasting, modelSchemas);
+    pipeline = Pipeline(settings, registry, pricing, log, voiceCasting);
     project = AdProject(settings, registry);
     casting = Casting();
     actors = ActorLibrary();

@@ -6,7 +6,7 @@ import 'dart:typed_data';
 
 /// Two jobs, one transport. Writing a scenario from nothing and reworking one
 /// the user already wrote differ only in the prompt, and are otherwise the same
-/// call to the same three providers, returning the same `shots` shape.
+/// call to the same three providers.
 enum ScriptMode {
   /// The model writes the words and the visuals.
   writeScript,
@@ -15,10 +15,6 @@ enum ScriptMode {
   /// Enhance / Shorten / Punchier.
   rewriteScript,
 
-  /// The user's own scenario, already cut into shots, handed back with a camera
-  /// on each one. Not a word of it may change: the model answers by position
-  /// and only the kind and the two prompts are read back.
-  planShots,
 }
 
 class ScriptRequest {
@@ -38,7 +34,6 @@ class ScriptRequest {
     this.extraInstructions = '',
     this.referenceImageDataUri = '',
     this.durationSeconds = 20,
-    this.shotCount = 4,
   });
 
   final String apiKey;
@@ -49,7 +44,6 @@ class ScriptRequest {
   final ScriptMode mode;
 
   /// rewriteScript: the scenario to rework, as one entry.
-  /// planShots: the shot lines, in order, one entry each.
   final List<String> lines;
 
   /// rewriteScript only: what to do to it ("make it shorter", "punchier").
@@ -69,9 +63,6 @@ class ScriptRequest {
   final String referenceImageDataUri;
 
   final int durationSeconds;
-
-  /// How many camera setups to write the ad across.
-  final int shotCount;
 }
 
 /// One free-form question to a writer model, answered as plain text.
@@ -264,6 +255,7 @@ class AvatarRequest {
     this.audioDataUri = '',
     this.prompt = '',
     this.resolution = '',
+    this.aspectRatio = '',
   });
 
   final String apiKey;
@@ -281,6 +273,12 @@ class AvatarRequest {
   /// "720p" or "1080p", for the engines that price and cap themselves by it.
   /// Empty leaves the provider's own default alone.
   final String resolution;
+
+  /// The frame the ad is being cut in -- "9:16", "1:1", "16:9". Empty leaves
+  /// the provider's own default alone. It has to travel with the request: the
+  /// engines that take it crop to it themselves, and a clip that comes back
+  /// square for a vertical ad is one nothing downstream can put right.
+  final String aspectRatio;
 }
 
 /// A voice conjured out of a description instead of picked off a shelf.

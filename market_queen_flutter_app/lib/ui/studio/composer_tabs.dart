@@ -6,14 +6,16 @@ import '../../models/canvas_feed.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
-import '../widgets/chip.dart';
 
-/// The six things the composer can be asked for.
+/// The three things the composer can be asked for.
 ///
-/// Three of them are on the bar; the other three live behind "See more",
-/// because they are what you reach for once something already exists in the
-/// canvas rather than what you open the studio to do.
-enum ComposerTab { actors, video, image, audio, captions, upscale }
+/// All three are on the bar. There were six: a voice-over on its own, a
+/// subtitle burner and an enlarger sat behind a "See more" menu, and the
+/// cost of that menu was not the clutter -- it was that the voice engine the
+/// ad is read with could only be changed from inside it. A setting that
+/// decides how the finished film sounds should not be two clicks and a guess
+/// away from the ad it belongs to.
+enum ComposerTab { actors, image, video }
 
 /// Everything that differs between one tab and the next, in one place.
 ///
@@ -131,51 +133,15 @@ class ComposerSpec {
       referenceKinds: const {MediaKind.image},
       picksAspect: true,
     ),
-    ComposerTab.audio => ComposerSpec(
-      label: tr('Voice-over'),
-      icon: 'volume-up-line',
-      category: 'voice',
-      kind: CanvasKind.audio,
-      placeholder: tr('Write what should be said out loud...'),
-      tall: true,
-      referenceKinds: const {},
-    ),
-    ComposerTab.captions => ComposerSpec(
-      label: tr('Subtitles'),
-      icon: 'check-double-line',
-      category: 'captions',
-      kind: CanvasKind.video,
-      placeholder: tr('Drop in a clip to subtitle it'),
-      prompted: false,
-      referenceKinds: const {MediaKind.video},
-      multipleReferences: false,
-    ),
-    ComposerTab.upscale => ComposerSpec(
-      label: tr('Enlarge'),
-      icon: 'gallery-line',
-      category: 'upscale',
-      kind: CanvasKind.image,
-      placeholder: tr('Drop in a picture to enlarge it'),
-      prompted: false,
-      referenceKinds: const {MediaKind.image},
-      multipleReferences: false,
-    ),
   };
 
-  /// The three that get a pill of their own, in the order they are reached
-  /// for: the actor and the stills come first, and video last, because video is
-  /// what you shoot once everything else is settled -- and the most expensive
-  /// thing to shoot twice.
+  /// In the order they are reached for: the actor and the stills come first,
+  /// and video last, because video is what you shoot once everything else is
+  /// settled -- and the most expensive thing to shoot twice.
   static const List<ComposerTab> primary = [
     ComposerTab.actors,
     ComposerTab.image,
     ComposerTab.video,
-  ];
-
-  static const List<ComposerTab> secondary = [
-    ComposerTab.audio,
-    ComposerTab.captions,
-    ComposerTab.upscale,
   ];
 }
 
@@ -185,47 +151,27 @@ class ComposerSpec {
 /// canvas rather than a strip inside the input -- so that what you are making
 /// reads as a choice you have already made, and the bar underneath is only
 /// about what you are saying.
-///
-/// "See more" adds rather than replaces. It used to *become* the mode you
-/// picked out of it, which meant the way back into the menu was the thing you
-/// had just taken out of it: choosing Subtitles hid Voice-over and Enlarge
-/// behind a pill that no longer said "See more". Now the picked mode arrives as
-/// a pill of its own, with a cross to put it away again, and the menu stays
-/// where it was.
 class ComposerTabBar extends StatelessWidget {
   const ComposerTabBar({
     super.key,
     required this.current,
-    required this.extras,
     required this.onPicked,
-    required this.onRemoved,
   });
 
   final ComposerTab current;
-
-  /// The advanced modes pulled out of the menu, in the order they were added.
-  final List<ComposerTab> extras;
-
   final ValueChanged<ComposerTab> onPicked;
-  final ValueChanged<ComposerTab> onRemoved;
 
   static const double _pillHeight = 34;
   static const double _framePadding = 5;
 
-  /// Half the height of a single row of pills. That makes the frame a stadium
-  /// while everything is on one line -- which is what it always was -- and a
-  /// rounded rectangle the moment it needs two, instead of a stadium whose
-  /// curve cuts through the pills at either end.
+  /// Half the height of a single row of pills, so the frame is a stadium
+  /// while everything is on one line and a rounded rectangle if it ever needs
+  /// two, instead of a stadium whose curve cuts through the end pills.
   static const double _frameRadius = _pillHeight / 10 + _framePadding;
 
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
-
-    final remaining = [
-      for (final tab in ComposerSpec.secondary)
-        if (!extras.contains(tab)) tab,
-    ];
 
     return Container(
       padding: const EdgeInsets.all(_framePadding),
@@ -234,12 +180,6 @@ class ComposerTabBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(_frameRadius),
         border: Border.all(color: mq.border),
       ),
-      // Wrapped, not a row: with all three advanced modes out on the bar the
-      // pills are wider than the bar underneath them, and the frame is anchored
-      // to the bottom of the page, so a second line grows upward into empty
-      // background rather than pushing anything around.
-      // Anchored left, because the frame is now at the left end of a row it
-      // shares with the settings rather than centred over the bar on its own.
       child: Wrap(
         spacing: 4,
         runSpacing: 4,
@@ -252,44 +192,6 @@ class ComposerTabBar extends StatelessWidget {
               selected: tab == current,
               onTap: () => onPicked(tab),
             ),
-          for (final tab in extras)
-            _Pill(
-              spec: ComposerSpec.of(tab),
-              selected: tab == current,
-              onTap: () => onPicked(tab),
-              onRemove: () => onRemoved(tab),
-            ),
-          Builder(
-            builder: (anchor) => _Pill(
-              spec: ComposerSpec(
-                // Three dots, not a magnifier. Nothing here is searched: the
-                // pill opens a short list of the modes that are not on the bar,
-                // which is the one thing an overflow glyph already means
-                // everywhere else.
-                label: tr('See more'),
-                icon: 'more-line',
-                category: '',
-                kind: CanvasKind.image,
-                placeholder: '',
-              ),
-              selected: false,
-              // Everything is already out on the bar; the menu behind it would
-              // be empty.
-              enabled: remaining.isNotEmpty,
-              onTap: () async {
-                final picked = await showChipMenu<ComposerTab>(
-                  anchor,
-                  options: [
-                    for (final tab in remaining)
-                      MenuOption(ComposerSpec.of(tab).label, tab),
-                  ],
-                  current: current,
-                  width: 200,
-                );
-                if (picked != null) onPicked(picked);
-              },
-            ),
-          ),
         ],
       ),
     );
@@ -301,18 +203,11 @@ class _Pill extends StatelessWidget {
     required this.spec,
     required this.selected,
     required this.onTap,
-    this.onRemove,
-    this.enabled = true,
   });
 
   final ComposerSpec spec;
   final bool selected;
   final VoidCallback onTap;
-
-  /// Set on the advanced pills, which can be put away again.
-  final VoidCallback? onRemove;
-
-  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -320,7 +215,6 @@ class _Pill extends StatelessWidget {
 
     return Pressable(
       onTap: onTap,
-      enabled: enabled,
       // The pills touch, so hover snaps both ways and only one is ever lit.
       snap: true,
       focusRadius: MqTheme.radiusPill,
@@ -346,7 +240,7 @@ class _Pill extends StatelessWidget {
         return AnimatedContainer(
           duration: states.duration,
           height: ComposerTabBar._pillHeight,
-          padding: EdgeInsets.only(left: 14, right: onRemove == null ? 14 : 6),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           decoration: BoxDecoration(
             color: fill,
             borderRadius: BorderRadius.circular(5),
@@ -365,47 +259,10 @@ class _Pill extends StatelessWidget {
                   letterSpacing: MqTheme.trackSmall,
                 ),
               ),
-              if (onRemove != null) ...[
-                const SizedBox(width: 4),
-                _PillClose(ink: ink, onTap: onRemove!),
-              ],
             ],
           ),
         );
       },
-    );
-  }
-}
-
-/// The cross on an advanced pill.
-///
-/// Its own target inside the pill rather than a second meaning for it: pressing
-/// the pill always switches to that mode, which is what you do twenty times to
-/// the once you put it away.
-class _PillClose extends StatelessWidget {
-  const _PillClose({required this.ink, required this.onTap});
-
-  final Color ink;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Pressable(
-      onTap: onTap,
-      tooltip: tr('Put this one away'),
-      focusRadius: MqTheme.radiusPill,
-      builder: (context, states) => Container(
-        width: 20,
-        height: 20,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: states.active
-              ? ink.withValues(alpha: 0.16)
-              : Colors.transparent,
-          shape: BoxShape.circle,
-        ),
-        child: MqIcon('close-line', size: 13, color: ink),
-      ),
     );
   }
 }

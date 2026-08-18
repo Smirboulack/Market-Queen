@@ -14,6 +14,41 @@ import 'package:market_queen/providers/types.dart';
 void main() {
   final registry = Registry();
 
+  group('the frame an ad is drawn at', () {
+    // The run that started this: the picture shelf was set to 3840x2160 and the
+    // ad to 9:16, and gpt-image-2 takes an explicit size over a ratio -- so six
+    // stills came back 4K landscape for a vertical ad, and were quoted at the
+    // 1024x1024 rate on the way out.
+    final gptImage = ImageCapabilities.of('gpt-image-2');
+
+    test('a saved frame of the wrong shape is dropped, not honoured', () {
+      expect(gptImage.frameFor('3840x2160', '9:16'), '');
+      expect(gptImage.frameFor('1536x1024', '9:16'), '');
+      expect(gptImage.frameFor('1024x1024', '9:16'), '');
+
+      // Portrait, but 2:3 rather than 9:16. Dropped too, and deliberately: an
+      // empty frame is the provider deriving one from the ratio, and it knows
+      // which frames it actually sells better than a near-enough guess does.
+      expect(gptImage.frameFor('1024x1536', '9:16'), '');
+    });
+
+    test('a saved frame of the right shape is kept', () {
+      expect(gptImage.frameFor('2160x3840', '9:16'), '2160x3840');
+      expect(gptImage.frameFor('1024x1024', '1:1'), '1024x1024');
+      expect(gptImage.frameFor('2048x2048', '1:1'), '2048x2048');
+      expect(gptImage.frameFor('3840x2160', '16:9'), '3840x2160');
+    });
+
+    test('a frame that is not a pixel pair is left alone', () {
+      // "auto" and the shorthand tokens have no shape to disagree with.
+      expect(gptImage.frameFor('auto', '9:16'), 'auto');
+      expect(
+        ImageCapabilities.of('gemini-3-pro-image').frameFor('2K', '9:16'),
+        '2K',
+      );
+    });
+  });
+
   group('shelves', () {
     // The Models page is two shelves now -- keys, and what those keys buy --
     // and neither is filtered by category: both list every account there is.

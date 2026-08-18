@@ -3,20 +3,15 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 
+import 'package:market_queen/core/pricing.dart';
 import 'package:market_queen/core/http_util.dart';
-import 'package:market_queen/pipeline/shot_planner.dart';
-import 'package:market_queen/providers/text_providers.dart';
+import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/providers/types.dart';
 import 'package:market_queen/providers/voice_profile.dart';
 import 'package:market_queen/providers/voice_providers.dart';
 
-/// The words of a script, whitespace and layout thrown away. What the shot list
-/// has to preserve exactly.
-List<String> _words(String text) =>
-    text.trim().isEmpty ? const [] : text.trim().split(RegExp(r'\s+'));
-
-/// The scenario that produced the eight-shot run: nine written beats, but only
-/// eight full stops, because the first one ends on an ellipsis.
+/// The scenario from the run this pipeline was rebuilt after: nine written
+/// beats, which used to be bought as nine of everything.
 const _scenario = '''
 Oh les sœurs, j'en ai trop marre du célibat…
 
@@ -38,82 +33,78 @@ Les sœurs, si vous êtes célibataires aussi, allez voir, parce que là… moi 
 ''';
 
 void main() {
-  group('ShotPlanner', () {
-    test('keeps every word of the scenario, in order', () {
-      for (final script in [
-        _scenario,
-        'Une seule phrase.',
-        'Un.\nDeux.\nTrois.',
-        'Pas de ponctuation du tout ici',
-      ]) {
-        expect(
-          _words(ShotPlanner.split(script).join(' ')),
-          _words(script),
-          reason: 'the shot list is a cut of the script, never a rewrite',
-        );
-      }
+  group('what one ad costs', () {
+    // The estimate and the run are two readings of the same ad, and the whole
+    // reason to show a number before Generate is that they agree. Every case
+    // below is a way they came apart on a real run.
+    late Pricing pricing;
+
+    setUpAll(() async {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      pricing = Pricing(Registry());
+      await pricing.load();
     });
 
-    test('an ellipsis ends a thought only when a new one starts', () {
-      // The bug that welded two written beats into one shot: "…" was not a
-      // boundary at all, so the first beat never closed.
-      expect(ShotPlanner.sentences('Marre du célibat… Genre vraiment.'), [
-        'Marre du célibat…',
-        'Genre vraiment.',
-      ]);
-      // And the over-correction: most ellipses in written UGC are a breath,
-      // not a stop. Cutting here would hand the engine half a thought.
-      expect(ShotPlanner.sentences('Bon… pourquoi pas ?'), [
-        'Bon… pourquoi pas ?',
-      ]);
-      expect(ShotPlanner.sentences('Un. Deux.'), ['Un.', 'Deux.']);
+    Map<String, Object?> ad({
+      String script = _scenario,
+      String imageSize = '',
+      String imageQuality = '',
+    }) => {
+      'script': script,
+      'durationSeconds': 20,
+      'aspectRatio': '9:16',
+      'textProvider': 'openai-chat',
+      'textModel': 'gpt-5-mini',
+      'imageProvider': 'openai-image',
+      'imageModel': 'gpt-image-2',
+      'imageSize': imageSize,
+      'imageQuality': imageQuality,
+      'voiceProvider': 'elevenlabs',
+      'voiceModel': 'eleven_multilingual_v2',
+      'avatarProvider': 'heygen-avatar',
+      'avatarModel': 'avatar_iv',
+    };
+
+    List<PriceLine> linesFor(String step, Map<String, Object?> request) =>
+        pricing.estimate(request).lines.where((line) => line.step == step).toList();
+
+    test('one take buys one frame, whatever the scenario is', () {
+      // Nine written beats. It used to quote nine stills and nine clips.
+      expect(linesFor('frames', ad()).length, 1);
+      expect(linesFor('frames', ad()).single.units, 1);
+      expect(linesFor('video', ad()).length, 1);
     });
 
-    test('a blank line is a cut, however short the beats are', () {
-      expect(ShotPlanner.split('Un.\n\nDeux.\n\nTrois.'), [
-        'Un.',
-        'Deux.',
-        'Trois.',
-      ]);
+    test('the frame is priced at the size actually asked for', () {
+      // The 4K run: the frame preference said 3840x2160 and the estimate quoted
+      // the 1024x1024 rate, so six stills came back around eight times dearer
+      // than the number on the button.
+      final small = linesFor('frames', ad(imageSize: '1024x1024', imageQuality: 'medium'));
+      final large = linesFor('frames', ad(imageSize: '3840x2160', imageQuality: 'medium'));
+
+      expect(small.single.amount, greaterThan(0));
+      expect(
+        large.single.amount,
+        greaterThan(small.single.amount * 5),
+        reason: 'a 4K frame is roughly eight times the area of the square',
+      );
     });
 
-    test('short sentences inside one beat are packed into one shot', () {
-      // Otherwise "Bon… pourquoi pas ?" buys a one-second clip of a shrug.
-      expect(ShotPlanner.split('Un. Deux. Trois.'), ['Un. Deux. Trois.']);
+    test('a scenario the user wrote is not sent to a writer', () {
+      expect(linesFor('script', ad()), isEmpty);
+      expect(linesFor('script', ad(script: '')).length, 1);
     });
 
-    test('a long beat is cut on sentence boundaries', () {
-      const long = 'Un deux trois quatre cinq six sept huit neuf dix. '
-          'Onze douze treize quatorze quinze seize dix-sept dix-huit.';
-      expect(ShotPlanner.split(long), [
-        'Un deux trois quatre cinq six sept huit neuf dix.',
-        'Onze douze treize quatorze quinze seize dix-sept dix-huit.',
-      ]);
+    test('nothing is quoted for subtitles or for product shots', () {
+      // Both options are gone. A line for either would be money quoted for a
+      // call the pipeline no longer makes.
+      final steps = pricing.estimate(ad()).lines.map((line) => line.step).toSet();
+      expect(steps, {'voice', 'frames', 'video'});
     });
 
-    test('a sentence is never cut in half, however long it runs', () {
-      // Each shot's audio is recorded from its own line, so half a sentence
-      // would be read as half a thought.
-      const sentence = 'a b c d e f g h i j k l m n o p q r s t u v w x y z.';
-      expect(ShotPlanner.split(sentence), [sentence]);
-    });
-
-    test('the shot list is exactly the beats the user wrote', () {
-      // Nine paragraphs in, nine shots out, each one whole. This is the run
-      // that used to come back as eight, with the hook welded to the line
-      // after it.
-      final beats = _scenario
-          .split(RegExp(r'\n[ \t]*\n'))
-          .map((beat) => beat.trim())
-          .where((beat) => beat.isNotEmpty)
-          .toList();
-
-      expect(beats.length, 9);
-      expect(ShotPlanner.split(_scenario), beats);
-    });
-
-    test('an empty scenario is no shots at all', () {
-      expect(ShotPlanner.split('   \n\n  '), isEmpty);
+    test('the clip is quoted for as long as the read', () {
+      final seconds = Pricing.speechSeconds(Pricing.wordCount(_scenario));
+      expect(linesFor('video', ad()).single.units, closeTo(seconds, 0.001));
     });
   });
 
@@ -174,17 +165,6 @@ void main() {
       expect(v3.snapStability(0.9), 1.0);
       // The classic engines take the continuum as it comes.
       expect(ElevenLabsModel.classic.snapStability(0.45), 0.45);
-    });
-  });
-
-  group('shot kinds', () {
-    test('only an explicit product shot is one', () {
-      expect(ScriptTask.shotKind('broll'), 'broll');
-      expect(ScriptTask.shotKind('BRoll'), 'broll');
-      expect(ScriptTask.shotKind('talking'), 'talking');
-      expect(ScriptTask.shotKind('b-roll'), 'talking');
-      expect(ScriptTask.shotKind(null), 'talking');
-      expect(ScriptTask.shotKind(''), 'talking');
     });
   });
 

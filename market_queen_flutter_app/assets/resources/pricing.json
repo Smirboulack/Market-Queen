@@ -159,13 +159,15 @@
     "avatar_v": {
       "unit": "second",
       "amount": 0.0667,
+      "approx": true,
+      "_note": "Digital twin and studio rate. HeyGen publishes no separate photo-avatar line for Avatar V, so the dearer one is quoted rather than under-quoting a run.",
       "source": "https://developers.heygen.com/docs/pricing"
     },
     "avatar_iii": {
       "unit": "second",
-      "amount": 0.0167,
+      "amount": 0.0433,
       "approx": true,
-      "_note": "Digital twin and studio avatar. Photo avatar is 0.0433/s.",
+      "_note": "Photo avatar rate, which is the one the app buys: it registers the generated frame as a photo avatar rather than naming a digital twin. A digital twin is 0.0167/s.",
       "source": "https://developers.heygen.com/docs/pricing"
     },
     "fal-ai/kling-video/ai-avatar/v2/standard": { "unit": "second", "amount": 0.0562 },

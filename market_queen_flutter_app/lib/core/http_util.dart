@@ -83,15 +83,20 @@ class Http {
     final base = 'HTTP $statusCode';
 
     if (apiMessage.isNotEmpty) return '$base - ${_simplified(apiMessage)}';
-    if (body.isNotEmpty) {
-      final head = body.length > 400 ? body.substring(0, 400) : body;
-      return '$base - ${_simplified(head)}';
-    }
+    if (body.isNotEmpty) return '$base - ${_simplified(body)}';
     return base;
   }
 
-  static String _simplified(String text) =>
-      text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  /// One readable line out of whatever the provider wrote back.
+  ///
+  /// The cut applies to the extracted message too, not only to a raw body: an
+  /// API that rejects a field by quoting the value back answers a bad data:
+  /// URI with the entire base64 payload inside its own error message, and
+  /// unabridged that is a megabyte of log where the sentence should be.
+  static String _simplified(String text, {int limit = 400}) {
+    final flat = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    return flat.length <= limit ? flat : '${flat.substring(0, limit)}...';
+  }
 
   /// What bytes actually are, whatever the file is called.
   ///

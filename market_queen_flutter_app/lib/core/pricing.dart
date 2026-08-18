@@ -5,7 +5,6 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as p;
 
-import '../pipeline/shot_planner.dart';
 import '../providers/registry.dart';
 import 'paths.dart';
 
@@ -104,13 +103,20 @@ class UnitPrice {
 
 /// One billable call a run actually made.
 class Usage {
-  Usage(this.step, this.provider, this.model, this.units, [this.unitsOut = 0]);
+  Usage(this.step, this.provider, this.model, this.units,
+      [this.unitsOut = 0, this.quality = '', this.size = '']);
 
   final String step;
   final String provider;
   final String model;
   final double units;
   final double unitsOut;
+
+  /// The frame an image call was actually made at. Without it the receipt
+  /// quotes the model's headline figure -- its cheapest frame -- for a
+  /// picture that may have cost eight times that.
+  final String quality;
+  final String size;
 }
 
 /// One step of a model whose price changes with the size of what it produces.
@@ -286,17 +292,9 @@ class Pricing {
   // A product photo handed to a vision model.
   static const _imageTokens = 1100.0;
 
-  // Hook, caption and each shot's line and two prompts come back in about this
-  // much per shot, plus a little fixed overhead.
+  // Hook, caption and the read itself come back in about this much, plus a
+  // little fixed overhead.
   static const _scriptOutputTokensPerShot = 220.0;
-
-  // The director pass answers with the same two prompts but none of the words,
-  // so it is a little cheaper per shot than writing one.
-  static const _planOutputTokensPerShot = 180.0;
-
-  // Every shot is kept at or under this so its clip is bought at the
-  // five-second floor every video model offers.
-  static const _secondsPerShot = 5.0;
 
   final Registry _registry;
   final Map<String, _Price> _prices = {};
@@ -422,21 +420,6 @@ class Pricing {
   /// Characters of speech in an ad of this length -- the TTS billing unit.
   static double speechCharacters(int durationSeconds) =>
       math.max(1.0, durationSeconds * _wordsPerSecond * _charsPerWord);
-
-  /// How many shots an ad of this length is cut into.
-  ///
-  /// Video models sell clips in fixed sizes, five seconds being the smallest
-  /// everyone offers. Keeping every shot at or under five seconds means each
-  /// one is bought at that floor with nothing wasted, and no shot ever has to
-  /// be stretched or looped to fill its slot.
-  static int shotCount(int durationSeconds) =>
-      (durationSeconds / _secondsPerShot).ceil().clamp(2, 10);
-
-  /// Seconds of video bought for one shot of [shotSeconds] on screen.
-  ///
-  /// Mirrors what the video providers accept: they round anything over seven
-  /// seconds up to a ten-second clip, everything else to five.
-  static int clipSeconds(double shotSeconds) => shotSeconds > 7.0 ? 10 : 5;
 
   static int wordCount(String text) =>
       text.trim().isEmpty ? 0 : text.trim().split(RegExp(r'\s+')).length;
@@ -572,6 +555,11 @@ class Pricing {
     String modelId,
     double units, [
     double unitsOut = 0,
+    // The frame actually being bought. An image model's price is a table of
+    // nine numbers, not one: quoting the headline figure for a 4K frame is how
+    // six stills came back eight times dearer than the estimate said.
+    String quality = '',
+    String size = '',
   ]) {
     final price = _priceFor(modelId);
     final label = _registry.modelLabel(providerId, modelId);
@@ -601,6 +589,22 @@ class Pricing {
       // clips the cut needs, which the caller passes as the second quantity.
       shown = math.max(1.0, unitsOut);
       amount = shown * price.amount;
+    } else if (price.unit == 'image' &&
+        (price.byFrame.isNotEmpty ||
+            price.frameFallback.isNotEmpty ||
+            price.bySize.isNotEmpty)) {
+      shown = math.max(units, price.minUnits);
+      amount = shown * price.amountForFrame(quality, size);
+      return PriceLine(
+        step: step,
+        model: label,
+        modelId: modelId,
+        known: true,
+        approx: !price.exactFrame(quality, size),
+        unit: price.unit,
+        units: shown,
+        amount: amount,
+      );
     } else {
       // Providers with a floor bill it even for a shorter request.
       shown = math.max(units, price.minUnits);
@@ -643,6 +647,11 @@ class Pricing {
 
   /// What the studio is about to spend, taking the same map AdProject builds
   /// for the pipeline.
+  ///
+  /// It reads as four lines because the ad is four calls: write it, read it,
+  /// draw the actor, film them. There is no shot count in here any more --
+  /// the ad is one take, so every quantity is the whole ad rather than a share
+  /// of it, and the estimate cannot drift from the run by miscounting shots.
   PriceBreakdown estimate(Map<String, Object?> request) {
     String text(String key) => '${request[key] ?? ''}';
 
@@ -650,16 +659,9 @@ class Pricing {
     final duration = (request['durationSeconds'] as num?)?.toInt() ?? 20;
     final hasPhoto = text('productImagePath').isNotEmpty;
 
-    // The studio hands over an explicit scene list; the old form does not, and
-    // its shot count still has to be inferred from the length asked for.
-    final scenes = (request['scenes'] as List?) ?? const [];
-    var sceneCount = 0;
-    for (final entry in scenes) {
-      if (entry is Map && '${entry['line'] ?? ''}'.trim().isNotEmpty) sceneCount += 1;
-    }
-
-    // The voice-over drives both the TTS bill and the clip length, so work it
-    // out first. A script the user wrote is measurable; otherwise we go by the
+    // The read drives both the TTS bill and the length of the clip, because
+    // the avatar model gives back exactly as much video as it was handed
+    // audio. A script the user wrote is measurable; otherwise we go by the
     // length they asked for.
     final voiceSeconds =
         ownScript.isEmpty ? duration.toDouble() : speechSeconds(wordCount(ownScript));
@@ -667,52 +669,26 @@ class Pricing {
         ? speechCharacters(duration)
         : ownScript.length.toDouble();
 
-    // The ad is cut into shots, and each one buys its own frame and its own
-    // clip. This is what multiplies the bill, so it has to be in the estimate.
-    //
-    // A scenario the user wrote is cut by the same planner the pipeline uses,
-    // so the number quoted here is the number of shots that will actually be
-    // bought rather than one inferred from the length dial.
-    final shots = sceneCount > 0
-        ? sceneCount
-        : (ownScript.isEmpty
-            ? shotCount(duration)
-            : math.max(1, ShotPlanner.split(ownScript).length));
-    final clip = clipSeconds(voiceSeconds / shots);
-
     final lines = <PriceLine>[];
 
     // ---- Script ---------------------------------------------------------
-    final brief = text('productName') +
-        text('productDescription') +
-        text('audience') +
-        text('tone') +
-        text('language') +
-        text('avatarBrief') +
-        text('extraInstructions');
-
+    // Only bought when there is nothing written. A scenario the user typed is
+    // filmed as typed, so no model reads it first.
     if (ownScript.isEmpty) {
+      final brief = text('productName') +
+          text('productDescription') +
+          text('audience') +
+          text('tone') +
+          text('language') +
+          text('avatarBrief') +
+          text('extraInstructions');
+
       var inputTokens = _scriptOverheadTokens + brief.length / _charsPerToken;
       if (hasPhoto) inputTokens += _imageTokens;
 
-      lines.add(_line('script', text('textProvider'), text('textModel'), inputTokens,
-          shots * _scriptOutputTokensPerShot));
-    } else if (request['brollEnabled'] != false &&
-        shots >= ShotPlanner.minShotsToDirect) {
-      // The director pass over a scenario the user wrote. It writes nothing --
-      // it only says where the camera points -- so it costs a fraction of
-      // writing the ad. Not nothing, though, and it is bought on every run.
-      var inputTokens = _scriptOverheadTokens +
-          (brief.length + ownScript.length) / _charsPerToken;
-      if (hasPhoto) inputTokens += _imageTokens;
-
-      lines.add(_line(
-        'script',
-        text('textProvider'),
-        _registry.resolveModel(text('textProvider'), text('textModel')),
-        inputTokens,
-        shots * _planOutputTokensPerShot,
-      ));
+      lines.add(_line('script', text('textProvider'),
+          _registry.resolveModel(text('textProvider'), text('textModel')),
+          inputTokens, _scriptOutputTokensPerShot));
     }
 
     // ---- Voice-over -----------------------------------------------------
@@ -723,79 +699,30 @@ class Pricing {
       voiceChars / 1000.0,
     ));
 
-    // ---- Frames ---------------------------------------------------------
-    // The user's own photo covers the first shot; the rest are generated.
-    final ownFrame = request['useProductPhotoAsFrame'] == true && hasPhoto;
-    final generatedFrames = ownFrame ? shots - 1 : shots;
-    if (generatedFrames > 0) {
+    // ---- The frame ------------------------------------------------------
+    // One picture, and only when the user has not supplied it themselves.
+    if (!(request['useProductPhotoAsFrame'] == true && hasPhoto)) {
       lines.add(_line(
         'frames',
         text('imageProvider'),
         _registry.resolveModel(text('imageProvider'), text('imageModel')),
-        generatedFrames.toDouble(),
+        1,
+        0,
+        text('imageQuality'),
+        text('imageSize'),
       ));
     }
 
-    // ---- Video ----------------------------------------------------------
-    // A studio ad is a list of scenes, and a talking one is bought by the
-    // second of speech rather than by the clip: the avatar model is handed the
-    // line's audio and gives back exactly that much video. Product scenes have
-    // no face to sync and stay on the by-the-clip image-to-video path.
-    if (scenes.isNotEmpty) {
-      var talking = 0;
-      var broll = 0;
-      var talkingSeconds = 0.0;
-
-      for (final entry in scenes) {
-        if (entry is! Map) continue;
-        final sceneLine = '${entry['line'] ?? ''}'.trim();
-        if (sceneLine.isEmpty) continue;
-        if (entry['kind'] == 'broll') {
-          broll += 1;
-        } else {
-          talking += 1;
-          talkingSeconds += speechSeconds(wordCount(sceneLine));
-        }
-      }
-
-      if (talking > 0) {
-        lines.add(_line(
-          'video',
-          text('avatarProvider'),
-          _registry.resolveModel(text('avatarProvider'), text('avatarModel')),
-          talkingSeconds,
-          talking.toDouble(),
-        ));
-      }
-      if (broll > 0) {
-        lines.add(_line(
-          'video',
-          text('videoProvider'),
-          _registry.resolveModel(text('videoProvider'), text('videoModel'), clip),
-          broll.toDouble() * clip,
-          broll.toDouble(),
-        ));
-      }
-    } else {
-      // Every shot of a studio ad is filmed on the avatar model unless the
-      // director cuts away from it, and which lines it cuts away from is not
-      // known until the run. So the whole ad is quoted as talking: that is
-      // exactly right with product shots switched off, and an upper bound with
-      // them on, since a cutaway is the cheaper of the two.
-      lines.add(_line(
-        'video',
-        text('avatarProvider'),
-        _registry.resolveModel(text('avatarProvider'), text('avatarModel')),
-        voiceSeconds,
-        shots.toDouble(),
-      ));
-    }
-
-    // ---- Subtitles ------------------------------------------------------
-    if (request['captionsEnabled'] != false) {
-      lines.add(_line('captions', text('captionsProvider'), text('captionsModel'),
-          voiceSeconds / 60.0));
-    }
+    // ---- The take -------------------------------------------------------
+    // Bought by the second of speech rather than by the clip: the avatar model
+    // is handed the read and gives back exactly that much video.
+    lines.add(_line(
+      'video',
+      text('avatarProvider'),
+      _registry.resolveModel(text('avatarProvider'), text('avatarModel')),
+      voiceSeconds,
+      1,
+    ));
 
     return _total(lines);
   }
@@ -857,6 +784,7 @@ class Pricing {
   /// Same shape, from what a finished run actually consumed.
   PriceBreakdown actual(List<Usage> consumed) => _total([
         for (final use in consumed)
-          _line(use.step, use.provider, use.model, use.units, use.unitsOut),
+          _line(use.step, use.provider, use.model, use.units, use.unitsOut,
+              use.quality, use.size),
       ]);
 }

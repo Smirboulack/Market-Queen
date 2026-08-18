@@ -196,54 +196,18 @@ void main() {
     expect(heights.values.toSet(), hasLength(1));
   });
 
-  testWidgets('an advanced mode is added beside "See more", not over it', (
-    tester,
-  ) async {
-    await pumpEditor(tester);
-
-    final subtitles = ComposerSpec.of(ComposerTab.captions).label;
-    await closeMenu(tester);
-
-    // Pumped by hand rather than settled: the canvas runs a shimmer that never
-    // stops, so `pumpAndSettle` waits for it forever.
-    await tester.tap(find.text('See more'));
-    await menuSettles(tester);
-
-    await tester.tap(find.text(subtitles).last);
-    await menuSettles(tester);
-
-    // Both on the bar: the mode that was picked, and the way back to the rest.
-    expect(find.text(subtitles), findsOneWidget);
-    expect(find.text('See more'), findsOneWidget);
-
-    // And it can be put away again.
-    await tester.tap(find.byTooltip('Put this one away'));
-    await tester.pump();
-    expect(find.text(subtitles), findsNothing);
-    expect(find.text('See more'), findsOneWidget);
-  });
-
-  testWidgets('all three advanced modes fit on the pill row at once', (
-    tester,
-  ) async {
-    // The worst case, and the one that overflowed: seven pills is wider than
-    // the bar they sit above. The test framework fails on a laid-out overflow
-    // by itself, so pulling all three out is the whole assertion.
+  testWidgets('every mode the composer offers is on the bar', (tester) async {
+    // There is no menu behind the pills any more. The three modes are the three
+    // pills, which is the whole point: a setting that decides how the finished
+    // ad sounds is not allowed to live two clicks inside an overflow.
     await pumpEditor(tester);
     await closeMenu(tester);
 
-    for (final tab in ComposerSpec.secondary) {
-      await tester.tap(find.text('See more'));
-      await menuSettles(tester);
-      await tester.tap(find.text(ComposerSpec.of(tab).label).last);
-      await menuSettles(tester);
-    }
-
-    for (final tab in ComposerSpec.secondary) {
+    for (final tab in ComposerSpec.primary) {
       expect(find.text(ComposerSpec.of(tab).label), findsOneWidget);
     }
-    // Nothing left to offer, so the menu is dead but still on the bar.
-    expect(find.text('See more'), findsOneWidget);
+    expect(ComposerSpec.primary.length, ComposerTab.values.length);
+    expect(find.text('See more'), findsNothing);
   });
 
   testWidgets('picking a model changes the row there and then', (tester) async {

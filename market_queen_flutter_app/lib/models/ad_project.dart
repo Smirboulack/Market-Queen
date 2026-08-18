@@ -6,6 +6,7 @@ import '../core/http_util.dart';
 import '../core/settings_store.dart';
 import '../core/signal.dart';
 import '../i18n/translator.dart';
+import '../providers/capabilities.dart';
 import '../providers/registry.dart';
 import '../providers/voice_profile.dart';
 import 'asset_library.dart';
@@ -84,15 +85,6 @@ class AdProject extends ChangeNotifier {
   String script = '';
 
   String aspectRatio = '9:16';
-  bool captions = true;
-
-  /// Whether the ad is allowed to cut away from the actor.
-  ///
-  /// On, the lines that describe the product are filmed on the product with the
-  /// read carrying over them, which is what a real UGC ad does and what stops
-  /// this one being thirty seconds of the same face. Off is for the people who
-  /// want exactly the take they wrote and nothing else.
-  bool broll = true;
 
   /// The length the ad must not run past, in seconds, or 0 for "as long as the
   /// words take". It is a ceiling for planning, never a cut.
@@ -120,18 +112,6 @@ class AdProject extends ChangeNotifier {
   void setAspectRatio(String value) {
     if (aspectRatio == value) return;
     aspectRatio = value;
-    _touched();
-  }
-
-  void setCaptions(bool value) {
-    if (captions == value) return;
-    captions = value;
-    _touched();
-  }
-
-  void setBroll(bool value) {
-    if (broll == value) return;
-    broll = value;
     _touched();
   }
 
@@ -280,13 +260,17 @@ class AdProject extends ChangeNotifier {
     double voice(String key, double fallback) =>
         actor?.extraNumber(key, fallback) ?? fallback;
 
-    // The ad's own name stands in when there is no product name: it is what the
-    // run folder is called, and "20260810-143002-" is not a folder anybody can
-    // find again.
+    // The ad's own name names the run folder when no product does -- nobody
+    // finds "20260810-143002-" again. It is kept apart from the product name
+    // rather than standing in for it: an ad called "Boss Bottled" whose product
+    // field was never filled in used to reach the image model as a thing the
+    // actor is holding, and came back as six frames of somebody waving a
+    // perfume bottle through a script about a dating app.
     final productName = '${product['name'] ?? ''}'.trim();
 
     return {
-      'productName': productName.isEmpty ? name.trim() : productName,
+      'productName': productName,
+      'runLabel': productName.isEmpty ? name.trim() : productName,
       'productDescription': '${product['description'] ?? ''}'.trim(),
       'audience': '${product['audience'] ?? ''}'.trim(),
       'tone': '',
@@ -309,7 +293,6 @@ class AdProject extends ChangeNotifier {
       // No scenes any more: the pipeline cuts the user's own script into shots
       // itself, which is the only cutting an authentic UGC ad wants.
       'scenes': const <Map<String, Object?>>[],
-      'brollEnabled': broll,
       'script': script.trim(),
       'durationSeconds': duration,
       'aspectRatio': aspectRatio,
@@ -322,6 +305,14 @@ class AdProject extends ChangeNotifier {
       'textModel': pickedModel('text', textProvider),
       'imageProvider': imageProvider,
       'imageModel': pickedModel('image', imageProvider),
+      // The frame, decided here rather than read out of the settings by
+      // whoever needs it: the estimate priced the picture shelf's default
+      // frame while the run bought the saved one, which is the same picture
+      // quoted at an eighth of what it cost.
+      'imageSize': ImageCapabilities.of(pickedModel('image', imageProvider))
+          .frameFor(_settings.prefString('imageSize'), aspectRatio),
+      'imageQuality': ImageCapabilities.of(pickedModel('image', imageProvider))
+          .qualityOr(_settings.prefString('imageQuality')),
       'avatarProvider': avatarProvider,
       'avatarModel': pickedModel('avatar', avatarProvider),
       'videoProvider': videoProvider,
@@ -342,9 +333,6 @@ class AdProject extends ChangeNotifier {
       'voiceSimilarity': voice('voiceSimilarity', 0.8),
       'voiceStyle': voice('voiceStyle', 0.35),
       'voiceSpeed': voice('voiceSpeed', 1.0),
-      'captionsEnabled': captions,
-      'captionsProvider': 'openai-whisper',
-      'captionsModel': 'whisper-1',
     };
   }
 
@@ -381,8 +369,6 @@ class AdProject extends ChangeNotifier {
     'decorId': sceneId,
     'script': script,
     'aspectRatio': aspectRatio,
-    'captions': captions,
-    'broll': broll,
     'maxSeconds': maxSeconds,
     'feed': feed.toJson(),
   };
@@ -424,10 +410,6 @@ class AdProject extends ChangeNotifier {
     sceneId = '${document['decorId'] ?? ''}';
     script = '${document['script'] ?? ''}';
     aspectRatio = '${document['aspectRatio'] ?? '9:16'}';
-    captions = document['captions'] != false;
-    // Ads saved before product shots existed were all talking heads by
-    // accident, not by choice, so they open with them switched on.
-    broll = document['broll'] != false;
     maxSeconds = (document['maxSeconds'] as num?)?.toInt() ?? 0;
     feed.load(document['feed']);
 
@@ -447,8 +429,6 @@ class AdProject extends ChangeNotifier {
     sceneId = '';
     script = '';
     aspectRatio = '9:16';
-    captions = true;
-    broll = true;
     maxSeconds = 0;
     feed.clear();
 

@@ -132,18 +132,7 @@ void main() {
     }
 
     for (final tab in ComposerTab.values) {
-      if (ComposerSpec.secondary.contains(tab)) {
-        // "See more" is a pill like the others and loses its label too.
-        final more = find.text(tr('See more'));
-        await tester.tap(
-          more.evaluate().isEmpty ? find.byTooltip(tr('See more')) : more,
-        );
-        await settle(tester);
-        // The menu spells them out whatever the pills are doing.
-        await tester.tap(find.text(ComposerSpec.of(tab).label).last);
-      } else {
-        await tester.tap(pill(tab).first);
-      }
+      await tester.tap(pill(tab).first);
       await settle(tester);
       // The settings are chips on the bar itself now, so a bar that lays out
       // without overflowing *is* the settings laying out: the French labels
