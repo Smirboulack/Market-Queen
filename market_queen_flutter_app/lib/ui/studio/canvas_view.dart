@@ -27,10 +27,33 @@ import '../widgets/video_poster.dart';
 /// the whole point: the thing you asked for and the thing you got are on the
 /// same surface.
 ///
-/// It is drawn bottom-up -- a reversed list -- and that one decision is what
-/// makes the scrolling behave. See the comment on `reverse` below: everything
-/// this widget used to do by hand to keep the newest result in view is a
-/// property of a reversed list, and doing it by hand is what made it jerk.
+/// **The feed is one laid-out child, not a lazy list, and that is what makes
+/// the scrolling behave.** A [ListView] builds only what is on screen, so it
+/// cannot know how tall the rest is: it reports an *estimate* -- the average
+/// height of the children it has measured, times the number it has not -- and
+/// revises it every time another one comes into view. Everything derived from
+/// that estimate moves with it. The scrollbar thumb is sized by the ratio of
+/// viewport to extent, so it grew and shrank as you dragged it; the offset the
+/// drag maps onto is a fraction of the same extent, so the thumb slid out from
+/// under the pointer. With blocks that run from a one-line failure to a
+/// full-height portrait still, the average swung wildly and the estimate was
+/// never briefly right.
+///
+/// Laid out in one piece, the extent is exact on the first frame and never
+/// changes again, so the bar is exactly as long as the feed and stays where it
+/// is put. The cost of dropping laziness is that every block is measured on
+/// open, and it is a cost worth nothing here: a feed is tens of blocks, and the
+/// one genuinely expensive thing in one -- pulling a clip's poster frame with
+/// ffmpeg -- is cached per file for the life of the process either way.
+///
+/// It is drawn bottom-up, and that removes the rest. Offset zero is the end of
+/// a reversed viewport, so the feed opens on the newest result, a batch landing
+/// while you are there needs no scrolling, a batch landing while you are
+/// reading something older leaves you where you are, and the composer growing a
+/// line moves the bottom edge the feed is already measured from. All of that
+/// used to be done by hand -- a flag for whether the last frame was at the end,
+/// a remembered viewport size, a post-frame jump on every resize, an animation
+/// on every new batch -- and those four fired on their own schedules and raced.
 class CanvasView extends StatefulWidget {
   const CanvasView({
     super.key,
@@ -69,19 +92,6 @@ class _CanvasViewState extends State<CanvasView> {
     super.dispose();
   }
 
-  /// The tallest a single result is allowed to be drawn.
-  ///
-  /// Two ceilings, and the smaller of the two wins. [_BatchBlock.maxTileEdge] is
-  /// the one that usually applies: a result in a feed is a thumbnail you glance
-  /// at and open, the way a picture in a chat is, not a page-width poster. The
-  /// other is what is actually on screen -- the canvas less the composer
-  /// standing in front of it -- which only bites on a short window, and keeps a
-  /// result you have just waited for inside the space you are looking at.
-  double _maxTileHeight(double viewportHeight) => math.min(
-    _BatchBlock.maxTileEdge,
-    math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78),
-  );
-
   @override
   Widget build(BuildContext context) {
     return SkeletonScope(
@@ -98,8 +108,8 @@ class _CanvasViewState extends State<CanvasView> {
               // Centred on the same axis as the prompt bar and capped to the
               // same width, so the two are one column rather than a feed that
               // spans the monitor with a bar floating in the middle of it. The
-              // padding does the centring rather than a SizedBox inside the
-              // list, which keeps the scrollbar on the window's own edge.
+              // padding does the centring rather than a box inside the column,
+              // which keeps the scrollbar on the window's own edge.
               final side = math.max(
                 MqTheme.pagePadding,
                 (constraints.maxWidth - MqTheme.contentMaxWidth) / 2,
@@ -107,30 +117,15 @@ class _CanvasViewState extends State<CanvasView> {
 
               return Scrollbar(
                 controller: _scroll,
-                // Always drawn while there is anything to drag -- the painter
-                // skips itself entirely when the feed fits. A thumb that fades
-                // a second after every wheel click is a thumb you cannot aim
-                // at, and this one also spends its life at the end of the
-                // track, under the wash the composer stands in.
+                // Always drawn while there is anything to drag. The painter
+                // skips itself entirely when the feed fits, so this costs
+                // nothing on a short one -- and on a long one a thumb that
+                // fades a second after every wheel click is a thumb nobody can
+                // aim at, least of all where it rests, at the end of the track
+                // under the wash the composer stands in.
                 thumbVisibility: true,
-                child: ListView.separated(
+                child: SingleChildScrollView(
                   controller: _scroll,
-                  // The whole of the scrolling behaviour, in one word.
-                  //
-                  // Offset zero is the *bottom* of a reversed list, so the feed
-                  // opens on the newest result, a batch added while you are
-                  // there appears without anything being scrolled, and a batch
-                  // added while you are reading something older leaves you
-                  // exactly where you were. Growing the composer moves the
-                  // bottom edge and the list simply keeps its distance from it.
-                  //
-                  // This replaced about sixty lines that did the same job by
-                  // hand: a flag tracking whether the last frame had been at
-                  // the end, a remembered viewport size, a post-frame jump on
-                  // every resize and an animation on every new batch. Each of
-                  // those fired on its own schedule, and the ways they raced --
-                  // a jump landing after an animation, a resize arriving
-                  // between the two -- were what made the feed jerk.
                   reverse: true,
                   padding: EdgeInsets.fromLTRB(
                     side,
@@ -138,22 +133,26 @@ class _CanvasViewState extends State<CanvasView> {
                     side,
                     MqTheme.gapLarge + widget.bottomInset,
                   ),
-                  itemCount: batches.length,
-                  separatorBuilder: (context, _) =>
-                      const SizedBox(height: MqTheme.gapLarge + 6),
-                  itemBuilder: (context, index) {
-                    // Reversed, so index 0 is the newest and the list is read
-                    // from the bottom up. The feed itself stays in the order it
-                    // happened in.
-                    final batch = batches[batches.length - 1 - index];
-                    return _BatchBlock(
-                      app: widget.app,
-                      batch: batch,
-                      maxTileHeight: _maxTileHeight(constraints.maxHeight),
-                      onRegenerate: widget.onRegenerate,
-                      onRemove: () => _feed.remove(batch.id),
-                    );
-                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < batches.length; ++i) ...[
+                        if (i > 0)
+                          const SizedBox(height: MqTheme.gapLarge + 6),
+                        _BatchBlock(
+                          // Keyed on the batch, so a clip playing in the middle
+                          // of the feed keeps its player when an older block is
+                          // removed from above it.
+                          key: ValueKey(batches[i].id),
+                          app: widget.app,
+                          batch: batches[i],
+                          maxTileHeight: _maxTileHeight(constraints.maxHeight),
+                          onRegenerate: widget.onRegenerate,
+                          onRemove: () => _feed.remove(batches[i].id),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               );
             },
@@ -162,6 +161,19 @@ class _CanvasViewState extends State<CanvasView> {
       ),
     );
   }
+
+  /// The tallest a single result is allowed to be drawn.
+  ///
+  /// Two ceilings, and the smaller of the two wins. [_BatchBlock.maxTileEdge] is
+  /// the one that usually applies: a result in a feed is a thumbnail you glance
+  /// at and open, the way a picture in a chat is, not a page-width poster. The
+  /// other is what is actually on screen -- the canvas less the composer
+  /// standing in front of it -- which only bites on a short window, and keeps a
+  /// result you have just waited for inside the space you are looking at.
+  double _maxTileHeight(double viewportHeight) => math.min(
+    _BatchBlock.maxTileEdge,
+    math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78),
+  );
 }
 
 /// Nothing generated yet.
@@ -262,6 +274,7 @@ class _EmptyCanvas extends StatelessWidget {
 /// picture cannot say for itself.
 class _BatchBlock extends StatelessWidget {
   const _BatchBlock({
+    super.key,
     required this.app,
     required this.batch,
     required this.maxTileHeight,
@@ -368,6 +381,7 @@ class _BatchBlock extends StatelessWidget {
               SizedBox(
                 width: width,
                 child: _ResultTile(
+                  key: ValueKey(item.id),
                   app: app,
                   batch: batch,
                   item: item,
@@ -398,6 +412,7 @@ double _ratioOf(CanvasBatch batch) {
 /// One result, at whatever stage it is at.
 class _ResultTile extends StatefulWidget {
   const _ResultTile({
+    super.key,
     required this.app,
     required this.batch,
     required this.item,

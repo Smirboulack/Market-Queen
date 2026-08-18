@@ -660,6 +660,66 @@ void main() {
       }
     });
 
+    testWidgets('the scroll extent is exact and never moves', (tester) async {
+      // The bug this exists for: the feed was a lazy list, so it reported an
+      // *estimate* of how tall it was -- the average of the blocks it had
+      // measured, times the ones it had not -- and revised it every time
+      // another came into view. The scrollbar thumb is sized by the ratio of
+      // viewport to extent and dragged as a fraction of it, so it grew, shrank
+      // and slid out from under the pointer while it was being held.
+      //
+      // Blocks of deliberately unequal heights, because that is what made the
+      // average swing: a portrait still is ten times a one-line failure.
+      await pumpEditor(tester);
+
+      for (var i = 0; i < 12; ++i) {
+        app.project.feed.add(
+          CanvasBatch(
+            id: 'batch$i',
+            kind: CanvasKind.image,
+            prompt: 'one',
+            createdAt: DateTime.now(),
+            aspectRatio: i.isEven ? '9:16' : '16:9',
+            items: [
+              CanvasItem(
+                id: 'item$i',
+                // Every third one came back empty, which draws as a single
+                // line of grey text rather than as a tile.
+                status: i % 3 == 2 ? CanvasStatus.failed : CanvasStatus.done,
+                path: i % 3 == 2 ? '' : file('scroll$i.png'),
+                error: i % 3 == 2 ? 'Nothing came back.' : '',
+              ),
+            ],
+          ),
+        );
+      }
+      await tester.pump();
+
+      final position = tester
+          .state<ScrollableState>(
+            find.descendant(
+              of: find.byType(CanvasView),
+              matching: find.byType(Scrollable),
+            ),
+          )
+          .position;
+
+      final extent = position.maxScrollExtent;
+      expect(extent, greaterThan(0), reason: 'needs to be scrollable at all');
+
+      // Walked end to end. Every stop reads the same total, because the whole
+      // feed was laid out before the first frame was painted.
+      for (var offset = 0.0; offset <= extent; offset += 150) {
+        position.jumpTo(offset);
+        await tester.pump();
+        expect(
+          position.maxScrollExtent,
+          moreOrLessEquals(extent, epsilon: 0.5),
+          reason: 'the feed changed length at offset $offset',
+        );
+      }
+    });
+
     testWidgets('the newest result is the one at the bottom', (tester) async {
       // The feed is drawn bottom-up, which is the whole of its scrolling
       // behaviour: offset zero is the newest result, so it opens on the thing
