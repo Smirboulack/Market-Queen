@@ -114,13 +114,19 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// press.
   static const double _foldSettingsBelow = 1000;
 
-  /// Under this, the footer stops being one line.
+  /// Under this, everything on the footer that is not the cast folds into one
+  /// button.
   ///
-  /// Roughly what a cast actor, a scene, the emotions chip and two attach
-  /// buttons need before the price and the send button start pushing the last
-  /// of them onto a second row -- which is the state in a half-width window,
-  /// and the one that reads as broken rather than as tight.
-  static const double _stackFooterBelow = 760;
+  /// The footer is one row at every width, and that is the whole rule. It was
+  /// briefly two -- the chips wrapping onto a line above the price -- and that
+  /// was worse than the wrapping it replaced: the bar changed height as you
+  /// resized, so the canvas above it moved, and the actor panel, which hangs
+  /// off the chip's own position, ended up pointing at where the chip had been.
+  ///
+  /// So the row never wraps and never grows. The cast chips are flexible and
+  /// ellipsize; everything else goes behind [_Panel.actions] once there is not
+  /// room for it beside the price and the send button.
+  static const double _foldActionsBelow = 740;
 
   ComposerTab _tab = ComposerTab.actors;
 
@@ -1128,7 +1134,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   static const double _tileSize = 54;
 
   Widget _footer() {
-    final mq = context.mq;
     final readiness = _readiness;
     final busy = _tab == ComposerTab.actors && app.pipeline.running;
 
@@ -1140,29 +1145,17 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         ..value = 0;
     }
 
-    // The buttons and every setting share one wrapping row.
-    //
-    // The settings used to be behind a cog: press it, a panel opened over the
-    // canvas with six labelled rows in it, change one, close it. Four actions
-    // to answer a question you can already see the answer to -- and the one
-    // thing that *was* on the bar, the model name, opened that same panel, so
-    // the most direct-looking control on screen was a shortcut to the slowest.
-    //
-    // Every setting is its own chip now, showing its own value, and each opens
-    // only its own menu. Pressing "Best" asks about quality and nothing else.
-    final leading = Wrap(
-      spacing: 6,
-      runSpacing: 6,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: _leadingActions(),
-    );
-
     // What the press costs, how many of them, then the two buttons that act on
     // the prompt. In that order because that is the sentence somebody reads on
     // the way to pressing send: this is the price, this is how many I am
     // buying, here is how to improve it first, here is how to send it. The
     // count used to come before the price, which put the number that changes
     // the total *after* the total.
+    //
+    // No rules between them. A hairline between the price and the wand said
+    // nothing -- they are already four objects with space around them -- and it
+    // only ever appeared at some widths and not others, which made the bar look
+    // like it was rendering differently rather than fitting differently.
     final trailing = <Widget>[
       if (_meterPrice.isNotEmpty) ...[
         _PriceTag(price: _meterPrice),
@@ -1186,41 +1179,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     ];
 
     return LayoutBuilder(
-      builder: (context, constraints) {
-        // Two shapes, and the narrow one is not a degraded version of the wide
-        // one -- it is the only one that fits. Side by side, the cast chips
-        // and the send button are one line to read; squeezed, the chips wrap
-        // under themselves and the last of them ends up marooned on a line of
-        // its own beside a send button that has floated to the bottom of it.
-        // Stacking puts what you are making on one line and what it costs to
-        // make it on the next, which is how it reads anyway.
-        if (constraints.maxWidth < _stackFooterBelow) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              leading,
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: trailing,
-              ),
-            ],
-          );
-        }
-
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Expanded(child: leading),
-            const SizedBox(width: 10),
-            Container(width: 1, height: 24, color: mq.divider),
-            const SizedBox(width: 10),
-            ...trailing,
-          ],
-        );
-      },
+      builder: (context, constraints) => Row(
+        // Centred rather than baseline- or bottom-aligned: the row holds a
+        // 30px chip, a 32px button, a 40px send disc and a line of text, and
+        // aligning four different heights by their bottoms left the price
+        // sitting a few pixels below everything it belongs with.
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(child: _actionBar(constraints.maxWidth)),
+          const SizedBox(width: 10),
+          ...trailing,
+        ],
+      ),
     );
   }
 
@@ -1598,8 +1568,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// The buttons on the left of the footer. They are the tab's own: casting an
   /// actor belongs to the ad, attaching a reference belongs to a prompt, and
   /// neither means anything on the other's tab.
-  List<Widget> _leadingActions() {
-    if (_tab == ComposerTab.actors) {
+  List<Widget> _castActions() {
+    if (_tab != ComposerTab.actors) return const [];
+    {
       final project = app.project;
       final actor = project.actorIds.isEmpty
           ? null
@@ -1667,16 +1638,85 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             if (_panel == _Panel.scene) _closePanel();
           },
         ),
-        _emotionsChip(),
-        // The product itself. An ad is usually *about* something, and the
-        // frame model can only put it on screen if it has been shown it --
-        // until this button existed the only way in was the drag-and-drop
-        // nobody discovers.
-        ..._referenceButtons(),
       ];
     }
+  }
 
-    return _referenceButtons();
+  /// Everything on the footer that is not the cast.
+  ///
+  /// Kept apart from [_castActions] because only these fold: the cast chips are
+  /// what the ad *is*, they carry the panels that hang off their own position,
+  /// and hiding them behind a button on a narrow window would hide the two
+  /// things you came to set. These are verbs, and a verb reads perfectly well
+  /// as a row in a sheet.
+  List<Widget> _secondaryActions() => [
+    if (_tab == ComposerTab.actors) _emotionsChip(),
+    // How much of each kind the chosen model will take, next to the buttons
+    // that add them. Only where the model has something to say: the picture
+    // and talking-actor shelves have no declared ceiling, and "0 of 99" is
+    // not a limit anybody is approaching.
+    if (_tab == ComposerTab.video)
+      _CounterLine(
+        counts: [
+          for (final kind in _acceptedKinds)
+            (kind: kind, used: _countOf(kind), limit: _limitOf(kind)),
+        ],
+      ),
+    // The product itself. An ad is usually *about* something, and the frame
+    // model can only put it on screen if it has been shown it -- until this
+    // button existed the only way in was the drag-and-drop nobody discovers.
+    ..._referenceButtons(),
+  ];
+
+  /// The left half of the footer, at whatever width it has been given.
+  ///
+  /// One row, always: the cast, then either the rest of the actions or the one
+  /// button that holds them.
+  Widget _actionBar(double width) {
+    final fold = width < _foldActionsBelow;
+    final cast = _castActions();
+    final rest = _secondaryActions();
+
+    // Widening the window past the fold takes the button the sheet hangs off
+    // with it. Left alone, the panel would stay open over a button that no
+    // longer exists and come back the next time the window narrowed. Closed
+    // after the frame rather than during it, because this runs inside a build.
+    if (!fold && _panel == _Panel.actions) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _panel == _Panel.actions) _closePanel();
+      });
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        for (var i = 0; i < cast.length; ++i) ...[
+          if (i > 0) const SizedBox(width: 6),
+          // Loose, so a chip takes the room it wants and gives it back rather
+          // than wrapping when a long name meets a narrow window.
+          Flexible(child: cast[i]),
+        ],
+        if (fold) ...[
+          if (cast.isNotEmpty) const SizedBox(width: 6),
+          if (rest.isNotEmpty)
+            _anchored(
+              _Panel.actions,
+              MqIconButton(
+                icon: 'more-line',
+                tip: tr('More actions'),
+                size: 32,
+                onPressed: () => _show(_Panel.actions),
+              ),
+              () => _ActionSheet(actions: rest, onClose: _closePanel),
+            ),
+        ] else
+          for (final action in rest) ...[
+            const SizedBox(width: 6),
+            action,
+          ],
+      ],
+    );
   }
 
   /// The wand: hands what is written to a writer and puts back a fuller
@@ -1866,8 +1906,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     final doctor = app.promptDoctor;
     if (doctor.busy) return;
 
+    final before = _prompt.text;
     final improved = await doctor.improve(
-      prompt: _prompt.text,
+      prompt: before,
       kind: _promptKind,
       using: using,
       // What the ad is of, when there is an ad -- the actor and the scene are
@@ -1879,6 +1920,18 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           : '',
     );
     if (!mounted || improved.isEmpty) return;
+
+    // The writer is told to keep the delivery marks -- see [systemPromptFor] --
+    // but it is a language model and this is the one loss the user cannot spot
+    // by reading the answer: the new script is better, and the direction they
+    // paid for on a separate call is simply not in it. So the rewrite stands
+    // and the loss is reported, with the way to put it back.
+    if (DeliveryTags.present(before) && !DeliveryTags.present(improved)) {
+      app.log.warning(
+        tr('The rewrite dropped the emotion tags. Press "Add emotions" to mark '
+            'the new script up.'),
+      );
+    }
 
     _rewrite(improved, improved.length);
   }
@@ -1948,17 +2001,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     };
 
     return [
-      // How much of each kind the chosen model will take, next to the buttons
-      // that add them. Only where the model has something to say: the picture
-      // and talking-actor shelves have no declared ceiling, and "0 of 99" is
-      // not a limit anybody is approaching.
-      if (_tab == ComposerTab.video)
-        _CounterLine(
-          counts: [
-            for (final kind in _acceptedKinds)
-              (kind: kind, used: _countOf(kind), limit: _limitOf(kind)),
-          ],
-        ),
       for (final kind in _acceptedKinds)
         MqIconButton(
           icon: switch (kind) {
@@ -1979,7 +2021,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                       .arg(_limitOf(kind)),
                 }
               : switch (kind) {
-                  MediaKind.image => _spec.multipleReferences
+                  MediaKind.image => _tab == ComposerTab.actors
+                      // Named for what it is here rather than for what it is:
+                      // the one picture this mode takes is the thing being
+                      // advertised, and "Add pictures" was the reason nobody
+                      // found it.
+                      ? tr('Add a photo of the product')
+                      : _spec.multipleReferences
                       ? tr('Add pictures')
                       : tr('Choose the picture'),
                   MediaKind.video => _spec.multipleReferences
@@ -2123,52 +2171,73 @@ class _NamedReference extends StatelessWidget {
   }
 }
 
-/// "3/9 pictures · 0/3 clips · 0/3 recordings", under the well they belong to.
+/// "3/9 pictures · 0/3 clips · 0/3 recordings", beside the buttons that add
+/// them.
 ///
 /// The ceilings are the model's own, off its schema. They differ enough between
 /// endpoints -- nine pictures on one, four on the next -- that a fixed number
 /// would be wrong most of the time, and the only place they were written down
 /// before was the rejection that came back after the upload.
+///
+/// One line, capped and ellipsized, and both of those are load-bearing: it
+/// shares a row with the send button now rather than sitting in a well of its
+/// own, and a non-flex child of a [Row] is laid out against an unbounded width
+/// -- so a wrapping counter would either push the row over its edge or grow it
+/// a second line, and the bar's whole promise is that it does neither.
 class _CounterLine extends StatelessWidget {
   const _CounterLine({required this.counts});
 
   final List<({MediaKind kind, int used, int limit})> counts;
 
+  /// Enough for three counts in English and two in French; past that the tail
+  /// ellipsizes and the tooltip has the whole of it.
+  static const double _maxWidth = 280;
+
   @override
   Widget build(BuildContext context) {
     final mq = context.mq;
+    if (counts.isEmpty) return const SizedBox.shrink();
 
-    return Wrap(
-      spacing: 10,
-      runSpacing: 2,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
+    final said = [
+      for (final entry in counts)
+        switch (entry.kind) {
+          //: %1 is how many are attached, %2 how many the model takes
+          MediaKind.image => tr('%1/%2 pictures'),
+          MediaKind.video => tr('%1/%2 clips'),
+          MediaKind.audio => tr('%1/%2 recordings'),
+        }.arg(entry.used).arg(entry.limit),
+    ];
+
+    return Tooltip(
+      // The per-file ceiling hangs off the line rather than being stated once
+      // underneath: the three are nowhere near each other -- thirty megabytes
+      // for a picture against two hundred for a clip -- so one number for all
+      // of them would be wrong twice.
+      message: [
         for (final entry in counts)
-          Tooltip(
-            // The per-file ceiling hangs off each count rather than being
-            // stated once underneath: the three are nowhere near each other --
-            // thirty megabytes for a picture against two hundred for a clip --
-            // so one number for all of them would be wrong twice.
+          switch (entry.kind) {
             //: %1 is a size such as "200 MB"
-            message: tr('Up to %1 a file').arg(_sizeLimit(entry.kind)),
-            child: Text(
-              switch (entry.kind) {
-                //: %1 is how many are attached, %2 how many the model takes
-                MediaKind.image => tr('%1/%2 pictures'),
-                MediaKind.video => tr('%1/%2 clips'),
-                MediaKind.audio => tr('%1/%2 recordings'),
-              }.arg(entry.used).arg(entry.limit),
-              style: TextStyle(
-                color: entry.used >= entry.limit
-                    ? mq.textSecondary
-                    : mq.textTertiary,
-                fontSize: MqTheme.fontMicro,
-                fontWeight: entry.used > 0 ? FontWeight.w600 : FontWeight.w400,
-                fontFeatures: const [FontFeature.tabularFigures()],
-              ),
-            ),
+            MediaKind.image => tr('Pictures: up to %1 each'),
+            MediaKind.video => tr('Clips: up to %1 each'),
+            MediaKind.audio => tr('Recordings: up to %1 each'),
+          }.arg(_sizeLimit(entry.kind)),
+      ].join('\n'),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxWidth),
+        child: Text(
+          said.join('  ·  '),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          softWrap: false,
+          style: TextStyle(
+            color: counts.any((entry) => entry.used >= entry.limit)
+                ? mq.textSecondary
+                : mq.textTertiary,
+            fontSize: MqTheme.fontMicro,
+            fontFeatures: const [FontFeature.tabularFigures()],
           ),
-      ],
+        ),
+      ),
     );
   }
 
@@ -2187,7 +2256,7 @@ class _CounterLine extends StatelessWidget {
 /// The settings one is only reachable on a narrow window: with room, every
 /// setting is its own button on the row above the bar -- see [_SettingsRow] --
 /// and each opens a menu of its own rather than a panel of everything.
-enum _Panel { none, settings, actor, scene }
+enum _Panel { none, settings, actions, actor, scene }
 
 /// The actor or the scene on the ad.
 ///
@@ -2639,6 +2708,67 @@ class _SettingButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// What the footer holds when there is no room for it on the bar.
+///
+/// The same widgets, stacked, rather than a second set written for the narrow
+/// case: an emotions chip that behaves differently depending on how wide the
+/// window is would be two features with one name.
+class _ActionSheet extends StatelessWidget {
+  const _ActionSheet({required this.actions, required this.onClose});
+
+  final List<Widget> actions;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 12, 12, 14),
+      decoration: BoxDecoration(
+        color: mq.surface,
+        borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
+        border: Border.all(color: mq.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  tr('Actions'),
+                  style: TextStyle(
+                    color: mq.textPrimary,
+                    fontSize: MqTheme.fontBody,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: MqTheme.trackTitle,
+                  ),
+                ),
+              ),
+              MqIconButton(
+                icon: 'close-line',
+                tip: tr('Close'),
+                size: 24,
+                onPressed: onClose,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          for (var i = 0; i < actions.length; ++i) ...[
+            if (i > 0) const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: actions[i],
+            ),
+          ],
+        ],
       ),
     );
   }

@@ -259,6 +259,17 @@ class PromptDoctor extends ChangeNotifier {
             'sentences, one idea each -- and end on one casual call to '
             'action.\n'
             'Keep it the same length, give or take a sentence.\n'
+            // The script is the one prompt that can already carry direction --
+            // `[excited]`, `[sighs]` -- bought on a separate call and paid for.
+            // A writer handed a marked-up script drops the marks as a matter of
+            // course, because they do not look like words anybody says, and the
+            // user then has to buy them back without ever being told they had
+            // gone.
+            'The text may contain delivery tags in square brackets, such as '
+            '${DeliveryTags.vocabulary.take(3).join(', ')}. They are '
+            'directions for the voice engine and are never spoken. Keep every '
+            'one of them, spelled exactly as it is, at the same point in the '
+            'script. Do not add any, and do not remove any.\n'
             '\n$common',
       PromptKind.actor =>
         'You turn a short description of a person into a casting brief for an '

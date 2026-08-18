@@ -660,6 +660,47 @@ void main() {
       }
     });
 
+    testWidgets('the newest result is the one at the bottom', (tester) async {
+      // The feed is drawn bottom-up, which is the whole of its scrolling
+      // behaviour: offset zero is the newest result, so it opens on the thing
+      // you just asked for, a batch landing while you are there needs no
+      // scrolling at all, and one landing while you are reading something older
+      // leaves you where you were.
+      await pumpEditor(tester);
+
+      for (final name in ['first', 'second']) {
+        app.project.feed.add(
+          CanvasBatch(
+            id: name,
+            kind: CanvasKind.image,
+            prompt: name,
+            createdAt: DateTime.now(),
+            modelLabel: name,
+            aspectRatio: '1:1',
+            items: [
+              CanvasItem(
+                id: '$name-item',
+                status: CanvasStatus.done,
+                path: file('$name.png'),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+      }
+
+      Rect blockOf(String label) => tester.getRect(
+        find.ancestor(
+          of: find.textContaining(label),
+          matching: find.byType(Wrap),
+        ).first,
+      );
+
+      // Older above, newer below -- the order the conversation happened in,
+      // however the list is built underneath.
+      expect(blockOf('first').top, lessThan(blockOf('second').top));
+    });
+
     testWidgets('the prompt is not repeated over the result', (tester) async {
       // It is still sitting in the bar three inches below. A feed of pictures
       // with a caption over every one of them is a feed you read instead of

@@ -200,17 +200,18 @@ void main() {
     expect(bars.values.toSet(), hasLength(1), reason: '$bars');
   });
 
-  testWidgets('a narrow window stacks the footer instead of breaking it', (
-    tester,
-  ) async {
-    // Half a monitor wide, which is where a cast actor, a scene, the emotions
-    // chip and two attach buttons stop fitting on the same line as the price
-    // and the send button. Laid out as one row they did not simply tighten --
-    // the last chip wrapped onto a line of its own beside a send button that
-    // had floated to the bottom of it.
-    // Three widths across the fold, because the bug is at the seam: 1120 is
-    // wide enough for one row, 880 is where the settings have already folded
-    // into a button, and 700 is a window dragged to half a laptop screen.
+  testWidgets('the footer is one row at every width', (tester) async {
+    // The regression this pins. Squeezed, the cast chips used to wrap onto a
+    // line *above* the price and the send button, which changed the bar's
+    // height as the window was dragged -- so the canvas above it moved, and the
+    // actor panel, which hangs off the chip's own position, ended up pointing
+    // at where the chip had been.
+    //
+    // Three widths across the fold: 1120 is wide enough for everything, 880 is
+    // where the settings have already folded into a button, 700 is a window
+    // dragged to half a laptop screen.
+    final heights = <double, double>{};
+
     for (final width in [1120.0, 880.0, 700.0]) {
       await pumpEditor(tester, size: Size(width, 900));
 
@@ -218,12 +219,65 @@ void main() {
       // collects rather than throws. Nothing here may produce one.
       expect(tester.takeException(), isNull, reason: '$width');
 
-      // Everything the footer holds is still inside the bar it belongs to.
       final bar = barRect(tester);
+      heights[width] = bar.height;
+
+      // Everything the footer holds is inside the bar it belongs to.
       final send = tester.getRect(find.byType(GradientSendButton));
       expect(send.right, lessThanOrEqualTo(bar.right + 1), reason: '$width');
       expect(send.bottom, lessThanOrEqualTo(bar.bottom + 1), reason: '$width');
       expect(send.left, greaterThanOrEqualTo(bar.left - 1), reason: '$width');
+    }
+
+    // One row means one height: an empty prompt is the same bar however wide
+    // the window is.
+    expect(heights.values.toSet(), hasLength(1), reason: '$heights');
+  });
+
+  testWidgets('a narrow window folds the actions behind one button', (
+    tester,
+  ) async {
+    // What replaced the wrapping: the cast stays on the bar, because it is what
+    // the ad *is* and it carries the panels, and the verbs go behind a button.
+    await pumpEditor(tester, size: const Size(1420, 940));
+    expect(find.byTooltip('More actions'), findsNothing);
+    expect(find.byTooltip('Add a photo of the product'), findsOneWidget);
+
+    await pumpEditor(tester, size: const Size(700, 900));
+    expect(find.byTooltip('More actions'), findsOneWidget);
+    expect(find.byTooltip('Add a photo of the product'), findsNothing);
+
+    // And the cast is still on the bar, not inside the sheet.
+    expect(find.text('Add an actor'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('More actions'));
+    await tester.pump();
+    expect(find.byTooltip('Add a photo of the product'), findsOneWidget);
+  });
+
+  testWidgets('nothing on the footer is separated by a rule', (tester) async {
+    // A hairline between the price and the wand said nothing -- they are
+    // already four objects with space around them -- and it only appeared at
+    // some widths, which made the bar look like it was rendering differently
+    // rather than fitting differently.
+    await pumpEditor(tester);
+
+    final bar = barRect(tester);
+    final rules = find.byWidgetPredicate((widget) {
+      if (widget is! Container) return false;
+      final constraints = widget.constraints;
+      return constraints != null &&
+          constraints.maxWidth == 1 &&
+          constraints.maxHeight == 24;
+    });
+
+    for (final rule in rules.evaluate()) {
+      final rect = tester.getRect(find.byWidget(rule.widget));
+      expect(
+        bar.contains(rect.center),
+        isFalse,
+        reason: 'a 1px rule at $rect is inside the bar',
+      );
     }
   });
 

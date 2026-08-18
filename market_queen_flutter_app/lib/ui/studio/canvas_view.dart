@@ -26,6 +26,11 @@ import '../widgets/video_poster.dart';
 /// separate render screen to be sent to and nothing to come back from, which is
 /// the whole point: the thing you asked for and the thing you got are on the
 /// same surface.
+///
+/// It is drawn bottom-up -- a reversed list -- and that one decision is what
+/// makes the scrolling behave. See the comment on `reverse` below: everything
+/// this widget used to do by hand to keep the newest result in view is a
+/// property of a reversed list, and doing it by hand is what made it jerk.
 class CanvasView extends StatefulWidget {
   const CanvasView({
     super.key,
@@ -56,58 +61,12 @@ class CanvasView extends StatefulWidget {
 class _CanvasViewState extends State<CanvasView> {
   final ScrollController _scroll = ScrollController();
 
-  int _lastCount = 0;
-
-  /// Whether the newest tile is the one being looked at.
-  ///
-  /// Tracked continuously rather than read when it is needed, and that is the
-  /// whole trick: by the time a resize has happened the old extent is gone, so
-  /// "were we at the bottom" has to have been answered before it.
-  bool _atBottom = true;
-
-  /// The viewport the feed was last laid out in.
-  Size _viewport = Size.zero;
-
   CanvasFeed get _feed => widget.app.project.feed;
 
   @override
-  void initState() {
-    super.initState();
-    _feed.addListener(_onFeed);
-    _lastCount = _feed.batches.length;
-  }
-
-  @override
   void dispose() {
-    _feed.removeListener(_onFeed);
     _scroll.dispose();
     super.dispose();
-  }
-
-  /// Something changed the shape of the feed: the composer grew a line, the
-  /// settings column opened, the window was dragged bigger.
-  ///
-  /// All three move the bottom of the scrollable, and all three should leave
-  /// somebody who was watching the newest tile still watching it. Anywhere else
-  /// in the feed the offset is already preserved for us and is left alone --
-  /// snapping the middle of a list to the end would be worse than the bug.
-  void _keepAnchored() {
-    if (!_atBottom) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      final position = _scroll.position;
-      if (position.pixels >= position.maxScrollExtent) return;
-      // Jumped, not animated: this follows a resize, and a resize that also
-      // slides is two movements where the user made none.
-      _scroll.jumpTo(position.maxScrollExtent);
-    });
-  }
-
-  @override
-  void didUpdateWidget(CanvasView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.bottomInset != widget.bottomInset) _keepAnchored();
   }
 
   /// The tallest a single result is allowed to be drawn.
@@ -123,61 +82,19 @@ class _CanvasViewState extends State<CanvasView> {
     math.max(240.0, (viewportHeight - widget.bottomInset) * 0.78),
   );
 
-  /// Kept up to date by every scroll, so [_keepAnchored] never has to guess.
-  ///
-  /// The slack is a few pixels rather than zero: a feed resting at the end can
-  /// sit a fraction of a pixel short of its own extent, and an equality test
-  /// there would decide you had scrolled away.
-  bool _onScroll(ScrollNotification notification) {
-    final metrics = notification.metrics;
-    if (metrics.axis != Axis.vertical) return false;
-    _atBottom = metrics.pixels >= metrics.maxScrollExtent - 8;
-    return false;
-  }
-
-  /// Follows the newest batch down, and only on a new batch.
-  ///
-  /// Scrolling on every notification would yank the view out from under
-  /// somebody reading an older result while ten tiles fill in behind them.
-  void _onFeed() {
-    final count = _feed.batches.length;
-    if (count <= _lastCount) {
-      _lastCount = count;
-      return;
-    }
-    _lastCount = count;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_scroll.hasClients) return;
-      _scroll.animateTo(
-        _scroll.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeOutCubic,
-      );
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return SkeletonScope(
-      // The window itself is a thing that resizes the feed, and it does it
-      // without any of our own state changing -- so the viewport is watched
-      // here rather than reacted to somewhere else.
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.biggest != _viewport) {
-            _viewport = constraints.biggest;
-            _keepAnchored();
+      child: ListenableBuilder(
+        listenable: _feed,
+        builder: (context, _) {
+          final batches = _feed.batches;
+          if (batches.isEmpty) {
+            return _EmptyCanvas(bottomInset: widget.bottomInset);
           }
 
-          return ListenableBuilder(
-            listenable: _feed,
-            builder: (context, _) {
-              final batches = _feed.batches;
-              if (batches.isEmpty) {
-                return _EmptyCanvas(bottomInset: widget.bottomInset);
-              }
-
+          return LayoutBuilder(
+            builder: (context, constraints) {
               // Centred on the same axis as the prompt bar and capped to the
               // same width, so the two are one column rather than a feed that
               // spans the monitor with a bar floating in the middle of it. The
@@ -188,37 +105,55 @@ class _CanvasViewState extends State<CanvasView> {
                 (constraints.maxWidth - MqTheme.contentMaxWidth) / 2,
               );
 
-              return NotificationListener<ScrollNotification>(
-                onNotification: _onScroll,
-                // Always drawn, never faded out. A feed this long is scrolled
-                // by dragging as often as by wheeling, and the default
-                // behaviour -- a thumb that appears on a scroll and fades a
-                // second later -- meant the one place you could not aim at it
-                // was where it spends most of its life: resting at the bottom,
-                // under the wash the composer stands in. The wash now stops
-                // short of [MqTheme.scrollbarLane] and the thumb stays put.
-                child: Scrollbar(
+              return Scrollbar(
+                controller: _scroll,
+                // Always drawn while there is anything to drag -- the painter
+                // skips itself entirely when the feed fits. A thumb that fades
+                // a second after every wheel click is a thumb you cannot aim
+                // at, and this one also spends its life at the end of the
+                // track, under the wash the composer stands in.
+                thumbVisibility: true,
+                child: ListView.separated(
                   controller: _scroll,
-                  thumbVisibility: true,
-                  child: ListView.separated(
-                    controller: _scroll,
-                    padding: EdgeInsets.fromLTRB(
-                      side,
-                      MqTheme.gapLarge,
-                      side,
-                      MqTheme.gapLarge + widget.bottomInset,
-                    ),
-                    itemCount: batches.length,
-                    separatorBuilder: (context, _) =>
-                        const SizedBox(height: MqTheme.gapLarge + 6),
-                    itemBuilder: (context, index) => _BatchBlock(
+                  // The whole of the scrolling behaviour, in one word.
+                  //
+                  // Offset zero is the *bottom* of a reversed list, so the feed
+                  // opens on the newest result, a batch added while you are
+                  // there appears without anything being scrolled, and a batch
+                  // added while you are reading something older leaves you
+                  // exactly where you were. Growing the composer moves the
+                  // bottom edge and the list simply keeps its distance from it.
+                  //
+                  // This replaced about sixty lines that did the same job by
+                  // hand: a flag tracking whether the last frame had been at
+                  // the end, a remembered viewport size, a post-frame jump on
+                  // every resize and an animation on every new batch. Each of
+                  // those fired on its own schedule, and the ways they raced --
+                  // a jump landing after an animation, a resize arriving
+                  // between the two -- were what made the feed jerk.
+                  reverse: true,
+                  padding: EdgeInsets.fromLTRB(
+                    side,
+                    MqTheme.gapLarge,
+                    side,
+                    MqTheme.gapLarge + widget.bottomInset,
+                  ),
+                  itemCount: batches.length,
+                  separatorBuilder: (context, _) =>
+                      const SizedBox(height: MqTheme.gapLarge + 6),
+                  itemBuilder: (context, index) {
+                    // Reversed, so index 0 is the newest and the list is read
+                    // from the bottom up. The feed itself stays in the order it
+                    // happened in.
+                    final batch = batches[batches.length - 1 - index];
+                    return _BatchBlock(
                       app: widget.app,
-                      batch: batches[index],
+                      batch: batch,
                       maxTileHeight: _maxTileHeight(constraints.maxHeight),
                       onRegenerate: widget.onRegenerate,
-                      onRemove: () => _feed.remove(batches[index].id),
-                    ),
-                  ),
+                      onRemove: () => _feed.remove(batch.id),
+                    );
+                  },
                 ),
               );
             },

@@ -89,14 +89,18 @@ class ComposerSpec {
       kind: CanvasKind.ad,
       placeholder: tr(
         'Write the script your actor will read. Point at the cast and your '
-        'files by name: @Marie, @Image1, @Video1.',
+        'product by name: @Marie, @Image1.',
       ),
       tall: true,
-      // The product, as a photo or a clip of it in use. This is the only mode
-      // where the cast is addressable, because it is the only mode that has a
-      // cast: the avatar model is handed the actor and the scene, and the other
-      // two shelves have never heard of either.
-      referenceKinds: const {MediaKind.image, MediaKind.video},
+      // A photograph of the product, and nothing else.
+      //
+      // It used to take clips as well, and that was a promise the mode does not
+      // keep: an avatar model is handed a person, a place and a script, and a
+      // reference clip has nowhere to go in that request. Offering the button
+      // meant offering an attachment that was carried as far as the send path
+      // and dropped. This is the only mode where the cast is addressable,
+      // because it is the only one that has a cast.
+      referenceKinds: const {MediaKind.image},
       picksAspect: true,
       picksLength: true,
     ),
