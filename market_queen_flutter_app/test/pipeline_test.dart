@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 
 import 'package:market_queen/core/pricing.dart';
+import 'package:market_queen/providers/capabilities.dart';
 import 'package:market_queen/core/http_util.dart';
 import 'package:market_queen/providers/registry.dart';
 import 'package:market_queen/providers/types.dart';
@@ -33,6 +34,51 @@ Les sœurs, si vous êtes célibataires aussi, allez voir, parce que là… moi 
 ''';
 
 void main() {
+  group('delivery tags', () {
+    // Tags live in the script because a text-to-speech call has no other
+    // channel. That makes them a hazard everywhere else: an engine that does
+    // not know them says "excited" out loud, and a subtitle prints it.
+    const directed =
+        '[excited] Ok, attendez… vous avez vu ça ? [laughs] C\'est exactement '
+        'ce que je cherchais.';
+    const plain =
+        'Ok, attendez… vous avez vu ça ? C\'est exactement ce que je cherchais.';
+
+    test('stripping leaves the words and the spacing as written', () {
+      expect(DeliveryTags.strip(directed), plain);
+    });
+
+    test('a bracket that is not a tag survives', () {
+      // Otherwise stripping quietly edits somebody's script.
+      expect(DeliveryTags.strip('Le prix [2] est bon.'), 'Le prix [2] est bon.');
+      expect(
+        DeliveryTags.strip('Une remarque [entre parenthèses trop longue pour un tag].'),
+        'Une remarque [entre parenthèses trop longue pour un tag].',
+      );
+    });
+
+    test('only an engine that reads tags is sent them', () {
+      final v3 = VoiceCapabilities.of('elevenlabs', 'eleven_v3');
+      final v2 = VoiceCapabilities.of('elevenlabs', 'eleven_multilingual_v2');
+      final minimax = VoiceCapabilities.of('minimax-tts', 'speech-2.8-hd');
+
+      expect(DeliveryTags.forEngine(directed, v3), directed);
+      expect(DeliveryTags.forEngine(directed, v2), plain);
+      expect(DeliveryTags.forEngine(directed, minimax), plain);
+    });
+
+    test('the vocabulary is short, and every entry is a tag', () {
+      // ElevenLabs publishes many more, including sound effects and accents.
+      // The model is documented as sometimes speaking a tag aloud, and a small
+      // familiar set is the part of that risk this app controls.
+      expect(DeliveryTags.vocabulary.length, lessThanOrEqualTo(8));
+      for (final tag in DeliveryTags.vocabulary) {
+        expect(DeliveryTags.present(tag), isTrue, reason: tag);
+        expect(DeliveryTags.strip(tag), isEmpty, reason: tag);
+      }
+    });
+  });
+
   group('what one ad costs', () {
     // The estimate and the run are two readings of the same ad, and the whole
     // reason to show a number before Generate is that they agree. Every case

@@ -1110,6 +1110,13 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           _PriceTag(price: _meterPrice),
           const SizedBox(width: 10),
         ],
+        // Direction sits beside the wand and before it, because it is the
+        // narrower of the two: the wand rewrites the words, this one only says
+        // how they are read. Only on the ad, and only where an engine reads it.
+        if (_tab == ComposerTab.actors && _readerTakesDirection) ...[
+          _directionButton(),
+          const SizedBox(width: 8),
+        ],
         if (_spec.prompted) ...[
           _improveButton(),
           const SizedBox(width: 8),
@@ -1629,8 +1636,9 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// asked for again after the pick rather than trusted from before it.
   Future<void> _pickWriter(
     BuildContext anchor,
-    List<PromptWriter> writers,
-  ) async {
+    List<PromptWriter> writers, {
+    PromptKind? kind,
+  }) async {
     final registry = app.registry;
     final live = {
       for (final writer in writers) '${writer.providerId}|${writer.modelId}',
@@ -1689,7 +1697,44 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     );
     if (chosen.isEmpty) return;
 
+    if (kind == PromptKind.performance) {
+      await _directDelivery(using: chosen.first);
+      return;
+    }
     await _improvePrompt(using: chosen.first);
+  }
+
+  /// Marks the script up with delivery tags, and refuses anything else.
+  ///
+  /// A writer model handed a script wants to improve it. Here that would be
+  /// a second script, read aloud, over a video of somebody saying the first
+  /// one -- so what comes back is compared with what went out, word for
+  /// word, and dropped if a single one moved.
+  Future<void> _directDelivery({PromptWriter? using}) async {
+    final doctor = app.promptDoctor;
+    if (doctor.busy) return;
+
+    final original = _prompt.text;
+    final directed = await doctor.improve(
+      prompt: original,
+      kind: PromptKind.performance,
+      using: using,
+      // Who is reading it. A survoltée Gen-Z actor is not directed like a
+      // measured one, and the persona is the only thing that says which.
+      context: '${app.request()['actorPersona'] ?? ''}',
+    );
+    if (!mounted || directed.isEmpty) return;
+
+    String words(String text) =>
+        DeliveryTags.strip(text).replaceAll(RegExp(r'\\s+'), ' ').trim();
+
+    if (words(directed) != words(original)) {
+      app.log.warning(tr('The writer rewrote the script instead of directing '
+          'it, so nothing was changed.'));
+      return;
+    }
+
+    _rewrite(directed, directed.length);
   }
 
   /// What one rewrite on [writer] would cost, as text.
@@ -1748,6 +1793,49 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
     _rewrite(improved, improved.length);
   }
+
+  /// Delivery direction: the bracketed marks Eleven v3 reads out of the text.
+  ///
+  /// A button rather than a step, and that is the whole design. It costs a
+  /// call and it writes into words the user typed themselves, so it happens
+  /// when they ask, in front of them, in the field they are looking at --
+  /// where they can edit a tag, move it, or take the lot back off.
+  ///
+  /// Shown only where something will read it. On MiniMax, or on Eleven v2,
+  /// the tags are stripped before the request goes out, so offering to buy
+  /// them would be selling a change that never reaches the audio.
+  Widget _directionButton() {
+    final doctor = app.promptDoctor;
+    final directed = DeliveryTags.present(_prompt.text);
+
+    return ListenableBuilder(
+      listenable: doctor,
+      builder: (context, _) => Builder(
+        builder: (anchor) => MqIconButton(
+          icon: directed ? 'close-line' : 'emotion-line',
+          tip: directed
+              ? tr('Take the delivery direction back off')
+              : tr('Direct the delivery'),
+          size: 32,
+          enabled: !doctor.busy && _prompt.text.trim().isNotEmpty,
+          onPressed: () {
+            if (directed) {
+              final plain = DeliveryTags.strip(_prompt.text);
+              _rewrite(plain, plain.length);
+              return;
+            }
+            _pickWriter(anchor, doctor.writers, kind: PromptKind.performance);
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Whether the engine that will read this ad takes delivery tags.
+  bool get _readerTakesDirection => VoiceCapabilities.of(
+        app.runner.providerFor('voice'),
+        app.runner.modelFor('voice'),
+      ).audioTags;
 
   /// One button per kind of reference this mode takes, each with its own glyph.
   ///

@@ -1076,6 +1076,7 @@ class VoiceCapabilities {
     this.similarity = false,
     this.style = false,
     this.stabilitySteps = const [],
+    this.audioTags = false,
     this.known = true,
   });
 
@@ -1091,6 +1092,12 @@ class VoiceCapabilities {
 
   /// When set, the only stability values the engine takes.
   final List<double> stabilitySteps;
+
+  /// Whether the engine reads delivery tags written into the text --
+  /// `[excited]`, `[laughs]`, `[whispers]`. Eleven v3 does; everything else in
+  /// the app would say the word out loud, which is the whole reason this is a
+  /// declared capability rather than something the writer decides.
+  final bool audioTags;
 
   bool honours(String key) => switch (key) {
     'voiceSpeed' => speed,
@@ -1115,6 +1122,7 @@ class VoiceCapabilities {
     similarity: true,
     style: true,
     stabilitySteps: [0.0, 0.5, 1.0],
+    audioTags: true,
   );
 
   /// MiniMax Speech: `voice_setting` carries a voice id and a speed.
@@ -1137,4 +1145,55 @@ class VoiceCapabilities {
         'minimax-tts' => miniMax,
         _ => unknown,
       };
+}
+
+/// Delivery tags: the square-bracket direction Eleven v3 reads out of the text
+/// itself -- `[excited]`, `[laughs]`, `[whispers]`.
+///
+/// They live in the script because that is the only channel a text-to-speech
+/// call has, which makes them a hazard everywhere else. A tag left in the text
+/// is read aloud by an engine that does not know it, printed in a subtitle,
+/// counted in a word count and written into the project manifest. So the script
+/// carries them -- the user can see and edit their own direction -- and
+/// everything downstream takes the stripped text, except the one call that
+/// knows what to do with them.
+class DeliveryTags {
+  DeliveryTags._();
+
+  /// A tag, and only a tag: one bracketed run of letters, spaces and hyphens.
+  /// Deliberately narrow, so `[1]` in a script or a bracketed aside survives.
+  static final _tag = RegExp(r'\[[a-zA-Z][a-zA-Z \-]{0,30}\]');
+
+  /// The words, with the direction taken out and the gap it left closed up.
+  ///
+  /// Nothing else is touched. It is tempting to tidy the space in front of a
+  /// question mark too, and it would be wrong: French puts one there on
+  /// purpose, and this runs over sentences the user wrote.
+  static String strip(String text) => text
+      .replaceAll(_tag, ' ')
+      .replaceAll(RegExp(r'[ \t]{2,}'), ' ')
+      .replaceAll(RegExp(r'[ \t]+\n'), '\n')
+      .trim();
+
+  static bool present(String text) => _tag.hasMatch(text);
+
+  /// The text as this engine should receive it.
+  static String forEngine(String text, VoiceCapabilities engine) =>
+      engine.audioTags ? text : strip(text);
+
+  /// The short vocabulary the writers are allowed to use.
+  ///
+  /// ElevenLabs publishes far more, including sound effects and accents. This
+  /// is the subset that directs a person talking to a phone camera, and it is
+  /// short on purpose: the model is documented as sometimes speaking a tag
+  /// aloud, and a small familiar set is the part of that risk we can control.
+  static const vocabulary = [
+    '[excited]',
+    '[laughs]',
+    '[sighs]',
+    '[whispers]',
+    '[curious]',
+    '[sarcastic]',
+    '[mischievously]',
+  ];
 }

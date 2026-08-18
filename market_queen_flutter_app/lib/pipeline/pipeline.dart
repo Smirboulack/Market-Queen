@@ -15,6 +15,7 @@ import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
 import '../providers/provider_task.dart';
+import '../providers/capabilities.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
 import '../providers/voice_casting.dart';
@@ -40,9 +41,16 @@ class StepInfo {
 /// written against it and because the day a second camera setup earns its
 /// place, it is a second entry rather than a second pipeline.
 class Shot {
-  Shot({required this.line});
+  Shot({required this.line, this.direction = ''});
 
+  /// The words, and only the words. What is recorded in the manifest, what
+  /// a subtitle would be timed against, what a word count counts.
   final String line;
+
+  /// The same words with the delivery direction still in them, where there
+  /// is any. Only the text-to-speech call sees this, and only on an engine
+  /// that reads tags -- anything else would say "excited" out loud.
+  final String direction;
 
   String imagePrompt = '';
   String videoPrompt = '';
@@ -432,9 +440,20 @@ class Pipeline extends ChangeNotifier {
   ///
   /// One read, one frame, one clip. What comes back is what was written.
   void _oneTake() {
+    final written = _run.script.trim();
     _run.shots
       ..clear()
-      ..add(Shot(line: _run.script.trim()));
+      ..add(Shot(
+        line: DeliveryTags.strip(written),
+        direction: DeliveryTags.present(written) ? written : '',
+      ));
+  }
+
+  /// Which voice engine will read this ad, and what it is able to take.
+  VoiceCapabilities get _voiceEngine {
+    final providerId = _text('voiceProvider');
+    return VoiceCapabilities.of(
+        providerId, _pickModel(providerId, _text('voiceModel')));
   }
 
   /// The shape the whole run is in: the frame, the clip and anything a model
@@ -480,6 +499,9 @@ class Pipeline extends ChangeNotifier {
           extraInstructions: _text('extraInstructions'),
           durationSeconds: (_request['durationSeconds'] as num?)?.toInt() ?? 20,
           referenceImageDataUri: _run.productImageDataUri,
+          // Direction is worth asking for only where something will read it.
+          deliveryTags: _voiceEngine.audioTags,
+          performerBrief: _text('actorPersona'),
         ),
       ),
       PipelineStep.script,
@@ -517,6 +539,15 @@ class Pipeline extends ChangeNotifier {
 
     _oneTake();
     if (_run.hook.trim().isEmpty) _run.hook = _run.script.trim();
+
+    // The read, as the writer directed it. Kept beside the words rather than
+    // folded into them: the script stays the words alone everywhere it is
+    // shown, saved or counted.
+    final directed = '${result['direction'] ?? ''}'.trim();
+    if (directed.isNotEmpty) {
+      _run.shots[0] = Shot(line: _run.shots.first.line, direction: directed);
+      _log.info(tr('The read is directed.'));
+    }
 
     // The writer describes the still and the movement in the same answer, so
     // the take is filmed on its own directions rather than on the generic ones.
@@ -572,6 +603,13 @@ class Pipeline extends ChangeNotifier {
       final model = _pickModel(providerId, _text('voiceModel'));
       final shot = _run.shots[index];
 
+      // The one call that knows what a tag is. Handed to any other engine
+      // the brackets are read out as words, so the capability decides.
+      final spoken = shot.direction.isEmpty
+          ? shot.line
+          : DeliveryTags.forEngine(
+              shot.direction, VoiceCapabilities.of(providerId, model));
+
       final result = await _await(
         ProviderFactory.voice(
           providerId,
@@ -579,7 +617,7 @@ class Pipeline extends ChangeNotifier {
             apiKey: apiKey,
             model: model,
             voiceId: voiceId,
-            text: shot.line,
+            text: spoken,
             // The booth's sliders, so the ad sounds like the audition did.
             stability: _number('voiceStability', 0.45),
             similarity: _number('voiceSimilarity', 0.8),
@@ -594,8 +632,9 @@ class Pipeline extends ChangeNotifier {
         PipelineStep.voice,
       );
 
-      // TTS is billed on the text we sent, not on the audio that came back.
-      _recordUsage('voice', providerId, model, shot.line.length / 1000.0);
+      // TTS is billed on the text we sent, not on the audio that came back --
+      // and the tags are characters like any other.
+      _recordUsage('voice', providerId, model, spoken.length / 1000.0);
 
       final data = result['data'] as Uint8List? ?? Uint8List(0);
       final extension = '${result['extension'] ?? 'mp3'}';

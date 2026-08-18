@@ -257,8 +257,11 @@ class AdProject extends ChangeNotifier {
         ? maxSeconds
         : math.max(5, spokenSeconds.round());
 
-    double voice(String key, double fallback) =>
-        actor?.extraNumber(key, fallback) ?? fallback;
+    // The dial as it will actually be sent: the personality's value while this
+    // actor is following it, the hand-set one once they are not.
+    double voice(String key, double fallback) => actor == null
+        ? fallback
+        : ActorPersona.dialOf(actor, key, fallback);
 
     // The ad's own name names the run folder when no product does -- nobody
     // finds "20260810-143002-" again. It is kept apart from the product name
@@ -286,9 +289,10 @@ class AdProject extends ChangeNotifier {
       // Confident, high energy" into a prompt for a still is how a portrait
       // comes back grinning at nothing.
       'actorPersona': actor == null ? '' : ActorPersona.brief(actor),
-      // The standing instruction for how this actor moves. The avatar model
-      // takes it as the motion for every shot they are in.
-      'actorAction': actor?.extraText(ActorPersona.actionKey) ?? '',
+      // How this actor moves, for the avatar model. Two sources: what the
+      // personality asks for, and the standing instruction the user typed. The
+      // typed one comes second so it has the last word.
+      'actorAction': actor == null ? '' : ActorPersona.motionOf(actor),
       'extraInstructions': sceneBrief(scenes),
       // No scenes any more: the pipeline cuts the user's own script into shots
       // itself, which is the only cutting an authentic UGC ad wants.

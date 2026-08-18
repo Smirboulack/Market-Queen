@@ -642,6 +642,79 @@ class ActorPersona {
   static double energyOf(LibraryAsset actor) =>
       actor.extraNumber(energyKey, 0.6);
 
+  /// Whether the delivery dials still follow the personality.
+  ///
+  /// On until somebody moves a slider. It has to be a flag of its own rather
+  /// than "are the dials at their defaults", because every actor ever created
+  /// was written out with the four defaults already in their extras -- so
+  /// "untouched" and "deliberately set to 0.45" look identical on disk.
+  static const followsKey = 'voiceFollowsPersona';
+
+  static bool followsPersona(LibraryAsset actor) =>
+      actor.extras[followsKey] != false;
+
+  /// The read this actor's personality asks for.
+  static VoicePerformance performanceOf(LibraryAsset actor) =>
+      VoicePerformance.resolve(
+        energy: actor.extras.containsKey(energyKey) ? energyOf(actor) : -1.0,
+        traits: traitsOf(actor),
+      );
+
+  /// One dial, resolved: the personality's value while it is being followed,
+  /// and whatever was set by hand once it is not.
+  static double dialOf(LibraryAsset actor, String key, double fallback) {
+    if (followsPersona(actor)) return performanceOf(actor).dial(key);
+    return actor.extraNumber(key, fallback);
+  }
+
+  /// Everything the avatar model is told about how this actor moves: what
+  /// the personality asks for, then whatever the user typed by hand.
+  static String motionOf(LibraryAsset actor) {
+    final written = actor.extraText(actionKey).trim();
+    final resolved = movementOf(actor);
+    if (written.isEmpty) return resolved;
+    if (resolved.isEmpty) return written;
+    return '$resolved $written';
+  }
+
+  /// How this personality moves, for the avatar model.
+  ///
+  /// The other half of what [performanceOf] does for the voice, and it has to
+  /// be its own sentence rather than the persona brief pasted in. The brief is
+  /// written for a script writer -- "Playful, Gen-Z, high energy" -- and an
+  /// avatar model handed those words has nothing to do with them. What it can
+  /// act on is what the body does, so the traits are said as movement.
+  ///
+  /// English whatever the ad is written in: it is read by a model, not by a
+  /// viewer, and every avatar engine in the app is prompted in English.
+  static String movementOf(LibraryAsset actor) {
+    final traits = traitsOf(actor);
+    final energy = actor.extras.containsKey(energyKey) ? energyOf(actor) : -1.0;
+    if (traits.isEmpty && energy < 0) return '';
+
+    final parts = <String>[
+      if (energy >= 0)
+        energy > 0.75
+            ? 'lively and animated, quick gestures, a lot of movement in the '
+                'face and the hands'
+            : energy < 0.3
+                ? 'calm and still, small contained movements'
+                : 'relaxed, natural movement',
+      if (traits.contains('playful') || traits.contains('gen-z'))
+        'loose and unposed, the way somebody talks to a friend on camera',
+      if (traits.contains('confident') || traits.contains('bold'))
+        'holding the camera steady and looking straight down the lens',
+      if (traits.contains('warm') || traits.contains('friendly'))
+        'smiling as they talk',
+      if (traits.contains('professional') ||
+          traits.contains('expert') ||
+          traits.contains('luxury'))
+        'composed and deliberate, no fidgeting',
+    ];
+
+    return 'Speaking straight to camera, ${parts.join(', ')}.';
+  }
+
   /// The persona in one sentence, in the words a writer can use. Empty when
   /// nothing was set, so it can be appended to a brief unconditionally.
   static String brief(LibraryAsset actor) {
@@ -708,4 +781,98 @@ class SceneTweak {
       (tr('Public place'), 'in a public place with people around'),
     ]),
   ];
+}
+
+/// The read an actor's personality asks for, in the units the engines take.
+///
+/// This is the missing half of a personality. "Survoltée, joueuse, Gen-Z" used
+/// to reach the script writer and the image model and stop there: it changed
+/// what was written and what was drawn, and never once changed how it was said.
+/// The four dials that do decide that sat at the same neutral values for every
+/// actor in the library, so an energetic one and a calm one were read
+/// identically and the only way to notice was to listen.
+///
+/// The mapping, energy being the axis that matters:
+///
+///   energy   stability            style        speed
+///   ------   ------------------   ----------   -----
+///   0.0      0.75  (Robust)       0.15         0.95
+///   0.5      0.48  (Natural)      0.42         1.01
+///   1.0      0.20  (Creative)     0.70         1.08
+///
+/// Stability runs the other way round from everything else: low is expressive,
+/// high is flat. On Eleven v3 it is three settings rather than a slider, and
+/// the value is snapped -- which is also what makes an energetic actor land on
+/// Creative, the setting where delivery tags are honoured at all.
+///
+/// Traits nudge it from there: playful and bold push towards expression,
+/// professional and expert away from it, gen-z speaks a little faster.
+///
+/// It is a starting point, never a lock. [ActorPersona.followsPersona] says
+/// whether this actor is still taking it; moving any dial by hand turns that
+/// off and the hand-set values are used verbatim from then on.
+class VoicePerformance {
+  const VoicePerformance({
+    required this.stability,
+    required this.similarity,
+    required this.style,
+    required this.speed,
+  });
+
+  final double stability;
+  final double similarity;
+  final double style;
+  final double speed;
+
+  /// Where the dials sat before a personality decided them, and where an actor
+  /// who has none still sits.
+  static const neutral = VoicePerformance(
+    stability: 0.45,
+    similarity: 0.8,
+    style: 0.35,
+    speed: 1.0,
+  );
+
+  double dial(String key) => switch (key) {
+    'voiceStability' => stability,
+    'voiceSimilarity' => similarity,
+    'voiceStyle' => style,
+    'voiceSpeed' => speed,
+    _ => 0,
+  };
+
+  /// What [energy] and [traits] ask for, before the engine is consulted.
+  ///
+  /// [energy] is the actor's own 0..1; -1 means they have none set, and the
+  /// read stays neutral rather than being invented from nothing.
+  static VoicePerformance resolve({
+    required double energy,
+    List<String> traits = const [],
+  }) {
+    if (energy < 0) return neutral;
+
+    // Each trait is worth a small push along one axis. Kept small on purpose:
+    // four traits at once should colour a read, not overwhelm the energy dial
+    // that the user set deliberately with a slider.
+    var lift = 0.0;
+    for (final trait in traits) {
+      lift += switch (trait) {
+        'playful' || 'bold' => 0.10,
+        'confident' => 0.05,
+        'warm' || 'friendly' || 'relatable' => 0.02,
+        'professional' || 'expert' || 'luxury' => -0.10,
+        _ => 0.0,
+      };
+    }
+    lift = lift.clamp(-0.2, 0.2);
+
+    final quick = traits.contains('gen-z') ? 0.03 : 0.0;
+
+    return VoicePerformance(
+      stability: (0.75 - 0.55 * energy - lift).clamp(0.0, 1.0),
+      similarity: neutral.similarity,
+      style: (0.15 + 0.55 * energy + lift).clamp(0.0, 1.0),
+      speed: (0.95 + 0.13 * energy + quick).clamp(0.7, 1.2),
+    );
+  }
 }

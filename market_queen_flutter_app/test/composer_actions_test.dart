@@ -326,15 +326,33 @@ void main() {
     });
 
     test('every kind of prompt gets its own instruction', () {
+      // All but one are rewrites, and a rewrite has to keep the handles and the
+      // language of what it was given.
+      final rewrites =
+          PromptKind.values.where((kind) => kind != PromptKind.performance);
+
       final seen = <String>{};
-      for (final kind in PromptKind.values) {
+      for (final kind in rewrites) {
         final instruction = PromptDoctor.systemPromptFor(kind);
         expect(instruction, contains('@Image1'), reason: kind.name);
         expect(instruction, contains('same language'), reason: kind.name);
         seen.add(instruction);
       }
-      // Script and voice-over share one; the other four are their own.
-      expect(seen, hasLength(PromptKind.values.length - 1));
+      // Script and voice-over share one; the rest are their own.
+      expect(seen, hasLength(rewrites.length - 1));
+    });
+
+    test('directing the delivery is forbidden from rewriting it', () {
+      // The one kind that is not a rewrite. A writer model handed a script
+      // wants to improve it, and here that would be a second script read aloud
+      // over a video of somebody saying the first one.
+      final instruction = PromptDoctor.systemPromptFor(PromptKind.performance);
+
+      expect(instruction, contains('word for word'));
+      expect(instruction, contains('Do not change'));
+      for (final tag in DeliveryTags.vocabulary) {
+        expect(instruction, contains(tag), reason: tag);
+      }
     });
   });
 }

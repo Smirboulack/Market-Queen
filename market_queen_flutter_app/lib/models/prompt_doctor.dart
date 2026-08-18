@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../providers/capabilities.dart';
+
 import '../core/http_util.dart';
 import '../core/log_model.dart';
 import '../core/settings_store.dart';
@@ -13,7 +15,7 @@ import '../providers/types.dart';
 /// A picture model wants a photograph described; a video model wants the same
 /// thing plus what moves; an actor wants words somebody can say out loud. One
 /// instruction for all three would produce prose that suits none of them.
-enum PromptKind { image, video, script, voice, actor, scene }
+enum PromptKind { image, video, script, voice, actor, scene, performance }
 
 /// Who will do the rewriting.
 @immutable
@@ -267,6 +269,28 @@ class PromptDoctor extends ChangeNotifier {
             'studio.\n'
             'Two or three sentences at most.\n'
             '\n$common',
+      // The one kind that is not a rewrite. Everything above improves the
+      // words; this one is forbidden to touch them and adds only the
+      // bracketed direction the voice engine reads. Said three times over,
+      // because a writer model's instinct on being handed a script is to
+      // improve it, and here that would be a second script read aloud.
+      PromptKind.performance =>
+        'You are directing a voice actor. You are handed the words they will '
+            'say and you mark up how they say them.\n'
+            '\n'
+            'Return the same text, word for word, with delivery tags inserted '
+            'into it.\n'
+            '- Use only these tags: ${DeliveryTags.vocabulary.join(', ')}.\n'
+            '- Three or four in the whole script, at most. A tag on every '
+            'sentence reads as a performance rather than as a person, and it '
+            'is tiring to listen to.\n'
+            '- Put them where the delivery actually turns: the hook, a real '
+            'laugh, the beat before the call to action.\n'
+            '- Do not change, add, remove or reorder a single spoken word. '
+            'Do not fix the spelling. Do not shorten it.\n'
+            '\n'
+            'Answer with the marked-up text and nothing else: no preface, no '
+            'explanation, no quotation marks, no markdown.\n',
       PromptKind.scene =>
         'You turn a short description of a place into a prompt for an image '
             'model.\n'

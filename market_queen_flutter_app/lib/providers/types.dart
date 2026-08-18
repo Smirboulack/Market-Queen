@@ -34,6 +34,8 @@ class ScriptRequest {
     this.extraInstructions = '',
     this.referenceImageDataUri = '',
     this.durationSeconds = 20,
+    this.deliveryTags = false,
+    this.performerBrief = '',
   });
 
   final String apiKey;
@@ -63,6 +65,16 @@ class ScriptRequest {
   final String referenceImageDataUri;
 
   final int durationSeconds;
+
+  /// Whether the voice engine this ad will be read with takes delivery tags
+  /// written into the text. Asked for here rather than added afterwards
+  /// because a tag has to be placed where the thought turns, and only the
+  /// writer of the sentence knows where that is.
+  final bool deliveryTags;
+
+  /// Who is reading it, for the direction: the personality, in its own
+  /// words. Separate from [avatarBrief], which describes a face.
+  final String performerBrief;
 }
 
 /// One free-form question to a writer model, answered as plain text.

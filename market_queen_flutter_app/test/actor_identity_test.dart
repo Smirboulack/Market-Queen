@@ -19,6 +19,102 @@ void main() {
 
   LibraryAsset actor() => LibraryAsset(name: 'Sarah');
 
+  group('the personality decides the read', () {
+    // It used to decide the script and the frame and nothing else, so an actor
+    // set to survoltée was read at exactly the same four values as a calm one
+    // and the only way to find out was to listen to both.
+    LibraryAsset energetic() {
+      final sarah = actor();
+      ActorPersona.setTraits(sarah, ['gen-z', 'playful']);
+      sarah.setExtra(ActorPersona.energyKey, 1.0);
+      return sarah;
+    }
+
+    LibraryAsset calm() {
+      final max = LibraryAsset(name: 'Max');
+      ActorPersona.setTraits(max, ['professional']);
+      max.setExtra(ActorPersona.energyKey, 0.0);
+      return max;
+    }
+
+    test('energy pulls stability down and expression up', () {
+      final loud = ActorPersona.performanceOf(energetic());
+      final quiet = ActorPersona.performanceOf(calm());
+
+      // Stability runs backwards: low is expressive.
+      expect(loud.stability, lessThan(quiet.stability));
+      expect(loud.style, greaterThan(quiet.style));
+      expect(loud.speed, greaterThan(quiet.speed));
+    });
+
+    test('an energetic actor lands where delivery tags are honoured', () {
+      // Eleven v3 snaps stability to Creative / Natural / Robust, and only the
+      // first two respond to tags at all. A survoltée actor has to reach
+      // Creative or step 2 of this is bought and thrown away.
+      final loud = ActorPersona.performanceOf(energetic());
+      expect(loud.stability, lessThan(0.25));
+    });
+
+    test('an actor with no personality is read as they always were', () {
+      expect(ActorPersona.performanceOf(actor()).stability,
+          VoicePerformance.neutral.stability);
+      expect(ActorPersona.performanceOf(actor()).style,
+          VoicePerformance.neutral.style);
+    });
+
+    test('the dials are a starting point, not a lock', () {
+      final sarah = energetic();
+      expect(ActorPersona.followsPersona(sarah), isTrue);
+      expect(ActorPersona.dialOf(sarah, 'voiceStyle', 0.35),
+          ActorPersona.performanceOf(sarah).style);
+
+      // What moving a slider does: the values are written down as they stood
+      // and the actor stops following.
+      sarah
+        ..setExtra('voiceStyle', 0.2)
+        ..setExtra(ActorPersona.followsKey, false);
+
+      expect(ActorPersona.dialOf(sarah, 'voiceStyle', 0.35), 0.2);
+    });
+
+    test('the personality also says how they move', () {
+      // The other half. It has to be its own sentence rather than the persona
+      // brief pasted in: "Playful, Gen-Z, high energy" means something to a
+      // script writer and nothing to a model animating a photograph.
+      final loud = ActorPersona.movementOf(energetic());
+
+      expect(loud, contains('lively'));
+      expect(loud, isNot(contains('Gen-Z')));
+      expect(ActorPersona.movementOf(calm()), contains('composed'));
+
+      // An actor nobody described is given no direction rather than a made-up
+      // one, so the model falls back on its own default.
+      expect(ActorPersona.movementOf(actor()), isEmpty);
+    });
+
+    test('a motion typed by hand has the last word', () {
+      final sarah = energetic()
+        ..setExtra(ActorPersona.actionKey, 'Holds a coffee cup.');
+
+      final motion = ActorPersona.motionOf(sarah);
+      expect(motion, contains('lively'));
+      expect(motion, endsWith('Holds a coffee cup.'));
+    });
+
+    test('the four defaults every actor was saved with are not a choice', () {
+      // Every actor ever created was written out with 0.45 / 0.8 / 0.35 / 1.0
+      // in their extras, so "untouched" cannot be read off the values. The flag
+      // is what separates them, and its absence means following.
+      final sarah = energetic()
+        ..setExtra('voiceStability', 0.45)
+        ..setExtra('voiceStyle', 0.35);
+
+      expect(ActorPersona.followsPersona(sarah), isTrue);
+      expect(ActorPersona.dialOf(sarah, 'voiceStability', 0.45),
+          isNot(0.45));
+    });
+  });
+
   test('an age is a number of years, not a band', () {
     final sarah = actor();
     ActorIdentity.setAge(sarah, 22);

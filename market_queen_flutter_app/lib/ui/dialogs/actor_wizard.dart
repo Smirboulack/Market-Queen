@@ -227,16 +227,20 @@ class _WizardState extends State<_Wizard> {
     final reel = widget.app.actorReel;
 
     await reel.film(
+      // The dials as the render will send them, which is the personality's
+      // reading of them while this actor is still following it.
       actor: {
         ..._draft.extras,
-        'voiceStability': _draft.extraNumber('voiceStability', 0.45),
-        'voiceSimilarity': _draft.extraNumber('voiceSimilarity', 0.8),
-        'voiceStyle': _draft.extraNumber('voiceStyle', 0.35),
-        'voiceSpeed': _draft.extraNumber('voiceSpeed', 1.0),
+        'voiceStability': ActorPersona.dialOf(_draft, 'voiceStability', 0.45),
+        'voiceSimilarity': ActorPersona.dialOf(_draft, 'voiceSimilarity', 0.8),
+        'voiceStyle': ActorPersona.dialOf(_draft, 'voiceStyle', 0.35),
+        'voiceSpeed': ActorPersona.dialOf(_draft, 'voiceSpeed', 1.0),
       },
       portraitPath: _draft.previewPath,
       line: _line.text,
-      motionPrompt: _action.text.trim(),
+      // The same motion the render will send: the personality's, then whatever
+      // was typed into the field above it.
+      motionPrompt: ActorPersona.motionOf(_draft),
     );
 
     if (!mounted || reel.clipPath.isEmpty) return;
