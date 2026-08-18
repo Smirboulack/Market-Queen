@@ -14,6 +14,56 @@ import 'package:market_queen/providers/types.dart';
 void main() {
   final registry = Registry();
 
+  group('the dials an engine actually reads', () {
+    // The panel draws ElevenLabs' voice_settings. A provider with no equivalent
+    // field drops them silently, so a slider drawn for it is the interface
+    // promising a change that costs a read to disprove.
+    test('MiniMax takes a speed and nothing else', () {
+      final minimax = VoiceCapabilities.of('minimax-tts', 'speech-2.8-hd');
+
+      expect(minimax.honours('voiceSpeed'), isTrue);
+      expect(minimax.honours('voiceStability'), isFalse);
+      expect(minimax.honours('voiceSimilarity'), isFalse);
+      expect(minimax.honours('voiceStyle'), isFalse);
+    });
+
+    test('Eleven v3 has no speed, and three stability settings', () {
+      final v3 = VoiceCapabilities.of('elevenlabs', 'eleven_v3');
+
+      expect(v3.honours('voiceSpeed'), isFalse);
+      expect(v3.honours('voiceStability'), isTrue);
+      expect(v3.stabilitySteps, [0.0, 0.5, 1.0]);
+    });
+
+    test('the classic engines take all four, on a continuum', () {
+      final classic = VoiceCapabilities.of('elevenlabs', 'eleven_multilingual_v2');
+
+      for (final dial in const [
+        'voiceSpeed',
+        'voiceStability',
+        'voiceSimilarity',
+        'voiceStyle',
+      ]) {
+        expect(classic.honours(dial), isTrue, reason: dial);
+      }
+      expect(classic.stabilitySteps, isEmpty);
+    });
+
+    test('every engine on the shelf is described', () {
+      // An engine nobody has written down draws all four, which is the safe
+      // default -- but it is a default, and the shelf is two entries long.
+      for (final provider in registry.providers('voice')) {
+        for (final model in provider.models) {
+          expect(
+            VoiceCapabilities.of(provider.id, model.id).known,
+            isTrue,
+            reason: '${provider.id} / ${model.id}',
+          );
+        }
+      }
+    });
+  });
+
   group('the frame an ad is drawn at', () {
     // The run that started this: the picture shelf was set to 3840x2160 and the
     // ad to 9:16, and gpt-image-2 takes an explicit size over a ratio -- so six

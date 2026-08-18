@@ -1351,29 +1351,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         ],
         onPicked: (value) => project.setMaxSeconds(int.tryParse(value) ?? 0),
       ),
-      // The voice belongs on this bar, not on a shelf of its own. The engine
-      // that reads the ad was only reachable from the Voice-over mode, which is
-      // a place nobody looks while writing an ad -- so the choice between a
-      // continuous read and a line-by-line one was made by whatever happened to
-      // be saved, and heard for the first time in the finished film.
-      _Choice(
-        label: tr('Voice'),
-        icon: 'volume-up-line',
-        value: app.runner.modelLabel('voice'),
-        current: '${app.runner.providerFor('voice')}'
-            '|${app.runner.modelFor('voice')}',
-        options: _modelOptions(category: 'voice'),
-        menuWidth: 380,
-        onLocked: _unlock,
-        onPicked: (value) {
-          final parts = value.split('|');
-          if (parts.length != 2) return;
-          app.settings
-            ..setPref('voiceProvider', parts[0])
-            ..setPref('voiceModel', parts[1]);
-          setState(() {});
-        },
-      ),
     ];
   }
 
@@ -1387,15 +1364,10 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// silently drops Veo because Google is not set up is a menu that says this app
   /// cannot make Veo clips, and the fix -- one key -- is four seconds away. See
   /// [showChipMenu]'s `onLocked`.
-  /// Every model on one shelf, priced, with its account's mark beside it.
-  ///
-  /// [category] names the shelf when it is not the one the current mode buys
-  /// from: the talking-actor bar sets its voice as well as its avatar.
-  List<MenuOption<String>> _modelOptions({String category = ''}) {
+  List<MenuOption<String>> _modelOptions() {
     final registry = app.registry;
     final settings = app.settings;
-    final providers =
-        registry.providers(category.isEmpty ? _spec.category : category);
+    final providers = registry.providers(_spec.category);
     final named = providers.length > 1;
 
     final options = <MenuOption<String>>[];

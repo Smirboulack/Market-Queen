@@ -277,19 +277,6 @@ class VoiceCasting {
   /// provider publishes these as data, so they are what the voices sound like
   /// rather than what an API said.
   static const _presets = <String, List<_Preset>>{
-    'openai-tts': [
-      (id: 'nova', engine: '', gender: 'female', age: 'young', tone: 'upbeat'),
-      (id: 'shimmer', engine: '', gender: 'female', age: 'young', tone: 'casual'),
-      (id: 'coral', engine: '', gender: 'female', age: 'young', tone: 'excited'),
-      (id: 'sage', engine: '', gender: 'female', age: 'middle_aged', tone: 'calm'),
-      (id: 'alloy', engine: '', gender: '', age: 'middle_aged', tone: 'calm'),
-      (id: 'fable', engine: '', gender: '', age: 'middle_aged', tone: 'professional'),
-      (id: 'verse', engine: '', gender: 'male', age: 'young', tone: 'casual'),
-      (id: 'ballad', engine: '', gender: 'male', age: 'young', tone: 'chill'),
-      (id: 'ash', engine: '', gender: 'male', age: 'middle_aged', tone: 'confident'),
-      (id: 'echo', engine: '', gender: 'male', age: 'middle_aged', tone: 'calm'),
-      (id: 'onyx', engine: '', gender: 'male', age: 'old', tone: 'deep'),
-    ],
     'minimax-tts': [
       (id: 'Inspirational_girl', engine: '', gender: 'female', age: 'young', tone: 'upbeat'),
       (id: 'Lively_Girl', engine: '', gender: 'female', age: 'young', tone: 'excited'),
@@ -307,17 +294,5 @@ class VoiceCasting {
     // gender column is deliberately blank: the model reads the same voice as a
     // man or a woman depending on the line, and claiming otherwise here would
     // send the casting search after a difference that is not there.
-    'gemini-tts': [
-      (id: 'Zephyr', engine: '', gender: '', age: 'young', tone: 'upbeat'),
-      (id: 'Puck', engine: '', gender: '', age: 'young', tone: 'excited'),
-      (id: 'Autonoe', engine: '', gender: '', age: 'young', tone: 'upbeat'),
-      (id: 'Leda', engine: '', gender: '', age: 'young', tone: 'casual'),
-      (id: 'Aoede', engine: '', gender: '', age: 'middle_aged', tone: 'chill'),
-      (id: 'Kore', engine: '', gender: '', age: 'middle_aged', tone: 'confident'),
-      (id: 'Callirrhoe', engine: '', gender: '', age: 'middle_aged', tone: 'calm'),
-      (id: 'Charon', engine: '', gender: '', age: 'middle_aged', tone: 'professional'),
-      (id: 'Iapetus', engine: '', gender: '', age: 'middle_aged', tone: 'calm'),
-      (id: 'Orus', engine: '', gender: '', age: 'old', tone: 'deep'),
-    ],
   };
 }

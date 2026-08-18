@@ -1056,3 +1056,85 @@ class ModelCapabilities {
     ),
   };
 }
+
+/// Which of the four delivery dials a voice engine actually honours.
+///
+/// The dials are not a house style laid over every provider: they are
+/// ElevenLabs' `voice_settings`, and a provider that has no equivalent field
+/// simply drops them. Drawn all four regardless, the panel was telling the user
+/// that MiniMax reads with the stability and the style exaggeration they had
+/// set, when MiniMax is sent a voice id and a speed and nothing else -- three
+/// controls that did nothing, and no way to find that out except by paying for
+/// two reads and hearing no difference.
+///
+/// The stability steps come from the same place they always did: v3 has three
+/// settings rather than a continuum, and a value between them is snapped.
+class VoiceCapabilities {
+  const VoiceCapabilities({
+    this.speed = false,
+    this.stability = false,
+    this.similarity = false,
+    this.style = false,
+    this.stabilitySteps = const [],
+    this.known = true,
+  });
+
+  final bool speed;
+  final bool stability;
+  final bool similarity;
+  final bool style;
+
+  /// False for an engine nobody has described here. Same flag and same reason
+  /// as [ModelCapabilities.known]: the fallback draws everything, and a test
+  /// can tell "we checked, it takes all four" from "we never looked".
+  final bool known;
+
+  /// When set, the only stability values the engine takes.
+  final List<double> stabilitySteps;
+
+  bool honours(String key) => switch (key) {
+    'voiceSpeed' => speed,
+    'voiceStability' => stability,
+    'voiceSimilarity' => similarity,
+    'voiceStyle' => style,
+    _ => false,
+  };
+
+  /// ElevenLabs' classic engines: the whole panel applies.
+  static const elevenLabs = VoiceCapabilities(
+    speed: true,
+    stability: true,
+    similarity: true,
+    style: true,
+  );
+
+  /// Eleven v3: a different architecture. No speed at all, and stability is
+  /// Creative / Natural / Robust rather than a slider.
+  static const elevenV3 = VoiceCapabilities(
+    stability: true,
+    similarity: true,
+    style: true,
+    stabilitySteps: [0.0, 0.5, 1.0],
+  );
+
+  /// MiniMax Speech: `voice_setting` carries a voice id and a speed.
+  static const miniMax = VoiceCapabilities(speed: true);
+
+  /// Nothing declared. Everything is drawn, because an engine nobody has
+  /// described here is more likely to take the settings than to refuse them.
+  static const unknown = VoiceCapabilities(
+    speed: true,
+    stability: true,
+    similarity: true,
+    style: true,
+    known: false,
+  );
+
+  static VoiceCapabilities of(String providerId, String modelId) =>
+      switch (providerId) {
+        'elevenlabs' =>
+          modelId.toLowerCase().contains('v3') ? elevenV3 : elevenLabs,
+        'minimax-tts' => miniMax,
+        _ => unknown,
+      };
+}

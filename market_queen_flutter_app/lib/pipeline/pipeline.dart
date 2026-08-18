@@ -69,9 +69,7 @@ class _RunState {
   String productImagePath = '';
   String productImageDataUri = '';
 
-  /// The cast actor. Where both exist the portrait wins for the frames -- a
-  /// face that changes between shots is more visible than a product rendered
-  /// from its description rather than its photo.
+  /// The cast actor, and the only reference the frame is drawn from.
   String actorPortraitDataUri = '';
 
   String hook = '';
@@ -780,21 +778,30 @@ class Pipeline extends ChangeNotifier {
     return '$action. $shot';
   }
 
-  /// What a shot is drawn from when nothing wrote a prompt for it.
+  /// What the take is drawn from when nothing wrote a prompt for it.
   ///
-  /// Which is now the ordinary case: the studio no longer cuts the ad into
-  /// directed scenes, so the only description of the shot is the ad itself --
-  /// the actor as they were described, the room they are in, and the thing they
-  /// are holding. Composed rather than fixed, because a generic "a person
-  /// holding X" throws away the two fields the user spent the most time on.
+  /// Which is now the ordinary case: it is the actor as they were described,
+  /// the room they are in, and nothing else.
+  ///
+  /// It used to end with `they are holding <product name>`, and that line is
+  /// the single worst thing this app has done. A name is not a picture: the
+  /// model has to invent the shape, the colour and the label, and what it
+  /// invents is a counterfeit of a real bottle with the branding misspelt --
+  /// put in the hands of an actor, in an ad, under somebody's own account.
+  ///
+  /// It is also wrong even when the field is right. The product name outlives
+  /// the ad it was typed for: a project written for a perfume and rewritten for
+  /// a dating app still carries the perfume, and the frame is the one place
+  /// where a leftover word becomes a physical object on camera.
+  ///
+  /// So the product is simply not mentioned. It is not replaced by an
+  /// instruction to hold nothing either: the shot that puts a product on
+  /// camera is a real feature and it is coming, and a prompt that forbids one
+  /// is something that would have to be found and undone first.
   String _defaultFramePrompt() {
     final actor = _text('avatarBrief').trim();
     final decor = _text('extraInstructions').trim();
-    final product = _text('productName').trim();
 
-    // A product shot has the same room and the same light -- it is the same
-    // person filming, a moment later -- but no face in it. That is the whole
-    // point of cutting to it.
     return [
       tr('A vertical photo taken on a phone, held at arm\'s length.'),
       if (actor.isEmpty)
@@ -804,8 +811,6 @@ class Pipeline extends ChangeNotifier {
         tr('In frame: %1, talking to the camera.').arg(actor),
       //: %1 is how the user described the room the ad is filmed in
       if (decor.isNotEmpty) tr('Shot in %1.').arg(decor),
-      //: %1 is a product name
-      if (product.isNotEmpty) tr('They are holding %1.').arg(product),
       tr(
         'Ordinary room light, visible skin texture, no retouching, framed '
         'slightly off-centre. Not an advertisement: no studio lighting, no '
@@ -846,11 +851,11 @@ class Pipeline extends ChangeNotifier {
       final size = _text('imageSize');
       final quality = _text('imageQuality');
 
-      // One reference per model, and for a talking ad it is the face: the
-      // product photo only stands in when there is no actor to look at.
-      final reference = _run.actorPortraitDataUri.isEmpty
-          ? _run.productImageDataUri
-          : _run.actorPortraitDataUri;
+      // The face, or nothing. A product photo used to stand in when the actor
+      // had no portrait, which handed the image model a picture of a bottle and
+      // asked it for a person talking to camera -- and got a person holding a
+      // bottle, from a field the ad never mentioned.
+      final reference = _run.actorPortraitDataUri;
 
       final result = await _await(
         ProviderFactory.image(

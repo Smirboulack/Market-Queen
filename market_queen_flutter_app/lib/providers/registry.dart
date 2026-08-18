@@ -616,32 +616,6 @@ class Registry extends ChangeNotifier {
         note: tr('Emotion and speed are per-request, not baked into the voice.'),
       ),
 
-      ProviderEntry(
-        id: 'gemini-tts',
-        category: 'voice',
-        label: 'Google Gemini TTS',
-        credential: 'gemini',
-        models: const [
-          ModelEntry('gemini-2.5-flash-preview-tts', 'Gemini 2.5 Flash TTS'),
-          ModelEntry('gemini-2.5-pro-preview-tts', 'Gemini 2.5 Pro TTS'),
-        ],
-        defaultModel: 'gemini-2.5-flash-preview-tts',
-        note: tr('On the same key as the writer and the images.'),
-      ),
-
-      ProviderEntry(
-        id: 'openai-tts',
-        category: 'voice',
-        label: 'OpenAI TTS',
-        credential: 'openai',
-        models: const [
-          ModelEntry('gpt-4o-mini-tts', 'GPT-4o mini TTS'),
-          ModelEntry('tts-1-hd', 'TTS-1 HD'),
-        ],
-        defaultModel: 'gpt-4o-mini-tts',
-        note: tr('Cheap and fast, fixed set of voices.'),
-      ),
-
       // ---- Captions --------------------------------------------------------
       // Groq serves the same Whisper weights as OpenAI for a fraction of the
       // price, which makes subtitles the cheapest step of a run.
@@ -988,9 +962,7 @@ class ProviderFactory {
   static ProviderTask? voice(String providerId, VoiceRequest request) =>
       switch (providerId) {
         'elevenlabs' => ElevenLabsVoiceTask(request),
-        'openai-tts' => OpenAiVoiceTask(request),
         'minimax-tts' => MiniMaxVoiceTask(request),
-        'gemini-tts' => GeminiVoiceTask(request),
         _ => null,
       };
 
@@ -1005,9 +977,7 @@ class ProviderFactory {
   static ProviderTask? voiceCatalog(String providerId, String apiKey) =>
       switch (providerId) {
         'elevenlabs' => ElevenLabsVoiceListTask(apiKey),
-        'openai-tts' => OpenAiVoiceListTask(),
         'minimax-tts' => MiniMaxVoiceListTask(),
-        'gemini-tts' => GeminiVoiceListTask(),
         _ => null,
       };
 }

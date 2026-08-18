@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import '../../app_state.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
+import '../../providers/capabilities.dart';
+import '../dialogs/actor_editor.dart';
+import '../dialogs/api_key_dialog.dart';
 import '../dialogs/voice_picker.dart';
+import '../format.dart';
 import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
@@ -120,6 +124,13 @@ class _CastPanelState extends State<CastPanel> {
     widget.app.voiceBooth.audition(widget.app.request(), _line);
   }
 
+  /// The full editor for the person: who they are, how they look, how they
+  /// behave. Opened in the middle of the screen, not inside this column.
+  Future<void> _editActor(LibraryAsset asset) async {
+    await showActorEditor(context, app: widget.app, actor: asset);
+    if (mounted) setState(() {});
+  }
+
   /// Opens the catalogue in the middle of the screen rather than inside this
   /// 300px column.
   Future<void> _changeVoice(LibraryAsset asset) async {
@@ -224,6 +235,18 @@ class _CastPanelState extends State<CastPanel> {
             ),
           ),
         ),
+        // Everything that is a property of the person rather than of this
+        // read -- their face, their looks, their personality -- lives in the
+        // editor, and this is the way in from the ad. Without it the only route
+        // was through the gallery, which is the screen for casting somebody
+        // else rather than for changing who you already cast.
+        if (_isActor && asset != null)
+          MqIconButton(
+            icon: 'settings-3-line',
+            tip: tr('Edit this actor'),
+            size: 24,
+            onPressed: () => _editActor(asset),
+          ),
         MqIconButton(
           icon: 'shuffle-line',
           tip: _isActor ? tr('Cast somebody else') : tr('Film somewhere else'),
@@ -242,9 +265,56 @@ class _CastPanelState extends State<CastPanel> {
 
   // ---- the actor's read ----------------------------------------------------
 
-  /// The four ElevenLabs dials, in the order they matter: name, key, range and
+  /// Which engine reads this ad. A global preference rather than a property of
+  /// the actor: the voice belongs to the actor, the engine that speaks it is
+  /// the studio's choice, and moving one actor to another engine is a decision
+  /// about cost and quality rather than about who they are.
+  String get _voiceProvider => widget.app.runner.providerFor('voice');
+
+  String get _voiceModel => widget.app.runner.modelFor('voice');
+
+  VoiceCapabilities get _engine =>
+      VoiceCapabilities.of(_voiceProvider, _voiceModel);
+
+  /// Every engine on the voice shelf, priced, with its account's mark beside
+  /// it. An engine whose key is missing is listed and greyed rather than left
+  /// out: what that row has to say is what is missing, not nothing.
+  List<MenuOption<String>> _engineOptions() {
+    final registry = widget.app.registry;
+    final settings = widget.app.settings;
+
+    return [
+      for (final provider in registry.providers('voice'))
+        for (final model in provider.models)
+          MenuOption(
+            [
+              '${provider.label} · ',
+              model.label,
+              if (!(provider.credential.isNotEmpty &&
+                  !settings.hasApiKey(provider.credential)))
+                ...[
+                  if (Format.unitPriceLabel(
+                    widget.app.pricing.unitPrice(model.id),
+                  ).isNotEmpty)
+                    '   ${Format.unitPriceLabel(widget.app.pricing.unitPrice(model.id))}',
+                ],
+            ].join(),
+            '${provider.id}|${model.id}',
+            mark: provider.credential,
+            locked: provider.credential.isNotEmpty &&
+                !settings.hasApiKey(provider.credential),
+            note: provider.credential.isNotEmpty &&
+                    !settings.hasApiKey(provider.credential)
+                ? lockedByKeyLabel
+                : '',
+          ),
+    ];
+  }
+
+  /// The four delivery dials, in the order they matter: name, key, range and
   /// where they sit untouched. They are the difference between a read that
-  /// sounds human and one that sounds like an announcer.
+  /// sounds human and one that sounds like an announcer -- on the engines that
+  /// take them. [VoiceCapabilities] decides which of the four are drawn.
   static List<(String, String, double, double, double)> get _dials => [
         (tr('Speed'), 'voiceSpeed', 0.7, 1.2, 1.0),
         (tr('Stability'), 'voiceStability', 0, 1, 0.45),
@@ -260,6 +330,31 @@ class _CastPanelState extends State<CastPanel> {
     final read = _readOf(asset);
 
     return [
+      // The engine first, because it decides what the rest of this panel is
+      // allowed to say. It used to be reachable only from a Voice-over mode
+      // behind an overflow menu, which meant the choice between a continuous
+      // read and a line-by-line one was made by whatever happened to be saved.
+      PanelRow(
+        label: tr('Model'),
+        child: _PanelPick(
+          value: '$_voiceProvider|$_voiceModel',
+          options: _engineOptions(),
+          menuWidth: 320,
+          onLocked: (option) => askForApiKey(
+            context,
+            app: widget.app,
+            credentialId: option.mark,
+          ),
+          onPicked: (value) {
+            final parts = value.split('|');
+            if (parts.length != 2) return;
+            widget.app.settings
+              ..setPref('voiceProvider', parts[0])
+              ..setPref('voiceModel', parts[1]);
+            setState(() {});
+          },
+        ),
+      ),
       PanelRow(
         label: tr('Voice'),
         child: Pressable(
@@ -291,17 +386,25 @@ class _CastPanelState extends State<CastPanel> {
           ),
         ),
       ),
+      // Only the dials this engine reads. A slider the provider drops is worse
+      // than a missing one: it says the read will change, and it will not.
       for (final dial in _dials)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 2),
-          child: LabeledSlider(
-            label: dial.$1,
-            value: asset.extraNumber(dial.$2, dial.$5),
-            from: dial.$3,
-            to: dial.$4,
-            onChanged: (value) => _set(dial.$2, value),
+        if (_engine.honours(dial.$2))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2),
+            child: LabeledSlider(
+              label: dial.$1,
+              value: asset.extraNumber(dial.$2, dial.$5),
+              from: dial.$3,
+              to: dial.$4,
+              // Snapped where the engine has settings rather than a continuum,
+              // so the number on screen is the number it will be sent.
+              steps: dial.$2 == 'voiceStability'
+                  ? _engine.stabilitySteps
+                  : const [],
+              onChanged: (value) => _set(dial.$2, value),
+            ),
           ),
-        ),
       const SizedBox(height: 8),
       // The player, where a "Hear the voice" button used to be. A button that
       // spends money and then leaves you looking at a button is the wrong shape
@@ -462,11 +565,21 @@ class _PanelPick extends StatelessWidget {
     required this.value,
     required this.options,
     required this.onPicked,
+    this.menuWidth = 240,
+    this.onLocked,
   });
 
   final String value;
   final List<MenuOption<String>> options;
   final ValueChanged<String> onPicked;
+
+  /// Wider where the rows carry a logo, a provider, a model and a price.
+  final double menuWidth;
+
+  /// What to do about a row that cannot be bought from. Without it, pressing
+  /// one is a menu that closes and nothing else -- and what that row needs to
+  /// say is what is missing.
+  final Future<bool> Function(MenuOption<String>)? onLocked;
 
   String get _label {
     for (final option in options) {
@@ -486,7 +599,8 @@ class _PanelPick extends StatelessWidget {
             anchor,
             options: options,
             current: value,
-            width: 240,
+            width: menuWidth,
+            onLocked: onLocked,
           );
           if (picked != null) onPicked(picked);
         },
