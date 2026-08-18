@@ -1110,13 +1110,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
           _PriceTag(price: _meterPrice),
           const SizedBox(width: 10),
         ],
-        // Direction sits beside the wand and before it, because it is the
-        // narrower of the two: the wand rewrites the words, this one only says
-        // how they are read. Only on the ad, and only where an engine reads it.
-        if (_tab == ComposerTab.actors && _readerTakesDirection) ...[
-          _directionButton(),
-          const SizedBox(width: 8),
-        ],
         if (_spec.prompted) ...[
           _improveButton(),
           const SizedBox(width: 8),
@@ -1577,6 +1570,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             if (_panel == _Panel.scene) _closePanel();
           },
         ),
+        _emotionsChip(),
         // The product itself. An ad is usually *about* something, and the
         // frame model can only put it on screen if it has been shown it --
         // until this button existed the only way in was the drag-and-drop
@@ -1719,9 +1713,7 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       prompt: original,
       kind: PromptKind.performance,
       using: using,
-      // Who is reading it. A survoltée Gen-Z actor is not directed like a
-      // measured one, and the persona is the only thing that says which.
-      context: '${app.request()['actorPersona'] ?? ''}',
+      context: '',
     );
     if (!mounted || directed.isEmpty) return;
 
@@ -1794,30 +1786,44 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     _rewrite(improved, improved.length);
   }
 
-  /// Delivery direction: the bracketed marks Eleven v3 reads out of the text.
+  /// Whether the engine that will read this ad takes delivery tags.
+  bool get _readerTakesDirection => VoiceCapabilities.of(
+        app.runner.providerFor('voice'),
+        app.runner.modelFor('voice'),
+      ).audioTags;
+
+  /// Emotions: the bracketed marks Eleven v3 reads out of the script --
+  /// `[excited]`, `[laughs]`, `[whispers]`.
   ///
-  /// A button rather than a step, and that is the whole design. It costs a
-  /// call and it writes into words the user typed themselves, so it happens
-  /// when they ask, in front of them, in the field they are looking at --
-  /// where they can edit a tag, move it, or take the lot back off.
+  /// A chip you press rather than a step that happens, and that is the whole
+  /// design. It costs a call and it writes into words the user typed
+  /// themselves, so it happens when they ask, in the field they are looking
+  /// at, where they can move a mark, delete one, or take the lot back off.
   ///
-  /// Shown only where something will read it. On MiniMax, or on Eleven v2,
-  /// the tags are stripped before the request goes out, so offering to buy
-  /// them would be selling a change that never reaches the audio.
-  Widget _directionButton() {
+  /// Greyed rather than hidden when the voice model is not v3. Hidden, the
+  /// feature does not exist and nobody finds out it could; greyed with the
+  /// reason in its tooltip, the way to it is one sentence long. Every other
+  /// engine has the marks stripped out before the request goes, so offering
+  /// to buy them there would be selling a change nothing can hear.
+  Widget _emotionsChip() {
     final doctor = app.promptDoctor;
     final directed = DeliveryTags.present(_prompt.text);
+    final takesThem = _readerTakesDirection;
 
     return ListenableBuilder(
-      listenable: doctor,
+      listenable: Listenable.merge([doctor, app.settings]),
       builder: (context, _) => Builder(
-        builder: (anchor) => MqIconButton(
+        builder: (anchor) => MqChip(
+          label: directed ? tr('Remove the emotions') : tr('Add emotions'),
           icon: directed ? 'close-line' : 'emotion-line',
-          tip: directed
-              ? tr('Take the delivery direction back off')
-              : tr('Direct the delivery'),
-          size: 32,
-          enabled: !doctor.busy && _prompt.text.trim().isNotEmpty,
+          active: directed,
+          enabled: takesThem && !doctor.busy && _prompt.text.trim().isNotEmpty,
+          tooltip: takesThem
+              ? (directed
+                  ? tr('Take the delivery marks back out of the script')
+                  : tr('Mark the script up so the read carries emotion'))
+              : tr('Only Eleven v3 reads emotions. Choose it as the voice '
+                  'model on your actor to use this.'),
           onPressed: () {
             if (directed) {
               final plain = DeliveryTags.strip(_prompt.text);
@@ -1830,12 +1836,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       ),
     );
   }
-
-  /// Whether the engine that will read this ad takes delivery tags.
-  bool get _readerTakesDirection => VoiceCapabilities.of(
-        app.runner.providerFor('voice'),
-        app.runner.modelFor('voice'),
-      ).audioTags;
 
   /// One button per kind of reference this mode takes, each with its own glyph.
   ///

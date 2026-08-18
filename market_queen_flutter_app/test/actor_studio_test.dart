@@ -84,9 +84,7 @@ void main() {
       ..setExtra('voiceAge', 'young')
       ..setExtra('voiceName', 'Nathalie')
       ..setExtra('voiceKind', 'designed')
-      ..setExtra(ActorPersona.actionKey, 'Talking to camera, holding a bottle')
-      ..setExtra(ActorPersona.styleKey, 'Short sentences, never salesy');
-    ActorPersona.setTraits(actor, ['friendly', 'gen-z']);
+      ..setExtra(ActorAction.key, 'Talking to camera, holding a bottle');
     return actor;
   }
 
@@ -227,7 +225,7 @@ void main() {
         'Overview',
         'Appearance',
         'Voice',
-        'Personality',
+        'Action',
         'Looks',
       ]) {
         await tester.tap(find.text(section).first);
@@ -237,7 +235,7 @@ void main() {
       }
     });
 
-    testWidgets('the personality the user set is the one shown', (
+    testWidgets('what the actor is doing is the one thing shown', (
       tester,
     ) async {
       app.actors.save(madeActor('Jules'));
@@ -253,10 +251,9 @@ void main() {
         ),
       );
 
-      await tester.tap(find.text('Personality').first);
+      await tester.tap(find.text('Action').first);
       await settle(tester);
 
-      expect(find.text('Short sentences, never salesy'), findsOneWidget);
       expect(
         find.text('Talking to camera, holding a bottle'),
         findsOneWidget,
@@ -338,7 +335,6 @@ void main() {
         'tone': 'energetic',
         'use': 'social_media',
         'voice': 'Warm, young, conversational',
-        'personality': ['friendly', 'invented', 'gen-z'],
       });
 
       // Case is theirs to get right and ours to fold: "Female" is the value,
@@ -348,8 +344,6 @@ void main() {
       expect(profile.age, isEmpty);
       expect(profile.tone, isEmpty);
       expect(profile.useCase, 'social_media');
-      // Only the traits the app actually has pills for survive.
-      expect(profile.traits, ['friendly', 'gen-z']);
     });
 
     test('what it saw is written onto the actor in the app\'s own keys', () {
@@ -359,8 +353,6 @@ void main() {
         age: 'middle_aged',
         tone: 'calm',
         voiceDescription: 'A steady, low voice',
-        traits: ['professional'],
-        speakingStyle: 'Measured, no hype',
         action: 'Sitting, talking to camera',
       );
 
@@ -372,8 +364,7 @@ void main() {
       // Unset by the model, so the app picks the one use case a UGC ad is
       // always for rather than leaving the search unaimed.
       expect(actor.extraText('voiceUse'), 'social_media');
-      expect(ActorPersona.traitsOf(actor), ['professional']);
-      expect(actor.extraText(ActorPersona.actionKey), 'Sitting, talking to camera');
+      expect(ActorAction.of(actor), 'Sitting, talking to camera');
       expect(actor.extraText('voiceDescription'), 'A steady, low voice');
     });
 
@@ -384,39 +375,14 @@ void main() {
       );
 
       final actor = LibraryAsset(name: 'Read')
-        ..setExtra(ActorPersona.actionKey, 'Walking through a shop');
+        ..setExtra(ActorAction.key, 'Walking through a shop');
       profile.applyTo(actor);
 
-      expect(actor.extraText(ActorPersona.actionKey), 'Walking through a shop');
+      expect(ActorAction.of(actor), 'Walking through a shop');
     });
   });
 
   group('the parts of an actor that have nothing to look at', () {
-    test('the persona reaches the writer as a sentence', () {
-      final actor = LibraryAsset(name: 'Sarah')
-        ..setExtra(ActorPersona.energyKey, 0.9)
-        ..setExtra(ActorPersona.styleKey, 'Never sounds like an advert');
-      ActorPersona.setTraits(actor, ['friendly', 'bold']);
-
-      final brief = ActorPersona.brief(actor);
-      expect(brief, contains('Friendly'));
-      expect(brief, contains('Bold'));
-      expect(brief, contains('high energy'));
-      expect(brief, contains('Never sounds like an advert'));
-    });
-
-    test('an actor nobody described contributes nothing', () {
-      expect(ActorPersona.brief(LibraryAsset(name: 'Blank')), isEmpty);
-    });
-
-    test('a trait toggles both ways', () {
-      final actor = LibraryAsset(name: 'Sarah');
-      ActorPersona.toggleTrait(actor, 'bold');
-      expect(ActorPersona.traitsOf(actor), ['bold']);
-      ActorPersona.toggleTrait(actor, 'bold');
-      expect(ActorPersona.traitsOf(actor), isEmpty);
-    });
-
     test('looks survive a trip through the store', () {
       final actor = LibraryAsset(name: 'Sarah');
       ActorLooks.save(actor, [

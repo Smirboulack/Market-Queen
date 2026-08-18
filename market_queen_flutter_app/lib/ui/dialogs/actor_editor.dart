@@ -15,7 +15,6 @@ import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
 import '../widgets/mq_dialog.dart';
 import '../widgets/voice_player.dart';
-import 'actor_wizard.dart';
 import 'asset_studio.dart';
 import 'voice_picker.dart';
 
@@ -55,7 +54,7 @@ Future<String?> showActorEditor(
 
 /// The sections of an actor. The order is the argument: who they are, what they
 /// look like, how they sound, how they behave, and what else they can wear.
-enum ActorSection { overview, appearance, voice, personality, looks }
+enum ActorSection { overview, appearance, voice, action, looks }
 
 class ActorEditor extends StatefulWidget {
   const ActorEditor({super.key, required this.app, required this.actor});
@@ -68,7 +67,7 @@ class ActorEditor extends StatefulWidget {
         ActorSection.overview => tr('Overview'),
         ActorSection.appearance => tr('Appearance'),
         ActorSection.voice => tr('Voice'),
-        ActorSection.personality => tr('Personality'),
+        ActorSection.action => tr('Action'),
         ActorSection.looks => tr('Looks'),
       };
 
@@ -81,7 +80,7 @@ class ActorEditor extends StatefulWidget {
         // photograph is taken or replaced, not where pictures are listed.
         ActorSection.appearance => 'camera-line',
         ActorSection.voice => 'user-voice-line',
-        ActorSection.personality => 'emotion-line',
+        ActorSection.action => 'user-voice-line',
         // A hanger: a look is an outfit.
         ActorSection.looks => 'shirt-line',
       };
@@ -98,9 +97,7 @@ class _ActorEditorState extends State<ActorEditor> {
   late final TextEditingController _prompt =
       TextEditingController(text: _draft.prompt);
   late final TextEditingController _action =
-      TextEditingController(text: _draft.extraText(ActorPersona.actionKey));
-  late final TextEditingController _style =
-      TextEditingController(text: _draft.extraText(ActorPersona.styleKey));
+      TextEditingController(text: ActorAction.of(_draft));
 
   /// The screen's one player. Every disc on the page -- the card under the
   /// portrait, every row of the catalogue, all three designed takes -- drives
@@ -152,7 +149,6 @@ class _ActorEditorState extends State<ActorEditor> {
     _name.dispose();
     _prompt.dispose();
     _action.dispose();
-    _style.dispose();
     super.dispose();
   }
 
@@ -199,8 +195,7 @@ class _ActorEditorState extends State<ActorEditor> {
     _draft
       ..name = _name.text.trim()
       ..prompt = _prompt.text.trim()
-      ..setExtra(ActorPersona.actionKey, _action.text.trim())
-      ..setExtra(ActorPersona.styleKey, _style.text.trim());
+      ..setExtra(ActorAction.key, _action.text.trim());
   }
 
   Future<void> _delete() async {
@@ -293,7 +288,7 @@ class _ActorEditorState extends State<ActorEditor> {
   bool _unfinished(ActorSection section) => switch (section) {
         ActorSection.appearance => _draft.media.isEmpty,
         ActorSection.voice => _draft.extraText('voiceId').isEmpty,
-        ActorSection.personality => ActorPersona.traitsOf(_draft).isEmpty,
+        ActorSection.action => false,
         // A second look is an option, not an omission.
         _ => false,
       };
@@ -628,7 +623,7 @@ class _ActorEditorState extends State<ActorEditor> {
       ActorSection.overview => _overview(),
       ActorSection.appearance => _appearance(),
       ActorSection.voice => _voice(),
-      ActorSection.personality => _personality(),
+      ActorSection.action => _actionSection(),
       ActorSection.looks => _looks(),
     };
 
@@ -780,11 +775,12 @@ class _ActorEditorState extends State<ActorEditor> {
         onTap: () => _go(ActorSection.voice),
       ),
       _StatusTile(
-        icon: ActorEditor.iconFor(ActorSection.personality),
-        title: ActorEditor.labelFor(ActorSection.personality),
-        value: _personaSummary,
-        warn: ActorPersona.traitsOf(_draft).isEmpty,
-        onTap: () => _go(ActorSection.personality),
+        icon: ActorEditor.iconFor(ActorSection.action),
+        title: ActorEditor.labelFor(ActorSection.action),
+        value: _action.text.trim().isEmpty
+            ? tr('Nothing said yet')
+            : _action.text.trim(),
+        onTap: () => _go(ActorSection.action),
       ),
       _StatusTile(
         icon: ActorEditor.iconFor(ActorSection.looks),
@@ -889,17 +885,6 @@ class _ActorEditorState extends State<ActorEditor> {
         ),
       ],
     );
-  }
-
-  String get _personaSummary {
-    final traits = ActorPersona.traitsOf(_draft);
-    final energy = ActorPersona.energyOf(_draft);
-    if (traits.isEmpty) return tr('Nothing said yet');
-    return [
-      traits.take(2).map(ActorPersona.labelFor).join(tr(', ')),
-      //: %1 is a number between 0 and 1
-      tr('energy %1').arg(energy.toStringAsFixed(2)),
-    ].join(' · ');
   }
 
   // ---- section: appearance -------------------------------------------------
@@ -1059,10 +1044,17 @@ class _ActorEditorState extends State<ActorEditor> {
 
   // ---- section: personality ------------------------------------------------
 
-  Widget _personality() {
+  /// What the actor is doing on camera.
+  ///
+  /// One field, and it used to share this section with a personality block --
+  /// traits, an energy slider, a line of speaking style. That block described
+  /// a performance nothing rendered: it reached the script writer and the
+  /// image model, never the voice and never the movement. This one is
+  /// concrete and it lands somewhere: it is the avatar model's motion prompt.
+  Widget _actionSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: _filled ? MainAxisSize.max : MainAxisSize.min,
+      mainAxisSize: MainAxisSize.min,
       children: [
         _SectionCard(
           title: tr('What is the actor doing?'),
@@ -1074,22 +1066,6 @@ class _ActorEditorState extends State<ActorEditor> {
             maxLength: _descriptionLimit,
             placeholder: tr(
               'Talking to camera, holding the product, small natural gestures…',
-            ),
-          ),
-        ),
-        const SizedBox(height: MqTheme.gap),
-        _grow(
-          _SectionCard(
-            title: tr('Personality'),
-            subtitle: tr('All of this goes to the script writer as direction '
-                'for this actor.'),
-            child: _grow(
-              PersonaEditor(
-                draft: _draft,
-                styleController: _style,
-                fills: _filled,
-                onChanged: _repaint,
-              ),
             ),
           ),
         ),

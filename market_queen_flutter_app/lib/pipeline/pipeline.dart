@@ -14,8 +14,8 @@ import '../core/signal.dart';
 import '../core/version.dart';
 import '../i18n/translator.dart';
 import '../media/ffmpeg.dart';
-import '../providers/provider_task.dart';
 import '../providers/capabilities.dart';
+import '../providers/provider_task.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
 import '../providers/voice_casting.dart';
@@ -449,13 +449,6 @@ class Pipeline extends ChangeNotifier {
       ));
   }
 
-  /// Which voice engine will read this ad, and what it is able to take.
-  VoiceCapabilities get _voiceEngine {
-    final providerId = _text('voiceProvider');
-    return VoiceCapabilities.of(
-        providerId, _pickModel(providerId, _text('voiceModel')));
-  }
-
   /// The shape the whole run is in: the frame, the clip and anything a model
   /// crops for itself. Read from one place so a picture and the video made
   /// out of it cannot disagree about it.
@@ -499,9 +492,6 @@ class Pipeline extends ChangeNotifier {
           extraInstructions: _text('extraInstructions'),
           durationSeconds: (_request['durationSeconds'] as num?)?.toInt() ?? 20,
           referenceImageDataUri: _run.productImageDataUri,
-          // Direction is worth asking for only where something will read it.
-          deliveryTags: _voiceEngine.audioTags,
-          performerBrief: _text('actorPersona'),
         ),
       ),
       PipelineStep.script,
@@ -539,15 +529,6 @@ class Pipeline extends ChangeNotifier {
 
     _oneTake();
     if (_run.hook.trim().isEmpty) _run.hook = _run.script.trim();
-
-    // The read, as the writer directed it. Kept beside the words rather than
-    // folded into them: the script stays the words alone everywhere it is
-    // shown, saved or counted.
-    final directed = '${result['direction'] ?? ''}'.trim();
-    if (directed.isNotEmpty) {
-      _run.shots[0] = Shot(line: _run.shots.first.line, direction: directed);
-      _log.info(tr('The read is directed.'));
-    }
 
     // The writer describes the still and the movement in the same answer, so
     // the take is filmed on its own directions rather than on the generic ones.
@@ -789,19 +770,8 @@ class Pipeline extends ChangeNotifier {
   // 3. The frame -- one still, of the actor, in the shape of the ad
   // ---------------------------------------------------------------------
 
-  /// Who is on camera, for the writer: how they look, and how they behave.
-  ///
-  /// The personality is the half of an actor with nothing to show for itself,
-  /// and leaving it out is why an actor cast as blunt and Gen-Z used to be
-  /// handed a script written in the same neutral voice as everybody else and
-  /// then simply read it in a young one.
-  String get _actorBrief {
-    final look = _text('avatarBrief').trim();
-    final persona = _text('actorPersona').trim();
-    if (persona.isEmpty) return look;
-    if (look.isEmpty) return persona;
-    return '$look. $persona';
-  }
+  /// Who is on camera, for the writer and for the frame: how they look.
+  String get _actorBrief => _text('avatarBrief').trim();
 
   /// The motion an avatar model is given for one shot.
   ///

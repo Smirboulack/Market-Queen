@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import '../core/http_util.dart';
 import '../i18n/translator.dart';
-import 'capabilities.dart';
 import 'provider_task.dart';
 import 'types.dart';
 
@@ -80,31 +79,6 @@ abstract class ScriptTask extends HttpTask {
     ),
   };
 
-  /// What the "direction" key is for, said differently depending on whether
-  /// the engine can be directed at all. Asked for unconditionally either
-  /// way: a model given a key it must leave empty answers more reliably
-  /// than one given a schema that changes shape between calls.
-  String get _directionKeyHint => request.deliveryTags
-      ? 'the same words again with delivery tags added -- '
-          '${DeliveryTags.vocabulary.join(', ')} -- and nothing else changed'
-      : 'leave this an empty string';
-
-  /// The rules for the direction, when there is an engine that reads it.
-  String get _directionRules => !request.deliveryTags
-      ? ''
-      : '\n'
-          'The "direction" field is the read, not a rewrite. Copy the script '
-          'word for word and insert delivery tags into it.\n'
-          '- Use only these tags: ${DeliveryTags.vocabulary.join(', ')}.\n'
-          '- Three or four in the whole ad, at most. A tag on every sentence '
-          'reads as a performance rather than as a person, and it is tiring '
-          'to listen to.\n'
-          '- Put them where the delivery actually turns: the hook, a genuine '
-          'laugh, the beat before the call to action.\n'
-          '- Never change, add or remove a single spoken word.\n'
-          '${request.performerBrief.isEmpty ? '' : 'Direct it for this '
-              'person: ${request.performerBrief}\n'}';
-
   String get systemPrompt {
     return 'You are a senior UGC (user generated content) ad writer. You write short '
         'vertical video ads that look like a real person filmed themselves, not like '
@@ -127,14 +101,12 @@ abstract class ScriptTask extends HttpTask {
         '  "hook": "the first spoken line, under 15 words",\n'
         '  "caption": "a short on-screen title, under 8 words",\n'
         '  "script": "every word spoken, start to finish",\n'
-        '  "direction": "$_directionKeyHint",\n'
         '  "imagePrompt": "a photographic prompt for the still this is filmed on: '
         'the person, their expression, how they hold the product, the framing, the '
         'room, the lighting and the phone-camera look",\n'
         '  "videoPrompt": "how they move while they talk: subtle handheld camera, '
         'small natural gestures"\n'
-        '}'
-        '$_directionRules';
+        '}';
   }
 
   String get userPrompt {
@@ -218,20 +190,9 @@ abstract class ScriptTask extends HttpTask {
       hook = script.split(RegExp(r'[.!?]')).first.trim();
     }
 
-    // The direction is only worth keeping when it is the same words. A model
-    // that rewrote them under this key has produced a second script, and a
-    // second script read aloud is not the ad that was approved.
-    var direction = '${obj['direction'] ?? ''}'.trim();
-    if (direction.isNotEmpty &&
-        DeliveryTags.strip(direction).replaceAll(RegExp(r'\s+'), ' ') !=
-            script.replaceAll(RegExp(r'\s+'), ' ')) {
-      direction = '';
-    }
-
     return {
       'hook': hook,
       'script': script,
-      'direction': direction,
       'caption': '${obj['caption'] ?? ''}'.trim(),
       'imagePrompt': '${obj['imagePrompt'] ?? ''}'.trim(),
       'videoPrompt': '${obj['videoPrompt'] ?? ''}'.trim(),

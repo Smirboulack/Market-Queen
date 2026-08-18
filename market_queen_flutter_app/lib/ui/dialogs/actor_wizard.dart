@@ -173,8 +173,7 @@ class _WizardState extends State<_Wizard> {
     // the ElevenLabs account under it.
     final typed = _name.text.trim();
     if (typed.isNotEmpty) _draft.name = typed;
-    _draft.setExtra(ActorPersona.actionKey, _action.text.trim());
-    _draft.setExtra(ActorPersona.styleKey, _style.text.trim());
+    _draft.setExtra(ActorAction.key, _action.text.trim());
   }
 
   void _finish() {
@@ -204,7 +203,6 @@ class _WizardState extends State<_Wizard> {
     profile.applyTo(_draft);
 
     _action.text = profile.action;
-    _style.text = profile.speakingStyle;
 
     setState(() => _profile = profile);
 
@@ -227,20 +225,16 @@ class _WizardState extends State<_Wizard> {
     final reel = widget.app.actorReel;
 
     await reel.film(
-      // The dials as the render will send them, which is the personality's
-      // reading of them while this actor is still following it.
       actor: {
         ..._draft.extras,
-        'voiceStability': ActorPersona.dialOf(_draft, 'voiceStability', 0.45),
-        'voiceSimilarity': ActorPersona.dialOf(_draft, 'voiceSimilarity', 0.8),
-        'voiceStyle': ActorPersona.dialOf(_draft, 'voiceStyle', 0.35),
-        'voiceSpeed': ActorPersona.dialOf(_draft, 'voiceSpeed', 1.0),
+        'voiceStability': _draft.extraNumber('voiceStability', 0.45),
+        'voiceSimilarity': _draft.extraNumber('voiceSimilarity', 0.8),
+        'voiceStyle': _draft.extraNumber('voiceStyle', 0.35),
+        'voiceSpeed': _draft.extraNumber('voiceSpeed', 1.0),
       },
       portraitPath: _draft.previewPath,
       line: _line.text,
-      // The same motion the render will send: the personality's, then whatever
-      // was typed into the field above it.
-      motionPrompt: ActorPersona.motionOf(_draft),
+      motionPrompt: _action.text.trim(),
     );
 
     if (!mounted || reel.clipPath.isEmpty) return;
@@ -492,12 +486,6 @@ class _WizardState extends State<_Wizard> {
                   fontSize: MqTheme.fontSmall,
                   height: MqTheme.lineTight,
                 ),
-              ),
-              const SizedBox(height: MqTheme.gapLarge),
-              PersonaEditor(
-                draft: _draft,
-                styleController: _style,
-                onChanged: () => setState(() {}),
               ),
             ],
           ),
@@ -917,7 +905,6 @@ class _Readout extends StatelessWidget {
       if (profile.age.isNotEmpty) VoiceTrait.labelFor('voiceAge', profile.age),
       if (profile.tone.isNotEmpty)
         VoiceTrait.labelFor('voiceTone', profile.tone),
-      for (final trait in profile.traits) ActorPersona.labelFor(trait),
     ];
 
     return Container(
@@ -957,198 +944,3 @@ class _Readout extends StatelessWidget {
   }
 }
 
-/// The personality block: the traits, the energy and the free-text direction.
-///
-/// Its own widget because it is wanted in two places that must not drift --
-/// the wizard's action step and the editor's Personality section -- and it is
-/// the one part of an actor with nothing to look at, so a second copy of it
-/// would never be noticed going wrong.
-class PersonaEditor extends StatelessWidget {
-  const PersonaEditor({
-    super.key,
-    required this.draft,
-    required this.styleController,
-    required this.onChanged,
-    this.fills = false,
-  });
-
-  final LibraryAsset draft;
-  final TextEditingController styleController;
-  final VoidCallback onChanged;
-
-  /// Lay out to a slot of a known height rather than to the content.
-  ///
-  /// The editor gives this a card on a page that does not scroll, so the dial
-  /// and the pills go side by side -- they are read together, "how much and of
-  /// what" -- and the free-text box takes the rest of the card. The wizard
-  /// gives it a column in a scroll view, where side by side would put a slider
-  /// and six pills in 300px, so it keeps the stack.
-  final bool fills;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-    final chosen = ActorPersona.traitsOf(draft);
-
-    Widget pills(List<(String, String)> options) => Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            for (final option in options)
-              _TraitPill(
-                label: option.$1,
-                selected: chosen.contains(option.$2),
-                onTap: () {
-                  ActorPersona.toggleTrait(draft, option.$2);
-                  onChanged();
-                },
-              ),
-          ],
-        );
-
-    final energy = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        LabeledSlider(
-          label: tr('Energy'),
-          value: ActorPersona.energyOf(draft),
-          onChanged: (value) {
-            draft.setExtra(ActorPersona.energyKey, value);
-            onChanged();
-          },
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            for (final end in [tr('Level'), tr('Buzzing')])
-              Text(
-                end,
-                style: TextStyle(
-                  color: mq.textTertiary,
-                  fontSize: MqTheme.fontMicro,
-                ),
-              ),
-          ],
-        ),
-      ],
-    );
-
-    final traits = Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FieldLabel(tr('Tone')),
-        const SizedBox(height: 8),
-        pills(ActorPersona.tones),
-        const SizedBox(height: MqTheme.gap),
-        FieldLabel(tr('Style')),
-        const SizedBox(height: 8),
-        pills(ActorPersona.styles),
-      ],
-    );
-
-    final talk = LabeledArea(
-      controller: styleController,
-      label: tr('How the actor talks'),
-      areaHeight: 64,
-      fills: fills,
-      placeholder: tr(
-        'Speaks naturally and never sounds like an advert. Short '
-        'sentences, a bit of humour.',
-      ),
-    );
-
-    if (fills) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: energy),
-              const SizedBox(width: MqTheme.gapLarge),
-              Expanded(child: traits),
-            ],
-          ),
-          const SizedBox(height: MqTheme.gap + 2),
-          Expanded(child: talk),
-        ],
-      );
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        energy,
-        const SizedBox(height: MqTheme.gap),
-        traits,
-        const SizedBox(height: MqTheme.gap),
-        talk,
-        const SizedBox(height: 6),
-        Text(
-          tr('All of this goes to the script writer as direction for this '
-              'actor.'),
-          style: TextStyle(
-            color: mq.textTertiary,
-            fontSize: MqTheme.fontSmall,
-            height: MqTheme.lineTight,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// One personality trait, on or off. Several at once, so it is a toggle rather
-/// than a menu -- nobody is one adjective.
-class _TraitPill extends StatelessWidget {
-  const _TraitPill({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final mq = context.mq;
-
-    return Pressable(
-      onTap: onTap,
-      focusRadius: MqTheme.radiusPill,
-      builder: (context, states) => AnimatedContainer(
-        duration: states.duration,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: selected
-              ? mq.primary
-              : states.active
-              ? mq.surfaceHover
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(MqTheme.radiusPill),
-          border: Border.all(
-            color: selected
-                ? mq.primary
-                : states.active
-                ? mq.borderStrong
-                : mq.border,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? mq.onPrimary : mq.textSecondary,
-            fontSize: MqTheme.fontSmall,
-            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-            height: MqTheme.lineTight,
-          ),
-        ),
-      ),
-    );
-  }
-}

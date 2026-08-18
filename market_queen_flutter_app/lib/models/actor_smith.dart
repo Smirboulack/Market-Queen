@@ -29,8 +29,6 @@ class ActorProfile {
     this.tone = '',
     this.useCase = '',
     this.voiceDescription = '',
-    this.traits = const [],
-    this.speakingStyle = '',
     this.action = '',
   });
 
@@ -49,17 +47,6 @@ class ActorProfile {
       return '';
     }
 
-    final traits = <String>[];
-    final rawTraits = json['personality'];
-    if (rawTraits is List) {
-      for (final entry in rawTraits) {
-        final value = '$entry'.trim().toLowerCase();
-        for (final option in ActorPersona.all) {
-          if (option.$2 == value && !traits.contains(value)) traits.add(value);
-        }
-      }
-    }
-
     return ActorProfile(
       appearance: '${json['appearance'] ?? ''}'.trim(),
       gender: vocab('gender', 'voiceGender'),
@@ -67,8 +54,6 @@ class ActorProfile {
       tone: vocab('tone', 'voiceTone'),
       useCase: vocab('use', 'voiceUse'),
       voiceDescription: '${json['voice'] ?? ''}'.trim(),
-      traits: traits,
-      speakingStyle: '${json['speakingStyle'] ?? ''}'.trim(),
       action: '${json['action'] ?? ''}'.trim(),
     );
   }
@@ -84,9 +69,6 @@ class ActorProfile {
 
   /// The brief handed to Voice Design: what this person plausibly sounds like.
   final String voiceDescription;
-
-  final List<String> traits;
-  final String speakingStyle;
 
   /// What they appear to be doing, which becomes the first draft of the motion
   /// prompt.
@@ -111,12 +93,8 @@ class ActorProfile {
     if (tone.isNotEmpty) actor.setExtra('voiceTone', tone);
     actor.setExtra('voiceUse', useCase.isEmpty ? 'social_media' : useCase);
 
-    if (traits.isNotEmpty) ActorPersona.setTraits(actor, traits);
-    if (speakingStyle.isNotEmpty) {
-      actor.setExtra(ActorPersona.styleKey, speakingStyle);
-    }
-    if (action.isNotEmpty && actor.extraText(ActorPersona.actionKey).isEmpty) {
-      actor.setExtra(ActorPersona.actionKey, action);
+    if (action.isNotEmpty && actor.extraText(ActorAction.key).isEmpty) {
+      actor.setExtra(ActorAction.key, action);
     }
     if (voiceDescription.isNotEmpty) {
       actor.setExtra('voiceDescription', voiceDescription);
@@ -281,10 +259,6 @@ class ActorSmith extends ChangeNotifier {
       'the apparent age and gender presentation, the accent or language the '
       'setting suggests, the warmth, the pitch, the pace and the delivery. '
       'Write it as a description of a voice, not of a person",\n'
-      '  "personality": ["two to four of: friendly, confident, playful, '
-      'professional, warm, bold, casual, luxury, gen-z, expert, relatable"],\n'
-      '  "speakingStyle": "one sentence of direction for a script writer: how '
-      'this person would talk about a product they liked"\n'
       '}';
 
   static String get userPrompt =>

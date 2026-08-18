@@ -106,11 +106,9 @@ class _CastPanelState extends State<CastPanel> {
   // ---- hearing the actor ---------------------------------------------------
 
   /// The four dials as one string, for telling a fresh read from a stale one.
-  /// Resolved rather than stored: a personality change moves the dials without
-  /// anybody touching a slider, and the read on disk is stale either way.
   String _dialState(LibraryAsset asset) => [
         for (final dial in _dials)
-          ActorPersona.dialOf(asset, dial.$2, dial.$5).toStringAsFixed(3),
+          asset.extraNumber(dial.$2, dial.$5).toStringAsFixed(3),
       ].join(',');
 
   /// The read on disk, when it is still the read these dials describe.
@@ -146,56 +144,6 @@ class _CastPanelState extends State<CastPanel> {
       },
     );
     if (mounted) setState(() {});
-  }
-
-  /// A slider was moved. That is how somebody says they want these numbers
-  /// rather than the ones the personality asks for, so the whole set is written
-  /// down as they now stand and the actor stops following.
-  void _takeOver(LibraryAsset asset, String key, double value) {
-    if (!ActorPersona.followsPersona(asset)) {
-      _set(key, value);
-      return;
-    }
-
-    final draft = asset.copy();
-    for (final dial in _dials) {
-      draft.setExtra(dial.$2, ActorPersona.dialOf(asset, dial.$2, dial.$5));
-    }
-    draft
-      ..setExtra(key, value)
-      ..setExtra(ActorPersona.followsKey, false);
-    _library.save(draft);
-    setState(() {});
-  }
-
-  /// Which of the two is deciding the read, and the way back.
-  Widget _followRow(LibraryAsset asset) {
-    final mq = context.mq;
-    final follows = ActorPersona.followsPersona(asset);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 2, bottom: 2),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              follows
-                  ? tr('Set by this actor\'s personality.')
-                  : tr('Set by hand.'),
-              style: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontSmall,
-              ),
-            ),
-          ),
-          if (!follows)
-            GhostButton(
-              text: tr('Follow the personality'),
-              onPressed: () => _set(ActorPersona.followsKey, true),
-            ),
-        ],
-      ),
-    );
   }
 
   /// Writes one value on the cast asset and puts it back in the library.
@@ -446,7 +394,7 @@ class _CastPanelState extends State<CastPanel> {
             padding: const EdgeInsets.only(bottom: 2),
             child: LabeledSlider(
               label: dial.$1,
-              value: ActorPersona.dialOf(asset, dial.$2, dial.$5),
+              value: asset.extraNumber(dial.$2, dial.$5),
               from: dial.$3,
               to: dial.$4,
               // Snapped where the engine has settings rather than a continuum,
@@ -454,10 +402,9 @@ class _CastPanelState extends State<CastPanel> {
               steps: dial.$2 == 'voiceStability'
                   ? _engine.stabilitySteps
                   : const [],
-              onChanged: (value) => _takeOver(asset, dial.$2, value),
+              onChanged: (value) => _set(dial.$2, value),
             ),
           ),
-      _followRow(asset),
       const SizedBox(height: 8),
       // The player, where a "Hear the voice" button used to be. A button that
       // spends money and then leaves you looking at a button is the wrong shape
