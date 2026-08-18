@@ -6,6 +6,7 @@ import 'package:market_queen/app_state.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/buttons.dart';
 import 'package:market_queen/ui/widgets/chip.dart';
 
 import 'support/sandbox.dart';
@@ -63,7 +64,6 @@ void main() {
               key: UniqueKey(),
               app: app,
               onGenerate: () {},
-              onOpenRender: () {},
             ),
           ),
         ),
@@ -176,24 +176,55 @@ void main() {
     await closeMenu(tester);
   });
 
-  testWidgets('the prompt is the same height on every tab', (tester) async {
-    // The *prompt*, not the bar around it. The clip shelf now carries a framed
-    // reference well underneath its field, so the bars are deliberately
-    // different heights -- but the thing the caret lands in must not change
-    // size when you switch modes, which is what made the layout jump.
+  testWidgets('the bar is the same height on every tab', (tester) async {
+    // The whole bar, not just the field in it. The clip shelf used to carry a
+    // framed reference well under its prompt that nothing else had, so pressing
+    // "Video" grew the bar by the height of that well and pushed the caret, the
+    // send button and the feed above them all down the page -- for a mode
+    // switch, before anything had been typed. Everything that made the two
+    // differ has been moved onto rows that already exist.
     await pumpEditor(tester);
 
-    final heights = <String, double>{};
+    final fields = <String, double>{};
+    final bars = <String, double>{};
     for (final tab in ComposerSpec.primary) {
       final spec = ComposerSpec.of(tab);
       await tester.tap(find.text(spec.label));
       await tester.pump();
-      heights[spec.label] = tester
-          .getRect(find.byType(EditableText).first)
-          .height;
+      fields[spec.label] =
+          tester.getRect(find.byType(EditableText).first).height;
+      bars[spec.label] = barRect(tester).height;
     }
 
-    expect(heights.values.toSet(), hasLength(1));
+    expect(fields.values.toSet(), hasLength(1));
+    expect(bars.values.toSet(), hasLength(1), reason: '$bars');
+  });
+
+  testWidgets('a narrow window stacks the footer instead of breaking it', (
+    tester,
+  ) async {
+    // Half a monitor wide, which is where a cast actor, a scene, the emotions
+    // chip and two attach buttons stop fitting on the same line as the price
+    // and the send button. Laid out as one row they did not simply tighten --
+    // the last chip wrapped onto a line of its own beside a send button that
+    // had floated to the bottom of it.
+    // Three widths across the fold, because the bug is at the seam: 1120 is
+    // wide enough for one row, 880 is where the settings have already folded
+    // into a button, and 700 is a window dragged to half a laptop screen.
+    for (final width in [1120.0, 880.0, 700.0]) {
+      await pumpEditor(tester, size: Size(width, 900));
+
+      // Flutter reports an overflow as a rendering exception, which the harness
+      // collects rather than throws. Nothing here may produce one.
+      expect(tester.takeException(), isNull, reason: '$width');
+
+      // Everything the footer holds is still inside the bar it belongs to.
+      final bar = barRect(tester);
+      final send = tester.getRect(find.byType(GradientSendButton));
+      expect(send.right, lessThanOrEqualTo(bar.right + 1), reason: '$width');
+      expect(send.bottom, lessThanOrEqualTo(bar.bottom + 1), reason: '$width');
+      expect(send.left, greaterThanOrEqualTo(bar.left - 1), reason: '$width');
+    }
   });
 
   testWidgets('every mode the composer offers is on the bar', (tester) async {

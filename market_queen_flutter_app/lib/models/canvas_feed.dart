@@ -102,6 +102,8 @@ class CanvasBatch {
     this.size = '',
     this.quality = '',
     this.resolution = '',
+    this.seconds = 0,
+    this.audio = true,
     this.timeoutSeconds = 0,
     this.references = const [],
     List<CanvasItem>? items,
@@ -124,6 +126,8 @@ class CanvasBatch {
       size: '${json['size'] ?? ''}',
       quality: '${json['quality'] ?? ''}',
       resolution: '${json['resolution'] ?? ''}',
+      seconds: (json['seconds'] as num?)?.toInt() ?? 0,
+      audio: json['audio'] != false,
       timeoutSeconds: (json['timeoutSeconds'] as num?)?.toInt() ?? 0,
       references: [
         if (references is List)
@@ -162,6 +166,17 @@ class CanvasBatch {
   final String size;
   final String quality;
   final String resolution;
+
+  /// What the request asked for, kept so it can be asked for again.
+  ///
+  /// The clip length and the soundtrack switch are the two settings the
+  /// finished file cannot be read back off: an eight-second order that came
+  /// back as a six-second file is still an eight-second order, and a silent
+  /// clip says nothing about whether audio was ever switched on. Regenerating
+  /// from the tile has to send what was sent, not what the bar happens to be
+  /// set to now.
+  final int seconds;
+  final bool audio;
 
   /// How long the app will wait before giving up on a request in this batch.
   /// Drawn under the skeleton so a two-minute wait reads as a wait with an end
@@ -224,6 +239,8 @@ class CanvasBatch {
     if (size.isNotEmpty) 'size': size,
     if (quality.isNotEmpty) 'quality': quality,
     if (resolution.isNotEmpty) 'resolution': resolution,
+    if (seconds > 0) 'seconds': seconds,
+    if (!audio) 'audio': false,
     if (timeoutSeconds > 0) 'timeoutSeconds': timeoutSeconds,
     'references': references,
     'items': [for (final item in items) item.toJson()],

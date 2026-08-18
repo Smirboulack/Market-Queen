@@ -139,20 +139,22 @@ class ElevenLabsVoiceTask extends VoiceTask {
 // rather than baked into the voice, so the same voice can read one line warmly
 // and the next one flat.
 // ---------------------------------------------------------------------------
+/// MiniMax returns audio hex-encoded inside its JSON rather than as a file --
+/// unusual, but it saves a round trip. Empty when the string is not a whole
+/// number of bytes, which is what "no audio" looks like from here.
+Uint8List decodeHexAudio(String hex) {
+  if (hex.isEmpty || hex.length.isOdd) return Uint8List(0);
+  final out = Uint8List(hex.length ~/ 2);
+  for (var i = 0; i < out.length; ++i) {
+    final byte = int.tryParse(hex.substring(i * 2, i * 2 + 2), radix: 16);
+    if (byte == null) return Uint8List(0);
+    out[i] = byte;
+  }
+  return out;
+}
+
 class MiniMaxVoiceTask extends VoiceTask {
   MiniMaxVoiceTask(super.request);
-
-  /// Hex, not base64. Empty when the string is not a whole number of bytes.
-  static Uint8List _decodeHex(String hex) {
-    if (hex.isEmpty || hex.length.isOdd) return Uint8List(0);
-    final out = Uint8List(hex.length ~/ 2);
-    for (var i = 0; i < out.length; ++i) {
-      final byte = int.tryParse(hex.substring(i * 2, i * 2 + 2), radix: 16);
-      if (byte == null) return Uint8List(0);
-      out[i] = byte;
-    }
-    return out;
-  }
 
   @override
   Future<Map<String, Object?>> execute() async {
@@ -180,7 +182,7 @@ class MiniMaxVoiceTask extends VoiceTask {
       headers: {'Authorization': 'Bearer ${request.apiKey}'},
     );
 
-    final audio = _decodeHex(HttpTask.jsonPath(response, 'data.audio'));
+    final audio = decodeHexAudio(HttpTask.jsonPath(response, 'data.audio'));
     if (audio.isEmpty) {
       // MiniMax answers 200 with the failure inside base_resp, so an HTTP-level
       // check would report success on an empty file.
@@ -923,6 +925,302 @@ class ElevenLabsVoiceAdoptTask extends HttpTask {
       }
     }
     return '';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// MiniMax voices you make yourself
+//
+// The same three verbs ElevenLabs has -- design one, clone one, list what is on
+// the account -- against a different shape of API, and the differences are not
+// cosmetic:
+//
+//  * **The name is the id.** MiniMax has no separate display name: the
+//    `voice_id` you hand it *is* what the voice is called, forever, and it has
+//    to be at least eight characters, start with a letter and carry both
+//    letters and digits. [MiniMaxVoiceId.from] is what turns a person's answer
+//    to "what should this voice be called" into one.
+//  * **Designing creates.** ElevenLabs hands back three previews that exist
+//    only inside the call, and nothing reaches the account until one is kept.
+//    MiniMax's design endpoint takes the id up front and the voice exists as
+//    soon as it answers -- so the name has to be asked for *before* the button
+//    is pressed, not after a take has been chosen.
+//  * **Cloning is two calls.** The sample is uploaded to the files endpoint
+//    first and referred to by id, rather than being posted with the request.
+// ---------------------------------------------------------------------------
+
+/// The one base the app talks to MiniMax through -- see [MiniMaxVideoTask],
+/// which uses the same host and the same bearer auth.
+const _miniMaxBase = 'https://api.minimax.io';
+
+Map<String, String> _miniMaxHeaders(String apiKey) => {
+      'Authorization': 'Bearer $apiKey',
+    };
+
+/// Turns a name somebody typed into an id MiniMax will accept.
+///
+/// Their rules, all four of them: letters and digits only, at least eight
+/// characters, a letter first, and at least one digit somewhere. A name that
+/// already satisfies them is passed through unchanged, so a voice called
+/// "Sarah2024" is filed under exactly that and is recognisable on their side
+/// too. Everything else is padded from the clock rather than from a counter,
+/// because two voices made in two sessions must not collide.
+class MiniMaxVoiceId {
+  MiniMaxVoiceId._();
+
+  static final _allowed = RegExp(r'[^A-Za-z0-9]');
+
+  static String from(String name) {
+    var id = name.trim().replaceAll(_allowed, '');
+    // It has to begin with a letter, so a name that starts with a digit -- or
+    // is nothing but digits -- is given one rather than being rejected.
+    if (id.isEmpty || !RegExp(r'^[A-Za-z]').hasMatch(id)) id = 'Voice$id';
+
+    final stamp = DateTime.now().millisecondsSinceEpoch.toString();
+    if (!RegExp(r'[0-9]').hasMatch(id)) {
+      id = '$id${stamp.substring(stamp.length - 4)}';
+    }
+    if (id.length < 8) {
+      id = '$id${stamp.substring(stamp.length - (8 - id.length))}';
+    }
+    // Their ceiling. A long name is cut from the end, which keeps the part
+    // somebody actually reads.
+    return id.length > 64 ? id.substring(0, 64) : id;
+  }
+}
+
+/// MiniMax answers 200 with the failure inside `base_resp`, so every call has
+/// to be checked twice: once for the HTTP status and once for this.
+void _requireMiniMaxOk(Map<String, dynamic> response) {
+  final code = HttpTask.jsonNumber(response, 'base_resp.status_code');
+  if (code == 0) return;
+  final message = HttpTask.jsonPath(response, 'base_resp.status_msg');
+  throw ProviderException(
+    message.isEmpty
+        //: %1 is a numeric error code
+        ? tr('MiniMax refused the request (code %1).').arg(code.round())
+        : message,
+  );
+}
+
+/// A voice out of a description -- POST /v1/voice_design.
+///
+/// One take rather than three, and the voice is real the moment this returns:
+/// unlike ElevenLabs there is nothing to keep afterwards, which is why the name
+/// is a required field on the form rather than a question asked at the end.
+class MiniMaxVoiceDesignTask extends HttpTask {
+  MiniMaxVoiceDesignTask({
+    required this.apiKey,
+    required this.description,
+    required this.previewText,
+    required this.voiceId,
+  });
+
+  final String apiKey;
+  final String description;
+  final String previewText;
+  final String voiceId;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'MiniMax');
+    if (description.trim().isEmpty) {
+      throw ProviderException(tr('Describe the voice in a sentence or two '
+          'first.'));
+    }
+
+    report(tr('Designing the voice...'));
+
+    final response = await postJson(
+      Uri.parse('$_miniMaxBase/v1/voice_design'),
+      {
+        'prompt': description.trim(),
+        'preview_text': previewText.trim(),
+        'voice_id': voiceId,
+      },
+      headers: _miniMaxHeaders(apiKey),
+      timeout: const Duration(minutes: 5),
+    );
+    _requireMiniMaxOk(response);
+
+    final audio = decodeHexAudio(HttpTask.jsonPath(response, 'trial_audio'));
+    return {
+      'voiceId': voiceId,
+      // The trial is the only recording of this voice that exists until
+      // somebody asks it to read a line, so it is worth keeping even when the
+      // response carried none.
+      'audio': audio,
+      'extension': 'mp3',
+    };
+  }
+}
+
+/// A voice off the user's own recordings -- POST /v1/files/upload, then
+/// POST /v1/voice_clone.
+class MiniMaxVoiceCloneTask extends HttpTask {
+  MiniMaxVoiceCloneTask({
+    required this.apiKey,
+    required this.voiceId,
+    required this.samplePaths,
+  });
+
+  final String apiKey;
+  final String voiceId;
+  final List<String> samplePaths;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'MiniMax');
+    if (samplePaths.isEmpty) {
+      throw ProviderException(tr('Add at least one audio sample to clone '
+          'from.'));
+    }
+
+    // One file, not a pile. MiniMax clones from a single recording, so sending
+    // the second and third would be sending them nowhere -- and the panel says
+    // as much before the button is pressed.
+    final path = samplePaths.first;
+    final file = File(path);
+    if (!file.existsSync()) {
+      throw ProviderException(tr('None of the samples could be read.'));
+    }
+    final data = file.readAsBytesSync();
+
+    report(tr('Uploading the samples...'));
+
+    final upload = await postMultipart(
+      Uri.parse('$_miniMaxBase/v1/files/upload'),
+      headers: _miniMaxHeaders(apiKey),
+      fields: {'purpose': 'voice_clone'},
+      files: [
+        http.MultipartFile.fromBytes(
+          'file',
+          data,
+          filename: p.basename(path),
+          contentType: Http.mediaTypeOf(path, data),
+        ),
+      ],
+      timeout: const Duration(minutes: 10),
+    );
+
+    if (upload.statusCode >= 400) {
+      throw ProviderException(
+          Http.describeError(upload.statusCode, upload.body));
+    }
+
+    Map<String, dynamic> uploaded;
+    try {
+      final decoded = jsonDecode(upload.body);
+      uploaded = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
+    } on FormatException {
+      uploaded = <String, dynamic>{};
+    }
+    _requireMiniMaxOk(uploaded);
+
+    // Their id is a number in JSON and a string in the request that follows.
+    final fileId = HttpTask.jsonNumber(uploaded, 'file.file_id');
+    final fileIdText = fileId > 0
+        ? fileId.toStringAsFixed(0)
+        : HttpTask.jsonPath(uploaded, 'file.file_id');
+    if (fileIdText.isEmpty) {
+      throw ProviderException(tr('MiniMax did not accept the recording.'));
+    }
+
+    report(tr('Cloning the voice...'));
+
+    final cloned = await postJson(
+      Uri.parse('$_miniMaxBase/v1/voice_clone'),
+      {'file_id': fileIdText, 'voice_id': voiceId},
+      headers: _miniMaxHeaders(apiKey),
+      timeout: const Duration(minutes: 10),
+    );
+    _requireMiniMaxOk(cloned);
+
+    return {'voiceId': voiceId};
+  }
+}
+
+/// What the user has made on their MiniMax account -- POST /v1/get_voice.
+///
+/// Only what they made: the system presets are on every account ever opened and
+/// are already offered by the Library route, so listing them here would be the
+/// same twelve voices twice.
+class MiniMaxAccountVoicesTask extends HttpTask {
+  MiniMaxAccountVoicesTask(this.apiKey);
+
+  final String apiKey;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'MiniMax');
+
+    final response = await postJson(
+      Uri.parse('$_miniMaxBase/v1/get_voice'),
+      {'voice_type': 'all'},
+      headers: _miniMaxHeaders(apiKey),
+    );
+    _requireMiniMaxOk(response);
+
+    final voices = <AccountVoice>[
+      ..._read(response['voice_cloning'], 'cloned'),
+      ..._read(response['voice_generation'], 'generated'),
+    ];
+    return {'voices': voices};
+  }
+
+  /// One of their two lists. The description comes back as an array of lines
+  /// rather than a string, and a voice with none is the ordinary case.
+  List<AccountVoice> _read(Object? raw, String category) {
+    if (raw is! List) return const [];
+
+    return [
+      for (final entry in raw)
+        if (entry is Map)
+          AccountVoice(
+            id: '${entry['voice_id'] ?? ''}',
+            // MiniMax keeps no display name, so the id is the name -- which is
+            // exactly why the panel makes one out of what the user typed.
+            name: '${entry['voice_name'] ?? entry['voice_id'] ?? ''}',
+            category: category,
+            description: switch (entry['description']) {
+              final List lines => lines.join(' '),
+              final Object value => '$value',
+              _ => '',
+            },
+          ),
+    ];
+  }
+}
+
+/// Takes a made voice off the MiniMax account -- POST /v1/delete_voice.
+class MiniMaxVoiceDeleteTask extends HttpTask {
+  MiniMaxVoiceDeleteTask({
+    required this.apiKey,
+    required this.voiceId,
+    required this.cloned,
+  });
+
+  final String apiKey;
+  final String voiceId;
+
+  /// Their two buckets. A designed voice deleted as a cloned one is a 400, so
+  /// which list it came off has to travel with it.
+  final bool cloned;
+
+  @override
+  Future<Map<String, Object?>> execute() async {
+    requireKey(apiKey, 'MiniMax');
+
+    final response = await postJson(
+      Uri.parse('$_miniMaxBase/v1/delete_voice'),
+      {
+        'voice_type': cloned ? 'voice_cloning' : 'voice_generation',
+        'voice_id': voiceId,
+      },
+      headers: _miniMaxHeaders(apiKey),
+    );
+    _requireMiniMaxOk(response);
+    return const {};
   }
 }
 

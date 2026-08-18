@@ -194,6 +194,18 @@ class MqTheme {
   Color get infoText =>
       dark ? const Color(0xFFA7C8F2) : const Color(0xFF315F96);
 
+  /// Delivery marks inside a script: `[excited]`, `[whispers]`.
+  ///
+  /// Its own colour rather than a second use of [info], and the distinction is
+  /// the point: a handle in blue is a thing being *pointed at* -- a file, an
+  /// actor -- and a mark in violet is an instruction to the reader that is
+  /// never spoken. They sit in the same sentence, they are both bracketed by a
+  /// symbol, and telling them apart at a glance is the whole reason either of
+  /// them is coloured.
+  Color get delivery => dark ? const Color(0xFFC49BE8) : const Color(0xFF7E4FB8);
+  Color get deliverySubtle =>
+      dark ? const Color(0xFF2B2140) : const Color(0xFFF2EBFB);
+
   // ------------------------------------------------------------ interaction
 
   /// Keyboard focus. Ink, so it reads as "you are here" without putting a
@@ -246,6 +258,15 @@ class MqTheme {
   /// desk while the caret is in the middle of it, and a picture ends up four
   /// feet from the prompt that asked for it.
   static const double contentMaxWidth = 1180;
+
+  /// The strip along the right edge that belongs to the scrollbar.
+  ///
+  /// Wider than the thumb itself, and that is the point: anything a scrolling
+  /// surface draws over its own bottom edge -- the studio's fade under the
+  /// prompt bar -- has to stop short of this, or the thumb disappears exactly
+  /// when it is furthest down and hardest to find. Six pixels of thumb plus
+  /// enough clearance to aim at it.
+  static const double scrollbarLane = 14;
 
   // The three columns of the window. Fixed, because all three carry labels that
   // must not wrap: the nav's own entries, the crumb trail, and the rail's

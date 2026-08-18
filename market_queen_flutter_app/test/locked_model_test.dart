@@ -53,7 +53,6 @@ void main() {
               key: UniqueKey(),
               app: app,
               onGenerate: () {},
-              onOpenRender: () {},
             ),
           ),
         ),

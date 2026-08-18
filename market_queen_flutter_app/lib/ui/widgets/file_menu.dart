@@ -10,6 +10,7 @@ import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
 import '../icons.dart';
 import '../theme.dart';
+import 'buttons.dart';
 
 /// One entry a caller adds to the file menu, above the file operations.
 ///
@@ -71,111 +72,57 @@ class MediaMenu extends StatelessWidget {
       // Secondary only: the primary tap belongs to whatever is underneath, and
       // both gestures can live on the same pixels without an arena between
       // them.
-      onSecondaryTapDown: (details) => _open(context, details.globalPosition),
+      onSecondaryTapDown: (details) => showMediaMenu(
+        context,
+        position: details.globalPosition,
+        path: path,
+        actions: actions,
+        onRemove: onRemove,
+        removeLabel: removeLabel,
+      ),
       child: child,
     );
   }
 
-  Future<void> _open(BuildContext context, Offset position) async {
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-    if (overlay == null) return;
+  /// What can be done to the file itself, as data.
+  ///
+  /// Handed out rather than kept private, because the menu is no longer the
+  /// only place these are offered: the full-screen player draws the same list
+  /// as a row of buttons, and a lightbox that could do less to a clip than the
+  /// thumbnail behind it could is a lightbox people close again to get at the
+  /// menu. One list, two surfaces.
+  ///
+  /// Empty when there is no file yet -- a result still generating, or one whose
+  /// file has since been moved.
+  static List<MediaMenuAction> fileActions(String path) {
+    if (path.isEmpty || !File(path).existsSync()) return const [];
 
-    final hasFile = path.isNotEmpty && File(path).existsSync();
-
-    // Negative for the file operations, the index for a caller's own: one menu
-    // of one type, and no answer that can be confused with another.
-    const reveal = -1;
-    const saveAs = -2;
-    const copy = -3;
-    const remove = -4;
-
-    final picked = await showMenu<int>(
-      context: context,
-      // Shape, colour and elevation come from `popupMenuTheme`, like every
-      // other menu in the app.
-      position: RelativeRect.fromRect(
-        position & Size.zero,
-        Offset.zero & overlay.size,
+    return [
+      MediaMenuAction(
+        icon: 'external-link-line',
+        label: tr('Open in my player'),
+        onPressed: () => PlatformUtil.openPath(path),
       ),
-      constraints: const BoxConstraints(minWidth: 240),
-      items: [
-        for (var i = 0; i < actions.length; ++i)
-          _entry(
-            context,
-            i,
-            actions[i].icon,
-            actions[i].label,
-            destructive: actions[i].destructive,
-          ),
-        if (actions.isNotEmpty && hasFile) const PopupMenuDivider(height: 9),
-        if (hasFile) ...[
-          _entry(context, reveal, 'folder-line', tr('Show file')),
-          _entry(context, saveAs, 'download-line', tr('Save as...')),
-          _entry(
-            context,
-            copy,
-            'file-copy-line',
-            isVideoPath(path)
-                ? tr('Copy the video')
-                : isAudioPath(path)
-                ? tr('Copy the recording')
-                : tr('Copy the picture'),
-          ),
-        ],
-        if (hasFile && onRemove != null) const PopupMenuDivider(height: 9),
-        if (onRemove != null)
-          _entry(
-            context,
-            remove,
-            'delete-bin-line',
-            removeLabel.isEmpty ? tr('Remove') : removeLabel,
-            destructive: true,
-          ),
-      ],
-    );
-
-    if (picked == null || !context.mounted) return;
-
-    switch (picked) {
-      case reveal:
-        await PlatformUtil.revealPath(path);
-      case saveAs:
-        await _saveAs(path);
-      case copy:
-        await ClipboardMedia.copyFile(path);
-      case remove:
-        onRemove?.call();
-      default:
-        if (picked >= 0 && picked < actions.length) {
-          actions[picked].onPressed();
-        }
-    }
-  }
-
-  PopupMenuItem<int> _entry(
-    BuildContext context,
-    int value,
-    String icon,
-    String label, {
-    bool destructive = false,
-  }) {
-    final mq = context.mq;
-    final ink = destructive ? mq.errorText : mq.textPrimary;
-
-    return PopupMenuItem<int>(
-      value: value,
-      height: 38,
-      child: Row(
-        children: [
-          MqIcon(icon, size: 16, color: ink),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: TextStyle(color: ink, fontSize: MqTheme.fontLabel),
-          ),
-        ],
+      MediaMenuAction(
+        icon: 'folder-line',
+        label: tr('Show file'),
+        onPressed: () => PlatformUtil.revealPath(path),
       ),
-    );
+      MediaMenuAction(
+        icon: 'download-line',
+        label: tr('Save as...'),
+        onPressed: () => _saveAs(path),
+      ),
+      MediaMenuAction(
+        icon: 'file-copy-line',
+        label: isVideoPath(path)
+            ? tr('Copy the video')
+            : isAudioPath(path)
+            ? tr('Copy the recording')
+            : tr('Copy the picture'),
+        onPressed: () => ClipboardMedia.copyFile(path),
+      ),
+    ];
   }
 
   /// A copy, wherever they ask for it. The generated file itself stays where it
@@ -198,5 +145,170 @@ class MediaMenu extends StatelessWidget {
       // The dialog picked somewhere unwritable. Nothing was moved and nothing
       // was lost; the original is still where it was.
     }
+  }
+}
+
+/// Opens the file menu at [position] without a [MediaMenu] around anything.
+///
+/// The same menu, reachable from a button as well as from a right-click: the
+/// full-screen player has no thumbnail to right-click through and needs every
+/// one of these, and a second menu written for it would be a second menu to
+/// keep in step.
+Future<void> showMediaMenu(
+  BuildContext context, {
+  required Offset position,
+  String path = '',
+  List<MediaMenuAction> actions = const [],
+  VoidCallback? onRemove,
+  String removeLabel = '',
+}) async {
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
+  if (overlay == null) return;
+
+  final entries = [...actions, ...MediaMenu.fileActions(path)];
+  if (entries.isEmpty && onRemove == null) return;
+
+  final picked = await showMenu<int>(
+    context: context,
+    // Shape, colour and elevation come from `popupMenuTheme`, like every other
+    // menu in the app.
+    position: RelativeRect.fromRect(
+      position & Size.zero,
+      Offset.zero & overlay.size,
+    ),
+    constraints: const BoxConstraints(minWidth: 240),
+    items: [
+      for (var i = 0; i < entries.length; ++i) ...[
+        // A rule where the caller's own actions end and the file operations
+        // begin: "another take" and "show file" are different kinds of verb.
+        if (i == actions.length && i > 0) const PopupMenuDivider(height: 9),
+        _menuEntry(
+          context,
+          i,
+          entries[i].icon,
+          entries[i].label,
+          destructive: entries[i].destructive,
+        ),
+      ],
+      if (entries.isNotEmpty && onRemove != null)
+        const PopupMenuDivider(height: 9),
+      if (onRemove != null)
+        _menuEntry(
+          context,
+          -1,
+          'delete-bin-line',
+          removeLabel.isEmpty ? tr('Remove') : removeLabel,
+          destructive: true,
+        ),
+    ],
+  );
+
+  if (picked == null) return;
+  if (picked < 0) {
+    onRemove?.call();
+    return;
+  }
+  if (picked < entries.length) entries[picked].onPressed();
+}
+
+PopupMenuItem<int> _menuEntry(
+  BuildContext context,
+  int value,
+  String icon,
+  String label, {
+  bool destructive = false,
+}) {
+  final mq = context.mq;
+  final ink = destructive ? mq.errorText : mq.textPrimary;
+
+  return PopupMenuItem<int>(
+    value: value,
+    height: 38,
+    child: Row(
+      children: [
+        MqIcon(icon, size: 16, color: ink),
+        const SizedBox(width: 10),
+        Text(label, style: TextStyle(color: ink, fontSize: MqTheme.fontLabel)),
+      ],
+    ),
+  );
+}
+
+
+/// The file menu as a row of buttons, for the surfaces that have no thumbnail
+/// to right-click.
+///
+/// It draws exactly what [showMediaMenu] would list, in the same order, from
+/// the same two lists -- so "the same actions as the context menu" is a fact
+/// about the code rather than a promise. The labels become tooltips: at this
+/// size a row of six words is a menu bar, and what is wanted is a toolbar.
+class MediaActionBar extends StatelessWidget {
+  const MediaActionBar({
+    super.key,
+    this.path = '',
+    this.actions = const [],
+    this.onRemove,
+    this.removeLabel = '',
+    this.onClose,
+  });
+
+  final String path;
+  final List<MediaMenuAction> actions;
+  final VoidCallback? onRemove;
+  final String removeLabel;
+
+  /// Drawn last, hard against the edge, because closing is the one thing here
+  /// that is about the window rather than about the file.
+  final VoidCallback? onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final entries = [...actions, ...MediaMenu.fileActions(path)];
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: mq.surface.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(MqTheme.radiusPill),
+        border: Border.all(color: mq.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (final entry in entries)
+            MqIconButton(
+              icon: entry.icon,
+              tip: entry.label,
+              size: 28,
+              destructive: entry.destructive,
+              onPressed: entry.onPressed,
+            ),
+          if (onRemove != null)
+            MqIconButton(
+              icon: 'delete-bin-line',
+              tip: removeLabel.isEmpty ? tr('Remove') : removeLabel,
+              size: 28,
+              destructive: true,
+              onPressed: onRemove,
+            ),
+          if (onClose != null) ...[
+            if (entries.isNotEmpty || onRemove != null)
+              Container(
+                width: 1,
+                height: 16,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                color: mq.border,
+              ),
+            MqIconButton(
+              icon: 'fullscreen-exit-line',
+              tip: tr('Close'),
+              size: 28,
+              onPressed: onClose,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }

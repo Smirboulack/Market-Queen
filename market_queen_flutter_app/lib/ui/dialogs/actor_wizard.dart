@@ -213,6 +213,10 @@ class _WizardState extends State<_Wizard> {
       _next();
       await widget.app.voiceForge.design(
         description: profile.voiceDescription,
+        // The actor's own name, because on this route there is nobody to ask:
+        // the whole point of it is one button and no questions, and the voice
+        // panel that follows lets it be renamed before anything is kept.
+        name: _draft.name,
         modelId: VoiceForge.designModels.first.$1,
       );
     }

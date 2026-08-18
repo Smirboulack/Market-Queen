@@ -8,6 +8,7 @@ import 'package:market_queen/ui/dialogs/actor_editor.dart';
 import 'package:market_queen/ui/dialogs/actor_wizard.dart';
 import 'package:market_queen/ui/dialogs/asset_studio.dart';
 import 'package:market_queen/ui/theme.dart';
+import 'package:market_queen/ui/widgets/chip.dart';
 import 'package:market_queen/ui/widgets/buttons.dart';
 import 'package:market_queen/ui/widgets/mq_dialog.dart';
 
@@ -178,6 +179,41 @@ void main() {
       });
     }
 
+    for (final size in const [
+      Size(1020, 700),
+      Size(1280, 800),
+      Size(1420, 940),
+      Size(900, 600),
+    ]) {
+      testWidgets('the editor fits at $size', (tester) async {
+        // The editor takes as much of the window as it can get -- three columns
+        // of fields do not read at all when they are squeezed -- so "as much as
+        // it can get" has to be a number that leaves the card inside the window
+        // on every screen it can open on, not only the one it was drawn for.
+        app.actors.save(madeActor('Margot'));
+        addTearDown(() => app.actors.remove(app.actors.assets.first.id));
+
+        await pumpHost(
+          tester,
+          size,
+          (context) => showActorEditor(
+            context,
+            app: app,
+            actor: app.actors.assets.first,
+          ),
+        );
+
+        final card = tester.getSize(find.byType(MqModalCard));
+        expect(
+          card.height,
+          lessThanOrEqualTo(size.height),
+          reason: 'card $card taller than the window $size',
+        );
+        expect(card.width, lessThanOrEqualTo(size.width), reason: '$size');
+        expect(tester.takeException(), isNull, reason: '$size');
+      });
+    }
+
     testWidgets('the prompt bar stays on screen while the feed scrolls', (
       tester,
     ) async {
@@ -320,6 +356,113 @@ void main() {
         }
       });
     }
+  });
+
+  group('the voice workshop', () {
+    /// Opens the editor on the Voice section, on a clean actor.
+    Future<void> openVoice(WidgetTester tester, {String route = 'Design'}) async {
+      app.actors.save(madeActor('Adèle'));
+      addTearDown(() => app.actors.remove(app.actors.assets.first.id));
+
+      await pumpHost(
+        tester,
+        const Size(1420, 940),
+        (context) => showActorEditor(
+          context,
+          app: app,
+          actor: app.actors.assets.first,
+        ),
+      );
+
+      await tester.tap(find.text(ActorEditor.labelFor(ActorSection.voice)).first);
+      await settle(tester);
+      await tester.tap(find.text(route).first);
+      await settle(tester);
+    }
+
+    /// Puts the voice preference back however this machine had it: it is a real
+    /// file shared with every other test running at the same time.
+    void restoreVoicePrefs() {
+      final provider = app.settings.prefString('voiceProvider');
+      final model = app.settings.prefString('voiceModel');
+      addTearDown(() => app.settings
+        ..setPref('voiceProvider', provider)
+        ..setPref('voiceModel', model));
+    }
+
+    testWidgets('both providers are offered, and the keyless one is locked', (
+      tester,
+    ) async {
+      // The whole flow used to be ElevenLabs and nothing else -- not as a
+      // choice anybody had made, just as the only path there was.
+      restoreVoicePrefs();
+      app.settings
+        ..setPref('voiceProvider', 'elevenlabs')
+        ..setApiKey('elevenlabs', 'test-key-not-a-real-one')
+        ..setApiKey('minimax', '');
+      addTearDown(() => app.settings
+        ..setApiKey('elevenlabs', '')
+        ..setApiKey('minimax', ''));
+
+      await openVoice(tester);
+
+      // The chip carries its value in its label -- "Provider · ElevenLabs" --
+      // so it is found by what it says rather than by a tooltip it only grows
+      // in its compact form.
+      await tester.tap(find.textContaining('Provider').first);
+      await settle(tester);
+
+      expect(find.text('ElevenLabs'), findsWidgets);
+      expect(find.text('MiniMax'), findsWidgets);
+      // The account with no key is offered with the way out beside it rather
+      // than being dropped from the list.
+      expect(find.text(lockedByKeyLabel), findsWidgets);
+
+      await tester.tapAt(const Offset(8, 8));
+      await settle(tester);
+    });
+
+    testWidgets('a voice cannot be designed without a name', (tester) async {
+      restoreVoicePrefs();
+      app.settings
+        ..setPref('voiceProvider', 'elevenlabs')
+        ..setApiKey('elevenlabs', 'test-key-not-a-real-one');
+      addTearDown(() => app.settings.setApiKey('elevenlabs', ''));
+
+      await openVoice(tester);
+
+      // The name box is seeded from the actor, and the brief is empty, so the
+      // button is already refusing -- for the other reason.
+      // The value and the placeholder are both the actor's name at this point,
+      // so the finder matches the one field through two of its own Texts.
+      final name = find.widgetWithText(TextField, 'Adèle').first;
+      expect(name, findsOneWidget);
+
+      await tester.enterText(name, '');
+      await settle(tester);
+
+      expect(
+        find.byTooltip('Give the voice a name first.'),
+        findsOneWidget,
+        reason: 'an unnamed voice is one nobody can find again',
+      );
+    });
+
+    testWidgets('with no key the route offers the key instead of the form', (
+      tester,
+    ) async {
+      restoreVoicePrefs();
+      app.settings
+        ..setPref('voiceProvider', 'minimax-tts')
+        ..setApiKey('minimax', '');
+
+      await openVoice(tester, route: 'Clone');
+
+      // Not four dead controls with the reason in their tooltips: one sentence
+      // and the button that fixes it.
+      expect(find.text(lockedByKeyLabel), findsOneWidget);
+      expect(find.text('Clone this voice'), findsNothing);
+    });
   });
 
   group('what a vision model is allowed to hand back', () {

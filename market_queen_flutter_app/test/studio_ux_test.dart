@@ -17,6 +17,7 @@ import 'package:market_queen/ui/side_nav.dart';
 import 'package:market_queen/ui/studio/ad_editor_page.dart';
 import 'package:market_queen/ui/studio/canvas_view.dart';
 import 'package:market_queen/ui/studio/composer_tabs.dart';
+import 'package:market_queen/ui/studio/mention_menu.dart';
 import 'package:market_queen/ui/studio/mentions.dart';
 import 'package:market_queen/ui/theme.dart';
 import 'package:market_queen/ui/top_bar.dart';
@@ -115,7 +116,6 @@ void main() {
             body: AdEditorPage(
               app: app,
               onGenerate: () {},
-              onOpenRender: () {},
             ),
           ),
         ),
@@ -243,6 +243,66 @@ void main() {
         expect(entry.value, isNot(theme.info), reason: entry.key);
       }
     });
+
+    testWidgets('a delivery mark gets its own colour, not the handle blue', (
+      tester,
+    ) async {
+      // Two tokens in one sentence that both need to stand out, and they must
+      // not stand out as the same thing: @Marie is a person being pointed at
+      // and [excited] is an instruction nobody says out loud.
+      final controller = MentionController(
+        text: '@Marie: [excited] you have to see this. [1] is not a mark.',
+      )
+        ..handles = ['@Marie']
+        ..directs = true;
+
+      final theme = MqTheme(dark: false);
+      late BuildContext captured;
+      await tester.pumpWidget(
+        AppTheme(
+          theme: theme,
+          child: MaterialApp(
+            theme: theme.material,
+            home: Builder(
+              builder: (context) {
+                captured = context;
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ),
+      );
+
+      Map<String, Color?> paint(MentionController controller) {
+        final span = controller.buildTextSpan(
+          context: captured,
+          style: const TextStyle(color: Color(0xFF171717)),
+          withComposing: false,
+        );
+        final coloured = <String, Color?>{};
+        span.visitChildren((child) {
+          if (child is TextSpan && child.text != null) {
+            coloured[child.text!] = child.style?.color;
+          }
+          return true;
+        });
+        return coloured;
+      }
+
+      final coloured = paint(controller);
+      expect(coloured['[excited]'], theme.delivery);
+      expect(coloured['@Marie'], theme.info);
+      // A bracketed number is not direction and is left alone -- the pattern is
+      // the same one that decides what gets stripped before the request goes.
+      for (final entry in coloured.entries) {
+        if (entry.key == '[excited]') continue;
+        expect(entry.value, isNot(theme.delivery), reason: entry.key);
+      }
+
+      // And off the script shelf it means nothing, so nothing is lit.
+      controller.directs = false;
+      expect(paint(controller)['[excited]'], isNot(theme.delivery));
+    });
   });
 
   group('the composer names what is attached to it', () {
@@ -354,6 +414,66 @@ void main() {
         isNot(contains(handle)),
         reason: 'clips',
       );
+    });
+
+    testWidgets('typing an at sign offers what can be pointed at', (
+      tester,
+    ) async {
+      // The handles were only ever discoverable by reading them off the
+      // thumbnails, which works for "@Image1" and not at all for a cast name
+      // that has to be spelled exactly right to mean anything.
+      final actorId = app.actors.save(LibraryAsset(name: 'Marie Testeuse'));
+      app.project.setActor(actorId);
+      addTearDown(() {
+        app.project.clearActor();
+        app.actors.remove(actorId);
+      });
+
+      await pumpEditor(tester);
+      await drop(tester, [file('bottle.png')]);
+
+      final field = find.byType(EditableText).first;
+      await tester.enterText(field, 'talk to ');
+      await tester.pump();
+      expect(find.byType(MentionMenu), findsNothing);
+
+      await tester.enterText(field, 'talk to @');
+      await tester.pump();
+
+      // Scoped to the menu: "@Image1" is also written under the thumbnail it
+      // names, which is a different claim about the same handle.
+      Finder inTheMenu(String text) => find.descendant(
+        of: find.byType(MentionMenu),
+        matching: find.text(text),
+      );
+
+      // Both groups, because a script can point at either.
+      expect(find.byType(MentionMenu), findsOneWidget);
+      expect(inTheMenu('@Marie Testeuse'), findsOneWidget);
+      expect(inTheMenu('@Image1'), findsOneWidget);
+
+      // Typing narrows it, on the file's own name as well as on the handle.
+      await tester.enterText(field, 'talk to @bott');
+      await tester.pump();
+      expect(inTheMenu('@Marie Testeuse'), findsNothing);
+      expect(inTheMenu('@Image1'), findsOneWidget);
+
+      // Picking replaces the whole half-typed run, at sign and all.
+      await tester.tap(inTheMenu('@Image1'));
+      await tester.pump();
+      expect(promptController(tester).text, 'talk to @Image1 ');
+      expect(find.byType(MentionMenu), findsNothing);
+    });
+
+    testWidgets('an at sign inside a word is not a handle', (tester) async {
+      // An email address is the case this protects: a menu that opens over
+      // "hello@example.com" is a menu in the way of a sentence.
+      await pumpEditor(tester);
+      await drop(tester, [file('inbox.png')]);
+
+      await tester.enterText(find.byType(EditableText).first, 'write to a@b');
+      await tester.pump();
+      expect(find.byType(MentionMenu), findsNothing);
     });
   });
 
@@ -556,11 +676,21 @@ void main() {
       expect(inTheFeed('a horse with wings'), findsNothing);
 
       // The model name *is* on the tile, and deliberately: it is the head of
-      // the facts strip -- what made this, how long it is, what it cost -- which
-      // is the one thing you cannot work out by looking at the picture. The
-      // prompt is the thing that must not be repeated, because it is still
-      // sitting in the bar three inches below.
-      expect(inTheFeed('Nano Banana 2'), findsOneWidget);
+      // the facts strip -- what made this, what shape it is, how long it is,
+      // what it cost -- which is the one thing you cannot work out by looking
+      // at the picture. The prompt is the thing that must not be repeated,
+      // because it is still sitting in the bar three inches below.
+      Finder stripContaining(String text) => find.descendant(
+        of: find.byType(CanvasView),
+        matching: find.textContaining(text),
+      );
+
+      expect(stripContaining('Nano Banana 2'), findsOneWidget);
+      // And the shape it was asked for. A talking actor and a clip both come
+      // back with no frame to measure, so without this the strip named the
+      // model and then went quiet on the one fact that tells a vertical take
+      // from a wide one.
+      expect(stripContaining('1:1'), findsOneWidget);
     });
 
     testWidgets('an error still says what went wrong', (tester) async {

@@ -232,12 +232,17 @@ class _ActorEditorState extends State<ActorEditor> {
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
-    final width = (screen.width - 100).clamp(840.0, 1280.0);
-    // 650 at the size this was drawn for, and the ceiling rather than the
-    // number: the three columns are laid out to whatever this comes to, so a
-    // laptop gets a shorter portrait and a shorter catalogue rather than a
-    // scrollbar.
-    final height = (screen.height - 250).clamp(430.0, 650.0);
+    // As much of the window as the card can have without touching its edges.
+    //
+    // The numbers taken off are the modal's own margin plus the card's chrome
+    // -- its heading and its footer -- and nothing else. They used to be much
+    // larger, and the cost was paid by the three columns underneath: a
+    // 1280-wide card on a 1420 window left the right-hand column just wide
+    // enough that the age, gender and language fields sat shoulder to shoulder
+    // with no room to breathe, and 650 of height put a scrollbar on the looks
+    // catalogue on a screen that had eighty spare pixels below the card.
+    final width = (screen.width - 80).clamp(840.0, 1400.0);
+    final height = (screen.height - 210).clamp(430.0, 780.0);
     // What the right-hand column comes out at: the card's padding, the rail,
     // the portrait and the two gaps between them come off the top.
     final bodyWidth = width - MqTheme.gapLarge * 4 - 178 - 264;

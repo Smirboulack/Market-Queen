@@ -9,7 +9,6 @@ import 'home_page.dart';
 import 'icons.dart';
 import 'library_page.dart';
 import 'models_page.dart';
-import 'render_view.dart';
 import 'scenario_page.dart';
 import 'settings_page.dart';
 import 'side_nav.dart';
@@ -62,9 +61,6 @@ class _MainWindowState extends State<MainWindow> {
   /// is that section's own list and the back arrow is the way out.
   bool _inSection = false;
 
-  /// Whether the studio is showing the run rather than the ad.
-  bool _rendering = false;
-
   AppState get app => widget.app;
 
   List<NavEntry> get _entries => [
@@ -102,7 +98,6 @@ class _MainWindowState extends State<MainWindow> {
       _currentPage = _studio;
       _projectId = projectId;
       _adId = adId;
-      _rendering = false;
     });
   }
 
@@ -136,13 +131,12 @@ class _MainWindowState extends State<MainWindow> {
 
   /// Starts a run and stays where it is.
   ///
-  /// It used to navigate to the render view, which meant every generation threw
+  /// It used to navigate to a render view, which meant every generation threw
   /// you off the page you were working on for as long as it took. The progress
-  /// is in the canvas now, as a tile filling itself in; this screen is still
-  /// reachable, from that tile, for the shot list and the log.
+  /// is in the canvas now, as a tile filling itself in, and that screen is
+  /// gone: everything it offered -- the file, another take, the cost -- is on
+  /// the tile itself.
   void _generate() => app.pipeline.start(app.request());
-
-  void _openRender() => setState(() => _rendering = true);
 
   /// Asks for a name and opens the ad it made.
   ///
@@ -165,12 +159,9 @@ class _MainWindowState extends State<MainWindow> {
     _openAd(home.id, ad.id);
   }
 
-  /// Which of the studio's screens is showing: the invitation to make one, the
-  /// ad, or its run.
-  int get _studioLevel {
-    if (_adId.isEmpty) return 0;
-    return _rendering ? 2 : 1;
-  }
+  /// Which of the studio's two screens is showing: the invitation to make an
+  /// ad, or the ad.
+  int get _studioLevel => _adId.isEmpty ? 0 : 1;
 
   // ---- the trail -----------------------------------------------------------
 
@@ -194,18 +185,14 @@ class _MainWindowState extends State<MainWindow> {
         return [Crumb(tr('Settings'))];
     }
 
-    // Two levels now rather than four: the ad, and its run. The project that
-    // used to sit between them was a folder nobody asked for.
+    // One level now rather than four: the ad. The project that used to sit
+    // above it was a folder nobody asked for, and the run that used to sit
+    // below it is the canvas.
     final ad = app.workspace.ad(_projectId, _adId);
 
     return [
       Crumb(tr('Create UGC')),
-      if (ad != null)
-        Crumb(
-          ad.name,
-          onTap: _rendering ? () => setState(() => _rendering = false) : null,
-        ),
-      if (_rendering) Crumb(tr('Render')),
+      if (ad != null) Crumb(ad.name),
     ];
   }
 
@@ -281,13 +268,7 @@ class _MainWindowState extends State<MainWindow> {
             key: ValueKey('ad:$_adId'),
             app: app,
             onGenerate: _generate,
-            onOpenRender: _openRender,
           ),
-        RenderView(
-          app: app,
-          onBack: () => setState(() => _rendering = false),
-          onNewAd: _newAd,
-        ),
       ],
     );
   }

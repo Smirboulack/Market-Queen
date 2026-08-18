@@ -257,6 +257,46 @@ class StudioRunner extends ChangeNotifier {
 
   // ---- Sending ------------------------------------------------------------
 
+  /// Which shelf of the registry a finished batch came off.
+  ///
+  /// The composer knows this from the tab that sent it; a batch read back off
+  /// disk a week later does not, so it is derived from what the result *is*.
+  /// The mapping is one-to-one for everything the bar can ask for, which is why
+  /// the category was never worth storing twice.
+  static String categoryOf(CanvasKind kind) => switch (kind) {
+    CanvasKind.image => 'image',
+    CanvasKind.video => 'video',
+    CanvasKind.audio => 'voice',
+    CanvasKind.ad => 'avatar',
+  };
+
+  /// Sends [batch] again, exactly as it was sent the first time.
+  ///
+  /// The whole point is that it does *not* read the bar. A result you want
+  /// another take of is one you are looking at, and the settings that produced
+  /// it may be three model changes ago -- so the prompt, the shape, the length
+  /// and the references come off the batch itself, and only the model comes
+  /// from the current choice, because a model that has since been switched off
+  /// or lost its key cannot be sent to at all.
+  ///
+  /// One take, whatever the original count: this is "that one again", not
+  /// "those ten again".
+  Future<CanvasBatch> regenerate(CanvasBatch batch) => send(
+    GenerationOrder(
+      kind: batch.kind,
+      category: categoryOf(batch.kind),
+      prompt: batch.prompt,
+      references: List.of(batch.references),
+      aspectRatio: batch.aspectRatio,
+      seconds: batch.seconds > 0 ? batch.seconds : 5,
+      count: 1,
+      resolution: batch.resolution,
+      audio: batch.audio,
+      size: batch.size,
+      quality: batch.quality,
+    ),
+  );
+
   /// Puts a batch in the feed and fans its requests out.
   ///
   /// Returns as soon as they are away: the caller is a button handler, and the
@@ -285,6 +325,8 @@ class StudioRunner extends ChangeNotifier {
       size: order.size,
       quality: order.quality,
       resolution: order.category == 'video' ? order.resolution : '',
+      seconds: order.seconds,
+      audio: order.audio,
       timeoutSeconds: _timeoutFor(order.category),
       references: List.of(order.references),
       items: [

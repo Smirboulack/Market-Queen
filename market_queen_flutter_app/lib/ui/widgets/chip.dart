@@ -354,6 +354,7 @@ class MqPickChip extends StatelessWidget {
     this.icon = '',
     this.menuWidth = 220,
     this.compact = false,
+    this.onLocked,
   });
 
   final String label;
@@ -362,6 +363,11 @@ class MqPickChip extends StatelessWidget {
   final ValueChanged<String> onPicked;
   final String icon;
   final double menuWidth;
+
+  /// What to do when a locked row is pressed -- see [showChipMenu]. Set on the
+  /// chips whose entries belong to an account, so hitting the wall opens the
+  /// key dialog instead of doing nothing.
+  final Future<bool> Function(MenuOption<String> option)? onLocked;
 
   /// Carry the value alone and let the glyph name the field.
   ///
@@ -405,6 +411,7 @@ class MqPickChip extends StatelessWidget {
             options: options,
             current: value,
             width: menuWidth,
+            onLocked: onLocked,
           );
           if (picked != null) onPicked(picked);
         },

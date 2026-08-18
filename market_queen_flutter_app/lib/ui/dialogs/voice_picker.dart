@@ -22,6 +22,7 @@ import '../widgets/fields.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/mq_dialog.dart';
 import '../widgets/voice_player.dart';
+import 'api_key_dialog.dart';
 
 /// The four ways an actor ends up with a voice.
 ///
@@ -93,8 +94,12 @@ class _VoiceStudioState extends State<_VoiceStudio> {
   @override
   Widget build(BuildContext context) {
     final screen = MediaQuery.sizeOf(context);
-    final width = (screen.width - 160).clamp(720.0, 1020.0);
-    final height = (screen.height - 260).clamp(400.0, 620.0);
+    // Roomier than it was, and for the same reason the actor editor grew: the
+    // design and clone routes now carry a name, a provider, a brief and a line
+    // of pricing, and squeezing those into 620 points left the takes as three
+    // slivers.
+    final width = (screen.width - 100).clamp(720.0, 1180.0);
+    final height = (screen.height - 230).clamp(400.0, 720.0);
 
     return MqModalCard(
       width: width,
@@ -200,6 +205,15 @@ class _VoicePickerState extends State<VoicePicker> {
   late final TextEditingController _description = TextEditingController(
     text: widget.suggestedDescription,
   );
+
+  /// What the new voice will be called. Required on both routes and on both
+  /// providers, and not the same question as the actor's own name: one actor
+  /// can be auditioned with three designed voices, and "Sarah, Sarah, Sarah"
+  /// on the account is three voices nobody can tell apart afterwards. On
+  /// MiniMax it is more than a label -- the name *becomes* the voice id.
+  late final TextEditingController _designName = TextEditingController(
+    text: _voiceNameFor(),
+  );
   String _designModel = VoiceForge.designModels.first.$1;
   int _picked = -1;
 
@@ -210,7 +224,9 @@ class _VoicePickerState extends State<VoicePicker> {
 
   // ---- cloning
   final List<String> _samples = [];
-  final TextEditingController _cloneName = TextEditingController();
+  late final TextEditingController _cloneName = TextEditingController(
+    text: _voiceNameFor(),
+  );
 
   /// The most anybody may type into the two free-text boxes on this panel.
   ///
@@ -319,6 +335,7 @@ class _VoicePickerState extends State<VoicePicker> {
     _transport.removeListener(_repaint);
     _booth.removeListener(_onBooth);
     _description.dispose();
+    _designName.dispose();
     _cloneName.dispose();
     _byName.dispose();
     super.dispose();
@@ -341,6 +358,14 @@ class _VoicePickerState extends State<VoicePicker> {
   }) {
     _draft
       ..setExtra('voiceId', voiceId)
+      // Which account it lives on, kept so the mismatch can be *seen*.
+      //
+      // A voice id is not portable: handed to the other provider it is not a
+      // worse voice, it is a 404 halfway through a render. Nothing here stops
+      // somebody switching providers with a voice already cast -- that is a
+      // legitimate thing to be in the middle of -- but the panel says so, which
+      // it could not do while the app had no record of where a voice came from.
+      ..setExtra('voiceProviderId', voiceId.isEmpty ? '' : _voiceProvider)
       // Travels with the id: a library voice has to be put on the account
       // before it can speak, and the render may be the first thing that needs
       // it. Empty for a designed or cloned voice, which is already there.
@@ -356,12 +381,202 @@ class _VoicePickerState extends State<VoicePicker> {
     widget.onChanged();
   }
 
-  // ---- the library ---------------------------------------------------------
+  // ---- who the account belongs to ------------------------------------------
 
   String get _voiceProvider => widget.app.registry.providerOrDefault(
         'voice',
         widget.app.settings.prefString('voiceProvider'),
       );
+
+  /// Which of the two workshops is open. Falls back the same way [VoiceForge]
+  /// does, so the chip never shows a provider the panel cannot actually work
+  /// against.
+  String get _workshop => _forge.provider;
+
+  bool get _hasKey => widget.app.settings.hasApiKey(
+        widget.app.registry.credentialFor(_workshop),
+      );
+
+  static String providerLabel(String id) => switch (id) {
+        'minimax-tts' => 'MiniMax',
+        _ => 'ElevenLabs',
+      };
+
+  /// Both workshops, with the one whose key is missing drawn locked.
+  ///
+  /// Locked rather than left out, which is the same rule the model menus on the
+  /// prompt bar follow: a list that quietly drops MiniMax because there is no
+  /// key is a list that says this app cannot make MiniMax voices, and the fix
+  /// is one paste away.
+  List<MenuOption<String>> _providerOptions() {
+    final settings = widget.app.settings;
+    final registry = widget.app.registry;
+
+    return [
+      for (final id in VoiceForge.providers)
+        () {
+          final credential = registry.credentialFor(id);
+          final locked = credential.isNotEmpty && !settings.hasApiKey(credential);
+          return MenuOption(
+            providerLabel(id),
+            id,
+            mark: credential,
+            locked: locked,
+            note: locked ? lockedByKeyLabel : '',
+          );
+        }(),
+    ];
+  }
+
+  Future<bool> _unlock(MenuOption<String> option) =>
+      askForApiKey(context, app: widget.app, credentialId: option.mark);
+
+  /// The key dialog for whichever workshop is open, for the banner that offers
+  /// it directly rather than through a locked menu row.
+  Future<void> _addKey() async {
+    await askForApiKey(
+      context,
+      app: widget.app,
+      credentialId: widget.app.registry.credentialFor(_workshop),
+    );
+    if (!mounted) return;
+    setState(() {});
+    await _shelf.load(refresh: true);
+    await _search(refresh: true);
+  }
+
+  /// Moves the whole panel to another account.
+  ///
+  /// Everything follows, and it has to: a voice id belongs to the account that
+  /// made it, so the shortlist, the shelf and the takes on screen are all about
+  /// somebody else the moment this changes. The engine preference is cleared
+  /// rather than translated -- `eleven_v3` means nothing to MiniMax -- and the
+  /// provider's own default takes over.
+  Future<void> _setProvider(String id) async {
+    if (id == _workshop) return;
+
+    widget.app.settings
+      ..setPref('voiceProvider', id)
+      ..setPref('voiceModel', null);
+
+    _forge.reset();
+    setState(() {
+      _picked = -1;
+      _designReference = '';
+      _shortlist = const [];
+      _searchError = '';
+    });
+
+    await _shelf.load(refresh: true);
+    if (!mounted) return;
+    await _search();
+  }
+
+  /// The row above the four doors: whose account this is, and what it costs to
+  /// have it read a script.
+  Widget _providerBar() {
+    final mq = context.mq;
+
+    return Row(
+      children: [
+        MqPickChip(
+          label: tr('Provider'),
+          icon: 'sound-module-line',
+          value: _workshop,
+          options: _providerOptions(),
+          menuWidth: 260,
+          onLocked: _unlock,
+          onPicked: _setProvider,
+        ),
+        const SizedBox(width: MqTheme.gap),
+        Expanded(
+          child: Text(
+            _strandedVoice.isEmpty ? _readingRateLine : _strandedVoice,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: _strandedVoice.isEmpty ? mq.textTertiary : mq.warningText,
+              fontSize: MqTheme.fontSmall,
+              height: MqTheme.lineTight,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Said when the actor is carrying a voice from the other account.
+  ///
+  /// Empty in the ordinary case, which is nearly always: it only fills in after
+  /// somebody has cast a voice and then moved the panel to the other provider,
+  /// and it is the one state where pressing Generate on the ad would fail with
+  /// a provider error nobody could have predicted from this screen.
+  String get _strandedVoice {
+    final owner = _draft.extraText('voiceProviderId');
+    if (_draft.extraText('voiceId').isEmpty) return '';
+    if (owner.isEmpty || owner == _voiceProvider) return '';
+    //: %1 and %2 are provider names such as "ElevenLabs"
+    return tr('This actor reads with a %1 voice. Pick one on %2, or switch '
+            'back.')
+        .arg(providerLabel(owner))
+        .arg(providerLabel(_voiceProvider));
+  }
+
+  /// What the chosen engine charges to read a script, from the app's own
+  /// catalogue rather than from a number typed into this file.
+  String get _readingRateLine {
+    final registry = widget.app.registry;
+    final modelId = registry.resolveModel(
+      _workshop,
+      widget.app.settings.prefString('voiceModel'),
+    );
+    final rate = Format.unitPriceLabel(widget.app.pricing.unitPrice(modelId));
+    if (rate.isEmpty) return '';
+    //: %1 is a model name, %2 a price such as "$0.10 / 1k chars"
+    return tr('Reading a script on %1 costs %2.')
+        .arg(registry.modelLabel(_workshop, modelId))
+        .arg(rate);
+  }
+
+  /// The banner that stands in for a route the account cannot run.
+  ///
+  /// One sentence and the button that fixes it, rather than four dead controls
+  /// with the reason hidden in their tooltips.
+  Widget _keyWall() {
+    final mq = context.mq;
+
+    return _Panel(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(MqTheme.gapLarge),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              MqIcon('key-line', size: 20, color: mq.textTertiary),
+              const SizedBox(height: MqTheme.gap),
+              Text(
+                //: %1 is a provider's name such as "ElevenLabs"
+                tr('Making a voice on %1 needs its API key.')
+                    .arg(providerLabel(_workshop)),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: mq.textSecondary,
+                  fontSize: MqTheme.fontSmall,
+                  height: MqTheme.lineTight,
+                ),
+              ),
+              const SizedBox(height: MqTheme.gap),
+              SolidButton(
+                icon: 'key-line',
+                text: lockedByKeyLabel,
+                onPressed: _addKey,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /// Starts the voice search off from who the actor is.
   ///
@@ -469,6 +684,7 @@ class _VoicePickerState extends State<VoicePicker> {
     setState(() => _picked = -1);
     await _forge.design(
       description: _description.text,
+      name: _designName.text,
       modelId: _designModel,
       referenceAudioPath: _takesReference ? _designReference : '',
     );
@@ -486,7 +702,9 @@ class _VoicePickerState extends State<VoicePicker> {
     final take = _forge.takes[_picked];
     final kept = await _forge.keep(
       index: _picked,
-      name: _voiceNameFor(),
+      name: _designName.text.trim().isEmpty
+          ? _voiceNameFor()
+          : _designName.text.trim(),
       description: _description.text.trim(),
     );
     if (!mounted || kept.voiceId.isEmpty) return;
@@ -506,8 +724,9 @@ class _VoicePickerState extends State<VoicePicker> {
 
   /// Whether the chosen engine will read a recording at all. v2 ignores one,
   /// and offering a control that is quietly discarded is worse than not
-  /// offering it.
-  bool get _takesReference => _designModel.toLowerCase().contains('v3');
+  /// offering it. MiniMax's design endpoint takes words alone.
+  bool get _takesReference =>
+      _workshop == 'elevenlabs' && _designModel.toLowerCase().contains('v3');
 
   Future<void> _browseDesignReference() async {
     final file = await openFile(acceptedTypeGroups: const [audioTypeGroup]);
@@ -617,6 +836,11 @@ class _VoicePickerState extends State<VoicePicker> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: measured ? MainAxisSize.max : MainAxisSize.min,
           children: [
+            // Above the doors, because it governs all four of them: which
+            // account is searched, which account a voice is made on, and which
+            // engine will read the ad are one answer, not four.
+            _providerBar(),
+            const SizedBox(height: MqTheme.gap),
             _tabs(),
             const SizedBox(height: MqTheme.gap),
             if (measured)
@@ -729,10 +953,15 @@ class _VoicePickerState extends State<VoicePicker> {
                         : _shelf.error.isNotEmpty
                         ? _shelf.error
                         : !_shelf.ready
-                        ? tr('Add your ElevenLabs key under Models to see the '
-                            'voices on your account.')
-                        : tr('Nothing kept yet. Design one, clone one, or save '
-                            'one from the library with the ribbon.'),
+                        //: %1 is a provider's name such as "ElevenLabs"
+                        ? tr('Add your %1 key to see the voices on your '
+                                'account.')
+                            .arg(providerLabel(_workshop))
+                        : _shelf.adopts
+                        ? tr('Nothing kept yet. Design one, clone one, or save '
+                            'one from the library with the ribbon.')
+                        : tr('Nothing made yet. Design one or clone one — '
+                            'MiniMax\'s preset voices are under Library.'),
                     isError: _shelf.error.isNotEmpty,
                   )
                 : ListView.builder(
@@ -771,8 +1000,11 @@ class _VoicePickerState extends State<VoicePicker> {
         ),
         const SizedBox(height: 8),
         Text(
-          tr('Deleting a voice takes it off the account and off every actor '
-              'using it. The cross on the player only takes it off this one.'),
+          //: %1 is a provider's name such as "ElevenLabs"
+          tr('These are the voices on your %1 account. Deleting one takes it '
+                  'off the account and off every actor using it; the cross on '
+                  'the player only takes it off this one.')
+              .arg(providerLabel(_workshop)),
           style: TextStyle(
             color: mq.textTertiary,
             fontSize: MqTheme.fontSmall,
@@ -954,15 +1186,20 @@ class _VoicePickerState extends State<VoicePicker> {
                           description: describeVoice(voice),
                           preview: voice.previewUrl,
                         ),
-                        trailing: _RowAction(
-                          icon: saved ? 'bookmark-fill' : 'bookmark-line',
-                          tip: saved
-                              ? tr('Already in My voices')
-                              : tr('Keep in My voices'),
-                          lit: saved,
-                          enabled: !saved && !_shelf.working,
-                          onTap: () => _keepShared(voice),
-                        ),
+                        trailing: _shelf.adopts
+                            ? _RowAction(
+                                icon: saved ? 'bookmark-fill' : 'bookmark-line',
+                                tip: saved
+                                    ? tr('Already in My voices')
+                                    : tr('Keep in My voices'),
+                                lit: saved,
+                                enabled: !saved && !_shelf.working,
+                                onTap: () => _keepShared(voice),
+                              )
+                            // A provider whose library is a fixed set of
+                            // presets has nothing to save: every one of them is
+                            // already on the account and always was.
+                            : null,
                       );
                     },
                   ),
@@ -976,23 +1213,33 @@ class _VoicePickerState extends State<VoicePicker> {
 
   Widget _designRoute() {
     final mq = context.mq;
-    final cost = _forge.estimate(VoiceForge.defaultPreviewText, _designModel);
-    final ready = _description.text.trim().length >= 20;
+    if (!_hasKey) return _keyWall();
+
+    final ready = _description.text.trim().length >= 20 && _named(_designName);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        LabeledArea(
-          controller: _description,
-          label: tr('What should the actor sound like?'),
-          areaHeight: 82,
-          maxLength: _briefLimit,
-          placeholder: tr(
-            'A young woman with a warm, slightly husky voice. American '
-            'English, conversational, a little quick, like she is telling a '
-            'friend about something she just found.',
-          ),
-          onChanged: (_) => setState(() {}),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(width: 240, child: _nameField(_designName)),
+            const SizedBox(width: MqTheme.gapLarge),
+            Expanded(
+              child: LabeledArea(
+                controller: _description,
+                label: tr('What should the actor sound like?'),
+                areaHeight: 82,
+                maxLength: _briefLimit,
+                placeholder: tr(
+                  'A young woman with a warm, slightly husky voice. American '
+                  'English, conversational, a little quick, like she is telling '
+                  'a friend about something she just found.',
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 6),
         Text(
@@ -1006,6 +1253,8 @@ class _VoicePickerState extends State<VoicePicker> {
           ),
         ),
         const SizedBox(height: MqTheme.gap),
+        _PriceNote(lines: _designPricing),
+        const SizedBox(height: MqTheme.gap),
         Row(
           children: [
             Expanded(
@@ -1014,17 +1263,20 @@ class _VoicePickerState extends State<VoicePicker> {
                 runSpacing: 6,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  MqPickChip(
-                    label: tr('Engine'),
-                    icon: 'equalizer-line',
-                    compact: true,
-                    value: _designModel,
-                    options: [
-                      for (final model in VoiceForge.designModels)
-                        MenuOption(model.$2, model.$1),
-                    ],
-                    onPicked: (value) => setState(() => _designModel = value),
-                  ),
+                  // MiniMax's design endpoint has no engine to pick: the
+                  // account has one designer and this is it.
+                  if (_workshop == 'elevenlabs')
+                    MqPickChip(
+                      label: tr('Engine'),
+                      icon: 'equalizer-line',
+                      compact: true,
+                      value: _designModel,
+                      options: [
+                        for (final model in VoiceForge.designModels)
+                          MenuOption(model.$2, model.$1),
+                      ],
+                      onPicked: (value) => setState(() => _designModel = value),
+                    ),
                   // The middle ground between designing and cloning: a
                   // recording the engine takes the timbre from while the
                   // description still decides the delivery. Worth having
@@ -1056,17 +1308,13 @@ class _VoicePickerState extends State<VoicePicker> {
             else
               SolidButton(
                 icon: 'magic-line',
-                text: cost.known
-                    //: %1 is a price
-                    ? tr('Generate 3 voices — %1')
-                        .arg(Format.estimated(cost.amount))
-                    : tr('Generate 3 voices'),
-                enabled: ready && _forge.ready && !_forge.busy,
-                tooltip: !_forge.ready
-                    ? tr('Add your ElevenLabs key under Models first.')
-                    : ready
+                text: _designButtonLabel,
+                enabled: ready && !_forge.busy,
+                tooltip: ready
                     ? ''
-                    : tr('Describe the voice in a sentence or two first.'),
+                    : _named(_designName)
+                    ? tr('Describe the voice in a sentence or two first.')
+                    : tr('Give the voice a name first.'),
                 onPressed: _design,
               ),
           ],
@@ -1086,6 +1334,86 @@ class _VoicePickerState extends State<VoicePicker> {
     );
   }
 
+  /// The name box, in the one shape both routes use.
+  ///
+  /// Required, and said so in the label rather than only discovered by pressing
+  /// a dead button: it is the single field on this panel that the user cannot
+  /// leave to the app, because on MiniMax it becomes the voice id and on
+  /// ElevenLabs it is what the account lists the voice under forever.
+  Widget _nameField(TextEditingController controller) {
+    return LabeledField(
+      controller: controller,
+      label: tr('Name for the voice *'),
+      maxLength: _nameLimit,
+      placeholder: _voiceNameFor(),
+      hint: _workshop == 'elevenlabs'
+          ? tr('What your account will list it under.')
+          : tr('MiniMax has no separate name: this becomes the voice id.'),
+      onChanged: (_) => setState(() {}),
+    );
+  }
+
+  bool _named(TextEditingController controller) =>
+      controller.text.trim().isNotEmpty;
+
+  /// What the design button says, which is not the same sentence on the two
+  /// providers -- one buys three takes to choose between and the other makes
+  /// the voice outright.
+  String get _designButtonLabel {
+    final cost = _forge.estimate(VoiceForge.defaultPreviewText, _designModelId);
+    final price = cost.known ? Format.estimated(cost.amount) : '';
+
+    if (!_forge.offersTakes) {
+      return price.isEmpty
+          ? tr('Create the voice')
+          //: %1 is a price
+          : tr('Create the voice — %1').arg(price);
+    }
+    return price.isEmpty
+        ? tr('Generate 3 voices')
+        //: %1 is a price
+        : tr('Generate 3 voices — %1').arg(price);
+  }
+
+  /// Which catalogue line a design is priced from. ElevenLabs has designer
+  /// models of its own; MiniMax designs on whatever engine the account reads
+  /// with.
+  String get _designModelId => _workshop == 'elevenlabs'
+      ? _designModel
+      : widget.app.registry.resolveModel(
+          _workshop,
+          widget.app.settings.prefString('voiceModel'),
+        );
+
+  /// What designing actually costs, said in full.
+  ///
+  /// Two facts, and they are different kinds of fact: what this press bills,
+  /// and what the voice costs to use afterwards. Quoting only the first is how
+  /// somebody ends up surprised by the second.
+  List<String> get _designPricing {
+    final cost = _forge.estimate(VoiceForge.defaultPreviewText, _designModelId);
+
+    return [
+      if (_workshop == 'elevenlabs')
+        cost.known
+            //: %1 is a price
+            ? tr('Three takes come back and only the preview line is billed, '
+                    'about %1. Keeping one is free.')
+                .arg(Format.estimated(cost.amount))
+            : tr('Three takes come back and only the preview line is billed. '
+                'Keeping one is free.')
+      else
+        cost.known
+            //: %1 is a price
+            ? tr('One take, billed as a reading of the preview line, about %1. '
+                    'The voice is on your account as soon as it lands.')
+                .arg(Format.estimated(cost.amount))
+            : tr('One take, billed as a reading of the preview line. The voice '
+                'is on your account as soon as it lands.'),
+      if (_readingRateLine.isNotEmpty) _readingRateLine,
+    ];
+  }
+
   /// The three candidates, side by side.
   ///
   /// Three rows one under another invited reading them in order; three cards
@@ -1093,13 +1421,26 @@ class _VoicePickerState extends State<VoicePicker> {
   Widget _takes() {
     final mq = context.mq;
 
+    if (_forge.designing) {
+      return _Panel(
+        child: _Working(
+          label: _forge.offersTakes
+              ? tr('Designing three voices…')
+              : tr('Creating the voice…'),
+          note: tr('A voice takes a few seconds. Leaving this open is the only '
+              'way to hear it.'),
+        ),
+      );
+    }
+
     if (_forge.takes.isEmpty) {
       return _Panel(
         child: _Empty(
-          text: _forge.designing
-              ? tr('Designing three voices…')
-              : tr('Three takes on the description appear here. Nothing is '
-                  'kept until you say so.'),
+          text: _forge.offersTakes
+              ? tr('Three takes on the description appear here. Nothing is '
+                  'kept until you say so.')
+              : tr('The take appears here. On MiniMax the voice is created '
+                  'with it, under the name above.'),
         ),
       );
     }
@@ -1134,8 +1475,11 @@ class _VoicePickerState extends State<VoicePicker> {
           children: [
             Expanded(
               child: Text(
-                tr('Keeping a take adds it to My voices and gives it to the '
-                    'actor. The other two are thrown away.'),
+                _forge.offersTakes
+                    ? tr('Keeping a take adds it to My voices and gives it to '
+                        'the actor. The other two are thrown away.')
+                    : tr('The voice is already on your account. This gives it '
+                        'to the actor.'),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -1149,6 +1493,8 @@ class _VoicePickerState extends State<VoicePicker> {
             SolidButton(
               text: _forge.keeping
                   ? tr('Keeping…')
+                  : !_forge.offersTakes
+                  ? tr('Use this voice')
                   //: %1 is a number: the first, second or third take
                   : tr('Keep take %1').arg(_picked + 1),
               loading: _forge.keeping,
@@ -1165,6 +1511,35 @@ class _VoicePickerState extends State<VoicePicker> {
 
   Widget _cloneRoute() {
     final mq = context.mq;
+    if (!_hasKey) return _keyWall();
+
+    if (_forge.cloning) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _Panel(
+              child: _Working(
+                label: tr('Cloning the voice…'),
+                note: tr('The recording is uploaded first, then copied. A '
+                    'minute of audio takes a few seconds.'),
+              ),
+            ),
+          ),
+          const SizedBox(height: MqTheme.gap),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: GhostButton(
+              text: tr('Cancel'),
+              destructive: true,
+              onPressed: _forge.cancel,
+            ),
+          ),
+        ],
+      );
+    }
+
+    final ready = _samples.isNotEmpty && _named(_cloneName);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1173,7 +1548,10 @@ class _VoicePickerState extends State<VoicePicker> {
           child: MediaDropZone(
             paths: _samples,
             title: tr('Drop your recordings in'),
-            hint: tr('MP3, WAV or M4A. One clean minute beats ten noisy ones.'),
+            hint: _workshop == 'elevenlabs'
+                ? tr('MP3, WAV or M4A. One clean minute beats ten noisy ones.')
+                : tr('MP3, WAV or M4A. MiniMax clones from a single recording: '
+                    'the first one here is the one it uses.'),
             tileSize: 56,
             onAdded: (paths) => setState(() {
               for (final path in paths) {
@@ -1185,6 +1563,8 @@ class _VoicePickerState extends State<VoicePicker> {
             onRemoved: (index) => setState(() => _samples.removeAt(index)),
           ),
         ),
+        const SizedBox(height: MqTheme.gap),
+        _PriceNote(lines: _clonePricing),
         if (_forge.error.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(
@@ -1198,15 +1578,7 @@ class _VoicePickerState extends State<VoicePicker> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              width: 260,
-              child: LabeledField(
-                controller: _cloneName,
-                label: tr('Name for the voice'),
-                maxLength: _nameLimit,
-                placeholder: _voiceNameFor(),
-              ),
-            ),
+            SizedBox(width: 260, child: _nameField(_cloneName)),
             const SizedBox(width: MqTheme.gapLarge),
             Expanded(
               child: Padding(
@@ -1237,22 +1609,16 @@ class _VoicePickerState extends State<VoicePicker> {
                     onPressed: _browseSamples,
                   ),
                   const SizedBox(width: 8),
-                  if (_forge.cloning)
-                    GhostButton(
-                      text: tr('Cancel'),
-                      destructive: true,
-                      onPressed: _forge.cancel,
-                    )
-                  else
-                    SolidButton(
-                      text: tr('Clone this voice'),
-                      enabled:
-                          _samples.isNotEmpty && _forge.ready && !_forge.busy,
-                      tooltip: _forge.ready
-                          ? ''
-                          : tr('Add your ElevenLabs key under Models first.'),
-                      onPressed: _clone,
-                    ),
+                  SolidButton(
+                    text: tr('Clone this voice'),
+                    enabled: ready && !_forge.busy,
+                    tooltip: ready
+                        ? ''
+                        : _samples.isEmpty
+                        ? tr('Add a recording to clone from first.')
+                        : tr('Give the voice a name first.'),
+                    onPressed: _clone,
+                  ),
                 ],
               ),
             ),
@@ -1261,6 +1627,26 @@ class _VoicePickerState extends State<VoicePicker> {
       ],
     );
   }
+
+  /// What cloning costs, per provider, in the terms each of them actually bills
+  /// in.
+  ///
+  /// Neither is a per-character price, which is why this is prose rather than a
+  /// figure off the catalogue: ElevenLabs includes instant cloning in the
+  /// subscription and simply refuses it below Starter, and MiniMax bills a
+  /// one-off when the voice is made. Quoting the reading rate as though it were
+  /// the price of cloning would be the wrong number twice.
+  List<String> get _clonePricing => [
+        if (_workshop == 'elevenlabs')
+          tr('Instant cloning is included in an ElevenLabs subscription, and '
+              'needs the Starter plan or above — a free account cannot clone '
+              'at all.')
+        else
+          tr('MiniMax bills a one-off charge when the cloned voice is created, '
+              'at whatever its current rate is; reading with it afterwards is '
+              'billed per character like any other voice.'),
+        if (_readingRateLine.isNotEmpty) _readingRateLine,
+      ];
 
   // ---- the dials -----------------------------------------------------------
 
@@ -1543,6 +1929,131 @@ class _Panel extends StatelessWidget {
         border: Border.all(color: mq.border),
       ),
       child: child,
+    );
+  }
+}
+
+/// What a panel says while something is out.
+///
+/// A spinner and two lines, in the space the result will land in. It replaced a
+/// line of grey text: designing a voice takes long enough that a static
+/// sentence reads as a screen that has stopped, and the one thing somebody must
+/// not do here is press the button again -- a second design is a second charge
+/// and, on MiniMax, a second voice on the account.
+class _Working extends StatelessWidget {
+  const _Working({required this.label, this.note = ''});
+
+  final String label;
+  final String note;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: mq.textTertiary,
+              ),
+            ),
+            const SizedBox(height: MqTheme.gap),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: mq.textSecondary,
+                fontSize: MqTheme.fontSmall,
+                fontWeight: FontWeight.w600,
+                height: MqTheme.lineTight,
+              ),
+            ),
+            if (note.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 320),
+                child: Text(
+                  note,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: mq.textTertiary,
+                    fontSize: MqTheme.fontSmall,
+                    height: MqTheme.lineTight,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// What an action on this panel will be billed for, in words.
+///
+/// A framed note rather than another grey line, because it is the one thing on
+/// the route that has to survive being skimmed: every button here spends money
+/// on somebody else's account, and the terms differ enough between the two
+/// providers -- a per-character preview against a one-off charge, a plan
+/// requirement against none -- that "it costs something" is not an answer.
+class _PriceNote extends StatelessWidget {
+  const _PriceNote({required this.lines});
+
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = context.mq;
+    final said = [
+      for (final line in lines)
+        if (line.trim().isNotEmpty) line,
+    ];
+    if (said.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      decoration: BoxDecoration(
+        color: mq.surfaceSecondary,
+        borderRadius: BorderRadius.circular(MqTheme.radiusSmall),
+        border: Border.all(color: mq.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: MqIcon('information-line', size: 14, color: mq.textTertiary),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < said.length; ++i) ...[
+                  if (i > 0) const SizedBox(height: 3),
+                  Text(
+                    said[i],
+                    style: TextStyle(
+                      color: i == 0 ? mq.textSecondary : mq.textTertiary,
+                      fontSize: MqTheme.fontSmall,
+                      height: MqTheme.lineTight,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

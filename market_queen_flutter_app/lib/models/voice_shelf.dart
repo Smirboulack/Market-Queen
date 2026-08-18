@@ -7,10 +7,11 @@ import '../i18n/translator.dart';
 import '../providers/registry.dart';
 import '../providers/types.dart';
 import '../providers/voice_providers.dart';
+import 'voice_forge.dart' show VoiceForge;
 
 /// The voices the user keeps, as against the ten thousand they could pick.
 ///
-/// Designing and cloning both leave something permanent on the ElevenLabs
+/// Designing and cloning both leave something permanent on the provider
 /// account, and until now the app could put voices there and never show them
 /// again: a voice designed for one actor was invisible to the next, so the
 /// second actor got a second design and the account filled up with near
@@ -21,10 +22,17 @@ import '../providers/voice_providers.dart';
 ///
 ///  * [keep] puts a shared-library voice on the account, which is what makes it
 ///    reusable. It is the same call a render makes on first use -- doing it up
-///    front only means the user chose the moment.
+///    front only means the user chose the moment. ElevenLabs only: it is a
+///    shared library that has anything to adopt *from*, and the providers that
+///    ship a fixed set of presets need nothing kept.
 ///  * [remove] deletes one, which reaches every actor using it and cannot be
 ///    undone. Taking a voice off *one* actor is not this: that is a write to
 ///    the actor and nothing leaves the account.
+///
+/// The account it reads is whichever the app's voice preference names -- the
+/// same one the workshop makes voices on and the same one the render reads
+/// with. Switching providers is therefore a different shelf, not a filtered
+/// view of one, which is why [load] is re-run rather than re-sorted.
 class VoiceShelf extends ChangeNotifier {
   VoiceShelf(this._settings, this._registry, this._log);
 
@@ -36,7 +44,10 @@ class VoiceShelf extends ChangeNotifier {
   bool _loading = false;
   bool _working = false;
   String _error = '';
-  bool _loaded = false;
+
+  /// Which account the list in hand was read from, empty before the first read.
+  /// Compared on every [load] so switching provider always refetches.
+  String _loadedFrom = '';
 
   /// Everything the user made or saved, newest last -- the account's own order,
   /// which is the order they were created in.
@@ -50,10 +61,21 @@ class VoiceShelf extends ChangeNotifier {
 
   String get error => _error;
 
-  String get _apiKey => _settings.apiKey(_registry.credentialFor('elevenlabs'));
+  /// The account the shelf belongs to. Same rule as [VoiceForge.provider], and
+  /// deliberately the same preference.
+  String get provider {
+    final saved = _settings.prefString('voiceProvider');
+    return VoiceForge.worksWith(saved) ? saved : VoiceForge.providers.first;
+  }
+
+  String get _apiKey => _settings.apiKey(_registry.credentialFor(provider));
 
   /// Whether there is a key to read the shelf with.
   bool get ready => _apiKey.isNotEmpty;
+
+  /// Whether this provider has a shared library to save voices out of. Without
+  /// one the ribbon on a search result has nothing to do.
+  bool get adopts => provider == 'elevenlabs';
 
   /// Whether the account already holds [voiceId].
   ///
@@ -74,9 +96,11 @@ class VoiceShelf extends ChangeNotifier {
   /// the voice section.
   Future<void> load({bool refresh = false}) async {
     if (_loading) return;
-    if (_loaded && !refresh) return;
+    final account = provider;
+    if (_loadedFrom == account && !refresh) return;
     if (!ready) {
       _voices = const [];
+      _loadedFrom = '';
       _error = '';
       notifyListeners();
       return;
@@ -84,10 +108,17 @@ class VoiceShelf extends ChangeNotifier {
 
     _loading = true;
     _error = '';
+    // Cleared up front rather than left standing: the list on screen belongs to
+    // the account that was open a moment ago, and showing ElevenLabs voices
+    // under a MiniMax heading while the fetch runs is a list you could act on.
+    if (_loadedFrom != account) _voices = const [];
     notifyListeners();
 
     try {
-      final result = await ElevenLabsAccountVoicesTask(_apiKey).run();
+      final result = await (account == 'elevenlabs'
+              ? ElevenLabsAccountVoicesTask(_apiKey)
+              : MiniMaxAccountVoicesTask(_apiKey))
+          .run();
       final all = (result['voices'] as List?)?.cast<AccountVoice>() ?? const [];
       // Only theirs. The premade voices are on every account ever made and are
       // not something anybody kept.
@@ -95,7 +126,7 @@ class VoiceShelf extends ChangeNotifier {
         for (final voice in all)
           if (voice.mine) voice,
       ];
-      _loaded = true;
+      _loadedFrom = account;
       _loading = false;
       notifyListeners();
     } on ProviderException catch (error) {
@@ -112,7 +143,7 @@ class VoiceShelf extends ChangeNotifier {
     required String ownerId,
     required String name,
   }) async {
-    if (_working || voiceId.isEmpty) return '';
+    if (_working || voiceId.isEmpty || !adopts) return '';
 
     _working = true;
     _error = '';
@@ -149,12 +180,26 @@ class VoiceShelf extends ChangeNotifier {
   Future<bool> remove(String voiceId) async {
     if (_working || voiceId.isEmpty) return false;
 
+    // Which of MiniMax's two buckets it came out of, which their delete call
+    // insists on. Read off the list rather than guessed: a designed voice
+    // deleted as a cloned one is a 400 and a row that never goes away.
+    final cloned = _voices
+        .where((voice) => voice.id == voiceId)
+        .every((voice) => voice.category != 'generated');
+
     _working = true;
     _error = '';
     notifyListeners();
 
     try {
-      await ElevenLabsVoiceDeleteTask(apiKey: _apiKey, voiceId: voiceId).run();
+      await (provider == 'elevenlabs'
+              ? ElevenLabsVoiceDeleteTask(apiKey: _apiKey, voiceId: voiceId)
+              : MiniMaxVoiceDeleteTask(
+                  apiKey: _apiKey,
+                  voiceId: voiceId,
+                  cloned: cloned,
+                ))
+          .run();
       _voices = [
         for (final voice in _voices)
           if (voice.id != voiceId) voice,

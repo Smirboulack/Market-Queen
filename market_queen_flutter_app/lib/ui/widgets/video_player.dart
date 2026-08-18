@@ -6,10 +6,10 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:path/path.dart' as p;
 
-import '../../i18n/translator.dart';
 import '../icons.dart';
 import '../theme.dart';
 import 'buttons.dart';
+import 'file_menu.dart';
 import 'mq_dialog.dart';
 
 /// A clip that plays where it stands.
@@ -314,13 +314,26 @@ class _InlineAudioState extends State<InlineAudio> {
 /// the same complaint: full screen should mean full screen *here*, not a second
 /// application. Reached through [showMediaPreview] from everywhere but the
 /// canvas tile's own full-screen button.
-Future<void> showVideoLightbox(BuildContext context, String path) {
+Future<void> showVideoLightbox(
+  BuildContext context,
+  String path, {
+  List<MediaMenuAction> actions = const [],
+  VoidCallback? onRemove,
+  String removeLabel = '',
+}) {
   return showMqModal<void>(
     context: context,
     child: Builder(
       builder: (context) {
-        final mq = context.mq;
         final size = MediaQuery.sizeOf(context);
+
+        // Anything that takes the clip off the canvas, or replaces it, has to
+        // close the window it is being watched in as well: leaving a player
+        // running on a file that is no longer in the feed is a view of nothing.
+        void andClose(VoidCallback action) {
+          closeMqModal(context);
+          action();
+        }
 
         return SizedBox(
           // A concrete size rather than a constraint: the modal centres its
@@ -333,30 +346,49 @@ Future<void> showVideoLightbox(BuildContext context, String path) {
             borderRadius: BorderRadius.circular(MqTheme.radiusLarge),
             child: ColoredBox(
               color: Colors.black,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  _LightboxVideo(path: path),
-                  Positioned(
-                    right: 10,
-                    top: 10,
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: mq.surface.withValues(alpha: 0.92),
-                        borderRadius: BorderRadius.circular(
-                          MqTheme.radiusSmall,
-                        ),
-                        border: Border.all(color: mq.border),
-                      ),
-                      child: MqIconButton(
-                        icon: 'fullscreen-exit-line',
-                        tip: tr('Close'),
-                        size: 28,
-                        onPressed: () => closeMqModal(context),
+              child: MediaMenu(
+                path: path,
+                actions: [
+                  for (final action in actions)
+                    MediaMenuAction(
+                      icon: action.icon,
+                      label: action.label,
+                      destructive: action.destructive,
+                      onPressed: () => andClose(action.onPressed),
+                    ),
+                ],
+                onRemove: onRemove == null ? null : () => andClose(onRemove),
+                removeLabel: removeLabel,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _LightboxVideo(path: path),
+                    // Everything the right-click menu offers, as buttons. A
+                    // clip opened full screen is a clip being judged, and the
+                    // verdict is usually "again" or "keep this one" -- both of
+                    // which used to mean closing the window first.
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: MediaActionBar(
+                        path: path,
+                        actions: [
+                          for (final action in actions)
+                            MediaMenuAction(
+                              icon: action.icon,
+                              label: action.label,
+                              destructive: action.destructive,
+                              onPressed: () => andClose(action.onPressed),
+                            ),
+                        ],
+                        onRemove:
+                            onRemove == null ? null : () => andClose(onRemove),
+                        removeLabel: removeLabel,
+                        onClose: () => closeMqModal(context),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

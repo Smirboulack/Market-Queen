@@ -54,7 +54,6 @@ void main() {
             body: AdEditorPage(
               app: app,
               onGenerate: () {},
-              onOpenRender: () {},
             ),
           ),
         ),

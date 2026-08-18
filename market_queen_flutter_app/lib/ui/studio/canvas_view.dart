@@ -30,16 +30,19 @@ class CanvasView extends StatefulWidget {
   const CanvasView({
     super.key,
     required this.app,
-    required this.onOpenRender,
+    required this.onRegenerate,
     this.bottomInset = 0,
   });
 
   final AppState app;
 
-  /// The finished ads carry a way through to their run detail -- the shot list,
-  /// the per-scene reshoot, the log. That view still exists; it is simply no
-  /// longer where Generate takes you.
-  final VoidCallback onOpenRender;
+  /// Asks for another take of a batch.
+  ///
+  /// Handed down rather than done here, because the two kinds of "again" are
+  /// not the same call: a clip or a still is one request the runner can repeat,
+  /// while a talking actor is a whole pipeline run the window owns. The tile
+  /// does not need to know which it is.
+  final ValueChanged<CanvasBatch> onRegenerate;
 
   /// How much of the bottom edge the composer stands in front of. The feed
   /// scrolls under it and pads itself by this much so the newest tile can still
@@ -187,23 +190,34 @@ class _CanvasViewState extends State<CanvasView> {
 
               return NotificationListener<ScrollNotification>(
                 onNotification: _onScroll,
-                child: ListView.separated(
+                // Always drawn, never faded out. A feed this long is scrolled
+                // by dragging as often as by wheeling, and the default
+                // behaviour -- a thumb that appears on a scroll and fades a
+                // second later -- meant the one place you could not aim at it
+                // was where it spends most of its life: resting at the bottom,
+                // under the wash the composer stands in. The wash now stops
+                // short of [MqTheme.scrollbarLane] and the thumb stays put.
+                child: Scrollbar(
                   controller: _scroll,
-                  padding: EdgeInsets.fromLTRB(
-                    side,
-                    MqTheme.gapLarge,
-                    side,
-                    MqTheme.gapLarge + widget.bottomInset,
-                  ),
-                  itemCount: batches.length,
-                  separatorBuilder: (context, _) =>
-                      const SizedBox(height: MqTheme.gapLarge + 6),
-                  itemBuilder: (context, index) => _BatchBlock(
-                    app: widget.app,
-                    batch: batches[index],
-                    maxTileHeight: _maxTileHeight(constraints.maxHeight),
-                    onOpenRender: widget.onOpenRender,
-                    onRemove: () => _feed.remove(batches[index].id),
+                  thumbVisibility: true,
+                  child: ListView.separated(
+                    controller: _scroll,
+                    padding: EdgeInsets.fromLTRB(
+                      side,
+                      MqTheme.gapLarge,
+                      side,
+                      MqTheme.gapLarge + widget.bottomInset,
+                    ),
+                    itemCount: batches.length,
+                    separatorBuilder: (context, _) =>
+                        const SizedBox(height: MqTheme.gapLarge + 6),
+                    itemBuilder: (context, index) => _BatchBlock(
+                      app: widget.app,
+                      batch: batches[index],
+                      maxTileHeight: _maxTileHeight(constraints.maxHeight),
+                      onRegenerate: widget.onRegenerate,
+                      onRemove: () => _feed.remove(batches[index].id),
+                    ),
                   ),
                 ),
               );
@@ -316,7 +330,7 @@ class _BatchBlock extends StatelessWidget {
     required this.app,
     required this.batch,
     required this.maxTileHeight,
-    required this.onOpenRender,
+    required this.onRegenerate,
     required this.onRemove,
   });
 
@@ -327,7 +341,7 @@ class _BatchBlock extends StatelessWidget {
   /// canvas is actually visible.
   final double maxTileHeight;
 
-  final VoidCallback onOpenRender;
+  final ValueChanged<CanvasBatch> onRegenerate;
 
   /// Takes the whole batch off the canvas. Reached from the right-click menu of
   /// a failure, which has no tile of its own to remove.
@@ -370,6 +384,15 @@ class _BatchBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     if (batch.allFailed) {
       return MediaMenu(
+        actions: [
+          // The commonest thing to want in front of a failure, and the one
+          // place there is no tile to hang a button off.
+          MediaMenuAction(
+            icon: 'refresh-line',
+            label: tr('Try again'),
+            onPressed: () => onRegenerate(batch),
+          ),
+        ],
         onRemove: batch.running ? null : onRemove,
         removeLabel: tr('Remove from the canvas'),
         child: _Failure(message: batch.firstError),
@@ -413,7 +436,7 @@ class _BatchBlock extends StatelessWidget {
                   app: app,
                   batch: batch,
                   item: item,
-                  onOpenRender: onOpenRender,
+                  onRegenerate: () => onRegenerate(batch),
                   onRemove: () =>
                       app.project.feed.removeItem(batch.id, item.id),
                 ),
@@ -443,14 +466,14 @@ class _ResultTile extends StatefulWidget {
     required this.app,
     required this.batch,
     required this.item,
-    required this.onOpenRender,
+    required this.onRegenerate,
     required this.onRemove,
   });
 
   final AppState app;
   final CanvasBatch batch;
   final CanvasItem item;
-  final VoidCallback onOpenRender;
+  final VoidCallback onRegenerate;
   final VoidCallback onRemove;
 
   @override
@@ -472,12 +495,29 @@ class _ResultTileState extends State<_ResultTile> {
 
   bool get _isPicture => widget.batch.kind == CanvasKind.image;
 
+  /// What this screen adds to the file menu.
+  ///
+  /// One entry, and it is the one the canvas exists for: a result you are
+  /// looking at is one you are deciding about, and the decision is nearly
+  /// always "again". It goes to every surface the tile has -- the right-click
+  /// menu, the strip under the pointer, and the full-screen player -- from
+  /// here, so all three offer it or none do.
+  List<MediaMenuAction> get _ownActions => [
+    MediaMenuAction(
+      icon: 'refresh-line',
+      label: tr('Generate another take'),
+      onPressed: widget.onRegenerate,
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
 
     return MediaMenu(
       path: item.status == CanvasStatus.done ? item.path : '',
+      // Nothing to repeat while the first attempt is still out.
+      actions: item.status == CanvasStatus.pending ? const [] : _ownActions,
       // A tile still being generated is not one to pull out from under the
       // request that is about to fill it.
       onRemove: item.status == CanvasStatus.pending ? null : widget.onRemove,
@@ -574,10 +614,8 @@ class _ResultTileState extends State<_ResultTile> {
                       duration: MqTheme.hoverDuration,
                       child: _TileActions(
                         path: item.path,
+                        onRegenerate: widget.onRegenerate,
                         onFullscreen: _isPicture ? null : _openFullscreen,
-                        onDetail: widget.batch.kind == CanvasKind.ad
-                            ? widget.onOpenRender
-                            : null,
                       ),
                     ),
                   ),
@@ -614,7 +652,13 @@ class _ResultTileState extends State<_ResultTile> {
   /// full screen, and both stay inside the app.
   void _open() {
     if (_isPicture) {
-      showImageLightbox(context, widget.item.path);
+      showImageLightbox(
+        context,
+        widget.item.path,
+        actions: _ownActions,
+        onRemove: widget.onRemove,
+        removeLabel: tr('Remove from the canvas'),
+      );
       return;
     }
     // Once the player is up it owns its own taps -- pausing and resuming is its
@@ -624,19 +668,41 @@ class _ResultTileState extends State<_ResultTile> {
 
   /// Full screen takes the clip off the tile rather than standing beside it.
   /// Two players on one file is two soundtracks.
+  ///
+  /// It carries the tile's whole menu with it: judging a take is what full
+  /// screen is for, and the answer -- another one, keep this one, throw it
+  /// away -- used to mean closing the window to reach a right-click.
   Future<void> _openFullscreen() async {
     if (_playing) setState(() => _playing = false);
-    await showVideoLightbox(context, widget.item.path);
+    await showVideoLightbox(
+      context,
+      widget.item.path,
+      actions: _ownActions,
+      onRemove: widget.onRemove,
+      removeLabel: tr('Remove from the canvas'),
+    );
   }
 }
 
-/// Full screen, show in folder, the escape hatch to the system player, and --
-/// for a finished ad -- the way through to its run detail.
+/// Another take, full screen, the escape hatch to the system player, and the
+/// way to the file itself.
+///
+/// Four glyphs is the whole strip. Everything else a result can be put through
+/// is on the right-click menu, which the tile also carries -- and the one thing
+/// that used to be here and is not any more is the way through to a shot list,
+/// a screen from an earlier version of the app that no longer exists.
 class _TileActions extends StatelessWidget {
-  const _TileActions({required this.path, this.onDetail, this.onFullscreen});
+  const _TileActions({
+    required this.path,
+    required this.onRegenerate,
+    this.onFullscreen,
+  });
 
   final String path;
-  final VoidCallback? onDetail;
+
+  /// Sends the same request again. First on the strip because it is the only
+  /// one of the four that buys anything, and by far the most reached for.
+  final VoidCallback onRegenerate;
 
   /// Clips only. Stills have the lightbox, which the tile itself opens.
   final VoidCallback? onFullscreen;
@@ -655,13 +721,12 @@ class _TileActions extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (onDetail != null)
-            MqIconButton(
-              icon: 'layout-line',
-              tip: tr('Shot by shot'),
-              size: 24,
-              onPressed: onDetail,
-            ),
+          MqIconButton(
+            icon: 'refresh-line',
+            tip: tr('Generate another take'),
+            size: 24,
+            onPressed: onRegenerate,
+          ),
           if (onFullscreen != null)
             MqIconButton(
               icon: 'fullscreen-line',
@@ -769,7 +834,19 @@ class _Caption extends StatelessWidget {
   List<String> get _parts => [
     if (batch.modelLabel.isNotEmpty) batch.modelLabel,
     if (item.seconds > 0) Format.seconds(item.seconds),
-    if (item.width > 0 && item.height > 0) '${item.width}×${item.height}',
+    // The frame, said the most precise way this particular result can say it.
+    //
+    // A still is measured off the file that came back. A clip has no frame to
+    // measure here, and a talking actor is cut by the pipeline rather than
+    // returned by a model, so both fall back to the shape that was ordered --
+    // which is the whole point of having it: a caption that named the model and
+    // then went silent left the two kinds of video saying nothing but their own
+    // name, on a surface where a 9:16 take and a 16:9 one are the thing being
+    // told apart.
+    if (item.width > 0 && item.height > 0)
+      '${item.width}×${item.height}'
+    else if (batch.aspectRatio.isNotEmpty)
+      batch.aspectRatio,
     // The settings that were on, and only when the model offered them: "2K"
     // under a model with one frame size says nothing.
     if (batch.resolution.isNotEmpty) batch.resolution,

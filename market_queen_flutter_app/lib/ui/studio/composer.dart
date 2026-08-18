@@ -12,7 +12,6 @@ import '../../core/clipboard_media.dart';
 import '../../core/pricing.dart';
 import '../../i18n/translator.dart';
 import '../../models/asset_library.dart';
-import '../../models/canvas_feed.dart';
 import '../../models/prompt_doctor.dart';
 import '../../models/studio_runner.dart';
 import '../../providers/capabilities.dart';
@@ -25,13 +24,13 @@ import '../icons.dart';
 import '../theme.dart';
 import '../widgets/buttons.dart';
 import '../widgets/chip.dart';
-import '../widgets/dashed_box.dart';
 import '../widgets/measured.dart';
 import '../widgets/media_drop.dart';
 import '../widgets/media_preview.dart';
 import '../widgets/popover.dart';
 import 'cast_panels.dart';
 import 'composer_tabs.dart';
+import 'mention_menu.dart';
 import 'mentions.dart';
 
 /// The bar the whole studio is driven from.
@@ -52,8 +51,9 @@ class Composer extends StatefulWidget {
 
   final AppState app;
 
-  /// Runs the full pipeline. It stays outside this widget because the window
-  /// owns the run -- the composer only says when.
+  /// Shoots the ad: writes the pending tile and runs the full pipeline. It
+  /// stays outside this widget because the page owns the run -- the composer
+  /// only says when, and it is no longer the only thing that says it.
   final VoidCallback onGenerateAd;
 
   /// How tall the prompt block is, whenever that changes.
@@ -114,6 +114,14 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   /// press.
   static const double _foldSettingsBelow = 1000;
 
+  /// Under this, the footer stops being one line.
+  ///
+  /// Roughly what a cast actor, a scene, the emotions chip and two attach
+  /// buttons need before the price and the send button start pushing the last
+  /// of them onto a second row -- which is the state in a half-width window,
+  /// and the one that reads as broken rather than as tight.
+  static const double _stackFooterBelow = 760;
+
   ComposerTab _tab = ComposerTab.actors;
 
   /// Which of the three panels is showing, if any. They share one slot because
@@ -147,13 +155,11 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     // follows it when a different ad is opened underneath.
     _prompts[ComposerTab.actors]!.text = app.project.script;
     app.project.reloaded.addListener(_onAdChanged);
-    app.pipeline.finished.listen(_onAdFinished);
   }
 
   @override
   void dispose() {
     app.project.reloaded.removeListener(_onAdChanged);
-    app.pipeline.finished.remove(_onAdFinished);
     _focus.removeListener(_repaint);
     _focus.dispose();
     for (final controller in _prompts.values) {
@@ -166,33 +172,16 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   }
 
   void _repaint() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    // Before the frame, not during it: the menu is an overlay portal, and
+    // showing one from inside a build is an assertion.
+    _syncMentionMenu();
+    setState(() {});
   }
 
   void _onAdChanged() {
     if (!mounted) return;
     setState(() => _prompts[ComposerTab.actors]!.text = app.project.script);
-  }
-
-  // ---- the ad the pipeline is shooting -------------------------------------
-
-  /// The feed tile the running pipeline will fill. Held rather than looked up,
-  /// because `finished` also fires for a single-shot reshoot and only the batch
-  /// this composer started should be settled by it.
-  CanvasBatch? _adBatch;
-
-  void _onAdFinished(({bool success, String outputFile}) result) {
-    final batch = _adBatch;
-    if (batch == null) return;
-    _adBatch = null;
-
-    app.project.feed.settle(
-      batch.id,
-      batch.items.first.id,
-      status: result.success ? CanvasStatus.done : CanvasStatus.failed,
-      path: result.outputFile,
-      error: result.success ? '' : tr('The render did not finish. See the log.'),
-    );
   }
 
   // ---- sending -------------------------------------------------------------
@@ -243,20 +232,157 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     ];
   }
 
-  /// Everything the current prompt can address by name: each reference in the
-  /// bar under the handle the runner will send it as, then -- in the
-  /// talking-actor mode only -- the cast.
-  List<Mention> get _mentions {
+  /// Everything the current prompt can address by name: the cast first -- in
+  /// the talking-actor mode, which is the only one that has one -- then each
+  /// reference in the bar under the handle the runner will send it as.
+  ///
+  /// Cast first because that is the order they are reached for: who is in the
+  /// shot, then what is in their hands. The menu keeps this order and so does
+  /// the lighting in the field, which reads from the same list.
+  List<MentionEntry> get _mentions {
     if (!_namesReferences) return const [];
 
+    final project = app.project;
+    final actor = project.actorIds.isEmpty
+        ? null
+        : app.actors.byId(project.actorIds.first);
+    final scene = app.scenes.byId(project.sceneId);
     final handles = referenceHandles(_refs);
+
     return [
+      if (_namesCast) ...[
+        if (actor != null && actor.name.trim().isNotEmpty)
+          MentionEntry(
+            handle: castHandle(actor.name),
+            label: actor.name,
+            group: MentionGroup.cast,
+            detail: ActorIdentity.summary(actor),
+            thumbnail: actor.thumbnail,
+            glyph: 'user-line',
+            round: true,
+          ),
+        if (scene != null && scene.name.trim().isNotEmpty)
+          MentionEntry(
+            handle: castHandle(scene.name),
+            label: scene.name,
+            group: MentionGroup.cast,
+            detail: scene.prompt.trim(),
+            thumbnail: scene.thumbnail,
+            glyph: 'scene-line',
+          ),
+      ],
       for (var i = 0; i < _refs.length; ++i)
-        Mention(handle: handles[i], label: p.basename(_refs[i])),
-      if (_namesCast)
-        for (final asset in _castAssets)
-          Mention(handle: castHandle(asset.name), label: asset.name),
+        MentionEntry(
+          handle: handles[i],
+          label: p.basename(_refs[i]),
+          group: MentionGroup.files,
+          detail: describeFile(_refs[i]),
+          thumbnail: _refs[i],
+          glyph: switch (mediaKindOf(_refs[i])) {
+            MediaKind.image => 'image-line',
+            MediaKind.video => 'file-video-line',
+            MediaKind.audio => 'file-music-line',
+          },
+        ),
     ];
+  }
+
+  // ---- the menu behind the at sign -----------------------------------------
+
+  /// Open only while the caret is inside an unfinished handle *and* something
+  /// still answers to it. A menu that stays up saying "no matches" is a menu
+  /// standing over the sentence you are trying to read.
+  final OverlayPortalController _mentionPortal = OverlayPortalController();
+
+  bool _mentionOpen = false;
+
+  /// Which row Enter would take. Reset to the top whenever the query changes,
+  /// because the list under it has changed with it.
+  int _mentionIndex = 0;
+
+  /// The handle being typed at the caret, if one is.
+  ({int start, String query})? get _mentionQuery {
+    if (!_spec.prompted || !_focus.hasFocus) return null;
+    final selection = _prompt.selection;
+    if (!selection.isValid || !selection.isCollapsed) return null;
+    return mentionQueryAt(_prompt.text, selection.baseOffset);
+  }
+
+  /// What the menu is currently showing.
+  List<MentionEntry> get _mentionMatches {
+    final query = _mentionQuery;
+    if (query == null) return const [];
+    return [
+      for (final entry in _mentions)
+        if (entry.matches(query.query)) entry,
+    ];
+  }
+
+  /// Opens, closes and re-clamps the menu after anything that could have moved
+  /// the caret or changed what is attached.
+  ///
+  /// Driven from the controller and the focus node rather than from `build`,
+  /// because showing an overlay portal during a build is an assertion -- and
+  /// because every way the caret moves already goes through one of the two.
+  void _syncMentionMenu() {
+    final wanted = _mentionMatches.isNotEmpty;
+
+    if (wanted != _mentionOpen) {
+      _mentionOpen = wanted;
+      _mentionIndex = 0;
+      if (wanted) {
+        _mentionPortal.show();
+      } else if (_mentionPortal.isShowing) {
+        _mentionPortal.hide();
+      }
+      return;
+    }
+
+    if (wanted) {
+      _mentionIndex = _mentionIndex.clamp(0, _mentionMatches.length - 1);
+    }
+  }
+
+  void _closeMentionMenu() {
+    if (!_mentionOpen) return;
+    _mentionOpen = false;
+    _mentionIndex = 0;
+    if (_mentionPortal.isShowing) _mentionPortal.hide();
+    setState(() {});
+  }
+
+  void _moveMentionCursor(int delta) {
+    final matches = _mentionMatches;
+    if (matches.isEmpty) return;
+    setState(() {
+      _mentionIndex = (_mentionIndex + delta) % matches.length;
+      if (_mentionIndex < 0) _mentionIndex += matches.length;
+    });
+  }
+
+  /// Puts the chosen handle in place of what has been typed of it.
+  ///
+  /// The whole run goes, at sign and all, so picking "@Morning kitchen" after
+  /// typing "@Mo" leaves the name spelled the way the scene is actually called
+  /// -- which is the entire point of the menu, since a handle the model does
+  /// not recognise is a handle that silently does nothing.
+  void _acceptMention(MentionEntry entry) {
+    final query = _mentionQuery;
+    if (query == null) return;
+
+    final caret = _prompt.selection.baseOffset;
+    final trail = caret < _prompt.text.length &&
+            _isBlank(_prompt.text.codeUnitAt(caret))
+        ? ''
+        : ' ';
+    final inserted = '${entry.handle}$trail';
+
+    _closeMentionMenu();
+    _rewrite(
+      _prompt.text.replaceRange(query.start, caret, inserted),
+      query.start + inserted.length,
+    );
+    _focus.requestFocus();
   }
 
   // ---- how much this tab will take ----------------------------------------
@@ -457,7 +583,10 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
     switch (_tab) {
       case ComposerTab.actors:
-        _shootAd();
+        // The page owns the run: it writes the pending tile, starts the
+        // pipeline and settles the result -- and the refresh button on a
+        // finished ad goes through the same door.
+        widget.onGenerateAd();
       case ComposerTab.image:
       case ComposerTab.video:
         await _sendPrompted();
@@ -475,23 +604,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     }
 
     await app.runner.send(order);
-  }
-
-  /// Puts a pending ad in the feed and starts the pipeline behind it.
-  void _shootAd() {
-    final batch = CanvasBatch(
-      id: CanvasFeed.newId(),
-      kind: CanvasKind.ad,
-      prompt: app.project.script.trim(),
-      createdAt: DateTime.now(),
-      modelLabel: app.runner.modelLabel('avatar'),
-      aspectRatio: app.project.aspectRatio,
-      items: [CanvasItem(id: CanvasFeed.newId())],
-    );
-    app.project.feed.add(batch);
-    _adBatch = batch;
-
-    widget.onGenerateAd();
   }
 
   // ---- references ----------------------------------------------------------
@@ -681,7 +793,12 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                     alignment: AlignmentDirectional.centerStart,
                     child: ComposerTabBar(
                       current: _tab,
-                      onPicked: (tab) => setState(() => _tab = tab),
+                      onPicked: (tab) {
+                        // The menu belongs to the caret it opened under, and
+                        // the new tab has its own prompt and its own caret.
+                        _closeMentionMenu();
+                        setState(() => _tab = tab);
+                      },
                     ),
                   ),
                   const SizedBox(height: MqTheme.gap),
@@ -803,20 +920,19 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (_spec.prompted) _field(),
-              // The clip shelf carries its references in a framed well of its
-              // own rather than as a loose row: it is the one mode that takes
-              // all three kinds, each against its own ceiling, and a row of
-              // thumbnails cannot say "three of nine pictures, none of three
-              // clips". Everywhere else that frame would be a box drawn around
-              // one number.
-              if (_showsReferenceWell) ...[
-                if (_spec.prompted) const SizedBox(height: 12),
-                _referenceWell(),
-              ] else if (_refs.isNotEmpty) ...[
-                if (_spec.prompted) const SizedBox(height: 12),
+              // The same reference area in every mode, and that is the point:
+              // it used to be a framed dashed well on the clip shelf and a
+              // loose row of thumbnails everywhere else, so pressing "Video"
+              // grew the bar by eighty pixels and pushed the feed, the caret
+              // and the send button down the page. A control that decides what
+              // the *next* generation is made of has no business resizing the
+              // field you are typing this one into. The counters the well
+              // existed for are on the footer row now, beside the buttons that
+              // add the files they are counting.
+              if (_refs.isNotEmpty) ...[
+                const SizedBox(height: 12),
                 _referenceRow(),
               ],
-              if (!_spec.prompted && _refs.isEmpty) _dropInvitation(),
               const SizedBox(height: 10),
               _footer(),
             ],
@@ -829,10 +945,14 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
   Widget _field() {
     final mq = context.mq;
 
-    // Rewritten rather than kept in step: it is a plain field on the
-    // controller, read while the text is painted, and recomputing it here is
+    // Rewritten rather than kept in step: they are plain fields on the
+    // controller, read while the text is painted, and recomputing them here is
     // cheaper than remembering every way a reference can come and go.
     _prompt.handles = [for (final mention in _mentions) mention.handle];
+    // Only a script has direction in it -- see [MentionController.directs].
+    _prompt.directs = _tab == ComposerTab.actors;
+
+    final matches = _mentionMatches;
 
     return ConstrainedBox(
       // One floor for every tab, and it is the script's. A 44px prompt and an
@@ -854,16 +974,31 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
       // useless -- that action consumes the key, which is exactly how Enter
       // came to do nothing at all here.
       child: Shortcuts(
-        shortcuts: const {
-          SingleActivator(LogicalKeyboardKey.enter): _SendIntent(),
-          SingleActivator(LogicalKeyboardKey.enter, control: true):
-              _SendIntent(),
-          SingleActivator(LogicalKeyboardKey.enter, meta: true): _SendIntent(),
+        shortcuts: {
+          // While the handle menu is up the four navigation keys belong to it,
+          // exactly as they would in any completion list: Enter takes the lit
+          // row rather than sending a half-typed prompt, and Escape puts the
+          // menu away without touching what has been written. Bound only while
+          // it is open, so the rest of the time Enter sends and the arrows move
+          // the caret through the script.
+          if (_mentionOpen) ...const {
+            SingleActivator(LogicalKeyboardKey.arrowDown): _MentionMoveIntent(1),
+            SingleActivator(LogicalKeyboardKey.arrowUp): _MentionMoveIntent(-1),
+            SingleActivator(LogicalKeyboardKey.enter): _MentionAcceptIntent(),
+            SingleActivator(LogicalKeyboardKey.tab): _MentionAcceptIntent(),
+            SingleActivator(LogicalKeyboardKey.escape): _MentionCloseIntent(),
+          } else
+            const SingleActivator(LogicalKeyboardKey.enter): const _SendIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, control: true):
+              const _SendIntent(),
+          const SingleActivator(LogicalKeyboardKey.enter, meta: true):
+              const _SendIntent(),
           // Taken off the field, which can only ever paste text. This one
           // decides between text and media itself -- see [_paste].
-          SingleActivator(LogicalKeyboardKey.keyV, control: true):
-              _PasteIntent(),
-          SingleActivator(LogicalKeyboardKey.keyV, meta: true): _PasteIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyV, control: true):
+              const _PasteIntent(),
+          const SingleActivator(LogicalKeyboardKey.keyV, meta: true):
+              const _PasteIntent(),
         },
         child: Actions(
           actions: {
@@ -879,83 +1014,81 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
                 return null;
               },
             ),
+            _MentionMoveIntent: CallbackAction<_MentionMoveIntent>(
+              onInvoke: (intent) {
+                _moveMentionCursor(intent.delta);
+                return null;
+              },
+            ),
+            _MentionAcceptIntent: CallbackAction<_MentionAcceptIntent>(
+              onInvoke: (_) {
+                if (matches.isNotEmpty) {
+                  _acceptMention(matches[_mentionIndex.clamp(
+                    0,
+                    matches.length - 1,
+                  )]);
+                }
+                return null;
+              },
+            ),
+            _MentionCloseIntent: CallbackAction<_MentionCloseIntent>(
+              onInvoke: (_) {
+                _closeMentionMenu();
+                return null;
+              },
+            ),
           },
-          child: TextField(
-            controller: _prompt,
-            focusNode: _focus,
-            // Grows to eight lines and then scrolls. Unbounded, a script typed
-            // line by line pushed the send button, the settings row and the
-            // feed off the screen -- the bar ended up owning the window,
-            // which is the one thing a bar must never do.
-            minLines: 1,
-            maxLines: 8,
-            onChanged: _tab == ComposerTab.actors
-                ? app.project.setScript
-                : null,
-            cursorColor: mq.primary,
-            style: TextStyle(
-              color: mq.textPrimary,
-              fontSize: MqTheme.fontBody,
-              height: MqTheme.lineBody,
-            ),
-            decoration: InputDecoration(
-              isDense: true,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.zero,
-              hintText: _spec.placeholder,
-              hintStyle: TextStyle(
-                color: mq.textTertiary,
-                fontSize: MqTheme.fontBody,
+          child: OverlayPortal.overlayChildLayoutBuilder(
+            controller: _mentionPortal,
+            overlayChildBuilder: (context, info) => PopoverLayer(
+              info: info,
+              width: MentionMenu.width,
+              alignStart: true,
+              onDismiss: _closeMentionMenu,
+              child: MentionMenu(
+                entries: matches,
+                highlighted: _mentionIndex.clamp(
+                  0,
+                  math.max(0, matches.length - 1),
+                ),
+                ffmpegPath: app.ffmpegPath,
+                onPicked: _acceptMention,
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// What the two source-only tabs show in place of a prompt.
-  Widget _dropInvitation() {
-    final mq = context.mq;
-
-    // The source-only tabs take exactly one kind, so the invitation opens that
-    // one dialog rather than a filter covering all three.
-    final kind = _acceptedKinds.isEmpty ? MediaKind.image : _acceptedKinds.first;
-
-    return Pressable(
-      onTap: () => _browse(kind),
-      focusRadius: MqTheme.radius,
-      builder: (context, states) => AnimatedContainer(
-        duration: states.duration,
-        height: _fieldMinHeight,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: states.active ? mq.surfaceHover : mq.surfaceSecondary,
-          borderRadius: BorderRadius.circular(MqTheme.radius),
-          border: Border.all(
-            color: states.active ? mq.borderStrong : mq.border,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            MqIcon('image-add-line', size: 18, color: mq.textTertiary),
-            const SizedBox(width: 10),
-            Text(
-              _spec.placeholder,
+            child: TextField(
+              controller: _prompt,
+              focusNode: _focus,
+              // Grows to eight lines and then scrolls. Unbounded, a script typed
+              // line by line pushed the send button, the settings row and the
+              // feed off the screen -- the bar ended up owning the window,
+              // which is the one thing a bar must never do.
+              minLines: 1,
+              maxLines: 8,
+              onChanged: _tab == ComposerTab.actors
+                  ? app.project.setScript
+                  : null,
+              cursorColor: mq.primary,
               style: TextStyle(
-                color: mq.textSecondary,
-                fontSize: MqTheme.fontLabel,
+                color: mq.textPrimary,
+                fontSize: MqTheme.fontBody,
+                height: MqTheme.lineBody,
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                hintText: _spec.placeholder,
+                hintStyle: TextStyle(
+                  color: mq.textTertiary,
+                  fontSize: MqTheme.fontBody,
+                ),
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
-
-  /// Whether this tab draws the framed reference well under its prompt.
-  bool get _showsReferenceWell => _tab == ComposerTab.video;
 
   Widget _referenceRow() {
     // The handles have to be computed over the whole list rather than per tile:
@@ -994,68 +1127,6 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
 
   static const double _tileSize = 54;
 
-  /// The framed well under the clip shelf's prompt.
-  ///
-  /// A dashed box, because a dashed box means "put things here" in a way a
-  /// hairline panel does not -- and, along the bottom of it, how many of each
-  /// kind are in and how many the chosen model will take. Those numbers were
-  /// previously discoverable only by sending too many and reading the
-  /// rejection.
-  Widget _referenceWell() {
-    final mq = context.mq;
-    final handles = referenceHandles(_refs);
-
-    return DashedBox(
-      color: _dragging ? mq.textTertiary : mq.borderStrong,
-      radius: MqTheme.radius,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (_refs.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Center(
-                  child: MqIcon(
-                    'image-add-line',
-                    size: 22,
-                    color: mq.textTertiary,
-                  ),
-                ),
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.start,
-                children: [
-                  for (var i = 0; i < _refs.length; ++i)
-                    _NamedReference(
-                      path: _refs[i],
-                      handle: handles[i],
-                      size: _tileSize,
-                      ffmpegPath: app.ffmpegPath,
-                      onOpen: () => showMediaPreview(context, _refs[i]),
-                      onRemove: () => _removeReference(i),
-                      onInsert: () => _insertHandle(handles[i]),
-                    ),
-                ],
-              ),
-            const SizedBox(height: 8),
-            _CounterLine(
-              counts: [
-                for (final kind in _acceptedKinds)
-                  (kind: kind, used: _countOf(kind), limit: _limitOf(kind)),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _footer() {
     final mq = context.mq;
     final readiness = _readiness;
@@ -1069,61 +1140,87 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
         ..value = 0;
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        // The buttons and every setting share one wrapping row.
-        //
-        // The settings used to be behind a cog: press it, a panel opened over
-        // the canvas with six labelled rows in it, change one, close it. Four
-        // actions to answer a question you can already see the answer to --
-        // and the one thing that *was* on the bar, the model name, opened that
-        // same panel, so the most direct-looking control on screen was a
-        // shortcut to the slowest.
-        //
-        // Every setting is its own chip now, showing its own value, and each
-        // opens only its own menu. Pressing "Best" asks about quality and
-        // nothing else.
-        Expanded(
-          child: Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: _leadingActions(),
-          ),
-        ),
+    // The buttons and every setting share one wrapping row.
+    //
+    // The settings used to be behind a cog: press it, a panel opened over the
+    // canvas with six labelled rows in it, change one, close it. Four actions
+    // to answer a question you can already see the answer to -- and the one
+    // thing that *was* on the bar, the model name, opened that same panel, so
+    // the most direct-looking control on screen was a shortcut to the slowest.
+    //
+    // Every setting is its own chip now, showing its own value, and each opens
+    // only its own menu. Pressing "Best" asks about quality and nothing else.
+    final leading = Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: _leadingActions(),
+    );
+
+    // What the press costs, how many of them, then the two buttons that act on
+    // the prompt. In that order because that is the sentence somebody reads on
+    // the way to pressing send: this is the price, this is how many I am
+    // buying, here is how to improve it first, here is how to send it. The
+    // count used to come before the price, which put the number that changes
+    // the total *after* the total.
+    final trailing = <Widget>[
+      if (_meterPrice.isNotEmpty) ...[
+        _PriceTag(price: _meterPrice),
         const SizedBox(width: 10),
-        if (_spec.batched) ...[
-          _Stepper(
-            value: _count,
-            max: _spec.maxCount,
-            onChanged: _setCount,
-          ),
-          const SizedBox(width: 10),
-        ],
-        Container(width: 1, height: 24, color: mq.divider),
-        const SizedBox(width: 10),
-        // What the press costs, then the two buttons that act on the prompt.
-        // In that order because that is the sentence: this is what it will
-        // cost, here is how to make it better first, here is how to send it.
-        if (_meterPrice.isNotEmpty) ...[
-          _PriceTag(price: _meterPrice),
-          const SizedBox(width: 10),
-        ],
-        if (_spec.prompted) ...[
-          _improveButton(),
-          const SizedBox(width: 8),
-        ],
-        GradientSendButton(
-          enabled: readiness.ready,
-          busy: busy,
-          spinner: _spinner,
-          tooltip: readiness.ready
-              ? tr('Generate  ·  Enter')
-              : readiness.reason,
-          onPressed: _send,
-        ),
       ],
+      if (_spec.batched) ...[
+        _Stepper(value: _count, max: _spec.maxCount, onChanged: _setCount),
+        const SizedBox(width: 10),
+      ],
+      if (_spec.prompted) ...[
+        _improveButton(),
+        const SizedBox(width: 8),
+      ],
+      GradientSendButton(
+        enabled: readiness.ready,
+        busy: busy,
+        spinner: _spinner,
+        tooltip: readiness.ready ? tr('Generate  ·  Enter') : readiness.reason,
+        onPressed: _send,
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Two shapes, and the narrow one is not a degraded version of the wide
+        // one -- it is the only one that fits. Side by side, the cast chips
+        // and the send button are one line to read; squeezed, the chips wrap
+        // under themselves and the last of them ends up marooned on a line of
+        // its own beside a send button that has floated to the bottom of it.
+        // Stacking puts what you are making on one line and what it costs to
+        // make it on the next, which is how it reads anyway.
+        if (constraints.maxWidth < _stackFooterBelow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              leading,
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: trailing,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Expanded(child: leading),
+            const SizedBox(width: 10),
+            Container(width: 1, height: 24, color: mq.divider),
+            const SizedBox(width: 10),
+            ...trailing,
+          ],
+        );
+      },
     );
   }
 
@@ -1851,6 +1948,17 @@ class _ComposerState extends State<Composer> with TickerProviderStateMixin {
     };
 
     return [
+      // How much of each kind the chosen model will take, next to the buttons
+      // that add them. Only where the model has something to say: the picture
+      // and talking-actor shelves have no declared ceiling, and "0 of 99" is
+      // not a limit anybody is approaching.
+      if (_tab == ComposerTab.video)
+        _CounterLine(
+          counts: [
+            for (final kind in _acceptedKinds)
+              (kind: kind, used: _countOf(kind), limit: _limitOf(kind)),
+          ],
+        ),
       for (final kind in _acceptedKinds)
         MqIconButton(
           icon: switch (kind) {
@@ -1916,6 +2024,21 @@ class _SendIntent extends Intent {
 
 class _PasteIntent extends Intent {
   const _PasteIntent();
+}
+
+/// Up or down the open handle menu.
+class _MentionMoveIntent extends Intent {
+  const _MentionMoveIntent(this.delta);
+
+  final int delta;
+}
+
+class _MentionAcceptIntent extends Intent {
+  const _MentionAcceptIntent();
+}
+
+class _MentionCloseIntent extends Intent {
+  const _MentionCloseIntent();
 }
 
 /// A reference with the name the prompt calls it by written underneath.

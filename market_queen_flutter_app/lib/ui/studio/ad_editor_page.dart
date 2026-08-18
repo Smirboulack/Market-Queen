@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../app_state.dart';
+import '../../i18n/translator.dart';
+import '../../models/canvas_feed.dart';
 import '../theme.dart';
 import 'canvas_view.dart';
 import 'composer.dart';
@@ -22,16 +24,12 @@ class AdEditorPage extends StatefulWidget {
     super.key,
     required this.app,
     required this.onGenerate,
-    required this.onOpenRender,
   });
 
   final AppState app;
 
   /// Starts the pipeline. The composer decides when; the window owns the run.
   final VoidCallback onGenerate;
-
-  /// The way through to a finished ad's shot list, from its tile in the canvas.
-  final VoidCallback onOpenRender;
 
   /// What the canvas holds clear at the bottom before the composer has been
   /// measured -- roughly the bar with an empty prompt in it.
@@ -50,6 +48,92 @@ class AdEditorPage extends StatefulWidget {
 
 class _AdEditorPageState extends State<AdEditorPage> {
   double _reserve = AdEditorPage.composerReserve;
+
+  /// The feed tile the running pipeline will fill.
+  ///
+  /// Held here rather than in the composer because the composer is no longer
+  /// the only thing that can start a run: the refresh button on a finished ad
+  /// asks for the same thing, and two places writing a pending tile is two
+  /// places to keep the settling logic in step. `finished` also fires for a
+  /// single-shot reshoot, so only the batch this page opened is settled by it.
+  CanvasBatch? _adBatch;
+
+  AppState get app => widget.app;
+
+  @override
+  void initState() {
+    super.initState();
+    app.pipeline.finished.listen(_onAdFinished);
+  }
+
+  @override
+  void dispose() {
+    app.pipeline.finished.remove(_onAdFinished);
+    super.dispose();
+  }
+
+  /// Puts a pending ad in the feed and starts the pipeline behind it.
+  ///
+  /// One entry point for both ways in: the send button on the talking-actor
+  /// tab, and "another take" on an ad already in the feed. Refused while one is
+  /// already shooting -- the pipeline is single-file, and a second pending tile
+  /// nothing is filling is worse than a button that does not respond.
+  void _shootAd() {
+    // The same two guards the send button applies, because the refresh button
+    // on a finished ad reaches this without passing it: a run started with no
+    // actor or no script is a pending tile that exists only to fail, and a
+    // second run started over the first is a tile nothing will ever fill --
+    // the pipeline settles one at a time.
+    if (app.pipeline.running || !app.project.complete) return;
+
+    final batch = CanvasBatch(
+      id: CanvasFeed.newId(),
+      kind: CanvasKind.ad,
+      prompt: app.project.script.trim(),
+      createdAt: DateTime.now(),
+      modelLabel: app.runner.modelLabel('avatar'),
+      modelId: app.runner.modelFor('avatar'),
+      credential: app.registry.credentialFor(app.runner.providerFor('avatar')),
+      aspectRatio: app.project.aspectRatio,
+      seconds: app.project.maxSeconds,
+      items: [CanvasItem(id: CanvasFeed.newId())],
+    );
+    app.project.feed.add(batch);
+    _adBatch = batch;
+
+    widget.onGenerate();
+  }
+
+  void _onAdFinished(({bool success, String outputFile}) result) {
+    final batch = _adBatch;
+    if (batch == null) return;
+    _adBatch = null;
+
+    app.project.feed.settle(
+      batch.id,
+      batch.items.first.id,
+      status: result.success ? CanvasStatus.done : CanvasStatus.failed,
+      path: result.outputFile,
+      error: result.success ? '' : tr('The render did not finish. See the log.'),
+      // What the run actually charged, which is a sum of a script pass, a
+      // reading and a clip per shot rather than one model's line in the
+      // catalogue -- so the tile can say what it cost like every other one.
+      cost: app.pipeline.cost.total > 0 ? app.pipeline.cost.total : null,
+    );
+  }
+
+  /// Another take of whatever is in [batch].
+  ///
+  /// Two different calls behind one gesture: a still or a clip is one request
+  /// the runner repeats verbatim, while an ad is a whole pipeline run and the
+  /// window owns those. The tile that asks does not have to know which.
+  void _regenerate(CanvasBatch batch) {
+    if (batch.kind == CanvasKind.ad) {
+      _shootAd();
+      return;
+    }
+    app.runner.regenerate(batch);
+  }
 
   /// The prompt block's height, plus the margin it stands on.
   ///
@@ -79,15 +163,22 @@ class _AdEditorPageState extends State<AdEditorPage> {
         Positioned.fill(
           child: CanvasView(
             app: widget.app,
-            onOpenRender: widget.onOpenRender,
+            onRegenerate: _regenerate,
             bottomInset: _reserve,
           ),
         ),
         // A short fade so a tile scrolling past does not slide out from behind
         // the bar with a hard edge.
+        //
+        // Stopping short of the right edge is not a detail: the feed's
+        // scrollbar lives in that strip, and a wash painted over it hid the
+        // thumb at exactly the offset it rests at -- the bottom -- so the one
+        // way to drag the feed was invisible whenever you were at the end of
+        // it. Nothing but background is under the strip, so the seam does not
+        // show.
         Positioned(
           left: 0,
-          right: 0,
+          right: MqTheme.scrollbarLane,
           bottom: 0,
           height: _reserve,
           child: IgnorePointer(
@@ -119,7 +210,7 @@ class _AdEditorPageState extends State<AdEditorPage> {
             ),
             child: Composer(
               app: widget.app,
-              onGenerateAd: widget.onGenerate,
+              onGenerateAd: _shootAd,
               onBarHeight: _onBarHeight,
             ),
           ),

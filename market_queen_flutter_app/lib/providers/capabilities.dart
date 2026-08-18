@@ -1177,6 +1177,16 @@ class DeliveryTags {
 
   static bool present(String text) => _tag.hasMatch(text);
 
+  /// Where every mark sits in [text], in the order they appear.
+  ///
+  /// The prompt field lights them as you type, off the same pattern that
+  /// decides what gets stripped -- so what is coloured is exactly what the
+  /// engine will be handed, and a bracket that is not a mark stays plain.
+  static List<({int start, int length})> spansIn(String text) => [
+        for (final match in _tag.allMatches(text))
+          (start: match.start, length: match.end - match.start),
+      ];
+
   /// The text as this engine should receive it.
   static String forEngine(String text, VoiceCapabilities engine) =>
       engine.audioTags ? text : strip(text);

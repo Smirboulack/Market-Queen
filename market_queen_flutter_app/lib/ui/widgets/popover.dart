@@ -38,6 +38,7 @@ class PopoverLayer extends StatelessWidget {
     required this.width,
     required this.onDismiss,
     required this.child,
+    this.alignStart = false,
   });
 
   /// Where the button is, how big it is, and how big the overlay is -- handed
@@ -48,6 +49,16 @@ class PopoverLayer extends StatelessWidget {
 
   /// Anywhere outside the panel closes it, the way a menu does.
   final VoidCallback onDismiss;
+
+  /// Which edge the panel hangs from.
+  ///
+  /// The settings panels hang off the right, because the buttons that open them
+  /// are at the right end of the bar and a panel that drifts away from its own
+  /// button reads as belonging to something else. The handle menu hangs off the
+  /// left, for the same reason inverted: it belongs to an at sign near the
+  /// start of a line, and a completion list that opens at the far side of the
+  /// field is a list you have to go looking for.
+  final bool alignStart;
 
   final Widget child;
 
@@ -74,13 +85,13 @@ class PopoverLayer extends StatelessWidget {
     final overlay = info.overlaySize;
     final anchor = _anchor;
 
-    // The panel's bottom-right corner sits just above the button's top-right
-    // one: it opens upward, away from the bar, and stays anchored to the same
-    // edge whatever it holds. Clamped so a button near the left edge cannot
-    // push it off the page.
-    final right = (overlay.width - anchor.right)
-        .clamp(0.0, math.max(0.0, overlay.width - width))
-        .toDouble();
+    // The panel's bottom corner sits just above the anchor's top one: it opens
+    // upward, away from the bar, and stays on the same edge whatever it holds.
+    // Clamped so an anchor near either edge cannot push it off the page.
+    final slack = math.max(0.0, overlay.width - width);
+    final right = alignStart
+        ? (overlay.width - anchor.left - width).clamp(0.0, slack).toDouble()
+        : (overlay.width - anchor.right).clamp(0.0, slack).toDouble();
     final bottom = math.max(0.0, overlay.height - anchor.top + gap);
 
     return Stack(

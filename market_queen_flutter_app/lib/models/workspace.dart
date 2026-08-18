@@ -201,11 +201,20 @@ class Workspace extends ChangeNotifier {
   /// Flattened across projects rather than read out of [home] alone: a
   /// workspace made before this change has several, and every ad in it has to
   /// stay reachable.
+  ///
+  /// Ordered by when the ad was *made*, not when it was last touched. The
+  /// column is a list of places you go back to, and a list that reorders
+  /// itself is a list you cannot learn: sorting by [AdEntry.updatedAt] moved a
+  /// row to the top the moment you typed in it -- and, because a document edit
+  /// deliberately does not notify, it moved at some unrelated later rebuild
+  /// rather than as you typed, so the ad you were reading swapped places with
+  /// its neighbour for no visible reason. Creation order never changes, which
+  /// is what makes "the newest one is at the top" a fact rather than a guess.
   List<({String projectId, AdEntry ad})> get allAds {
     final all = [
       for (final owner in _projects)
         for (final entry in owner.ads) (projectId: owner.id, ad: entry),
-    ]..sort((a, b) => b.ad.updatedAt.compareTo(a.ad.updatedAt));
+    ]..sort((a, b) => b.ad.createdAt.compareTo(a.ad.createdAt));
     return all;
   }
 

@@ -24,11 +24,19 @@ class VoiceTake {
   VoiceTake({
     required this.generatedVoiceId,
     required this.path,
+    this.voiceId = '',
     this.durationSeconds = 0,
     this.language = '',
   });
 
   final String generatedVoiceId;
+
+  /// Set already on the providers where designing *creates*.
+  ///
+  /// MiniMax takes the id up front and the voice exists the moment the call
+  /// answers, so there is nothing left for [VoiceForge.keep] to do but hand it
+  /// back. ElevenLabs leaves this empty until a take is kept.
+  final String voiceId;
 
   /// The local mp3 of this take.
   final String path;
@@ -49,11 +57,31 @@ class VoiceTake {
 ///    really is the voice in the file, which is exactly why it is a separate
 ///    button with its own upload rather than a checkbox on the first.
 ///
-/// Both create something permanent on the ElevenLabs account, so neither is
-/// ever implicit: designing stops at three previews, and the account is only
-/// touched when [keep] is called.
+/// Both create something permanent on the user's provider account, so neither
+/// is ever implicit -- but *how* permanent differs by provider, and the
+/// interface has to follow rather than paper over it:
+///
+///  * On **ElevenLabs**, designing stops at three previews that live inside the
+///    call, and the account is only touched when [keep] is called.
+///  * On **MiniMax**, the id is handed over up front and the voice exists as
+///    soon as the design answers. There is one take, and keeping it is
+///    bookkeeping rather than a second call.
+///
+/// Which of the two is in force is [provider], and it is the same preference
+/// the rest of the app reads for "who speaks" -- deliberately, because a voice
+/// id belongs to the account that made it. A voice designed on MiniMax handed
+/// to ElevenLabs to read is not a degraded result, it is a 404.
 class VoiceForge extends ChangeNotifier {
   VoiceForge(this._settings, this._registry, this._pricing, this._log);
+
+  /// The provider ids this panel can work against, in the order they are
+  /// offered.
+  static const providers = <String>['elevenlabs', 'minimax-tts'];
+
+  /// Whether [id] can design and clone at all. Everything else on the voice
+  /// shelf reads a script and nothing more, so offering the workshop against
+  /// one would be offering a button that 404s.
+  static bool worksWith(String id) => providers.contains(id);
 
   /// ElevenLabs bills the design's preview line per thousand characters, once,
   /// however many takes come back from it.
@@ -107,7 +135,24 @@ class VoiceForge extends ChangeNotifier {
 
   String get error => _error;
 
-  String get _apiKey => _settings.apiKey(_registry.credentialFor('elevenlabs'));
+  /// Which account the workshop is working against.
+  ///
+  /// Read from the app's own voice preference rather than kept here, so it can
+  /// never disagree with the engine that will do the reading. Falls back to
+  /// ElevenLabs when the preference names a provider with no workshop -- the
+  /// panel greys itself out in that case rather than pretending.
+  String get provider {
+    final saved = _settings.prefString('voiceProvider');
+    return worksWith(saved) ? saved : providers.first;
+  }
+
+  String get credential => _registry.credentialFor(provider);
+
+  String get _apiKey => _settings.apiKey(credential);
+
+  /// Whether the design endpoint hands back several takes to choose between.
+  /// One provider does and one does not -- see the class comment.
+  bool get offersTakes => provider == 'elevenlabs';
 
   /// Whether there is a key to do any of this with. The buttons say so before
   /// they are pressed rather than failing on the click.
@@ -146,6 +191,10 @@ class VoiceForge extends ChangeNotifier {
   // ---- Designing ---------------------------------------------------------
 
   /// What one design costs: the preview line, read once.
+  ///
+  /// The same shape on both providers -- a design is billed as a reading of its
+  /// own preview text -- so the only difference is which line of the catalogue
+  /// the rate comes off.
   CostEstimate estimate(String previewText, String modelId) {
     final text = previewText.trim().isEmpty
         ? defaultPreviewText
@@ -161,6 +210,7 @@ class VoiceForge extends ChangeNotifier {
   /// recording there colours the timbre without the result being a clone of it.
   Future<void> design({
     required String description,
+    required String name,
     String previewText = '',
     String modelId = 'eleven_ttv_v3',
     String referenceAudioPath = '',
@@ -170,6 +220,16 @@ class VoiceForge extends ChangeNotifier {
     final dir = _scratchDir;
     if (dir.isEmpty) {
       _setError(tr('Could not create the voices folder.'));
+      return;
+    }
+
+    if (provider != 'elevenlabs') {
+      await _designOnMiniMax(
+        description: description,
+        name: name,
+        previewText: previewText,
+        dir: dir,
+      );
       return;
     }
 
@@ -242,11 +302,86 @@ class VoiceForge extends ChangeNotifier {
     }
   }
 
+  /// One take, and the voice already exists when it lands.
+  ///
+  /// The name is not decoration here: MiniMax has no display name at all, so
+  /// what the user typed becomes the id -- see [MiniMaxVoiceId.from] -- and it
+  /// is what the voice is called on their side too.
+  Future<void> _designOnMiniMax({
+    required String description,
+    required String name,
+    required String previewText,
+    required String dir,
+  }) async {
+    final voiceId = MiniMaxVoiceId.from(
+      name.trim().isEmpty ? tr('Market Queen voice') : name.trim(),
+    );
+
+    final task = MiniMaxVoiceDesignTask(
+      apiKey: _apiKey,
+      description: description,
+      previewText:
+          previewText.trim().isEmpty ? defaultPreviewText : previewText,
+      voiceId: voiceId,
+    );
+
+    _takes.clear();
+    _spokenText = '';
+    _error = '';
+    _designing = true;
+    _task = task;
+    notifyListeners();
+
+    _log.info(tr('Designing a voice with %1.').arg('MiniMax'));
+
+    try {
+      final result = await task.run();
+      final audio = result['audio'];
+
+      var path = '';
+      if (audio is Uint8List && audio.isNotEmpty) {
+        path = p.join(dir, 'design-${_stamp(DateTime.now())}.mp3');
+        try {
+          File(path).writeAsBytesSync(audio);
+        } on FileSystemException {
+          _log.warning(tr('Could not write %1.').arg(path));
+          path = '';
+        }
+      }
+
+      // Kept even with nothing to play: the voice is on the account either way,
+      // and a panel that showed no take at all would look like a failure that
+      // had in fact charged for a voice.
+      _takes.add(VoiceTake(
+        generatedVoiceId: voiceId,
+        voiceId: '${result['voiceId'] ?? voiceId}',
+        path: path,
+      ));
+      _spokenText = previewText.trim().isEmpty ? defaultPreviewText : previewText;
+
+      _designing = false;
+      notifyListeners();
+    } on ProviderException catch (error) {
+      if (error is! TaskCancelled) {
+        _log.error(tr('Voice design failed: %1').arg(error.message));
+        _error = error.message;
+      }
+      _designing = false;
+      notifyListeners();
+    } finally {
+      _task = null;
+    }
+  }
+
   /// Keeps take [index] as a real voice, and returns its id and name.
   ///
   /// The other two travel with it as the ones that were heard and passed over,
   /// which is what ElevenLabs asks for. Empty id when it failed; [error] says
   /// why.
+  ///
+  /// On a provider where designing already created the voice there is nothing
+  /// to send: the id it was made under comes straight back, so the button that
+  /// calls this is a confirmation rather than a second charge.
   Future<({String voiceId, String name})> keep({
     required int index,
     required String name,
@@ -254,6 +389,10 @@ class VoiceForge extends ChangeNotifier {
   }) async {
     if (busy || index < 0 || index >= _takes.length) {
       return (voiceId: '', name: '');
+    }
+
+    if (_takes[index].voiceId.isNotEmpty) {
+      return (voiceId: _takes[index].voiceId, name: name);
     }
 
     final chosen = _takes[index];
@@ -314,14 +453,25 @@ class VoiceForge extends ChangeNotifier {
       return (voiceId: '', name: '');
     }
 
-    final task = ElevenLabsVoiceCloneTask(VoiceCloneRequest(
-      apiKey: _apiKey,
-      name: name.trim().isEmpty ? tr('Market Queen voice') : name.trim(),
-      description: description.trim().isEmpty
-          ? tr('Cloned with Market Queen.')
-          : description.trim(),
-      samplePaths: List.of(samplePaths),
-    ));
+    final wanted = name.trim().isEmpty ? tr('Market Queen voice') : name.trim();
+
+    final task = provider == 'elevenlabs'
+        ? ElevenLabsVoiceCloneTask(VoiceCloneRequest(
+            apiKey: _apiKey,
+            name: wanted,
+            description: description.trim().isEmpty
+                ? tr('Cloned with Market Queen.')
+                : description.trim(),
+            samplePaths: List.of(samplePaths),
+          ))
+        // MiniMax has no display name and clones from one recording, so the
+        // name becomes the id and the rest of the pile is left behind -- which
+        // the panel says before the button is pressed rather than after.
+        : MiniMaxVoiceCloneTask(
+            apiKey: _apiKey,
+            voiceId: MiniMaxVoiceId.from(wanted),
+            samplePaths: List.of(samplePaths),
+          );
 
     _error = '';
     _cloning = true;
@@ -333,7 +483,7 @@ class VoiceForge extends ChangeNotifier {
     try {
       final result = await task.run();
       final voiceId = '${result['voiceId'] ?? ''}';
-      final voiceName = '${result['name'] ?? name}';
+      final voiceName = '${result['name'] ?? wanted}';
 
       _log.success(tr('Voice "%1" is on your account.').arg(voiceName));
       _cloning = false;

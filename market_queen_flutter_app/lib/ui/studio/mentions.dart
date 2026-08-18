@@ -1,25 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../models/asset_library.dart';
+import '../../providers/capabilities.dart' show DeliveryTags;
 import '../theme.dart';
-
-/// One thing attached to the composer that the prompt can point at by name.
-///
-/// The handles are not an invention of the interface: `@Image1`, `@Video1` and
-/// `@Audio1` are exactly what the reference video models are handed, in exactly
-/// the order the runner uploads them. What was missing was any way to find that
-/// out without reading the log after the fact -- so the same names are now on
-/// the tiles, in the placeholder, and lit up in the prompt as you type them.
-@immutable
-class Mention {
-  const Mention({required this.handle, required this.label});
-
-  /// "@Image1", "@Marie" -- with the at sign, because that is what is typed.
-  final String handle;
-
-  /// What it stands for, for the tooltip: a file name, or a cast name.
-  final String label;
-}
 
 /// The handle for every reference in [paths], index for index.
 ///
@@ -108,19 +91,38 @@ List<({int start, int length})> findMentions(
 bool promptMentions(String text, String handle) =>
     findMentions(text, [handle]).isNotEmpty;
 
-/// A prompt field that colours the handles it recognises.
+/// A prompt field that colours the two things in it that are not prose.
 ///
-/// The one piece of colour in a greyscale interface that is not the send
-/// button, and it earns it: the whole question a handle raises is "did that
-/// land, or am I typing at nothing", and the answer has to be visible in the
-/// glance you give the prompt before pressing send. An unrecognised `@word`
-/// stays plain grey, which is the other half of the same answer.
+/// The only colour in a greyscale interface that is not the send button, and it
+/// earns it twice over:
+///
+///  * A **handle** -- `@Marie`, `@Image1` -- raises exactly one question: did
+///    that land, or am I typing at nothing? The answer has to be visible in the
+///    glance you give the prompt before pressing send, and an unrecognised
+///    `@word` staying plain grey is the other half of the same answer.
+///  * A **delivery mark** -- `[excited]`, `[whispers]` -- is the opposite kind
+///    of token: it is not pointing at anything, it is an instruction to the
+///    voice engine that is never read aloud. Undistinguished, it looked like
+///    words the actor was about to say, which is precisely the mistake it
+///    causes -- somebody deletes half of one and ships a script with a stray
+///    bracket in the middle of a sentence.
+///
+/// Two colours rather than one, because they are two different claims. Neither
+/// can overlap the other: one starts with an at sign and the other with a
+/// bracket.
 class MentionController extends TextEditingController {
   MentionController({super.text});
 
   /// Every handle currently attached to the bar. Rewritten on each build --
   /// dropping a reference has to unlight the token that named it.
   List<String> handles = const [];
+
+  /// Whether this field is a script, and its brackets are therefore direction.
+  ///
+  /// Off on the picture and clip shelves: nothing there is read aloud, so
+  /// `[foo]` in a prompt for a still is a bracket like any other and lighting
+  /// it up would be inventing a meaning the model has never heard of.
+  bool directs = false;
 
   @override
   TextSpan buildTextSpan({
@@ -134,7 +136,7 @@ class MentionController extends TextEditingController {
     // While an input method is mid-word its underline is the only sign the
     // keystrokes have not landed yet, and the base implementation is what draws
     // it. Colour can wait for the character to be committed.
-    if (composing || handles.isEmpty) {
+    if (composing) {
       return super.buildTextSpan(
         context: context,
         style: style,
@@ -142,24 +144,49 @@ class MentionController extends TextEditingController {
       );
     }
 
-    final matches = findMentions(text, handles);
-    if (matches.isEmpty) return TextSpan(text: text, style: style);
+    final mq = context.mq;
+    final base = style ?? const TextStyle();
 
-    final lit = (style ?? const TextStyle()).copyWith(
-      color: context.mq.info,
-      fontWeight: FontWeight.w600,
-    );
+    final marked = <({int start, int length, TextStyle style})>[
+      for (final match in findMentions(text, handles))
+        (
+          start: match.start,
+          length: match.length,
+          style: base.copyWith(color: mq.info, fontWeight: FontWeight.w600),
+        ),
+      if (directs)
+        for (final match in DeliveryTags.spansIn(text))
+          (
+            start: match.start,
+            length: match.length,
+            // A wash behind it as well as a colour on it. A mark is a token
+            // rather than a word -- it has an inside and an outside -- and the
+            // tint is what makes a bracket somebody has half-deleted read as
+            // broken instead of as ordinary text.
+            style: base.copyWith(
+              color: mq.delivery,
+              backgroundColor: mq.deliverySubtle,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+    ]..sort((a, b) => a.start.compareTo(b.start));
+
+    if (marked.isEmpty) return TextSpan(text: text, style: style);
 
     final spans = <TextSpan>[];
     var cursor = 0;
-    for (final match in matches) {
+    for (final match in marked) {
+      // The two kinds cannot overlap -- one opens on an at sign and the other
+      // on a bracket -- but a defensive skip costs nothing and a negative
+      // substring is a crash in the field somebody is typing into.
+      if (match.start < cursor) continue;
       if (match.start > cursor) {
         spans.add(TextSpan(text: text.substring(cursor, match.start)));
       }
       spans.add(
         TextSpan(
           text: text.substring(match.start, match.start + match.length),
-          style: lit,
+          style: match.style,
         ),
       );
       cursor = match.start + match.length;
