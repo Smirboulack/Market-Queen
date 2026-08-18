@@ -22,6 +22,7 @@ class AdList extends StatelessWidget {
     required this.onNew,
     required this.onOpen,
     required this.onRename,
+    required this.onDelete,
   });
 
   final AppState app;
@@ -32,6 +33,10 @@ class AdList extends StatelessWidget {
   final VoidCallback onNew;
   final void Function(String projectId, String adId) onOpen;
   final void Function(String projectId, String adId) onRename;
+
+  /// Asked for, not done: the caller confirms, deletes, and decides what the
+  /// editor shows next if the ad being deleted is the one it is on.
+  final void Function(String projectId, String adId) onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +78,7 @@ class AdList extends StatelessWidget {
                       selected: entry.ad.id == openAdId,
                       onTap: () => onOpen(entry.projectId, entry.ad.id),
                       onRename: () => onRename(entry.projectId, entry.ad.id),
+                      onDelete: () => onDelete(entry.projectId, entry.ad.id),
                     );
                   },
                 ),
@@ -92,12 +98,14 @@ class _AdRow extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.onRename,
+    required this.onDelete,
   });
 
   final String label;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onRename;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +161,22 @@ class _AdRow extends StatelessWidget {
                     tip: tr('Rename this ad'),
                     size: 24,
                     onPressed: onRename,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 24,
+              child: IgnorePointer(
+                ignoring: !states.active && !selected,
+                child: AnimatedOpacity(
+                  opacity: states.active || selected ? 1 : 0,
+                  duration: MqTheme.hoverDuration,
+                  child: MqIconButton(
+                    icon: 'delete-bin-line',
+                    tip: tr('Delete the ad'),
+                    size: 24,
+                    onPressed: onDelete,
                   ),
                 ),
               ),

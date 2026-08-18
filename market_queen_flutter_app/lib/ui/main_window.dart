@@ -75,6 +75,7 @@ class _MainWindowState extends State<MainWindow> {
         onNew: _newAd,
         onOpen: _openAd,
         onRename: _renameAd,
+        onDelete: _deleteAd,
       ),
     ),
     NavEntry(label: tr('Storyboard'), icon: 'layout-line', page: _scenario),
@@ -127,6 +128,30 @@ class _MainWindowState extends State<MainWindow> {
       initial: ad.name,
     );
     if (name != null) app.workspace.renameAd(projectId, adId, name);
+  }
+
+  Future<void> _deleteAd(String projectId, String adId) async {
+    final ad = app.workspace.ad(projectId, adId);
+    if (ad == null) return;
+
+    final ok = await askToConfirm(
+      context,
+      //: %1 is the name of an ad
+      title: tr('Delete "%1"?').arg(ad.name),
+      message: tr(
+        'The scenario and its settings go with it. Videos already generated '
+        'stay in your projects folder.',
+      ),
+      confirmLabel: tr('Delete the ad'),
+    );
+    if (!ok) return;
+
+    app.workspace.removeAd(projectId, adId);
+    if (_adId == adId) {
+      setState(() {
+        _adId = '';
+      });
+    }
   }
 
   /// Starts a run and stays where it is.
@@ -190,10 +215,7 @@ class _MainWindowState extends State<MainWindow> {
     // below it is the canvas.
     final ad = app.workspace.ad(_projectId, _adId);
 
-    return [
-      Crumb(tr('Create UGC')),
-      if (ad != null) Crumb(ad.name),
-    ];
+    return [Crumb(tr('Create UGC')), if (ad != null) Crumb(ad.name)];
   }
 
   // ---- build ---------------------------------------------------------------
